@@ -84,3 +84,9 @@ stroke="currentColor"` (common in icon sets) is pushed down so it survives.
   simple and exact.
 - `window.svgcraft` exposes `state`, `serialize`, `openSvg`, `placeSvg`
   and friends for poking at the editor from the console.
+
+## Credits
+
+Tool icons are from [Font Awesome Free](https://fontawesome.com) 6.7.2 by
+Fonticons, Inc., licensed [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+They're inlined as SVG, so nothing loads from a CDN.

@@ -155,8 +155,13 @@ kbd {
   min-width: 30px;
   padding: 4px 6px;
 }
-.sc-icon svg,
+/* Font Awesome glyphs are filled shapes; the top-bar icons are strokes. */
 .sc-tools svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+.sc-icon svg {
   width: 18px;
   height: 18px;
   fill: none;
