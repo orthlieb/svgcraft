@@ -5,6 +5,9 @@ three static files (`index.html`, `style.css`, `app.js`): open `index.html`
 directly, or serve the folder (`npx serve .`) and host it
 anywhere static.
 
+**Live:** <https://orthlieb.github.io/svgcraft/> (served by GitHub Pages
+from the root of `main`; every push to `main` redeploys it).
+
 [CENSUS.md](CENSUS.md) surveys 13 current editors and ranks features by
 importance. It explains why the feature set below looks the way it does,
 and what comes next.
