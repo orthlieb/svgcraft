@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Svgcraft</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="sc-top">
+      <span class="sc-logo">Svg<b>craft</b></span>
+      <div class="sc-group">
+        <button id="sc-new" data-tip="New drawing">New</button>
+        <button id="sc-open" data-tip="Open an SVG (replaces the drawing) · Ctrl+O">Open…</button>
+        <button id="sc-place" data-tip="Import an SVG or image into the drawing">Import…</button>
+        <input
+          id="sc-file"
+          type="file"
+          accept=".svg,image/svg+xml,image/png,image/jpeg,image/webp,image/gif"
+          hidden
+        />
+      </div>
+      <div class="sc-group">
+        <button id="sc-export-svg" class="sc-primary" data-tip="Download SVG · Ctrl+S">
+          Export SVG
+        </button>
+        <button id="sc-export-png" data-tip="Download PNG (transparent background)">PNG</button>
+        <select id="sc-png-scale" aria-label="PNG scale">
+          <option value="1">1×</option>
+          <option value="2" selected>2×</option>
+          <option value="4">4×</option>
+        </select>
+        <button id="sc-copy-svg" data-tip="Copy SVG markup to the clipboard">Copy</button>
+      </div>
+      <div class="sc-group">
+        <button id="sc-undo" class="sc-icon" aria-label="Undo" data-tip="Undo · Ctrl+Z">
+          <svg viewBox="0 0 24 24">
+            <path d="M9 14 4 9l5-5" />
+            <path d="M4 9h11a5 5 0 0 1 0 10h-3" />
+          </svg>
+        </button>
+        <button id="sc-redo" class="sc-icon" aria-label="Redo" data-tip="Redo · Ctrl+Shift+Z">
+          <svg viewBox="0 0 24 24">
+            <path d="m15 14 5-5-5-5" />
+            <path d="M20 9H9a5 5 0 0 0 0 10h3" />
+          </svg>
+        </button>
+      </div>
+      <div class="sc-group sc-size">
+        <label>W <input id="sc-w" type="number" min="1" max="20000" value="800" /></label>
+        <label>H <input id="sc-h" type="number" min="1" max="20000" value="600" /></label>
+      </div>
+      <div class="sc-group">
+        <button id="sc-zoom-out" class="sc-icon" aria-label="Zoom out" data-tip="Zoom out · −">
+          −
+        </button>
+        <button id="sc-zoom-pct" data-tip="Zoom to fit · 0 (1 = 100%)">100%</button>
+        <button id="sc-zoom-in" class="sc-icon" aria-label="Zoom in" data-tip="Zoom in · +">
+          +
+        </button>
+      </div>
+      <div class="sc-group">
+        <label class="sc-check" data-tip="Show grid"
+          ><input id="sc-grid" type="checkbox" /> Grid</label
+        >
+        <label class="sc-check" data-tip="Snap to grid"
+          ><input id="sc-snap" type="checkbox" /> Snap</label
+        >
+        <input
+          id="sc-grid-size"
+          type="number"
+          min="2"
+          max="500"
+          value="20"
+          aria-label="Grid size"
+        />
+      </div>
+      <button id="sc-panel-toggle" class="sc-panel-toggle" aria-label="Show panel">☰</button>
+    </header>
+
+    <div class="sc-main">
+      <nav class="sc-tools" aria-label="Tools">
+        <button data-tool="select" aria-label="Select" data-tip="Select · V">
+          <svg viewBox="0 0 24 24"><path d="M5 3l14 8-6 1.5L10 19z" /></svg>
+        </button>
+        <button data-tool="pencil" aria-label="Pencil" data-tip="Pencil · P">
+          <svg viewBox="0 0 24 24">
+            <path d="M4 20l1-4L16 5l3 3L8 19z" />
+            <path d="M14 7l3 3" />
+          </svg>
+        </button>
+        <button data-tool="pen" aria-label="Pen" data-tip="Pen (Bézier) · B">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 3l5 9-5 9-5-9z" />
+            <circle cx="12" cy="12" r="1.6" />
+            <path d="M12 3v7" />
+          </svg>
+        </button>
+        <button data-tool="eraser" aria-label="Eraser" data-tip="Eraser · E">
+          <svg viewBox="0 0 24 24">
+            <path d="M8 20h12" />
+            <path d="M4 15l9-9 6 6-8 8H8z" />
+            <path d="M9 10l6 6" />
+          </svg>
+        </button>
+        <span class="sc-sep"></span>
+        <button data-tool="rect" aria-label="Rectangle" data-tip="Rectangle · R">
+          <svg viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="1" /></svg>
+        </button>
+        <button data-tool="ellipse" aria-label="Ellipse" data-tip="Ellipse · O">
+          <svg viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="8" ry="6" /></svg>
+        </button>
+        <button data-tool="line" aria-label="Line" data-tip="Line · L">
+          <svg viewBox="0 0 24 24"><path d="M5 19L19 5" /></svg>
+        </button>
+        <button data-tool="text" aria-label="Text" data-tip="Text · T">
+          <svg viewBox="0 0 24 24">
+            <path d="M5 6V4h14v2" />
+            <path d="M12 4v16" />
+            <path d="M9 20h6" />
+          </svg>
+        </button>
+        <span class="sc-sep"></span>
+        <button data-tool="hand" aria-label="Pan" data-tip="Pan · H (or hold Space)">
+          <svg viewBox="0 0 24 24">
+            <path
+              d="M8 12V6a1.5 1.5 0 0 1 3 0v5V4.5a1.5 1.5 0 0 1 3 0V11V6a1.5 1.5 0 0 1 3 0v8a6 6 0 0 1-6 6h-1a6 6 0 0 1-5-3l-2-4a1.5 1.5 0 0 1 2.6-1.5L8 13"
+            />
+          </svg>
+        </button>
+      </nav>
+
+      <div class="sc-stage-wrap" id="sc-stage-wrap">
+        <svg id="sc-stage" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="sc-checker" patternUnits="userSpaceOnUse" width="16" height="16">
+              <rect width="16" height="16" class="sc-check-a" />
+              <rect width="8" height="8" class="sc-check-b" />
+              <rect x="8" y="8" width="8" height="8" class="sc-check-b" />
+            </pattern>
+            <pattern id="sc-gridpat" patternUnits="userSpaceOnUse" width="20" height="20">
+              <path id="sc-gridline" d="M20 0H0V20" fill="none" class="sc-gridline" />
+            </pattern>
+          </defs>
+          <g id="sc-view">
+            <rect id="sc-board-bg" x="0" y="0" width="800" height="600" fill="url(#sc-checker)" />
+            <rect
+              id="sc-grid-rect"
+              x="0"
+              y="0"
+              width="800"
+              height="600"
+              fill="url(#sc-gridpat)"
+              display="none"
+            />
+            <defs id="sc-defs"></defs>
+            <g id="sc-doc"></g>
+            <rect id="sc-board-frame" x="0" y="0" width="800" height="600" fill="none" />
+            <g id="sc-selection"></g>
+            <g id="sc-guides"></g>
+          </g>
+        </svg>
+        <div class="sc-drop" id="sc-drop">Drop an SVG or image to import</div>
+      </div>
+
+      <aside class="sc-panel" id="sc-panel" aria-label="Properties">
+        <section>
+          <h2>Colour</h2>
+          <div class="sc-paint" data-target="fill">
+            <div class="sc-paint-head">
+              <button
+                class="sc-chip"
+                id="sc-fill-chip"
+                aria-label="Make fill the palette target"
+              ></button>
+              <span>Fill</span>
+              <label class="sc-check"><input id="sc-fill-on" type="checkbox" checked /> on</label>
+              <input id="sc-fill-color" type="color" value="#e8a33d" aria-label="Fill colour" />
+              <input
+                id="sc-fill-hex"
+                class="sc-hex"
+                value="#e8a33d"
+                aria-label="Fill hex"
+                spellcheck="false"
+              />
+            </div>
+            <label class="sc-row"
+              >Alpha <input id="sc-fill-a" type="range" min="0" max="100" value="100" /><output
+                id="sc-fill-a-out"
+                >100%</output
+              ></label
+            >
+          </div>
+          <div class="sc-paint" data-target="stroke">
+            <div class="sc-paint-head">
+              <button
+                class="sc-chip"
+                id="sc-stroke-chip"
+                aria-label="Make stroke the palette target"
+              ></button>
+              <span>Stroke</span>
+              <label class="sc-check"><input id="sc-stroke-on" type="checkbox" checked /> on</label>
+              <input id="sc-stroke-color" type="color" value="#1f2933" aria-label="Stroke colour" />
+              <input
+                id="sc-stroke-hex"
+                class="sc-hex"
+                value="#1f2933"
+                aria-label="Stroke hex"
+                spellcheck="false"
+              />
+            </div>
+            <label class="sc-row"
+              >Alpha <input id="sc-stroke-a" type="range" min="0" max="100" value="100" /><output
+                id="sc-stroke-a-out"
+                >100%</output
+              ></label
+            >
+            <label class="sc-row"
+              >Width
+              <input id="sc-stroke-w" type="range" min="0" max="60" step="0.5" value="3" /><output
+                id="sc-stroke-w-out"
+                >3</output
+              ></label
+            >
+          </div>
+          <div class="sc-palette" id="sc-palette" aria-label="Palette"></div>
+          <p class="sc-hint">
+            Swatches go to the highlighted target (fill or stroke). Press <kbd>X</kbd> to swap.
+          </p>
+          <label class="sc-row"
+            >Opacity <input id="sc-opacity" type="range" min="0" max="100" value="100" /><output
+              id="sc-opacity-out"
+              >100%</output
+            ></label
+          >
+        </section>
+
+        <section class="sc-tool-opts" data-for="pencil">
+          <h2>Pencil</h2>
+          <label class="sc-row"
+            >Smoothing <input id="sc-smooth" type="range" min="0" max="10" value="4" /><output
+              id="sc-smooth-out"
+              >4</output
+            ></label
+          >
+        </section>
+        <section class="sc-tool-opts" data-for="eraser">
+          <h2>Eraser</h2>
+          <div class="sc-seg" role="radiogroup" aria-label="Eraser mode">
+            <button data-eraser="object" role="radio">Object</button>
+            <button data-eraser="cut" role="radio">Cut</button>
+          </div>
+          <label class="sc-row"
+            >Size <input id="sc-eraser-size" type="range" min="2" max="80" value="12" /><output
+              id="sc-eraser-size-out"
+              >12</output
+            ></label
+          >
+          <p class="sc-hint">
+            Object deletes whatever you rub. Cut splits stroked lines and paths where you rub.
+            Filled shapes are left alone.
+          </p>
+        </section>
+        <section class="sc-tool-opts" data-for="text">
+          <h2>Text</h2>
+          <label class="sc-row"
+            >Size <input id="sc-font-size" type="range" min="6" max="200" value="32" /><output
+              id="sc-font-size-out"
+              >32</output
+            ></label
+          >
+        </section>
+
+        <section>
+          <h2>Arrange</h2>
+          <div class="sc-btn-grid">
+            <button data-cmd="front" data-tip="Bring to front · Ctrl+]">Front</button>
+            <button data-cmd="forward" data-tip="Bring forward · ]">Forward</button>
+            <button data-cmd="backward" data-tip="Send backward · [">Backward</button>
+            <button data-cmd="back" data-tip="Send to back · Ctrl+[">Back</button>
+            <button data-cmd="group" data-tip="Group · Ctrl+G">Group</button>
+            <button data-cmd="ungroup" data-tip="Ungroup · Ctrl+Shift+G">Ungroup</button>
+            <button data-cmd="flipH" data-tip="Flip horizontally">Flip H</button>
+            <button data-cmd="flipV" data-tip="Flip vertically">Flip V</button>
+            <button data-cmd="duplicate" data-tip="Duplicate · Ctrl+D">Duplicate</button>
+            <button data-cmd="delete" data-tip="Delete · Del">Delete</button>
+          </div>
+        </section>
+
+        <section class="sc-layers-sec">
+          <h2>Layers</h2>
+          <ol class="sc-layers" id="sc-layers"></ol>
+        </section>
+      </aside>
+    </div>
+
+    <footer class="sc-status">
+      <span id="sc-hint"></span>
+      <span id="sc-msg" class="sc-msg" role="status"></span>
+      <span id="sc-pos" class="sc-pos"></span>
+    </footer>
+
+    <script src="app.js"></script>
+  </body>
+</html>

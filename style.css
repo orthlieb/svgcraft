@@ -1,0 +1,647 @@
+:root {
+  --bg: #f6f5f2;
+  --panel: #ffffff;
+  --fg: #1d232a;
+  --muted: #6b7280;
+  --line: #dcd9d2;
+  --hover: #efece6;
+  --accent: #c2410c;
+  --accent-fg: #ffffff;
+  --stage: #e7e4de;
+  --check-a: #ffffff;
+  --check-b: #e3e1dc;
+  --frame: #9ca3af;
+  --sel: #2563eb;
+  --grid: rgba(37, 99, 235, 0.18);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #17191d;
+    --panel: #1f2227;
+    --fg: #e6e8eb;
+    --muted: #9aa1ab;
+    --line: #33373e;
+    --hover: #2a2e34;
+    --accent: #f97316;
+    --accent-fg: #17191d;
+    --stage: #111316;
+    --check-a: #3a3d42;
+    --check-b: #2e3135;
+    --frame: #5b616b;
+    --sel: #60a5fa;
+    --grid: rgba(96, 165, 250, 0.22);
+    color-scheme: dark;
+  }
+}
+:root[data-theme='dark'] {
+  --bg: #17191d;
+  --panel: #1f2227;
+  --fg: #e6e8eb;
+  --muted: #9aa1ab;
+  --line: #33373e;
+  --hover: #2a2e34;
+  --accent: #f97316;
+  --accent-fg: #17191d;
+  --stage: #111316;
+  --check-a: #3a3d42;
+  --check-b: #2e3135;
+  --frame: #5b616b;
+  --sel: #60a5fa;
+  --grid: rgba(96, 165, 250, 0.22);
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+body {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--fg);
+  font:
+    13px/1.35 system-ui,
+    -apple-system,
+    'Segoe UI',
+    sans-serif;
+}
+button,
+select,
+input {
+  font: inherit;
+  color: inherit;
+}
+button,
+select {
+  padding: 4px 9px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  cursor: pointer;
+}
+button:hover:not(:disabled) {
+  background: var(--hover);
+}
+button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--sel);
+  outline-offset: 1px;
+}
+input[type='number'],
+.sc-hex {
+  width: 64px;
+  padding: 3px 5px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--panel);
+}
+kbd {
+  font:
+    11px ui-monospace,
+    monospace;
+  padding: 0 4px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+}
+
+/* ---- top bar ---------------------------------------------------------- */
+.sc-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+}
+.sc-logo {
+  font-size: 16px;
+  letter-spacing: 0.01em;
+  margin-right: 4px;
+}
+.sc-logo b {
+  color: var(--accent);
+}
+.sc-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.sc-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-fg);
+}
+.sc-primary:hover:not(:disabled) {
+  background: var(--accent);
+  filter: brightness(1.08);
+}
+.sc-icon {
+  display: inline-grid;
+  place-items: center;
+  min-width: 30px;
+  padding: 4px 6px;
+}
+.sc-icon svg,
+.sc-tools svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.sc-size label {
+  color: var(--muted);
+}
+.sc-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+#sc-grid-size {
+  width: 52px;
+}
+#sc-zoom-pct {
+  min-width: 58px;
+  font-variant-numeric: tabular-nums;
+}
+.sc-panel-toggle {
+  display: none;
+  margin-left: auto;
+}
+
+/* ---- layout ----------------------------------------------------------- */
+.sc-main {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) 272px;
+}
+.sc-tools {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 0;
+  border-right: 1px solid var(--line);
+  background: var(--panel);
+}
+.sc-tools button {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border-color: transparent;
+  background: transparent;
+}
+.sc-tools button[aria-pressed='true'] {
+  background: var(--accent);
+  color: var(--accent-fg);
+}
+.sc-sep {
+  width: 24px;
+  height: 1px;
+  margin: 4px 0;
+  background: var(--line);
+}
+
+.sc-stage-wrap {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--stage);
+}
+#sc-stage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.sc-check-a {
+  fill: var(--check-a);
+}
+.sc-check-b {
+  fill: var(--check-b);
+}
+.sc-gridline {
+  stroke: var(--grid);
+}
+#sc-board-frame {
+  stroke: var(--frame);
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+#sc-board-bg,
+#sc-grid-rect {
+  pointer-events: none;
+}
+#sc-selection,
+#sc-guides {
+  pointer-events: none;
+}
+#sc-selection [data-handle] {
+  pointer-events: all;
+}
+.sc-ov {
+  fill: none;
+  stroke: var(--sel);
+  vector-effect: non-scaling-stroke;
+}
+.sc-ov-dash {
+  stroke-dasharray: 4 3;
+}
+.sc-ov-fill {
+  fill: var(--sel);
+  fill-opacity: 0.08;
+}
+.sc-handle {
+  fill: var(--panel);
+  stroke: var(--sel);
+  vector-effect: non-scaling-stroke;
+}
+.sc-anchor {
+  fill: var(--panel);
+  stroke: var(--sel);
+  vector-effect: non-scaling-stroke;
+}
+.sc-anchor-first {
+  fill: var(--sel);
+}
+.sc-eraser-ring {
+  fill: rgba(127, 127, 127, 0.12);
+  stroke: var(--fg);
+  stroke-dasharray: 3 2;
+  vector-effect: non-scaling-stroke;
+}
+.sc-erase-trail {
+  fill: none;
+  stroke: rgba(220, 38, 38, 0.35);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.sc-text-input {
+  position: absolute;
+  z-index: 5;
+  min-width: 120px;
+  padding: 0 4px;
+  border: 1px dashed var(--sel);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--panel) 85%, transparent);
+  font-family: system-ui, sans-serif;
+  line-height: 1.15;
+  outline: none;
+}
+.sc-drop {
+  position: absolute;
+  inset: 12px;
+  display: none;
+  place-items: center;
+  border: 2px dashed var(--accent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--stage) 80%, transparent);
+  font-size: 16px;
+  pointer-events: none;
+}
+.sc-drop.on {
+  display: grid;
+}
+
+/* ---- panel ------------------------------------------------------------ */
+.sc-panel {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-left: 1px solid var(--line);
+  background: var(--panel);
+}
+.sc-panel section {
+  padding: 10px 12px 12px;
+  border-bottom: 1px solid var(--line);
+}
+.sc-panel h2 {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.sc-paint {
+  padding: 6px;
+  margin-bottom: 6px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+}
+.sc-paint.active {
+  border-color: var(--sel);
+}
+.sc-paint-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.sc-paint-head > span {
+  flex: 1;
+  font-weight: 600;
+}
+.sc-paint-head input[type='color'] {
+  width: 28px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: none;
+  cursor: pointer;
+}
+.sc-hex {
+  width: 72px;
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+}
+.sc-chip {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border-radius: 5px;
+  background-color: #fff;
+  background-image:
+    linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%),
+    linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%);
+  background-size: 8px 8px;
+  background-position:
+    0 0,
+    4px 4px;
+  overflow: hidden;
+}
+.sc-chip::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--chip, transparent);
+}
+.sc-chip.none::after {
+  background: linear-gradient(
+    to top right,
+    transparent calc(50% - 1px),
+    #dc2626 calc(50% - 1px),
+    #dc2626 calc(50% + 1px),
+    transparent calc(50% + 1px)
+  );
+}
+.sc-chip:hover:not(:disabled) {
+  background-color: #fff;
+}
+.sc-row {
+  display: grid;
+  grid-template-columns: 62px minmax(0, 1fr) 40px;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 0;
+  color: var(--muted);
+}
+.sc-row input[type='range'] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+.sc-row output {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg);
+}
+.sc-palette {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  gap: 4px;
+  margin: 6px 0 4px;
+}
+.sc-palette button {
+  aspect-ratio: 1;
+  padding: 0;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+}
+.sc-palette button.none {
+  background: linear-gradient(
+    to top right,
+    #fff calc(50% - 1px),
+    #dc2626 calc(50% - 1px),
+    #dc2626 calc(50% + 1px),
+    #fff calc(50% + 1px)
+  );
+}
+.sc-hint {
+  margin: 4px 0 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.sc-tool-opts {
+  display: none;
+}
+.sc-tool-opts.on {
+  display: block;
+}
+.sc-seg {
+  display: flex;
+  margin-bottom: 6px;
+}
+.sc-seg button {
+  flex: 1;
+  border-radius: 0;
+}
+.sc-seg button:first-child {
+  border-radius: 6px 0 0 6px;
+}
+.sc-seg button:last-child {
+  border-radius: 0 6px 6px 0;
+  border-left: none;
+}
+.sc-seg button[aria-checked='true'] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-fg);
+}
+.sc-btn-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+}
+.sc-layers {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 260px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.sc-layers li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 4px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.sc-layers li:hover {
+  background: var(--hover);
+}
+.sc-layers li.sel {
+  background: color-mix(in srgb, var(--sel) 18%, transparent);
+}
+.sc-layers li.hidden .sc-layer-name {
+  opacity: 0.45;
+}
+.sc-layers button {
+  padding: 0 5px;
+  border: none;
+  background: transparent;
+  font-size: 12px;
+}
+.sc-layer-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sc-layers .sc-empty {
+  color: var(--muted);
+  cursor: default;
+}
+
+/* ---- status bar ------------------------------------------------------- */
+.sc-status {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 4px 12px;
+  border-top: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+#sc-hint {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sc-msg {
+  color: var(--accent);
+}
+.sc-pos {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- tooltips --------------------------------------------------------- */
+[data-tip] {
+  position: relative;
+}
+@media (hover: hover) {
+  [data-tip]:hover::after {
+    content: attr(data-tip);
+    position: absolute;
+    z-index: 20;
+    top: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 4px 7px;
+    border-radius: 5px;
+    background: var(--fg);
+    color: var(--bg);
+    font-size: 12px;
+    font-weight: 400;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+  .sc-tools [data-tip]:hover::after {
+    top: 50%;
+    left: calc(100% + 8px);
+    transform: translateY(-50%);
+  }
+  .sc-panel [data-tip]:hover::after {
+    top: auto;
+    bottom: calc(100% + 6px);
+  }
+}
+
+/* ---- narrow screens --------------------------------------------------- */
+@media (max-width: 760px) {
+  .sc-top {
+    gap: 6px 8px;
+    padding: 6px 16px;
+  }
+  .sc-size,
+  #sc-copy-svg,
+  #sc-png-scale {
+    display: none;
+  }
+  .sc-panel-toggle {
+    display: inline-block;
+  }
+  .sc-main {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr) auto;
+    position: relative;
+    overflow: hidden;
+  }
+  .sc-stage-wrap {
+    grid-row: 1;
+  }
+  .sc-tools {
+    grid-row: 2;
+    flex-direction: row;
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding: 4px 16px;
+    border-right: none;
+    border-top: 1px solid var(--line);
+  }
+  .sc-sep {
+    width: 1px;
+    height: 24px;
+    margin: 0 4px;
+    flex: none;
+  }
+  .sc-tools button {
+    flex: none;
+  }
+  .sc-panel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(300px, 88vw);
+    z-index: 10;
+    transform: translateX(100%);
+    transition: transform 0.18s ease;
+    box-shadow: -6px 0 18px rgba(0, 0, 0, 0.18);
+  }
+  .sc-panel.open {
+    transform: none;
+  }
+  .sc-status #sc-hint {
+    display: none;
+  }
+}
