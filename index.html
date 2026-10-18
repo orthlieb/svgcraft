@@ -83,6 +83,14 @@
         <button data-tool="select" aria-label="Select" data-tip="Select · V">
           <svg viewBox="0 0 24 24"><path d="M5 3l14 8-6 1.5L10 19z" /></svg>
         </button>
+        <button data-tool="node" aria-label="Edit points" data-tip="Edit points · A">
+          <svg viewBox="0 0 24 24">
+            <path d="M4 18C8 6 16 6 20 18" />
+            <rect x="10" y="7" width="4" height="4" />
+            <circle cx="4" cy="18" r="1.5" />
+            <circle cx="20" cy="18" r="1.5" />
+          </svg>
+        </button>
         <button data-tool="pencil" aria-label="Pencil" data-tip="Pencil · P">
           <svg viewBox="0 0 24 24">
             <path d="M4 20l1-4L16 5l3 3L8 19z" />
@@ -157,6 +165,7 @@
             <g id="sc-doc"></g>
             <rect id="sc-board-frame" x="0" y="0" width="800" height="600" fill="none" />
             <g id="sc-selection"></g>
+            <g id="sc-nodes"></g>
             <g id="sc-guides"></g>
           </g>
         </svg>
@@ -259,6 +268,20 @@
           <p class="sc-hint">
             Object deletes whatever you rub. Cut splits stroked lines and paths where you rub.
             Filled shapes are left alone.
+          </p>
+        </section>
+        <section class="sc-tool-opts" data-for="node">
+          <h2>Points</h2>
+          <div class="sc-btn-grid">
+            <button data-node-cmd="corner" data-tip="Retract handles — sharp point">Corner</button>
+            <button data-node-cmd="smooth" data-tip="Grow smooth handles">Smooth</button>
+            <button data-node-cmd="delete" data-tip="Delete points · Del">Delete</button>
+            <button data-node-cmd="close" data-tip="Close or open the path">Close / open</button>
+          </div>
+          <p class="sc-hint">
+            Drag points or handles. Shift-click or drag a box to pick several. Double-click a line
+            to add a point, or a point to switch corner / smooth. Alt-drag a handle to break a
+            smooth point. Esc returns to Select.
           </p>
         </section>
         <section class="sc-tool-opts" data-for="text">

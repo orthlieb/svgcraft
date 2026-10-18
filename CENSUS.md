@@ -139,7 +139,7 @@ roadmap. **Tier 3** is niche or out of scope for a single-page tool.
 
 | Rank | Feature                              | Why deferred                                      |
 | ---- | ------------------------------------ | ------------------------------------------------- |
-| 26   | Node editing (move points / handles) | 12/13, but a sizeable sub-editor; next in line    |
+| 26   | Node editing (move points / handles) | ✅ shipped after the first version                |
 | 27   | Align / distribute                   | 13/13, but less vital for drawing than for layout |
 | 28   | Gradients (linear / radial)          | 11/13; needs a gradient editor UI                 |
 | 29   | Eyedropper                           | 8/13; selecting a shape already loads its colours |

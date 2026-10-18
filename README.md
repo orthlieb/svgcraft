@@ -29,6 +29,14 @@ stroke="currentColor"` (common in icon sets) is pushed down so it survives.
 - **Pen**: click for corners, drag for smooth curves, click the first point
   to close. Enter or double-click finishes, Backspace removes the last
   point, and Shift snaps to 45°.
+- **Edit points** (A, or double-click a shape): drag points and Bézier
+  handles, Shift-click or drag a box to pick several, and nudge with the
+  arrow keys. Double-click a segment to add a point, or a point to switch
+  it between corner and smooth. Delete removes points, and Close / open
+  toggles the closing segment. Smooth points keep their handles in line;
+  Alt-drag a handle to break one. Works on paths with any command (arcs
+  included) and on rectangles, ellipses, circles, lines, polylines and
+  polygons. A basic shape turns into a `<path>` only once you change it.
 - **Eraser**: **Object** mode deletes anything you rub. **Cut** mode splits
   stroked lines and paths where you rub and leaves filled shapes alone.
 - **Colours**: fill and stroke, each with an on/off switch, a colour
@@ -47,7 +55,8 @@ stroke="currentColor"` (common in icon sets) is pushed down so it survives.
 
 | Key                   | Action                                  |
 | --------------------- | --------------------------------------- |
-| V P B E               | Select · Pencil · Pen · Eraser          |
+| V A                   | Select · Edit points                    |
+| P B E                 | Pencil · Pen · Eraser                   |
 | R O L T H             | Rect · Ellipse · Line · Text · Pan      |
 | Space (hold)          | Pan                                     |
 | Ctrl+Z / Ctrl+Shift+Z | Undo / redo                             |

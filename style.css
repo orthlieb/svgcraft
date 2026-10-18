@@ -259,8 +259,31 @@ kbd {
 #sc-guides {
   pointer-events: none;
 }
-#sc-selection [data-handle] {
+#sc-selection [data-handle],
+#sc-nodes [data-node],
+#sc-nodes [data-hnd] {
   pointer-events: all;
+}
+#sc-nodes {
+  pointer-events: none;
+}
+.sc-node {
+  fill: var(--panel);
+  stroke: var(--sel);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+  cursor: move;
+}
+/* Selected points use the accent so they read on any stroke colour. */
+.sc-node.on {
+  fill: var(--accent);
+  stroke: var(--panel);
+}
+.sc-hnd {
+  fill: var(--sel);
+  stroke: var(--panel);
+  vector-effect: non-scaling-stroke;
+  cursor: pointer;
 }
 .sc-ov {
   fill: none;
