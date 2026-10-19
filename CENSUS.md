@@ -137,15 +137,15 @@ roadmap. **Tier 3** is niche or out of scope for a single-page tool.
 
 ### Tier 2 — roadmap
 
-| Rank | Feature                              | Why deferred                                      |
-| ---- | ------------------------------------ | ------------------------------------------------- |
-| 26   | Node editing (move points / handles) | ✅ shipped after the first version                |
-| 27   | Align / distribute                   | 13/13, but less vital for drawing than for layout |
-| 28   | Gradients (linear / radial)          | 11/13; needs a gradient editor UI                 |
-| 29   | Eyedropper                           | 8/13; selecting a shape already loads its colours |
-| 30   | Boolean ops                          | 9/13; needs a path-clipping library               |
-| 31   | Pressure-sensitive brush             | 5/13; pencil + stroke width covers most uses      |
-| 32   | Effects (blur, drop shadow)          | 9/13                                              |
+| Rank | Feature                              | Why deferred                                 |
+| ---- | ------------------------------------ | -------------------------------------------- |
+| 26   | Node editing (move points / handles) | ✅ shipped after the first version           |
+| 27   | Align / distribute                   | ✅ shipped after the first version           |
+| 28   | Gradients (linear / radial)          | 11/13; needs a gradient editor UI            |
+| 29   | Eyedropper                           | ✅ shipped after the first version           |
+| 30   | Boolean ops                          | 9/13; needs a path-clipping library          |
+| 31   | Pressure-sensitive brush             | 5/13; pencil + stroke width covers most uses |
+| 32   | Effects (blur, drop shadow)          | 9/13                                         |
 
 ### Tier 3 — out of scope for now
 

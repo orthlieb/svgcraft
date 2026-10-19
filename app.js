@@ -66,6 +66,7 @@
     gridSize: 20,
     fileName: 'drawing',
     eraserMode: 'object',
+    eyedropMode: 'style',
     eraserSize: 12,
     smoothing: 4,
     fontSize: 32,
@@ -396,6 +397,7 @@
   }
 
   function afterChange() {
+    rasterJob = null;
     $('#sc-undo').disabled = hIdx <= 0;
     $('#sc-redo').disabled = hIdx >= hist.length - 1;
     state.sel = state.sel.filter((el) => el.parentNode === doc);
@@ -1087,6 +1089,109 @@
       input.select();
     }, 0);
   }
+
+  // Raster of the artboard for pixel sampling, rebuilt lazily after edits.
+  let rasterJob = null;
+  function raster() {
+    if (rasterJob) return rasterJob;
+    rasterJob = new Promise((resolve) => {
+      const s = clamp(2048 / Math.max(state.w, state.h), 1, 4);
+      const url = URL.createObjectURL(new Blob([serialize()], { type: 'image/svg+xml' }));
+      const img = new Image();
+      img.onload = () => {
+        const c = document.createElement('canvas');
+        c.width = Math.max(1, Math.round(state.w * s));
+        c.height = Math.max(1, Math.round(state.h * s));
+        const ctx = c.getContext('2d', { willReadFrequently: true });
+        ctx.drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url);
+        resolve({ ctx, s, c });
+      };
+      img.onerror = () => resolve(null);
+      img.src = url;
+    });
+    return rasterJob;
+  }
+
+  // Colour under doc point p, or a reason string when there's nothing to take.
+  async function samplePixel(p) {
+    if (p.x < 0 || p.y < 0 || p.x > state.w || p.y > state.h) return 'Outside the artboard.';
+    const r = await raster();
+    if (!r) return "Couldn't render the drawing to sample it.";
+    let d;
+    try {
+      d = r.ctx.getImageData(
+        Math.min(r.c.width - 1, Math.floor(p.x * r.s)),
+        Math.min(r.c.height - 1, Math.floor(p.y * r.s)),
+        1,
+        1,
+      ).data;
+    } catch {
+      return 'The drawing uses an external image, so the browser blocks pixel sampling.';
+    }
+    if (!d[3]) return 'Nothing there to sample (transparent).';
+    const hx = '#' + [d[0], d[1], d[2]].map((n) => n.toString(16).padStart(2, '0')).join('');
+    return { hex: hx, a: +(d[3] / 255).toFixed(2) };
+  }
+
+  tools.eyedropper = {
+    hint: 'Style: click a shape to copy its fill, stroke and opacity (onto the selection too) · Colour: click to take the exact pixel colour into the active paint · Alt-click sends it to the other paint',
+    cursor: 'crosshair',
+    async down(e, p) {
+      if (state.eyedropMode === 'style') {
+        const el = topLevel(e.target);
+        if (!el) return say('Click a shape to copy its style.');
+        const targets = state.sel.filter((x) => x !== el);
+        readStyle(el);
+        if (!targets.length) return say('Style picked up — new shapes will use it.');
+        for (const t of targets)
+          for (const k of ['fill', 'stroke', 'width', 'opacity']) applyStyle(t, k);
+        commit();
+        return say(`Style applied to ${targets.length} object${targets.length > 1 ? 's' : ''}.`);
+      }
+      const c = await samplePixel(p);
+      if (typeof c === 'string') return say(c);
+      const k = e.altKey ? (state.active === 'fill' ? 'stroke' : 'fill') : state.active;
+      state[k] = c.hex;
+      state[k + 'On'] = true;
+      state[k + 'A'] = c.a;
+      styleChanged(k, true);
+      say(
+        `${k === 'fill' ? 'Fill' : 'Stroke'} set to ${c.hex}${c.a < 1 ? ` at ${Math.round(c.a * 100)}%` : ''}.`,
+      );
+    },
+    // In Colour mode, a ring around the cursor previews the sampled colour.
+    async move(e, p) {
+      if (state.eyedropMode !== 'pixel') return;
+      const stamp = (this.stamp = (this.stamp || 0) + 1);
+      const c = await samplePixel(p);
+      if (stamp !== this.stamp || state.tool !== 'eyedropper') return;
+      guides.replaceChildren();
+      if (typeof c === 'string') return;
+      const z = state.zoom;
+      mk(
+        'circle',
+        {
+          cx: p.x,
+          cy: p.y,
+          r: 16 / z,
+          class: 'sc-eyedrop-ring',
+          stroke: c.hex,
+          'stroke-opacity': c.a,
+          'stroke-width': 8,
+        },
+        guides,
+      );
+      mk('circle', { cx: p.x, cy: p.y, r: 20 / z, class: 'sc-eyedrop-ring sc-ov' }, guides);
+      $('#sc-eyedrop-note').textContent =
+        `${c.hex}${c.a < 1 ? ` · ${Math.round(c.a * 100)}%` : ''}`;
+    },
+    leave() {
+      this.stamp = (this.stamp || 0) + 1;
+      guides.replaceChildren();
+      $('#sc-eyedrop-note').textContent = '';
+    },
+  };
 
   tools.hand = {
     hint: 'Drag to pan · Ctrl/⌘ + wheel or pinch to zoom',
@@ -2127,7 +2232,58 @@
           .translate(0, -(b.y + b.h / 2)),
       );
     },
+    alignLeft: () => alignSel('left'),
+    alignHCenter: () => alignSel('hcenter'),
+    alignRight: () => alignSel('right'),
+    alignTop: () => alignSel('top'),
+    alignVCenter: () => alignSel('vcenter'),
+    alignBottom: () => alignSel('bottom'),
+    distributeH: () => distributeSel('x'),
+    distributeV: () => distributeSel('y'),
   };
+
+  // Line the selection up on an edge or centre of its own bounding box, or
+  // of the artboard when only one object is selected (Photoshop's rule).
+  function alignSel(how) {
+    if (!state.sel.length) return say('Select the objects to align first.');
+    const ref = state.sel.length === 1 ? { x: 0, y: 0, w: state.w, h: state.h } : selBox();
+    if (!ref) return;
+    for (const el of state.sel) {
+      const b = bboxDoc(el);
+      if (!b) continue;
+      const dx = {
+        left: ref.x - b.x,
+        hcenter: ref.x + ref.w / 2 - (b.x + b.w / 2),
+        right: ref.x + ref.w - (b.x + b.w),
+      }[how];
+      const dy = {
+        top: ref.y - b.y,
+        vcenter: ref.y + ref.h / 2 - (b.y + b.h / 2),
+        bottom: ref.y + ref.h - (b.y + b.h),
+      }[how];
+      setM(el, new DOMMatrix().translate(dx || 0, dy || 0).multiply(getM(el)));
+    }
+    commit();
+  }
+
+  // Equal gaps between neighbours along one axis; the outermost two stay put.
+  function distributeSel(axis) {
+    const list = state.sel.map((el) => ({ el, b: bboxDoc(el) })).filter((i) => i.b);
+    if (list.length < 3) return say('Select three or more objects to distribute.');
+    const size = axis === 'x' ? 'w' : 'h';
+    list.sort((a, b) => a.b[axis] + a.b[size] / 2 - (b.b[axis] + b.b[size] / 2));
+    const first = list[0].b;
+    const end = Math.max(...list.map((i) => i.b[axis] + i.b[size]));
+    const gap = (end - first[axis] - list.reduce((n, i) => n + i.b[size], 0)) / (list.length - 1);
+    let at = first[axis];
+    for (const { el, b } of list) {
+      const d = at - b[axis];
+      const T = axis === 'x' ? new DOMMatrix().translate(d, 0) : new DOMMatrix().translate(0, d);
+      setM(el, T.multiply(getM(el)));
+      at += b[size] + gap;
+    }
+    commit();
+  }
 
   function nudge(dx, dy) {
     if (!state.sel.length) return;
@@ -2471,6 +2627,7 @@
     ellipse: ['circle', 'Ellipse'],
     line: ['slash', 'Line'],
     text: ['font', 'Type'],
+    eyedropper: ['eye-dropper', 'Eyedropper'],
     hand: ['hand', 'Hand'],
   };
 
@@ -2480,7 +2637,7 @@
     const changed = name !== state.tool;
     if (changed) {
       tools[state.tool].leave?.();
-      if (name !== 'select' && name !== 'hand') state.sel = [];
+      if (!['select', 'hand', 'eyedropper'].includes(name)) state.sel = [];
     }
     state.tool = name;
     for (const b of document.querySelectorAll('[data-tool]'))
@@ -2806,6 +2963,7 @@
     o: 'ellipse',
     l: 'line',
     t: 'text',
+    i: 'eyedropper',
     h: 'hand',
   };
 
@@ -3020,7 +3178,20 @@
     themeDark: () => setTheme('dark'),
     themeLight: () => setTheme('light'),
     toggleTheme: () => setTheme(isDark() ? 'light' : 'dark'),
+    // The browser's own eyedropper (Chromium) reaches anywhere on screen.
+    async pickFromScreen() {
+      try {
+        const { sRGBHex } = await new window.EyeDropper().open();
+        const k = state.active;
+        state[k] = hex(sRGBHex);
+        state[k + 'On'] = true;
+        styleChanged(k, true);
+      } catch {
+        /* cancelled with Esc */
+      }
+    },
   };
+  $('#sc-screen-pick').hidden = !('EyeDropper' in window);
   document.addEventListener('click', (e) => {
     const a = e.target.closest?.('[data-action]');
     if (!a || a.disabled) return;
@@ -3143,6 +3314,15 @@
       for (const x of document.querySelectorAll('[data-eraser]'))
         x.setAttribute('aria-checked', x === b);
     });
+  }
+  for (const b of document.querySelectorAll('[data-eyedrop]')) {
+    b.addEventListener('click', () => {
+      state.eyedropMode = b.dataset.eyedrop;
+      for (const x of document.querySelectorAll('[data-eyedrop]'))
+        x.setAttribute('aria-checked', x === b);
+      tools.eyedropper.leave();
+    });
+    b.setAttribute('aria-checked', b.dataset.eyedrop === state.eyedropMode);
   }
   document.querySelector('[data-eraser="object"]').setAttribute('aria-checked', 'true');
   document.querySelector('[data-eraser="cut"]').setAttribute('aria-checked', 'false');

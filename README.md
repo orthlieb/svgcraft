@@ -50,6 +50,18 @@ stroke="currentColor"` (common in icon sets) is pushed down so it survives.
 - **Pen**: click for corners, drag for smooth curves, click the first point
   to close. Enter or double-click finishes, Backspace removes the last
   point, and Shift snaps to 45°.
+- **Align / distribute**: from the Move tool's options bar or Object →
+  Align. Align left, centre or right edges, or top, middle or bottom, to
+  the selection's bounds. With one object selected, it aligns to the
+  artboard instead, as in Photoshop. Distribute spaces three or more
+  objects with equal gaps and leaves the outermost two where they are.
+- **Eyedropper** (I): **Style** mode copies a shape's fill, stroke, alpha,
+  stroke width and opacity into the current settings, and applies them to
+  anything selected. **Colour** mode samples the exact rendered pixel,
+  including blended transparency and placed images, into the active paint.
+  A ring around the cursor previews the colour, and Alt-click sends it to
+  the other paint. In Chromium browsers, the eyedropper button on the Color
+  panel can pick a colour from anywhere on screen.
 - **Edit points** (A, or double-click a shape): drag points and Bézier
   handles, Shift-click or drag a box to pick several, and nudge with the
   arrow keys. Double-click a segment to add a point, or a point to switch
@@ -77,7 +89,7 @@ stroke="currentColor"` (common in icon sets) is pushed down so it survives.
 | Key                   | Action                                  |
 | --------------------- | --------------------------------------- |
 | V A                   | Select · Edit points                    |
-| P B E                 | Pencil · Pen · Eraser                   |
+| P B E I               | Pencil · Pen · Eraser · Eyedropper      |
 | R O L T H             | Rect · Ellipse · Line · Text · Pan      |
 | Space (hold)          | Pan                                     |
 | Ctrl+Z / Ctrl+Shift+Z | Undo / redo                             |

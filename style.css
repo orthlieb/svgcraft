@@ -146,6 +146,11 @@ kbd {
   height: 1em;
   fill: currentColor;
 }
+/* Font Awesome only ships text-align glyphs; turned 90° they read as
+   align top / middle / bottom. */
+.sc-rot90 > svg {
+  transform: rotate(90deg);
+}
 
 /* Tooltips: Photoshop-style small dark box. */
 [data-tip] {
@@ -343,6 +348,18 @@ kbd {
 }
 .sc-opt.on {
   display: flex;
+}
+.sc-opt-label {
+  color: var(--text-dim);
+}
+.sc-ptab-end {
+  align-self: center;
+  margin-left: auto;
+  margin-right: 4px;
+}
+.sc-eyedrop-ring {
+  fill: none;
+  vector-effect: non-scaling-stroke;
 }
 .sc-opt-note {
   color: var(--text-dim);
