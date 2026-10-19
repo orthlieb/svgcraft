@@ -187,6 +187,39 @@
 
   const selBox = () => unionBox(state.sel);
 
+  // The deepest point-editable shape at or above node (imported SVGs nest
+  // their shapes in groups; the point tool reaches inside them).
+  function editableFrom(node) {
+    if (!node || !doc.contains(node)) return null;
+    for (let n = node; n && n !== doc; n = n.parentNode)
+      if (
+        ['path', 'line', 'polyline', 'polygon', 'rect', 'circle', 'ellipse'].includes(n.localName)
+      )
+        return n;
+    return null;
+  }
+
+  // Element-local → document transform, through every enclosing group.
+  function fullM(el) {
+    let m = getM(el);
+    for (let n = el.parentNode; n && n !== doc; n = n.parentNode) m = getM(n).multiply(m);
+    return m;
+  }
+
+  // Child-index path from #sc-doc to el, so it can be found again after
+  // undo / redo rebuilds the DOM.
+  function treePath(el) {
+    const path = [];
+    for (let n = el; n && n !== doc; n = n.parentNode)
+      path.unshift([...n.parentNode.children].indexOf(n));
+    return path;
+  }
+  function fromTreePath(path) {
+    let n = doc;
+    for (const i of path) n = n?.children[i];
+    return n || null;
+  }
+
   function topLevel(node) {
     if (!node || !doc.contains(node) || node === doc) return null;
     while (node.parentNode !== doc) node = node.parentNode;
@@ -501,7 +534,14 @@
     state.sel = els;
     if (els.length) readStyle(els[0]);
     drawSelection();
-    renderLayers();
+    markLayers();
+  }
+
+  // Re-highlight the selected rows without rebuilding the list (a rebuild
+  // between the two clicks of a double-click would swallow the rename).
+  function markLayers() {
+    for (const li of $('#sc-layers').children)
+      if (li.layerEl) li.classList.toggle('sel', state.sel.includes(li.layerEl));
   }
 
   function toggleSel(el) {
@@ -580,7 +620,16 @@
     }
   }
 
+  const INKSCAPE = 'http://www.inkscape.org/namespaces/inkscape';
+
+  // A layer's own name: data-name (what Illustrator exports) or Inkscape's label.
+  function customName(el) {
+    return el.getAttribute('data-name') || el.getAttributeNS(INKSCAPE, 'label') || '';
+  }
+
   function layerName(el) {
+    const own = customName(el);
+    if (own) return own;
     const tag = el.localName;
     const id = el.id ? ` #${el.id}` : '';
     if (tag === 'text') return `text “${(el.textContent || '').trim().slice(0, 24)}”`;
@@ -634,15 +683,52 @@
       const name = document.createElement('span');
       name.className = 'sc-layer-name';
       name.textContent = layerName(el);
+      name.addEventListener('dblclick', (e) => {
+        e.stopPropagation();
+        renameLayer(el, name);
+      });
       // Thumbnails clone the layer, so cap them on very large files.
       li.append(eye, i < 150 ? layerThumb(el) : mk('svg', { class: 'sc-thumb' }), name);
+      li.layerEl = el;
       li.addEventListener('click', (e) => {
-        if (hidden) return;
+        if (hidden || e.target.closest('input')) return;
         if (e.shiftKey) toggleSel(el);
         else setSel([el]);
       });
       ol.append(li);
     });
+  }
+
+  // Swap a layer's name for a text field. Enter or leaving the field saves,
+  // Esc cancels, and an empty name goes back to the automatic one.
+  function renameLayer(el, span) {
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'sc-layer-input';
+    input.value = customName(el);
+    input.placeholder = layerName(el);
+    input.setAttribute('aria-label', 'Layer name');
+    span.replaceWith(input);
+    input.focus();
+    input.select();
+    let done = false;
+    const finish = (save) => {
+      if (done) return;
+      done = true;
+      const v = input.value.trim();
+      if (save && v !== customName(el)) {
+        el.removeAttributeNS(INKSCAPE, 'label');
+        if (v) el.setAttribute('data-name', v);
+        else el.removeAttribute('data-name');
+        commit();
+      } else renderLayers();
+    };
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') finish(true);
+      else if (e.key === 'Escape') finish(false);
+      e.stopPropagation();
+    });
+    input.addEventListener('blur', () => finish(true));
   }
 
   // ---------------------------------------------------------------------
@@ -766,13 +852,14 @@
       else if (g.changed) commit();
     },
     dblclick(e) {
-      const el = topLevel(e.target);
-      if (el && EDITABLE.has(el.localName)) {
+      const shape = editableFrom(e.target);
+      if (shape) {
         setTool('node');
-        tools.node.target(el);
+        tools.node.target(shape);
         return;
       }
-      if (el?.localName !== 'text') return;
+      const el = doc.contains(e.target) ? e.target.closest('text') : null;
+      if (!el) return;
       const r = el.getBoundingClientRect();
       editText(r.left, r.bottom, el.textContent, r.height, (t) => {
         if (t == null || t === el.textContent) return;
@@ -1142,7 +1229,8 @@
         const el = topLevel(e.target);
         if (!el) return say('Click a shape to copy its style.');
         const targets = state.sel.filter((x) => x !== el);
-        readStyle(el);
+        const hit = e.target.closest?.(SHAPE_SEL);
+        readStyle(hit && doc.contains(hit) ? hit : el);
         if (!targets.length) return say('Style picked up — new shapes will use it.');
         for (const t of targets)
           for (const k of ['fill', 'stroke', 'width', 'opacity']) applyStyle(t, k);
@@ -1750,33 +1838,34 @@
       if (el && !EDITABLE.has(el.localName)) {
         say(
           el.localName === 'g'
-            ? 'Ungroup first to edit the points inside a group.'
+            ? 'Click one of the shapes inside the group to edit its points.'
             : `A ${el.localName} has no points to edit.`,
         );
         el = null;
       }
       this.el = el;
-      this.idx = el ? [...doc.children].indexOf(el) : -1;
+      this.path = el ? treePath(el) : null;
       this.subs = el ? shapeNodes(el) : [];
       this.picked = [];
-      state.sel = el ? [el] : [];
+      // Only a top-level shape is a layer selection; a nested one is edited in place.
+      state.sel = el && el.parentNode === doc ? [el] : [];
       if (el) readStyle(el);
       renderLayers();
       this.redraw();
     },
     // Re-find the target after undo / redo replaced the DOM.
     restored() {
-      const el = doc.children[this.idx];
+      const el = this.path && fromTreePath(this.path);
       if (!el || !EDITABLE.has(el.localName)) return this.target(null);
       const picked = this.picked;
       this.el = el;
       this.subs = shapeNodes(el);
       this.picked = picked.filter(([si, ni]) => this.subs[si]?.nodes[ni]);
-      state.sel = [el];
+      state.sel = el.parentNode === doc ? [el] : [];
       this.redraw();
     },
     M() {
-      return getM(this.el);
+      return fullM(this.el);
     },
     toLocal(p) {
       const q = this.M().inverse().transformPoint(new DOMPoint(p.x, p.y));
@@ -1792,7 +1881,7 @@
     write() {
       if (this.el.localName !== 'path') {
         this.el = toPath(this.el);
-        state.sel = [this.el];
+        if (this.el.parentNode === doc) state.sel = [this.el];
       }
       this.el.setAttribute('d', nodesD(this.subs));
       this.redraw();
@@ -1875,7 +1964,7 @@
         this.redraw();
         return;
       }
-      const el = topLevel(e.target);
+      const el = editableFrom(e.target) || topLevel(e.target);
       if (el && el !== this.el) {
         this.target(el);
         this.targetedAt = e.timeStamp;
@@ -1978,7 +2067,8 @@
         return;
       }
       // The first click of this double-click picked the shape; don't also add a point.
-      if (topLevel(e.target) !== this.el || e.timeStamp - (this.targetedAt ?? -1e9) < 500) return;
+      if (editableFrom(e.target) !== this.el || e.timeStamp - (this.targetedAt ?? -1e9) < 500)
+        return;
       this.insertAt(this.toLocal(toDoc(e)));
     },
     // Split the segment nearest q (local coords) with a new point.
@@ -2691,8 +2781,9 @@
   // Push a style change to the selection; `final` commits it to history.
   function styleChanged(key, final) {
     syncStyleUI();
-    if (!state.sel.length) return;
-    for (const el of state.sel) applyStyle(el, key);
+    const targets = state.tool === 'node' && tools.node.el ? [tools.node.el] : state.sel;
+    if (!targets.length) return;
+    for (const el of targets) applyStyle(el, key);
     if (final) commit();
     else drawSelection();
   }

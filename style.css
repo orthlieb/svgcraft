@@ -946,6 +946,15 @@ kbd {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.sc-layer-input {
+  flex: 1;
+  min-width: 0;
+  height: 22px;
+  padding: 0 5px;
+  border: 1px solid var(--accent);
+  border-radius: 3px;
+  background: var(--field);
+}
 .sc-layers .sc-empty {
   height: auto;
   padding: 12px;
