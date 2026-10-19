@@ -39,6 +39,13 @@
   ];
 
   const $ = (s) => document.querySelector(s);
+  const icon = (name) => window.SC_ICONS?.[name] || '';
+  const THEME_KEY = 'svgcraft.theme';
+
+  // Fill every data-icon="name" placeholder with its Font Awesome snippet.
+  function hydrateIcons(root = document) {
+    for (const el of root.querySelectorAll('[data-icon]')) el.innerHTML = icon(el.dataset.icon);
+  }
   const stage = $('#sc-stage');
   const view = $('#sc-view');
   const doc = $('#sc-doc');
@@ -394,6 +401,7 @@
     state.sel = state.sel.filter((el) => el.parentNode === doc);
     drawSelection();
     renderLayers();
+    updateTitle();
     tools[state.tool].redraw?.();
     clearTimeout(saveTimer);
     saveTimer = setTimeout(() => {
@@ -410,7 +418,7 @@
   // ---------------------------------------------------------------------
   function applyView() {
     view.setAttribute('transform', `translate(${state.panX} ${state.panY}) scale(${state.zoom})`);
-    $('#sc-zoom-pct').textContent = Math.round(state.zoom * 100) + '%';
+    updateTitle();
     const c = 8 / state.zoom;
     const pat = $('#sc-checker');
     pat.setAttribute('width', 2 * c);
@@ -463,6 +471,16 @@
     }
     $('#sc-w').value = f(state.w);
     $('#sc-h').value = f(state.h);
+    updateTitle();
+  }
+
+  // Document tab ("name.svg @ 100%") and the status-bar zoom / size readouts.
+  function updateTitle() {
+    const pct = Math.round(state.zoom * 1000) / 10;
+    $('#sc-doc-title').textContent = `${state.fileName}.svg @ ${pct}% (SVG)`;
+    const z = $('#sc-zoom-input');
+    if (document.activeElement !== z) z.value = pct;
+    $('#sc-docsize').textContent = `${f(state.w)} × ${f(state.h)} px`;
   }
 
   function setGrid() {
@@ -569,6 +587,23 @@
     return tag + id;
   }
 
+  // A small live preview of one layer, framed on its own bounding box.
+  function layerThumb(el) {
+    const t = mk('svg', { class: 'sc-thumb', 'aria-hidden': 'true' });
+    const b = bboxDoc(el);
+    if (!b) return t;
+    const pad = Math.max(b.w, b.h) * 0.08 + 1;
+    t.setAttribute(
+      'viewBox',
+      [b.x - pad, b.y - pad, b.w + 2 * pad, b.h + 2 * pad].map(f).join(' '),
+    );
+    const c = el.cloneNode(true);
+    c.removeAttribute('display');
+    for (const n of [c, ...c.querySelectorAll('[id]')]) n.removeAttribute('id');
+    t.append(c);
+    return t;
+  }
+
   function renderLayers() {
     const ol = $('#sc-layers');
     ol.replaceChildren();
@@ -576,17 +611,18 @@
     if (!list.length) {
       const li = document.createElement('li');
       li.className = 'sc-empty';
-      li.textContent = 'Nothing here yet — draw something or drop an SVG.';
+      li.textContent = 'No layers yet. Draw something, or drop an SVG onto the canvas.';
       ol.append(li);
       return;
     }
-    for (const el of list.slice(0, 500)) {
+    list.slice(0, 500).forEach((el, i) => {
       const li = document.createElement('li');
       const hidden = el.getAttribute('display') === 'none';
       li.className = (state.sel.includes(el) ? 'sel ' : '') + (hidden ? 'hidden' : '');
       const eye = document.createElement('button');
-      eye.textContent = hidden ? '◌' : '●';
-      eye.setAttribute('aria-label', hidden ? 'Show' : 'Hide');
+      eye.className = 'sc-eye';
+      eye.innerHTML = `<i data-icon="${hidden ? 'eye-slash' : 'eye'}">${icon(hidden ? 'eye-slash' : 'eye')}</i>`;
+      eye.setAttribute('aria-label', hidden ? 'Show layer' : 'Hide layer');
       eye.addEventListener('click', (e) => {
         e.stopPropagation();
         if (hidden) el.removeAttribute('display');
@@ -596,14 +632,15 @@
       const name = document.createElement('span');
       name.className = 'sc-layer-name';
       name.textContent = layerName(el);
-      li.append(eye, name);
+      // Thumbnails clone the layer, so cap them on very large files.
+      li.append(eye, i < 150 ? layerThumb(el) : mk('svg', { class: 'sc-thumb' }), name);
       li.addEventListener('click', (e) => {
         if (hidden) return;
         if (e.shiftKey) toggleSel(el);
         else setSel([el]);
       });
       ol.append(li);
-    }
+    });
   }
 
   // ---------------------------------------------------------------------
@@ -2389,8 +2426,7 @@
     download(new Blob([serialize()], { type: 'image/svg+xml' }), `${state.fileName}.svg`);
   }
 
-  function exportPng() {
-    const scale = +$('#sc-png-scale').value || 1;
+  function exportPng(scale = 2) {
     const url = URL.createObjectURL(new Blob([serialize()], { type: 'image/svg+xml' }));
     const img = new Image();
     img.onload = () => {
@@ -2425,6 +2461,19 @@
   // ---------------------------------------------------------------------
   // UI wiring
   // ---------------------------------------------------------------------
+  const TOOL_META = {
+    select: ['arrow-pointer', 'Move'],
+    node: ['bezier-curve', 'Edit Points'],
+    pencil: ['pencil', 'Pencil'],
+    pen: ['pen-nib', 'Pen'],
+    eraser: ['eraser', 'Eraser'],
+    rect: ['square', 'Rectangle'],
+    ellipse: ['circle', 'Ellipse'],
+    line: ['slash', 'Line'],
+    text: ['font', 'Type'],
+    hand: ['hand', 'Hand'],
+  };
+
   function setTool(name) {
     if (!tools[name]) return;
     const prev = state.sel;
@@ -2436,8 +2485,13 @@
     state.tool = name;
     for (const b of document.querySelectorAll('[data-tool]'))
       b.setAttribute('aria-pressed', b.dataset.tool === name);
-    for (const s of document.querySelectorAll('.sc-tool-opts'))
-      s.classList.toggle('on', s.dataset.for === name);
+    // Options bar: show the groups whose data-for lists this tool.
+    for (const o of document.querySelectorAll('.sc-opt'))
+      o.classList.toggle('on', o.dataset.for.split(' ').includes(name));
+    const oi = $('#sc-opt-icon');
+    oi.dataset.icon = TOOL_META[name][0];
+    oi.innerHTML = icon(oi.dataset.icon);
+    $('#sc-opt-name').textContent = TOOL_META[name][1];
     stage.style.cursor = tools[name].cursor;
     $('#sc-hint').textContent = tools[name].hint;
     if (changed) tools[name].enter?.(prev);
@@ -2464,10 +2518,17 @@
       );
       chip.closest('.sc-paint').classList.toggle('active', state.active === k);
     }
-    $('#sc-stroke-w').value = state.strokeWidth;
-    $('#sc-stroke-w-out').textContent = f(state.strokeWidth);
-    $('#sc-opacity').value = Math.round(state.opacity * 100);
-    $('#sc-opacity-out').textContent = Math.round(state.opacity * 100) + '%';
+    // Toolbar chips (Photoshop's foreground / background squares).
+    for (const k of ['fill', 'stroke']) {
+      const chip = $(`#sc-tb-${k}`);
+      chip.classList.toggle('none', !state[k + 'On']);
+      chip.classList.toggle('active', state.active === k);
+      chip.style.setProperty('--chip', $(`#sc-${k}-chip`).style.getPropertyValue('--chip'));
+    }
+    // Every field bound to the same setting (options bar + panels) shows it.
+    const show = { strokeWidth: f(state.strokeWidth), opacity: Math.round(state.opacity * 100) };
+    for (const el of document.querySelectorAll('[data-bind]'))
+      if (document.activeElement !== el) el.value = show[el.dataset.bind];
   }
 
   // Push a style change to the selection; `final` commits it to history.
@@ -2518,18 +2579,32 @@
           syncStyleUI();
         });
     }
-    const w = $('#sc-stroke-w');
-    w.addEventListener('input', () => {
-      state.strokeWidth = +w.value;
-      styleChanged('width', false);
-    });
-    w.addEventListener('change', () => styleChanged('width', true));
-    const op = $('#sc-opacity');
-    op.addEventListener('input', () => {
-      state.opacity = op.value / 100;
-      styleChanged('opacity', false);
-    });
-    op.addEventListener('change', () => styleChanged('opacity', true));
+    for (const el of document.querySelectorAll('[data-bind]')) {
+      const key = el.dataset.bind;
+      const read = () => {
+        const v = parseFloat(el.value);
+        if (!isFinite(v)) return false;
+        const c = clamp(v, +el.min, +el.max);
+        state[key] = key === 'opacity' ? c / 100 : c;
+        return true;
+      };
+      const k = key === 'strokeWidth' ? 'width' : 'opacity';
+      el.addEventListener('input', () => read() && styleChanged(k, false));
+      el.addEventListener('change', () => {
+        read();
+        styleChanged(k, true);
+        syncStyleUI();
+      });
+    }
+    // Clicking the active toolbar chip opens its colour picker; otherwise it
+    // just becomes the active paint.
+    for (const k of ['fill', 'stroke']) {
+      $(`#sc-tb-${k}`).addEventListener('click', () => {
+        if (state.active === k) $(`#sc-${k}-color`).click();
+        state.active = k;
+        syncStyleUI();
+      });
+    }
 
     const pal = $('#sc-palette');
     for (const c of PALETTE) {
@@ -2564,16 +2639,49 @@
     }
   }
 
-  function bindRange(id, key, fmt = (v) => v) {
+  // A tool-option number field (smoothing, eraser size, font size).
+  function bindNumber(id, key) {
     const el = $(id);
-    const out = $(id + '-out');
-    const upd = () => {
-      state[key] = +el.value;
-      out.textContent = fmt(+el.value);
+    const read = () => {
+      const v = parseFloat(el.value);
+      if (!isFinite(v)) return;
+      state[key] = clamp(v, +el.min, +el.max);
       tools[state.tool].redraw?.();
     };
-    el.addEventListener('input', upd);
-    upd();
+    el.addEventListener('input', read);
+    el.addEventListener('change', () => (el.value = state[key]));
+    read();
+  }
+
+  // Scrubby labels: drag a field's label sideways to change its value
+  // (Shift = 10× faster), as in Photoshop's options bar.
+  function wireScrubbers() {
+    for (const lab of document.querySelectorAll('.sc-scrub')) {
+      const input = lab.parentElement.querySelector('input');
+      lab.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        lab.setPointerCapture(e.pointerId);
+        const x0 = e.clientX;
+        const v0 = parseFloat(input.value) || 0;
+        const step = parseFloat(input.step) || 1;
+        const move = (ev) => {
+          const d = Math.round((ev.clientX - x0) / 3) * step * (ev.shiftKey ? 10 : 1);
+          const v = clamp(+(v0 + d).toFixed(3), +input.min, +input.max);
+          if (String(v) === input.value) return;
+          input.value = v;
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+        };
+        const up = () => {
+          lab.removeEventListener('pointermove', move);
+          lab.removeEventListener('pointerup', up);
+          lab.removeEventListener('pointercancel', up);
+          input.dispatchEvent(new Event('change', { bubbles: true }));
+        };
+        lab.addEventListener('pointermove', move);
+        lab.addEventListener('pointerup', up);
+        lab.addEventListener('pointercancel', up);
+      });
+    }
   }
 
   // Pointer plumbing --------------------------------------------------------
@@ -2702,6 +2810,10 @@
   };
 
   window.addEventListener('keydown', (e) => {
+    if (openMenu && e.key === 'Escape') {
+      closeMenus();
+      return;
+    }
     const typing = e.target.matches?.(
       'input:not([type=range]):not([type=checkbox]), textarea, select',
     );
@@ -2817,7 +2929,7 @@
     for (const file of e.dataTransfer?.files || []) importFile(file, 'auto');
   });
 
-  // Buttons -------------------------------------------------------------
+  // Files -------------------------------------------------------------
   let pickMode = 'open';
   function openPicker(mode) {
     pickMode = mode;
@@ -2827,9 +2939,8 @@
     importFile(e.target.files[0], pickMode);
     e.target.value = '';
   });
-  $('#sc-open').addEventListener('click', () => openPicker('open'));
-  $('#sc-place').addEventListener('click', () => openPicker('place'));
-  $('#sc-new').addEventListener('click', () => {
+
+  function newDoc() {
     if (!items().length) return;
     tools[state.tool].leave?.();
     doc.replaceChildren();
@@ -2838,31 +2949,183 @@
     state.fileName = 'drawing';
     commit();
     say('New drawing — Ctrl+Z brings the old one back');
+  }
+
+  // Grid / snap / theme -----------------------------------------------------
+  function setGridOn(on) {
+    state.grid = on;
+    $('#sc-grid').checked = on;
+    $('[data-action="toggleGrid"]').setAttribute('aria-checked', on);
+    setGrid();
+  }
+  function setSnapOn(on) {
+    state.snap = on;
+    $('#sc-snap').checked = on;
+    $('[data-action="toggleSnap"]').setAttribute('aria-checked', on);
+  }
+
+  const darkQuery = matchMedia('(prefers-color-scheme: dark)');
+  const isDark = () => {
+    const t = document.documentElement.dataset.theme;
+    return t ? t === 'dark' : darkQuery.matches;
+  };
+  function setTheme(mode) {
+    const root = document.documentElement;
+    if (mode === 'system') delete root.dataset.theme;
+    else root.dataset.theme = mode;
+    try {
+      if (mode === 'system') localStorage.removeItem(THEME_KEY);
+      else localStorage.setItem(THEME_KEY, mode);
+    } catch {
+      /* storage blocked — the choice lasts for this visit only */
+    }
+    syncTheme();
+  }
+  function syncTheme() {
+    const mode = document.documentElement.dataset.theme || 'system';
+    for (const b of document.querySelectorAll('[data-theme-opt]'))
+      b.setAttribute('aria-checked', b.dataset.themeOpt === mode);
+    const btn = $('#sc-theme-btn');
+    btn.firstElementChild.innerHTML = icon(isDark() ? 'sun' : 'moon');
+    btn.dataset.tip = isDark() ? 'Switch to light' : 'Switch to dark';
+  }
+  darkQuery.addEventListener('change', syncTheme);
+
+  // Actions: every menu item and button with data-action="name" -------------
+  const actions = {
+    ...cmds,
+    new: newDoc,
+    open: () => openPicker('open'),
+    place: () => openPicker('place'),
+    exportSvg,
+    exportPng1: () => exportPng(1),
+    exportPng2: () => exportPng(2),
+    exportPng4: () => exportPng(4),
+    copySvg,
+    undo,
+    redo,
+    deselect: () => setSel([]),
+    swapPaint,
+    paintNone() {
+      state[state.active + 'On'] = false;
+      styleChanged(state.active, true);
+    },
+    zoomIn: () => zoomAt(state.zoom * 1.25),
+    zoomOut: () => zoomAt(state.zoom / 1.25),
+    fit,
+    zoom100: () => zoomAt(1),
+    toggleGrid: () => setGridOn(!state.grid),
+    toggleSnap: () => setSnapOn(!state.snap),
+    themeSystem: () => setTheme('system'),
+    themeDark: () => setTheme('dark'),
+    themeLight: () => setTheme('light'),
+    toggleTheme: () => setTheme(isDark() ? 'light' : 'dark'),
+  };
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest?.('[data-action]');
+    if (!a || a.disabled) return;
+    closeMenus();
+    actions[a.dataset.action]?.();
   });
-  $('#sc-export-svg').addEventListener('click', exportSvg);
-  $('#sc-export-png').addEventListener('click', exportPng);
-  $('#sc-copy-svg').addEventListener('click', copySvg);
-  $('#sc-undo').addEventListener('click', undo);
-  $('#sc-redo').addEventListener('click', redo);
-  $('#sc-zoom-in').addEventListener('click', () => zoomAt(state.zoom * 1.25));
-  $('#sc-zoom-out').addEventListener('click', () => zoomAt(state.zoom / 1.25));
-  $('#sc-zoom-pct').addEventListener('click', fit);
+
+  // Menu bar: click to open, hover to switch while one is open, arrows to move.
+  let openMenu = null;
+  function closeMenus() {
+    if (!openMenu) return;
+    openMenu.querySelector('.sc-menu-btn').setAttribute('aria-expanded', 'false');
+    openMenu.querySelector('.sc-menu-list').hidden = true;
+    openMenu = null;
+  }
+  function showMenu(m, focusFirst) {
+    closeMenus();
+    const btn = m.querySelector('.sc-menu-btn');
+    const list = m.querySelector('.sc-menu-list');
+    list.hidden = false;
+    const r = btn.getBoundingClientRect();
+    list.style.left = `${Math.max(4, Math.min(r.left, innerWidth - list.offsetWidth - 4))}px`;
+    list.style.top = `${r.bottom + 2}px`;
+    btn.setAttribute('aria-expanded', 'true');
+    openMenu = m;
+    if (focusFirst) list.querySelector('button').focus();
+  }
+  const menus = [...document.querySelectorAll('.sc-menu')];
+  menus.forEach((m, mi) => {
+    const btn = m.querySelector('.sc-menu-btn');
+    const list = m.querySelector('.sc-menu-list');
+    btn.addEventListener('click', (e) =>
+      openMenu === m ? closeMenus() : showMenu(m, e.detail === 0),
+    );
+    btn.addEventListener('pointerenter', () => openMenu && openMenu !== m && showMenu(m));
+    btn.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        showMenu(m, true);
+      }
+    });
+    list.addEventListener('keydown', (e) => {
+      const items = [...list.querySelectorAll('button')];
+      const at = items.indexOf(document.activeElement);
+      const go = (d) => items[(at + d + items.length) % items.length].focus();
+      const hop = (d) => showMenu(menus[(mi + d + menus.length) % menus.length], true);
+      const keys = {
+        ArrowDown: () => go(1),
+        ArrowUp: () => go(-1),
+        ArrowRight: () => hop(1),
+        ArrowLeft: () => hop(-1),
+        Escape: () => {
+          closeMenus();
+          btn.focus();
+        },
+      };
+      if (!keys[e.key]) return;
+      e.preventDefault();
+      e.stopPropagation();
+      keys[e.key]();
+    });
+  });
+  document.addEventListener('pointerdown', (e) => {
+    if (openMenu && !openMenu.contains(e.target)) closeMenus();
+  });
+  window.addEventListener('blur', closeMenus);
+
+  // Panel tabs (Color | Swatches).
+  for (const group of document.querySelectorAll('[data-tabs]')) {
+    const tabs = [...group.querySelectorAll('[data-tab]')];
+    for (const t of tabs) {
+      t.addEventListener('click', () => {
+        for (const x of tabs) {
+          x.setAttribute('aria-selected', x === t);
+          group.querySelector(`[data-pane="${x.dataset.tab}"]`).hidden = x !== t;
+        }
+      });
+    }
+  }
+
+  // Remaining controls ------------------------------------------------------
+  const zoomInput = $('#sc-zoom-input');
+  zoomInput.addEventListener('change', () => {
+    const v = parseFloat(zoomInput.value);
+    if (v > 0) zoomAt(v / 100);
+    else updateTitle();
+  });
+  zoomInput.addEventListener('keydown', (e) => e.key === 'Enter' && zoomInput.blur());
   for (const id of ['#sc-w', '#sc-h']) {
     $(id).addEventListener('change', () => {
       setSize($('#sc-w').value, $('#sc-h').value);
       commit();
     });
   }
-  $('#sc-grid').addEventListener('change', (e) => {
-    state.grid = e.target.checked;
-    setGrid();
-  });
-  $('#sc-snap').addEventListener('change', (e) => (state.snap = e.target.checked));
+  $('#sc-grid').addEventListener('change', (e) => setGridOn(e.target.checked));
+  $('#sc-snap').addEventListener('change', (e) => setSnapOn(e.target.checked));
   $('#sc-grid-size').addEventListener('change', (e) => {
     state.gridSize = clamp(+e.target.value || 20, 2, 500);
+    e.target.value = state.gridSize;
     setGrid();
   });
-  $('#sc-panel-toggle').addEventListener('click', () => $('#sc-panel').classList.toggle('open'));
+  $('#sc-panel-toggle').addEventListener('click', (e) => {
+    const open = $('#sc-panel').classList.toggle('open');
+    e.currentTarget.setAttribute('aria-expanded', open);
+  });
   for (const b of document.querySelectorAll('[data-tool]'))
     b.addEventListener('click', () => setTool(b.dataset.tool));
   for (const b of document.querySelectorAll('[data-node-cmd]')) {
@@ -2874,8 +3137,6 @@
       else n.setKind(c);
     });
   }
-  for (const b of document.querySelectorAll('[data-cmd]'))
-    b.addEventListener('click', () => cmds[b.dataset.cmd]());
   for (const b of document.querySelectorAll('[data-eraser]')) {
     b.addEventListener('click', () => {
       state.eraserMode = b.dataset.eraser;
@@ -2886,13 +3147,19 @@
   document.querySelector('[data-eraser="object"]').setAttribute('aria-checked', 'true');
   document.querySelector('[data-eraser="cut"]').setAttribute('aria-checked', 'false');
 
-  window.addEventListener('resize', () => applyView());
+  window.addEventListener('resize', () => {
+    closeMenus();
+    applyView();
+  });
 
   // Boot ----------------------------------------------------------------
+  hydrateIcons();
+  syncTheme();
   wireStyle();
-  bindRange('#sc-smooth', 'smoothing');
-  bindRange('#sc-eraser-size', 'eraserSize');
-  bindRange('#sc-font-size', 'fontSize');
+  wireScrubbers();
+  bindNumber('#sc-smooth', 'smoothing');
+  bindNumber('#sc-eraser-size', 'eraserSize');
+  bindNumber('#sc-font-size', 'fontSize');
   syncStyleUI();
   setGrid();
   setTool('select');

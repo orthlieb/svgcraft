@@ -1,7 +1,7 @@
 # Svgcraft
 
 A small in-browser SVG editor with no dependencies and no build step. It's
-three static files (`index.html`, `style.css`, `app.js`): open `index.html`
+four static files (`index.html`, `style.css`, `app.js`, `icons.js`): open `index.html`
 directly, or serve the folder (`npx serve .`) and host it
 anywhere static.
 
@@ -11,6 +11,27 @@ from the root of `main`; every push to `main` redeploys it).
 [CENSUS.md](CENSUS.md) surveys 13 current editors and ranks features by
 importance. It explains why the feature set below looks the way it does,
 and what comes next.
+
+## Workspace
+
+The layout follows Photoshop:
+
+- **Menu bar**: File, Edit, Object and View menus. Click to open, hover to
+  switch between them, and use the arrow keys to move around.
+- **Options bar**: settings for the current tool, such as stroke width and
+  smoothing for the pencil, mode and size for the eraser, or the point
+  commands for Edit Points. Drag a field's label sideways to scrub its value
+  (Shift scrubs 10× faster).
+- **Toolbar**: the tools, with the fill and stroke chips at the bottom.
+  Click a chip to make it the active paint, and click it again to pick a
+  colour. Below the chips are swap (X) and "none".
+- **Document tab** above the canvas, showing the file name and zoom.
+- **Docked panels**: Color / Swatches, Properties (stroke width, document
+  size, grid and snap) and Layers (opacity, thumbnails, show / hide, and
+  group, duplicate, reorder and delete buttons).
+- **Status bar**: an editable zoom field and the document size.
+- **Theme**: follows your OS by default. The sun / moon button and
+  View → Theme switch between Dark and Light, and the choice is remembered.
 
 ## Features
 
@@ -87,6 +108,8 @@ stroke="currentColor"` (common in icon sets) is pushed down so it survives.
 
 ## Credits
 
-Tool icons are from [Font Awesome Free](https://fontawesome.com) 6.7.2 by
+Icons are from [Font Awesome Free](https://fontawesome.com) 6.7.2 by
 Fonticons, Inc., licensed [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
-They're inlined as SVG, so nothing loads from a CDN.
+`icons.js` holds them as SVG snippets keyed by name, and any element marked
+`data-icon="name"` gets its snippet at startup, so nothing loads from a CDN.
+To add an icon, copy its SVG from fontawesome.com into `icons.js`.

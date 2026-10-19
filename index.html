@@ -5,341 +5,660 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Svgcraft</title>
     <link rel="stylesheet" href="style.css" />
+    <!-- Applied before first paint so a saved Dark / Light choice never flashes. -->
+    <script>
+      try {
+        const t = localStorage.getItem('svgcraft.theme');
+        if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t;
+      } catch {
+        /* storage blocked — follow the OS theme */
+      }
+    </script>
   </head>
   <body>
-    <header class="sc-top">
-      <span class="sc-logo">Svg<b>craft</b></span>
-      <div class="sc-group">
-        <button id="sc-new" data-tip="New drawing">New</button>
-        <button id="sc-open" data-tip="Open an SVG (replaces the drawing) · Ctrl+O">Open…</button>
-        <button id="sc-place" data-tip="Import an SVG or image into the drawing">Import…</button>
-        <input
-          id="sc-file"
-          type="file"
-          accept=".svg,image/svg+xml,image/png,image/jpeg,image/webp,image/gif"
-          hidden
-        />
-      </div>
-      <div class="sc-group">
-        <button id="sc-export-svg" class="sc-primary" data-tip="Download SVG · Ctrl+S">
-          Export SVG
-        </button>
-        <button id="sc-export-png" data-tip="Download PNG (transparent background)">PNG</button>
-        <select id="sc-png-scale" aria-label="PNG scale">
-          <option value="1">1×</option>
-          <option value="2" selected>2×</option>
-          <option value="4">4×</option>
-        </select>
-        <button id="sc-copy-svg" data-tip="Copy SVG markup to the clipboard">Copy</button>
-      </div>
-      <div class="sc-group">
-        <button id="sc-undo" class="sc-icon" aria-label="Undo" data-tip="Undo · Ctrl+Z">
-          <svg viewBox="0 0 24 24">
-            <path d="M9 14 4 9l5-5" />
-            <path d="M4 9h11a5 5 0 0 1 0 10h-3" />
-          </svg>
-        </button>
-        <button id="sc-redo" class="sc-icon" aria-label="Redo" data-tip="Redo · Ctrl+Shift+Z">
-          <svg viewBox="0 0 24 24">
-            <path d="m15 14 5-5-5-5" />
-            <path d="M20 9H9a5 5 0 0 0 0 10h3" />
-          </svg>
-        </button>
-      </div>
-      <div class="sc-group sc-size">
-        <label>W <input id="sc-w" type="number" min="1" max="20000" value="800" /></label>
-        <label>H <input id="sc-h" type="number" min="1" max="20000" value="600" /></label>
-      </div>
-      <div class="sc-group">
-        <button id="sc-zoom-out" class="sc-icon" aria-label="Zoom out" data-tip="Zoom out · −">
-          −
-        </button>
-        <button id="sc-zoom-pct" data-tip="Zoom to fit · 0 (1 = 100%)">100%</button>
-        <button id="sc-zoom-in" class="sc-icon" aria-label="Zoom in" data-tip="Zoom in · +">
-          +
-        </button>
-      </div>
-      <div class="sc-group">
-        <label class="sc-check" data-tip="Show grid"
-          ><input id="sc-grid" type="checkbox" /> Grid</label
+    <!-- ── Menu bar ─────────────────────────────────────────────────────── -->
+    <header class="sc-menubar">
+      <span class="sc-logo" aria-hidden="true">Sc</span>
+      <nav class="sc-menus" role="menubar" aria-label="Main menu">
+        <div class="sc-menu">
+          <button class="sc-menu-btn" role="menuitem" aria-haspopup="menu" aria-expanded="false">
+            File
+          </button>
+          <div class="sc-menu-list" role="menu" hidden>
+            <button role="menuitem" data-action="new">
+              <i data-icon="file"></i><span>New</span>
+            </button>
+            <button role="menuitem" data-action="open">
+              <i data-icon="folder-open"></i><span>Open…</span><kbd>Ctrl+O</kbd>
+            </button>
+            <button role="menuitem" data-action="place">
+              <i data-icon="file-import"></i><span>Import…</span>
+            </button>
+            <hr />
+            <button role="menuitem" data-action="exportSvg">
+              <i data-icon="file-export"></i><span>Export SVG</span><kbd>Ctrl+S</kbd>
+            </button>
+            <button role="menuitem" data-action="exportPng1">
+              <i data-icon="image"></i><span>Export PNG @1×</span>
+            </button>
+            <button role="menuitem" data-action="exportPng2">
+              <i></i><span>Export PNG @2×</span>
+            </button>
+            <button role="menuitem" data-action="exportPng4">
+              <i></i><span>Export PNG @4×</span>
+            </button>
+            <hr />
+            <button role="menuitem" data-action="copySvg">
+              <i data-icon="copy"></i><span>Copy as SVG markup</span>
+            </button>
+          </div>
+        </div>
+        <div class="sc-menu">
+          <button class="sc-menu-btn" role="menuitem" aria-haspopup="menu" aria-expanded="false">
+            Edit
+          </button>
+          <div class="sc-menu-list" role="menu" hidden>
+            <button role="menuitem" data-action="undo">
+              <i data-icon="rotate-left"></i><span>Undo</span><kbd>Ctrl+Z</kbd>
+            </button>
+            <button role="menuitem" data-action="redo">
+              <i data-icon="rotate-right"></i><span>Redo</span><kbd>Ctrl+Shift+Z</kbd>
+            </button>
+            <hr />
+            <button role="menuitem" data-action="duplicate">
+              <i data-icon="clone"></i><span>Duplicate</span><kbd>Ctrl+D</kbd>
+            </button>
+            <button role="menuitem" data-action="delete">
+              <i data-icon="trash-can"></i><span>Delete</span><kbd>Del</kbd>
+            </button>
+            <hr />
+            <button role="menuitem" data-action="selectAll">
+              <i></i><span>Select All</span><kbd>Ctrl+A</kbd>
+            </button>
+            <button role="menuitem" data-action="deselect">
+              <i></i><span>Deselect</span><kbd>Esc</kbd>
+            </button>
+            <hr />
+            <button role="menuitem" data-action="swapPaint">
+              <i data-icon="right-left"></i><span>Swap Fill and Stroke</span><kbd>X</kbd>
+            </button>
+          </div>
+        </div>
+        <div class="sc-menu">
+          <button class="sc-menu-btn" role="menuitem" aria-haspopup="menu" aria-expanded="false">
+            Object
+          </button>
+          <div class="sc-menu-list" role="menu" hidden>
+            <button role="menuitem" data-action="group">
+              <i data-icon="object-group"></i><span>Group</span><kbd>Ctrl+G</kbd>
+            </button>
+            <button role="menuitem" data-action="ungroup">
+              <i data-icon="object-ungroup"></i><span>Ungroup</span><kbd>Ctrl+Shift+G</kbd>
+            </button>
+            <hr />
+            <button role="menuitem" data-action="front">
+              <i data-icon="angles-up"></i><span>Bring to Front</span><kbd>Ctrl+]</kbd>
+            </button>
+            <button role="menuitem" data-action="forward">
+              <i data-icon="arrow-up"></i><span>Bring Forward</span><kbd>]</kbd>
+            </button>
+            <button role="menuitem" data-action="backward">
+              <i data-icon="arrow-down"></i><span>Send Backward</span><kbd>[</kbd>
+            </button>
+            <button role="menuitem" data-action="back">
+              <i data-icon="angles-down"></i><span>Send to Back</span><kbd>Ctrl+[</kbd>
+            </button>
+            <hr />
+            <button role="menuitem" data-action="flipH">
+              <i data-icon="left-right"></i><span>Flip Horizontal</span>
+            </button>
+            <button role="menuitem" data-action="flipV">
+              <i data-icon="up-down"></i><span>Flip Vertical</span>
+            </button>
+          </div>
+        </div>
+        <div class="sc-menu">
+          <button class="sc-menu-btn" role="menuitem" aria-haspopup="menu" aria-expanded="false">
+            View
+          </button>
+          <div class="sc-menu-list" role="menu" hidden>
+            <button role="menuitem" data-action="zoomIn">
+              <i data-icon="magnifying-glass-plus"></i><span>Zoom In</span><kbd>+</kbd>
+            </button>
+            <button role="menuitem" data-action="zoomOut">
+              <i data-icon="magnifying-glass-minus"></i><span>Zoom Out</span><kbd>−</kbd>
+            </button>
+            <button role="menuitem" data-action="fit">
+              <i data-icon="expand"></i><span>Fit on Screen</span><kbd>0</kbd>
+            </button>
+            <button role="menuitem" data-action="zoom100">
+              <i></i><span>100%</span><kbd>1</kbd>
+            </button>
+            <hr />
+            <button role="menuitemcheckbox" data-action="toggleGrid" aria-checked="false">
+              <i data-icon="border-all"></i><span>Show Grid</span>
+            </button>
+            <button role="menuitemcheckbox" data-action="toggleSnap" aria-checked="false">
+              <i data-icon="magnet"></i><span>Snap to Grid</span>
+            </button>
+            <hr />
+            <span class="sc-menu-label">Theme</span>
+            <button role="menuitemradio" data-action="themeSystem" data-theme-opt="system">
+              <i data-icon="circle-half-stroke"></i><span>Match System</span>
+            </button>
+            <button role="menuitemradio" data-action="themeDark" data-theme-opt="dark">
+              <i data-icon="moon"></i><span>Dark</span>
+            </button>
+            <button role="menuitemradio" data-action="themeLight" data-theme-opt="light">
+              <i data-icon="sun"></i><span>Light</span>
+            </button>
+          </div>
+        </div>
+      </nav>
+      <div class="sc-menubar-end">
+        <button
+          class="sc-ibtn"
+          data-action="undo"
+          aria-label="Undo"
+          data-tip="Undo · Ctrl+Z"
+          id="sc-undo"
         >
-        <label class="sc-check" data-tip="Snap to grid"
-          ><input id="sc-snap" type="checkbox" /> Snap</label
+          <i data-icon="rotate-left"></i>
+        </button>
+        <button
+          class="sc-ibtn"
+          data-action="redo"
+          aria-label="Redo"
+          data-tip="Redo · Ctrl+Shift+Z"
+          id="sc-redo"
         >
-        <input
-          id="sc-grid-size"
-          type="number"
-          min="2"
-          max="500"
-          value="20"
-          aria-label="Grid size"
-        />
+          <i data-icon="rotate-right"></i>
+        </button>
+        <button
+          class="sc-ibtn"
+          data-action="toggleTheme"
+          aria-label="Switch theme"
+          data-tip="Switch dark / light"
+          id="sc-theme-btn"
+        >
+          <i data-icon="moon"></i>
+        </button>
+        <button class="sc-export" data-action="exportSvg" data-tip="Download SVG · Ctrl+S">
+          <i data-icon="file-export"></i><span>Export</span>
+        </button>
+        <button
+          class="sc-ibtn sc-panel-toggle"
+          id="sc-panel-toggle"
+          aria-label="Show panels"
+          aria-expanded="false"
+        >
+          <i data-icon="sliders"></i>
+        </button>
       </div>
-      <button id="sc-panel-toggle" class="sc-panel-toggle" aria-label="Show panel">☰</button>
+      <input
+        id="sc-file"
+        type="file"
+        accept=".svg,image/svg+xml,image/png,image/jpeg,image/webp,image/gif"
+        hidden
+      />
     </header>
 
+    <!-- ── Options bar (changes with the tool) ──────────────────────────── -->
+    <div class="sc-options" id="sc-options">
+      <div class="sc-opt-tool"><i id="sc-opt-icon"></i><span id="sc-opt-name">Move</span></div>
+      <span class="sc-vsep"></span>
+      <div class="sc-opt" data-for="select">
+        <button
+          class="sc-ibtn"
+          data-action="flipH"
+          aria-label="Flip horizontal"
+          data-tip="Flip horizontal"
+        >
+          <i data-icon="left-right"></i>
+        </button>
+        <button
+          class="sc-ibtn"
+          data-action="flipV"
+          aria-label="Flip vertical"
+          data-tip="Flip vertical"
+        >
+          <i data-icon="up-down"></i>
+        </button>
+        <span class="sc-vsep"></span>
+        <button class="sc-ibtn" data-action="group" aria-label="Group" data-tip="Group · Ctrl+G">
+          <i data-icon="object-group"></i>
+        </button>
+        <button
+          class="sc-ibtn"
+          data-action="ungroup"
+          aria-label="Ungroup"
+          data-tip="Ungroup · Ctrl+Shift+G"
+        >
+          <i data-icon="object-ungroup"></i>
+        </button>
+        <span class="sc-vsep"></span>
+        <button
+          class="sc-ibtn"
+          data-action="front"
+          aria-label="Bring to front"
+          data-tip="Bring to front · Ctrl+]"
+        >
+          <i data-icon="angles-up"></i>
+        </button>
+        <button
+          class="sc-ibtn"
+          data-action="forward"
+          aria-label="Bring forward"
+          data-tip="Bring forward · ]"
+        >
+          <i data-icon="arrow-up"></i>
+        </button>
+        <button
+          class="sc-ibtn"
+          data-action="backward"
+          aria-label="Send backward"
+          data-tip="Send backward · ["
+        >
+          <i data-icon="arrow-down"></i>
+        </button>
+        <button
+          class="sc-ibtn"
+          data-action="back"
+          aria-label="Send to back"
+          data-tip="Send to back · Ctrl+["
+        >
+          <i data-icon="angles-down"></i>
+        </button>
+      </div>
+      <div class="sc-opt" data-for="node">
+        <button class="sc-tbtn" data-node-cmd="corner" data-tip="Retract handles — sharp point">
+          <i data-icon="crosshairs"></i>Corner
+        </button>
+        <button class="sc-tbtn" data-node-cmd="smooth" data-tip="Grow smooth handles">
+          <i data-icon="bezier-curve"></i>Smooth
+        </button>
+        <button class="sc-tbtn" data-node-cmd="delete" data-tip="Delete points · Del">
+          <i data-icon="trash-can"></i>Delete
+        </button>
+        <button class="sc-tbtn" data-node-cmd="close" data-tip="Close or open the path">
+          <i data-icon="draw-polygon"></i>Close / open
+        </button>
+      </div>
+      <div class="sc-opt" data-for="pencil pen rect ellipse line">
+        <label class="sc-field"
+          ><span class="sc-scrub" data-tip="Drag to adjust">Stroke:</span
+          ><input
+            type="number"
+            data-bind="strokeWidth"
+            min="0"
+            max="200"
+            step="0.5"
+            aria-label="Stroke width"
+          /><span class="sc-unit">px</span></label
+        >
+      </div>
+      <div class="sc-opt" data-for="pencil">
+        <label class="sc-field"
+          ><span class="sc-scrub" data-tip="Drag to adjust">Smoothing:</span
+          ><input id="sc-smooth" type="number" min="0" max="10" value="4" aria-label="Smoothing"
+        /></label>
+      </div>
+      <div class="sc-opt" data-for="eraser">
+        <div class="sc-seg" role="radiogroup" aria-label="Eraser mode">
+          <button data-eraser="object" role="radio">Object</button>
+          <button data-eraser="cut" role="radio">Cut</button>
+        </div>
+        <label class="sc-field"
+          ><span class="sc-scrub" data-tip="Drag to adjust">Size:</span
+          ><input
+            id="sc-eraser-size"
+            type="number"
+            min="2"
+            max="80"
+            value="12"
+            aria-label="Eraser size"
+          /><span class="sc-unit">px</span></label
+        >
+        <span class="sc-opt-note">Object deletes what you rub · Cut splits strokes</span>
+      </div>
+      <div class="sc-opt" data-for="text">
+        <label class="sc-field"
+          ><span class="sc-scrub" data-tip="Drag to adjust">Size:</span
+          ><input
+            id="sc-font-size"
+            type="number"
+            min="6"
+            max="400"
+            value="32"
+            aria-label="Font size"
+          /><span class="sc-unit">px</span></label
+        >
+      </div>
+      <div class="sc-opt" data-for="hand">
+        <button class="sc-tbtn" data-action="zoom100">100%</button>
+        <button class="sc-tbtn" data-action="fit">Fit Screen</button>
+      </div>
+    </div>
+
     <div class="sc-main">
-      <!-- Tool icons: Font Awesome Free 6.7.2 by @fontawesome — https://fontawesome.com, CC BY 4.0 -->
+      <!-- ── Toolbar ────────────────────────────────────────────────────── -->
       <nav class="sc-tools" aria-label="Tools">
-        <button data-tool="select" aria-label="Select" data-tip="Select · V">
-          <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512">
-            <path
-              d="M0 55.2L0 426c0 12.2 9.9 22 22 22c6.3 0 12.4-2.7 16.6-7.5L121.2 346l58.1 116.3c7.9 15.8 27.1 22.2 42.9 14.3s22.2-27.1 14.3-42.9L179.8 320l118.1 0c12.2 0 22.1-9.9 22.1-22.1c0-6.3-2.7-12.3-7.4-16.5L38.6 37.9C34.3 34.1 28.9 32 23.2 32C10.4 32 0 42.4 0 55.2z"
-            />
-          </svg>
+        <button data-tool="select" aria-label="Move / select" data-tip="Move · V">
+          <i data-icon="arrow-pointer"></i>
         </button>
         <button data-tool="node" aria-label="Edit points" data-tip="Edit points · A">
-          <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512">
-            <path
-              d="M296 136l0-48 48 0 0 48-48 0zM288 32c-26.5 0-48 21.5-48 48l0 4L121.6 84C111.2 62.7 89.3 48 64 48C28.7 48 0 76.7 0 112s28.7 64 64 64c25.3 0 47.2-14.7 57.6-36l66.9 0c-58.9 39.6-98.9 105-104 180L80 320c-26.5 0-48 21.5-48 48l0 64c0 26.5 21.5 48 48 48l64 0c26.5 0 48-21.5 48-48l0-64c0-26.5-21.5-48-48-48l-3.3 0c5.9-67 48.5-123.4 107.5-149.1c8.6 12.7 23.2 21.1 39.8 21.1l64 0c16.6 0 31.1-8.4 39.8-21.1c59 25.7 101.6 82.1 107.5 149.1l-3.3 0c-26.5 0-48 21.5-48 48l0 64c0 26.5 21.5 48 48 48l64 0c26.5 0 48-21.5 48-48l0-64c0-26.5-21.5-48-48-48l-4.5 0c-5-75-45.1-140.4-104-180l66.9 0c10.4 21.3 32.3 36 57.6 36c35.3 0 64-28.7 64-64s-28.7-64-64-64c-25.3 0-47.2 14.7-57.6 36L400 84l0-4c0-26.5-21.5-48-48-48l-64 0zM88 376l48 0 0 48-48 0 0-48zm416 48l0-48 48 0 0 48-48 0z"
-            />
-          </svg>
+          <i data-icon="bezier-curve"></i>
         </button>
+        <span class="sc-sep"></span>
         <button data-tool="pencil" aria-label="Pencil" data-tip="Pencil · P">
-          <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-            <path
-              d="M410.3 231l11.3-11.3-33.9-33.9-62.1-62.1L291.7 89.8l-11.3 11.3-22.6 22.6L58.6 322.9c-10.4 10.4-18 23.3-22.2 37.4L1 480.7c-2.5 8.4-.2 17.5 6.1 23.7s15.3 8.5 23.7 6.1l120.3-35.4c14.1-4.2 27-11.8 37.4-22.2L387.7 253.7 410.3 231zM160 399.4l-9.1 22.7c-4 3.1-8.5 5.4-13.3 6.9L59.4 452l23-78.1c1.4-4.9 3.8-9.4 6.9-13.3l22.7-9.1 0 32c0 8.8 7.2 16 16 16l32 0zM362.7 18.7L348.3 33.2 325.7 55.8 314.3 67.1l33.9 33.9 62.1 62.1 33.9 33.9 11.3-11.3 22.6-22.6 14.5-14.5c25-25 25-65.5 0-90.5L453.3 18.7c-25-25-65.5-25-90.5 0zm-47.4 168l-144 144c-6.2 6.2-16.4 6.2-22.6 0s-6.2-16.4 0-22.6l144-144c6.2-6.2 16.4-6.2 22.6 0s6.2 16.4 0 22.6z"
-            />
-          </svg>
+          <i data-icon="pencil"></i>
         </button>
-        <button data-tool="pen" aria-label="Pen" data-tip="Pen (Bézier) · B">
-          <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-            <path
-              d="M368.4 18.3L312.7 74.1 437.9 199.3l55.7-55.7c21.9-21.9 21.9-57.3 0-79.2L447.6 18.3c-21.9-21.9-57.3-21.9-79.2 0zM288 94.6l-9.2 2.8L134.7 140.6c-19.9 6-35.7 21.2-42.3 41L3.8 445.8c-3.8 11.3-1 23.9 7.3 32.4L164.7 324.7c-3-6.3-4.7-13.3-4.7-20.7c0-26.5 21.5-48 48-48s48 21.5 48 48s-21.5 48-48 48c-7.4 0-14.4-1.7-20.7-4.7L33.7 500.9c8.6 8.3 21.1 11.2 32.4 7.3l264.3-88.6c19.7-6.6 35-22.4 41-42.3l43.2-144.1 2.7-9.2L288 94.6z"
-            />
-          </svg>
+        <button data-tool="pen" aria-label="Pen" data-tip="Pen · B">
+          <i data-icon="pen-nib"></i>
         </button>
         <button data-tool="eraser" aria-label="Eraser" data-tip="Eraser · E">
-          <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512">
-            <path
-              d="M290.7 57.4L57.4 290.7c-25 25-25 65.5 0 90.5l80 80c12 12 28.3 18.7 45.3 18.7L288 480l9.4 0L512 480c17.7 0 32-14.3 32-32s-14.3-32-32-32l-124.1 0L518.6 285.3c25-25 25-65.5 0-90.5L381.3 57.4c-25-25-65.5-25-90.5 0zM297.4 416l-9.4 0-105.4 0-80-80L227.3 211.3 364.7 348.7 297.4 416z"
-            />
-          </svg>
+          <i data-icon="eraser"></i>
         </button>
         <span class="sc-sep"></span>
         <button data-tool="rect" aria-label="Rectangle" data-tip="Rectangle · R">
-          <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
-            <path
-              d="M384 80c8.8 0 16 7.2 16 16l0 320c0 8.8-7.2 16-16 16L64 432c-8.8 0-16-7.2-16-16L48 96c0-8.8 7.2-16 16-16l320 0zM64 32C28.7 32 0 60.7 0 96L0 416c0 35.3 28.7 64 64 64l320 0c35.3 0 64-28.7 64-64l0-320c0-35.3-28.7-64-64-64L64 32z"
-            />
-          </svg>
+          <i data-icon="square"></i>
         </button>
         <button data-tool="ellipse" aria-label="Ellipse" data-tip="Ellipse · O">
-          <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-            <path
-              d="M464 256A208 208 0 1 0 48 256a208 208 0 1 0 416 0zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256z"
-            />
-          </svg>
+          <i data-icon="circle"></i>
         </button>
         <button data-tool="line" aria-label="Line" data-tip="Line · L">
-          <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512">
-            <path
-              d="M5.1 9.2C13.3-1.2 28.4-3.1 38.8 5.1l592 464c10.4 8.2 12.3 23.3 4.1 33.7s-23.3 12.3-33.7 4.1L9.2 42.9C-1.2 34.7-3.1 19.6 5.1 9.2z"
-            />
-          </svg>
+          <i data-icon="slash"></i>
         </button>
-        <button data-tool="text" aria-label="Text" data-tip="Text · T">
-          <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
-            <path
-              d="M254 52.8C249.3 40.3 237.3 32 224 32s-25.3 8.3-30 20.8L57.8 416 32 416c-17.7 0-32 14.3-32 32s14.3 32 32 32l96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-1.8 0 18-48 159.6 0 18 48-1.8 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-25.8 0L254 52.8zM279.8 304l-111.6 0L224 155.1 279.8 304z"
-            />
-          </svg>
+        <button data-tool="text" aria-label="Text" data-tip="Type · T">
+          <i data-icon="font"></i>
         </button>
         <span class="sc-sep"></span>
-        <button data-tool="hand" aria-label="Pan" data-tip="Pan · H (or hold Space)">
-          <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-            <path
-              d="M256 0c-25.3 0-47.2 14.7-57.6 36c-7-2.6-14.5-4-22.4-4c-35.3 0-64 28.7-64 64l0 165.5-2.7-2.7c-25-25-65.5-25-90.5 0s-25 65.5 0 90.5L106.5 437c48 48 113.1 75 181 75l8.5 0 8 0c1.5 0 3-.1 4.5-.4c91.7-6.2 165-79.4 171.1-171.1c.3-1.5 .4-3 .4-4.5l0-176c0-35.3-28.7-64-64-64c-5.5 0-10.9 .7-16 2l0-2c0-35.3-28.7-64-64-64c-7.9 0-15.4 1.4-22.4 4C303.2 14.7 281.3 0 256 0zM240 96.1l0-.1 0-32c0-8.8 7.2-16 16-16s16 7.2 16 16l0 31.9 0 .1 0 136c0 13.3 10.7 24 24 24s24-10.7 24-24l0-136c0 0 0 0 0-.1c0-8.8 7.2-16 16-16s16 7.2 16 16l0 55.9c0 0 0 .1 0 .1l0 80c0 13.3 10.7 24 24 24s24-10.7 24-24l0-71.9c0 0 0-.1 0-.1c0-8.8 7.2-16 16-16s16 7.2 16 16l0 172.9c-.1 .6-.1 1.3-.2 1.9c-3.4 69.7-59.3 125.6-129 129c-.6 0-1.3 .1-1.9 .2l-4.9 0-8.5 0c-55.2 0-108.1-21.9-147.1-60.9L52.7 315.3c-6.2-6.2-6.2-16.4 0-22.6s16.4-6.2 22.6 0L119 336.4c6.9 6.9 17.2 8.9 26.2 5.2s14.8-12.5 14.8-22.2L160 96c0-8.8 7.2-16 16-16c8.8 0 16 7.1 16 15.9L192 232c0 13.3 10.7 24 24 24s24-10.7 24-24l0-135.9z"
-            />
-          </svg>
+        <button data-tool="hand" aria-label="Hand" data-tip="Hand · H (or hold Space)">
+          <i data-icon="hand"></i>
         </button>
+        <!-- Fill / stroke chips, Photoshop foreground / background style. -->
+        <div class="sc-chips" aria-label="Fill and stroke">
+          <button
+            id="sc-tb-stroke"
+            class="sc-tb-chip sc-tb-stroke"
+            aria-label="Stroke colour (make active)"
+            data-tip="Stroke · click to edit"
+          ></button>
+          <button
+            id="sc-tb-fill"
+            class="sc-tb-chip sc-tb-fill"
+            aria-label="Fill colour (make active)"
+            data-tip="Fill · click to edit"
+          ></button>
+          <button
+            class="sc-tb-mini sc-tb-swap"
+            data-action="swapPaint"
+            aria-label="Swap fill and stroke"
+            data-tip="Swap · X"
+          >
+            <i data-icon="right-left"></i>
+          </button>
+          <button
+            class="sc-tb-mini sc-tb-none"
+            data-action="paintNone"
+            aria-label="Set the active paint to none"
+            data-tip="None"
+          >
+            <i data-icon="ban"></i>
+          </button>
+        </div>
       </nav>
 
-      <div class="sc-stage-wrap" id="sc-stage-wrap">
-        <svg id="sc-stage" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id="sc-checker" patternUnits="userSpaceOnUse" width="16" height="16">
-              <rect width="16" height="16" class="sc-check-a" />
-              <rect width="8" height="8" class="sc-check-b" />
-              <rect x="8" y="8" width="8" height="8" class="sc-check-b" />
-            </pattern>
-            <pattern id="sc-gridpat" patternUnits="userSpaceOnUse" width="20" height="20">
-              <path id="sc-gridline" d="M20 0H0V20" fill="none" class="sc-gridline" />
-            </pattern>
-          </defs>
-          <g id="sc-view">
-            <rect id="sc-board-bg" x="0" y="0" width="800" height="600" fill="url(#sc-checker)" />
-            <rect
-              id="sc-grid-rect"
-              x="0"
-              y="0"
-              width="800"
-              height="600"
-              fill="url(#sc-gridpat)"
-              display="none"
-            />
-            <defs id="sc-defs"></defs>
-            <g id="sc-doc"></g>
-            <rect id="sc-board-frame" x="0" y="0" width="800" height="600" fill="none" />
-            <g id="sc-selection"></g>
-            <g id="sc-nodes"></g>
-            <g id="sc-guides"></g>
-          </g>
-        </svg>
-        <div class="sc-drop" id="sc-drop">Drop an SVG or image to import</div>
+      <!-- ── Document window ────────────────────────────────────────────── -->
+      <div class="sc-workspace">
+        <div class="sc-doctabs" role="tablist">
+          <div class="sc-doctab" role="tab" aria-selected="true">
+            <span id="sc-doc-title">drawing.svg @ 100%</span>
+          </div>
+        </div>
+        <div class="sc-stage-wrap" id="sc-stage-wrap">
+          <svg id="sc-stage" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="sc-checker" patternUnits="userSpaceOnUse" width="16" height="16">
+                <rect width="16" height="16" class="sc-check-a" />
+                <rect width="8" height="8" class="sc-check-b" />
+                <rect x="8" y="8" width="8" height="8" class="sc-check-b" />
+              </pattern>
+              <pattern id="sc-gridpat" patternUnits="userSpaceOnUse" width="20" height="20">
+                <path id="sc-gridline" d="M20 0H0V20" fill="none" class="sc-gridline" />
+              </pattern>
+            </defs>
+            <g id="sc-view">
+              <rect id="sc-board-bg" x="0" y="0" width="800" height="600" fill="url(#sc-checker)" />
+              <rect
+                id="sc-grid-rect"
+                x="0"
+                y="0"
+                width="800"
+                height="600"
+                fill="url(#sc-gridpat)"
+                display="none"
+              />
+              <defs id="sc-defs"></defs>
+              <g id="sc-doc"></g>
+              <rect id="sc-board-frame" x="0" y="0" width="800" height="600" fill="none" />
+              <g id="sc-selection"></g>
+              <g id="sc-nodes"></g>
+              <g id="sc-guides"></g>
+            </g>
+          </svg>
+          <div class="sc-drop" id="sc-drop">Drop an SVG or image to import</div>
+        </div>
       </div>
 
-      <aside class="sc-panel" id="sc-panel" aria-label="Properties">
-        <section>
-          <h2>Colour</h2>
-          <div class="sc-paint" data-target="fill">
-            <div class="sc-paint-head">
-              <button
-                class="sc-chip"
-                id="sc-fill-chip"
-                aria-label="Make fill the palette target"
-              ></button>
-              <span>Fill</span>
-              <label class="sc-check"><input id="sc-fill-on" type="checkbox" checked /> on</label>
-              <input id="sc-fill-color" type="color" value="#e8a33d" aria-label="Fill colour" />
-              <input
-                id="sc-fill-hex"
-                class="sc-hex"
-                value="#e8a33d"
-                aria-label="Fill hex"
-                spellcheck="false"
-              />
+      <!-- ── Panels ─────────────────────────────────────────────────────── -->
+      <aside class="sc-panel" id="sc-panel" aria-label="Panels">
+        <section class="sc-pgroup" data-tabs>
+          <div class="sc-ptabs" role="tablist">
+            <button role="tab" aria-selected="true" data-tab="color">Color</button>
+            <button role="tab" aria-selected="false" data-tab="swatches">Swatches</button>
+          </div>
+          <div class="sc-pbody" data-pane="color">
+            <div class="sc-paint" data-target="fill">
+              <div class="sc-paint-head">
+                <button
+                  class="sc-chip"
+                  id="sc-fill-chip"
+                  aria-label="Make fill the active paint"
+                ></button>
+                <span>Fill</span>
+                <label class="sc-check"><input id="sc-fill-on" type="checkbox" checked /> On</label>
+                <input id="sc-fill-color" type="color" value="#e8a33d" aria-label="Fill colour" />
+                <input
+                  id="sc-fill-hex"
+                  class="sc-hex"
+                  value="#e8a33d"
+                  aria-label="Fill hex"
+                  spellcheck="false"
+                />
+              </div>
+              <label class="sc-row"
+                >Alpha <input id="sc-fill-a" type="range" min="0" max="100" value="100" /><output
+                  id="sc-fill-a-out"
+                  >100%</output
+                ></label
+              >
             </div>
-            <label class="sc-row"
-              >Alpha <input id="sc-fill-a" type="range" min="0" max="100" value="100" /><output
-                id="sc-fill-a-out"
-                >100%</output
-              ></label
-            >
-          </div>
-          <div class="sc-paint" data-target="stroke">
-            <div class="sc-paint-head">
-              <button
-                class="sc-chip"
-                id="sc-stroke-chip"
-                aria-label="Make stroke the palette target"
-              ></button>
-              <span>Stroke</span>
-              <label class="sc-check"><input id="sc-stroke-on" type="checkbox" checked /> on</label>
-              <input id="sc-stroke-color" type="color" value="#1f2933" aria-label="Stroke colour" />
-              <input
-                id="sc-stroke-hex"
-                class="sc-hex"
-                value="#1f2933"
-                aria-label="Stroke hex"
-                spellcheck="false"
-              />
+            <div class="sc-paint" data-target="stroke">
+              <div class="sc-paint-head">
+                <button
+                  class="sc-chip"
+                  id="sc-stroke-chip"
+                  aria-label="Make stroke the active paint"
+                ></button>
+                <span>Stroke</span>
+                <label class="sc-check"
+                  ><input id="sc-stroke-on" type="checkbox" checked /> On</label
+                >
+                <input
+                  id="sc-stroke-color"
+                  type="color"
+                  value="#1f2933"
+                  aria-label="Stroke colour"
+                />
+                <input
+                  id="sc-stroke-hex"
+                  class="sc-hex"
+                  value="#1f2933"
+                  aria-label="Stroke hex"
+                  spellcheck="false"
+                />
+              </div>
+              <label class="sc-row"
+                >Alpha <input id="sc-stroke-a" type="range" min="0" max="100" value="100" /><output
+                  id="sc-stroke-a-out"
+                  >100%</output
+                ></label
+              >
             </div>
-            <label class="sc-row"
-              >Alpha <input id="sc-stroke-a" type="range" min="0" max="100" value="100" /><output
-                id="sc-stroke-a-out"
-                >100%</output
-              ></label
+          </div>
+          <div class="sc-pbody" data-pane="swatches" hidden>
+            <div class="sc-palette" id="sc-palette" aria-label="Swatches"></div>
+            <p class="sc-hint">
+              A swatch goes to the active paint. Shift-click sends it to the other one.
+            </p>
+          </div>
+        </section>
+
+        <section class="sc-pgroup">
+          <div class="sc-ptabs"><span class="sc-ptitle">Properties</span></div>
+          <div class="sc-pbody">
+            <div class="sc-prop-grid">
+              <label class="sc-field"
+                ><span class="sc-scrub" data-tip="Drag to adjust">Stroke</span
+                ><input
+                  type="number"
+                  data-bind="strokeWidth"
+                  min="0"
+                  max="200"
+                  step="0.5"
+                  aria-label="Stroke width"
+                /><span class="sc-unit">px</span></label
+              >
+              <span></span>
+              <label class="sc-field"
+                ><span class="sc-scrub" data-tip="Drag to adjust">W</span
+                ><input
+                  id="sc-w"
+                  type="number"
+                  min="1"
+                  max="20000"
+                  value="800"
+                  aria-label="Document width"
+                /><span class="sc-unit">px</span></label
+              >
+              <label class="sc-field"
+                ><span class="sc-scrub" data-tip="Drag to adjust">H</span
+                ><input
+                  id="sc-h"
+                  type="number"
+                  min="1"
+                  max="20000"
+                  value="600"
+                  aria-label="Document height"
+                /><span class="sc-unit">px</span></label
+              >
+              <label class="sc-check"><input id="sc-grid" type="checkbox" /> Grid</label>
+              <label class="sc-check"><input id="sc-snap" type="checkbox" /> Snap</label>
+              <label class="sc-field"
+                ><span class="sc-scrub" data-tip="Drag to adjust">Grid</span
+                ><input
+                  id="sc-grid-size"
+                  type="number"
+                  min="2"
+                  max="500"
+                  value="20"
+                  aria-label="Grid size"
+                /><span class="sc-unit">px</span></label
+              >
+            </div>
+            <p class="sc-hint sc-prop-note">W and H set the document (artboard) size.</p>
+          </div>
+        </section>
+
+        <section class="sc-pgroup sc-grow">
+          <div class="sc-ptabs"><span class="sc-ptitle">Layers</span></div>
+          <div class="sc-layers-head">
+            <label class="sc-field"
+              ><span class="sc-scrub" data-tip="Drag to adjust">Opacity:</span
+              ><input
+                type="number"
+                data-bind="opacity"
+                min="0"
+                max="100"
+                aria-label="Opacity"
+              /><span class="sc-unit">%</span></label
             >
-            <label class="sc-row"
-              >Width
-              <input id="sc-stroke-w" type="range" min="0" max="60" step="0.5" value="3" /><output
-                id="sc-stroke-w-out"
-                >3</output
-              ></label
-            >
           </div>
-          <div class="sc-palette" id="sc-palette" aria-label="Palette"></div>
-          <p class="sc-hint">
-            Swatches go to the highlighted target (fill or stroke). Press <kbd>X</kbd> to swap.
-          </p>
-          <label class="sc-row"
-            >Opacity <input id="sc-opacity" type="range" min="0" max="100" value="100" /><output
-              id="sc-opacity-out"
-              >100%</output
-            ></label
-          >
-        </section>
-
-        <section class="sc-tool-opts" data-for="pencil">
-          <h2>Pencil</h2>
-          <label class="sc-row"
-            >Smoothing <input id="sc-smooth" type="range" min="0" max="10" value="4" /><output
-              id="sc-smooth-out"
-              >4</output
-            ></label
-          >
-        </section>
-        <section class="sc-tool-opts" data-for="eraser">
-          <h2>Eraser</h2>
-          <div class="sc-seg" role="radiogroup" aria-label="Eraser mode">
-            <button data-eraser="object" role="radio">Object</button>
-            <button data-eraser="cut" role="radio">Cut</button>
-          </div>
-          <label class="sc-row"
-            >Size <input id="sc-eraser-size" type="range" min="2" max="80" value="12" /><output
-              id="sc-eraser-size-out"
-              >12</output
-            ></label
-          >
-          <p class="sc-hint">
-            Object deletes whatever you rub. Cut splits stroked lines and paths where you rub.
-            Filled shapes are left alone.
-          </p>
-        </section>
-        <section class="sc-tool-opts" data-for="node">
-          <h2>Points</h2>
-          <div class="sc-btn-grid">
-            <button data-node-cmd="corner" data-tip="Retract handles — sharp point">Corner</button>
-            <button data-node-cmd="smooth" data-tip="Grow smooth handles">Smooth</button>
-            <button data-node-cmd="delete" data-tip="Delete points · Del">Delete</button>
-            <button data-node-cmd="close" data-tip="Close or open the path">Close / open</button>
-          </div>
-          <p class="sc-hint">
-            Drag points or handles. Shift-click or drag a box to pick several. Double-click a line
-            to add a point, or a point to switch corner / smooth. Alt-drag a handle to break a
-            smooth point. Esc returns to Select.
-          </p>
-        </section>
-        <section class="sc-tool-opts" data-for="text">
-          <h2>Text</h2>
-          <label class="sc-row"
-            >Size <input id="sc-font-size" type="range" min="6" max="200" value="32" /><output
-              id="sc-font-size-out"
-              >32</output
-            ></label
-          >
-        </section>
-
-        <section>
-          <h2>Arrange</h2>
-          <div class="sc-btn-grid">
-            <button data-cmd="front" data-tip="Bring to front · Ctrl+]">Front</button>
-            <button data-cmd="forward" data-tip="Bring forward · ]">Forward</button>
-            <button data-cmd="backward" data-tip="Send backward · [">Backward</button>
-            <button data-cmd="back" data-tip="Send to back · Ctrl+[">Back</button>
-            <button data-cmd="group" data-tip="Group · Ctrl+G">Group</button>
-            <button data-cmd="ungroup" data-tip="Ungroup · Ctrl+Shift+G">Ungroup</button>
-            <button data-cmd="flipH" data-tip="Flip horizontally">Flip H</button>
-            <button data-cmd="flipV" data-tip="Flip vertically">Flip V</button>
-            <button data-cmd="duplicate" data-tip="Duplicate · Ctrl+D">Duplicate</button>
-            <button data-cmd="delete" data-tip="Delete · Del">Delete</button>
-          </div>
-        </section>
-
-        <section class="sc-layers-sec">
-          <h2>Layers</h2>
           <ol class="sc-layers" id="sc-layers"></ol>
+          <div class="sc-layers-foot">
+            <button
+              class="sc-ibtn"
+              data-action="group"
+              aria-label="Group"
+              data-tip="Group · Ctrl+G"
+            >
+              <i data-icon="folder"></i>
+            </button>
+            <button
+              class="sc-ibtn"
+              data-action="duplicate"
+              aria-label="Duplicate"
+              data-tip="Duplicate · Ctrl+D"
+            >
+              <i data-icon="clone"></i>
+            </button>
+            <button
+              class="sc-ibtn"
+              data-action="forward"
+              aria-label="Bring forward"
+              data-tip="Bring forward · ]"
+            >
+              <i data-icon="arrow-up"></i>
+            </button>
+            <button
+              class="sc-ibtn"
+              data-action="backward"
+              aria-label="Send backward"
+              data-tip="Send backward · ["
+            >
+              <i data-icon="arrow-down"></i>
+            </button>
+            <button
+              class="sc-ibtn"
+              data-action="delete"
+              aria-label="Delete"
+              data-tip="Delete · Del"
+            >
+              <i data-icon="trash-can"></i>
+            </button>
+          </div>
         </section>
       </aside>
     </div>
 
+    <!-- ── Status bar ─────────────────────────────────────────────────────── -->
     <footer class="sc-status">
+      <label class="sc-zoom"
+        ><input
+          id="sc-zoom-input"
+          value="100"
+          aria-label="Zoom percent"
+          inputmode="decimal"
+        />%</label
+      >
+      <span id="sc-docsize" class="sc-docsize">800 × 600 px</span>
       <span id="sc-hint"></span>
       <span id="sc-msg" class="sc-msg" role="status"></span>
       <span id="sc-pos" class="sc-pos"></span>
     </footer>
 
+    <script src="icons.js"></script>
     <script src="app.js"></script>
   </body>
 </html>
