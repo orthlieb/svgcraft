@@ -27,8 +27,10 @@ The layout follows Photoshop:
   colour. Below the chips are swap (X) and "none".
 - **Document tab** above the canvas, showing the file name and zoom.
 - **Docked panels**: Color / Swatches, Properties (stroke width, document
-  size, grid and snap) and Layers (opacity, thumbnails, show / hide, and
-  group, duplicate, reorder and delete buttons).
+  size, grid and snap) and Layers (see below).
+- **Auto-Select** on the Move tool's options bar: **Group** makes a canvas
+  click pick the whole top-level item. **Layer** picks the exact shape
+  under the cursor, even deep inside groups.
 - **Status bar**: an editable zoom field and the document size.
 - **Theme**: follows your OS by default. The sun / moon button and
   View → Theme switch between Dark and Light, and the choice is remembered.
@@ -83,6 +85,36 @@ stroke="currentColor"` (common in icon sets) is pushed down so it survives.
   layers list with show / hide; grid and snap; document size; zoom / pan
   (wheel, Ctrl+wheel, pinch, Space-drag); undo / redo; and autosave to
   `localStorage`.
+
+## Layers
+
+The Layers panel works like Photoshop's:
+
+- **One row per layer.** Every shape is a layer, including the shapes
+  inside a group. Groups show as folders you can expand or collapse, and
+  each level is indented. An imported SVG arrives as a folder named after
+  the file, with one layer per shape inside it.
+- **Selecting**: click a row to select it, Ctrl/⌘-click to add or remove
+  it, and Shift-click to select a run of rows. A group and a layer inside
+  it are never selected together.
+- **Grouping**: Ctrl+G, or the folder button at the bottom of the panel,
+  puts the selected layers in a new group (Group 1, Group 2 …) where the
+  frontmost one was. With nothing selected, it adds an empty group.
+  Object → Ungroup dissolves a group again.
+- **Reordering**: drag a row. Dropping on the top half of a row puts the
+  layer in front of it, and the bottom half puts it behind. The middle of a
+  folder drops it inside, and the empty space at the bottom of the list
+  sends it to the back. Dragging a selected row moves the whole selection.
+  Layers never move on screen when they change groups, and paint they
+  inherited from their old group (such as an icon's `fill="none"`) goes
+  with them.
+- **Renaming**: double-click a name and type. Enter saves, Esc cancels, and
+  an empty name goes back to the automatic one. Names are saved as
+  `data-name`, which Illustrator uses too, and Inkscape layer labels are
+  read on import.
+- **Everything works at any depth.** Move, scale, rotate, flip, nudge,
+  align, distribute, duplicate, copy, colours, the eraser and point editing
+  all work on a layer inside a group, so you never have to ungroup first.
 
 ## Shortcuts
 

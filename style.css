@@ -895,7 +895,7 @@ kbd {
 .sc-layers li {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   height: 38px;
   padding: 0 8px 0 4px;
   border-bottom: 1px solid var(--line-soft);
@@ -954,6 +954,45 @@ kbd {
   border: 1px solid var(--accent);
   border-radius: 3px;
   background: var(--field);
+}
+.sc-twisty {
+  display: grid;
+  place-items: center;
+  width: 14px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 9px;
+  flex: none;
+}
+.sc-twisty .open > svg {
+  transform: rotate(90deg);
+}
+.sc-folder {
+  display: grid;
+  place-items: center;
+  background: none;
+  border-color: transparent;
+  color: var(--text-dim);
+  font-size: 15px;
+}
+.sc-layers li.dragging {
+  opacity: 0.45;
+}
+.sc-layers li.drop-above {
+  box-shadow: inset 0 2px 0 var(--accent);
+}
+.sc-layers li.drop-below {
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+.sc-layers li.drop-into {
+  background: var(--row-sel);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.sc-layers.drop-end {
+  box-shadow: inset 0 2px 0 var(--accent);
 }
 .sc-layers .sc-empty {
   height: auto;

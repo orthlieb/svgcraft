@@ -67,6 +67,7 @@
     fileName: 'drawing',
     eraserMode: 'object',
     eyedropMode: 'style',
+    autoSelect: 'group',
     eraserSize: 12,
     smoothing: 4,
     fontSize: 32,
@@ -143,8 +144,9 @@
       );
   }
 
-  // Axis-aligned bounding box of a top-level element, in document units.
-  function bboxDoc(el) {
+  // Axis-aligned bounding box of an element (at any depth), in document
+  // units; pass m to measure it under another matrix instead.
+  function bboxDoc(el, m = fullM(el)) {
     let b;
     try {
       b = el.getBBox();
@@ -153,7 +155,6 @@
     }
     if (!b || (b.width === 0 && b.height === 0 && b.x === 0 && b.y === 0 && !el.childNodes.length))
       return null;
-    const m = getM(el);
     const pts = [
       [b.x, b.y],
       [b.x + b.width, b.y],
@@ -206,6 +207,34 @@
     return m;
   }
 
+  // Parent space → document space for el.
+  function parentM(el) {
+    return el.parentNode && el.parentNode !== doc ? fullM(el.parentNode) : new DOMMatrix();
+  }
+
+  // Apply a document-space transform T to el wherever it sits in the tree:
+  // its own matrix becomes P⁻¹·T·P·base (base = its matrix before the edit).
+  function transformDoc(el, T, base = getM(el)) {
+    const P = parentM(el);
+    setM(el, P.inverse().multiply(T).multiply(P).multiply(base));
+  }
+
+  // Paint an element inherits from its groups, written onto target (el
+  // itself by default) so it survives leaving those groups.
+  function bakeInherited(el, target = el) {
+    for (let a = el.parentNode; a && a !== doc; a = a.parentNode)
+      for (const k of INHERITED)
+        if (a.hasAttribute(k) && !target.hasAttribute(k)) target.setAttribute(k, a.getAttribute(k));
+  }
+
+  // Move el into parent (before `before`, or last) without it moving on screen.
+  function reparent(el, parent, before = null) {
+    const D = fullM(el);
+    if (el.parentNode !== parent) bakeInherited(el);
+    parent.insertBefore(el, before);
+    setM(el, (parent === doc ? new DOMMatrix() : fullM(parent)).inverse().multiply(D));
+  }
+
   // Child-index path from #sc-doc to el, so it can be found again after
   // undo / redo rebuilds the DOM.
   function treePath(el) {
@@ -231,7 +260,33 @@
   }
 
   const items = () => [...doc.children].filter(selectable);
-  const inDocOrder = (els) => items().filter((el) => els.includes(el));
+  const inDocOrder = (els) =>
+    [...new Set(els)]
+      .filter((el) => doc.contains(el))
+      .sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1));
+
+  // A selection never holds both a group and something inside it.
+  const normalizeSel = (els) =>
+    inDocOrder(els).filter((el) => {
+      for (let a = el.parentNode; a && a !== doc; a = a.parentNode)
+        if (els.includes(a)) return false;
+      return true;
+    });
+
+  // What a canvas click picks: the whole top-level item (Auto-Select: Group)
+  // or the exact shape under the cursor (Auto-Select: Layer).
+  function pickLayer(node) {
+    if (state.autoSelect !== 'layer') return topLevel(node);
+    if (!node || !doc.contains(node) || node === doc) return null;
+    return node.closest('text') || node;
+  }
+  const leafLayers = () =>
+    [...doc.querySelectorAll('*')].filter(
+      (el) =>
+        !NON_GRAPHIC.has(el.localName) &&
+        el.localName !== 'g' &&
+        !el.parentNode.closest?.('text, defs, clipPath, mask, pattern, marker, symbol'),
+    );
 
   // ---------------------------------------------------------------------
   // Path smoothing (pencil, eraser-cut)
@@ -433,7 +488,7 @@
     rasterJob = null;
     $('#sc-undo').disabled = hIdx <= 0;
     $('#sc-redo').disabled = hIdx >= hist.length - 1;
-    state.sel = state.sel.filter((el) => el.parentNode === doc);
+    state.sel = state.sel.filter((el) => doc.contains(el));
     drawSelection();
     renderLayers();
     updateTitle();
@@ -531,7 +586,8 @@
   // Selection + overlay
   // ---------------------------------------------------------------------
   function setSel(els) {
-    state.sel = els;
+    state.sel = normalizeSel(els);
+    els = state.sel;
     if (els.length) readStyle(els[0]);
     drawSelection();
     markLayers();
@@ -641,7 +697,7 @@
   // A small live preview of one layer, framed on its own bounding box.
   function layerThumb(el) {
     const t = mk('svg', { class: 'sc-thumb', 'aria-hidden': 'true' });
-    const b = bboxDoc(el);
+    const b = bboxDoc(el, getM(el));
     if (!b) return t;
     const pad = Math.max(b.w, b.h) * 0.08 + 1;
     t.setAttribute(
@@ -649,54 +705,175 @@
       [b.x - pad, b.y - pad, b.w + 2 * pad, b.h + 2 * pad].map(f).join(' '),
     );
     const c = el.cloneNode(true);
+    bakeInherited(el, c);
     c.removeAttribute('display');
     for (const n of [c, ...c.querySelectorAll('[id]')]) n.removeAttribute('id');
     t.append(c);
     return t;
   }
 
+  // Groups the user folded in the Layers panel, keyed by tree path.
+  const folded = new Set();
+  let rangeAnchor = null;
+
   function renderLayers() {
     const ol = $('#sc-layers');
     ol.replaceChildren();
-    const list = items().reverse();
-    if (!list.length) {
+    if (!items().length) {
       const li = document.createElement('li');
       li.className = 'sc-empty';
       li.textContent = 'No layers yet. Draw something, or drop an SVG onto the canvas.';
       ol.append(li);
       return;
     }
-    list.slice(0, 500).forEach((el, i) => {
-      const li = document.createElement('li');
-      const hidden = el.getAttribute('display') === 'none';
-      li.className = (state.sel.includes(el) ? 'sel ' : '') + (hidden ? 'hidden' : '');
-      const eye = document.createElement('button');
-      eye.className = 'sc-eye';
-      eye.innerHTML = `<i data-icon="${hidden ? 'eye-slash' : 'eye'}">${icon(hidden ? 'eye-slash' : 'eye')}</i>`;
-      eye.setAttribute('aria-label', hidden ? 'Show layer' : 'Hide layer');
-      eye.addEventListener('click', (e) => {
+    let rows = 0;
+    const walk = (parent, depth) => {
+      for (const el of [...parent.children].filter(selectable).reverse()) {
+        if (rows++ >= 500) return;
+        const open = el.localName === 'g' && !folded.has(treePath(el).join('/'));
+        ol.append(layerRow(el, depth, open, rows));
+        if (open) walk(el, depth + 1);
+      }
+    };
+    walk(doc, 0);
+  }
+
+  function layerRow(el, depth, open, n) {
+    const li = document.createElement('li');
+    const hidden = el.getAttribute('display') === 'none';
+    const isGroup = el.localName === 'g';
+    li.className = (state.sel.includes(el) ? 'sel ' : '') + (hidden ? 'hidden' : '');
+    li.style.paddingLeft = `${4 + depth * 16}px`;
+    li.layerEl = el;
+    li.draggable = true;
+
+    const twisty = document.createElement('button');
+    twisty.className = 'sc-twisty';
+    if (isGroup) {
+      twisty.innerHTML = `<i data-icon="chevron-right" class="${open ? 'open' : ''}">${icon('chevron-right')}</i>`;
+      twisty.setAttribute('aria-label', open ? 'Collapse group' : 'Expand group');
+      twisty.setAttribute('aria-expanded', open);
+      twisty.addEventListener('click', (e) => {
         e.stopPropagation();
-        if (hidden) el.removeAttribute('display');
-        else el.setAttribute('display', 'none');
-        commit();
+        const key = treePath(el).join('/');
+        if (open) folded.add(key);
+        else folded.delete(key);
+        renderLayers();
       });
-      const name = document.createElement('span');
-      name.className = 'sc-layer-name';
-      name.textContent = layerName(el);
-      name.addEventListener('dblclick', (e) => {
-        e.stopPropagation();
-        renameLayer(el, name);
-      });
-      // Thumbnails clone the layer, so cap them on very large files.
-      li.append(eye, i < 150 ? layerThumb(el) : mk('svg', { class: 'sc-thumb' }), name);
-      li.layerEl = el;
-      li.addEventListener('click', (e) => {
-        if (hidden || e.target.closest('input')) return;
-        if (e.shiftKey) toggleSel(el);
-        else setSel([el]);
-      });
-      ol.append(li);
+    } else twisty.tabIndex = -1;
+
+    const eye = document.createElement('button');
+    eye.className = 'sc-eye';
+    eye.innerHTML = `<i data-icon="${hidden ? 'eye-slash' : 'eye'}">${icon(hidden ? 'eye-slash' : 'eye')}</i>`;
+    eye.setAttribute('aria-label', hidden ? 'Show layer' : 'Hide layer');
+    eye.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (hidden) el.removeAttribute('display');
+      else el.setAttribute('display', 'none');
+      commit();
     });
+
+    let thumb;
+    if (isGroup) {
+      thumb = document.createElement('span');
+      thumb.className = 'sc-thumb sc-folder';
+      thumb.innerHTML = `<i data-icon="${open ? 'folder-open' : 'folder'}">${icon(open ? 'folder-open' : 'folder')}</i>`;
+    } else thumb = n <= 150 ? layerThumb(el) : mk('svg', { class: 'sc-thumb' });
+
+    const name = document.createElement('span');
+    name.className = 'sc-layer-name';
+    name.textContent = layerName(el);
+    name.addEventListener('dblclick', (e) => {
+      e.stopPropagation();
+      renameLayer(el, name);
+    });
+    li.append(eye, twisty, thumb, name);
+
+    // Photoshop's rules: click selects, Ctrl/⌘-click toggles, Shift-click
+    // selects the run of rows from the last plain click.
+    li.addEventListener('click', (e) => {
+      if (e.target.closest('input')) return;
+      if (e.ctrlKey || e.metaKey) toggleSel(el);
+      else if (e.shiftKey && rangeAnchor && rangeAnchor.isConnected) {
+        const rows = [...$('#sc-layers').children].map((r) => r.layerEl).filter(Boolean);
+        const [a, b] = [rows.indexOf(rangeAnchor), rows.indexOf(el)].sort((x, y) => x - y);
+        setSel(rows.slice(a, b + 1));
+      } else {
+        rangeAnchor = el;
+        setSel([el]);
+      }
+    });
+    wireLayerDrag(li, el);
+    return li;
+  }
+
+  // Drag rows to restack them: the top or bottom half of a row drops in
+  // front of / behind it; the middle of a group row drops inside it.
+  let dragEls = null;
+  function dropZone(e, li, el) {
+    if (!dragEls || dragEls.some((d) => d === el || d.contains(el))) return null;
+    const r = li.getBoundingClientRect();
+    const t = (e.clientY - r.top) / r.height;
+    if (el.localName === 'g') return t < 0.28 ? 'above' : t > 0.72 ? 'below' : 'into';
+    return t < 0.5 ? 'above' : 'below';
+  }
+  function clearDropMarks() {
+    for (const r of document.querySelectorAll('.drop-above, .drop-below, .drop-into, .drop-end'))
+      r.classList.remove('drop-above', 'drop-below', 'drop-into', 'drop-end');
+  }
+  function wireLayerDrag(li, el) {
+    li.addEventListener('dragstart', (e) => {
+      dragEls = state.sel.includes(el) ? normalizeSel(state.sel) : [el];
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', layerName(el));
+      li.classList.add('dragging');
+    });
+    li.addEventListener('dragend', () => {
+      dragEls = null;
+      li.classList.remove('dragging');
+      clearDropMarks();
+    });
+    li.addEventListener('dragover', (e) => {
+      const zone = dropZone(e, li, el);
+      if (!zone) return;
+      e.preventDefault();
+      e.stopPropagation();
+      e.dataTransfer.dropEffect = 'move';
+      clearDropMarks();
+      li.classList.add(`drop-${zone}`);
+    });
+    li.addEventListener('drop', (e) => {
+      const zone = dropZone(e, li, el);
+      if (!zone) return;
+      e.preventDefault();
+      e.stopPropagation();
+      moveLayers(dragEls, el, zone);
+    });
+  }
+
+  function moveLayers(els, target, zone) {
+    els = inDocOrder(els);
+    if (zone === 'into') {
+      for (const el of els) reparent(el, target);
+      folded.delete(treePath(target).join('/'));
+    } else if (zone === 'above') {
+      let ref = target;
+      for (const el of els) {
+        reparent(el, target.parentNode, ref.nextSibling);
+        ref = el;
+      }
+    } else if (zone === 'below') {
+      for (const el of els) reparent(el, target.parentNode, target);
+    } else {
+      // Empty space under the list: to the very back of the drawing.
+      const ref = [...doc.children].find((c) => selectable(c) && !els.includes(c)) || null;
+      for (const el of els) reparent(el, doc, ref);
+    }
+    dragEls = null;
+    clearDropMarks();
+    state.sel = els;
+    commit();
+    readStyle(els[0]);
   }
 
   // Swap a layer's name for a text field. Enter or leaving the field saves,
@@ -752,7 +929,7 @@
         };
         return;
       }
-      const el = topLevel(e.target);
+      const el = pickLayer(e.target);
       if (el) {
         if (e.shiftKey) {
           toggleSel(el);
@@ -786,11 +963,11 @@
         const h = Math.abs(p.y - g.p0.y);
         guides.replaceChildren();
         mk('rect', { x, y, width: w, height: h, class: 'sc-ov sc-ov-fill sc-ov-dash' }, guides);
-        const hit = items().filter((el) => {
+        const hit = (state.autoSelect === 'layer' ? leafLayers() : items()).filter((el) => {
           const b = el.getAttribute('display') !== 'none' && bboxDoc(el);
           return b && b.x < x + w && b.x + b.w > x && b.y < y + h && b.y + b.h > y;
         });
-        state.sel = [...new Set([...g.base, ...hit])];
+        state.sel = normalizeSel([...g.base, ...hit]);
         drawSelection();
         return;
       }
@@ -839,7 +1016,7 @@
         if (e.shiftKey) deg = Math.round(deg / 15) * 15;
         T = new DOMMatrix().translate(c.x, c.y).rotate(deg).translate(-c.x, -c.y);
       }
-      state.sel.forEach((el, i) => setM(el, T.multiply(g.m0[i])));
+      state.sel.forEach((el, i) => transformDoc(el, T, g.m0[i]));
       g.changed = true;
       drawSelection();
     },
@@ -1309,7 +1486,7 @@
         probes.push([Math.cos((i * Math.PI) / 4) * r, Math.sin((i * Math.PI) / 4) * r]);
       for (const [dx, dy] of probes) {
         for (const n of document.elementsFromPoint(e.clientX + dx, e.clientY + dy)) {
-          const el = topLevel(n);
+          const el = doc.contains(n) && n !== doc ? n.closest('text') || n : null;
           if (el && !this.hits.has(el)) {
             this.hits.add(el);
             if (state.eraserMode === 'object') el.style.opacity = '0.2';
@@ -1385,7 +1562,7 @@
       !['line', 'polyline'].includes(el.localName)
     )
       return 'skip';
-    const M = getM(el);
+    const M = fullM(el);
     const inv = M.inverse();
     const scale = Math.sqrt(Math.abs(M.a * M.d - M.b * M.c)) || 1;
     const r = rDoc / scale + (parseFloat(cs.strokeWidth) || 0) / 2;
@@ -1847,8 +2024,7 @@
       this.path = el ? treePath(el) : null;
       this.subs = el ? shapeNodes(el) : [];
       this.picked = [];
-      // Only a top-level shape is a layer selection; a nested one is edited in place.
-      state.sel = el && el.parentNode === doc ? [el] : [];
+      state.sel = el ? [el] : [];
       if (el) readStyle(el);
       renderLayers();
       this.redraw();
@@ -1861,7 +2037,7 @@
       this.el = el;
       this.subs = shapeNodes(el);
       this.picked = picked.filter(([si, ni]) => this.subs[si]?.nodes[ni]);
-      state.sel = el.parentNode === doc ? [el] : [];
+      state.sel = [el];
       this.redraw();
     },
     M() {
@@ -1881,7 +2057,7 @@
     write() {
       if (this.el.localName !== 'path') {
         this.el = toPath(this.el);
-        if (this.el.parentNode === doc) state.sel = [this.el];
+        state.sel = [this.el];
       }
       this.el.setAttribute('d', nodesD(this.subs));
       this.redraw();
@@ -2206,8 +2382,17 @@
     const box = selBox();
     if (!box) return;
     const T = Tfn(box);
-    for (const el of state.sel) setM(el, T.multiply(getM(el)));
+    for (const el of state.sel) transformDoc(el, T);
     commit();
+  }
+
+  function nextGroupName() {
+    let n = 0;
+    for (const g of doc.querySelectorAll('g[data-name]')) {
+      const m = /^Group (\d+)$/.exec(g.getAttribute('data-name'));
+      if (m) n = Math.max(n, +m[1]);
+    }
+    return `Group ${n + 1}`;
   }
 
   const cmds = {
@@ -2219,14 +2404,11 @@
     },
     duplicate() {
       if (!state.sel.length) return;
-      const src = inDocOrder(state.sel);
-      let anchor = src.at(-1);
-      const clones = src.map((el) => {
+      const clones = inDocOrder(state.sel).map((el) => {
         const c = el.cloneNode(true);
-        c.removeAttribute('id');
-        setM(c, new DOMMatrix().translate(10, 10).multiply(getM(el)));
-        anchor.after(c);
-        anchor = c;
+        for (const n of [c, ...c.querySelectorAll('[id]')]) n.removeAttribute('id');
+        el.after(c);
+        transformDoc(c, new DOMMatrix().translate(10, 10));
         return c;
       });
       state.sel = clones;
@@ -2237,13 +2419,13 @@
       setSel(items().filter((el) => el.getAttribute('display') !== 'none'));
     },
     front() {
-      inDocOrder(state.sel).forEach((el) => doc.append(el));
+      inDocOrder(state.sel).forEach((el) => el.parentNode.append(el));
       commit();
     },
     back() {
       inDocOrder(state.sel)
         .reverse()
-        .forEach((el) => doc.prepend(el));
+        .forEach((el) => el.parentNode.prepend(el));
       commit();
     },
     forward() {
@@ -2262,12 +2444,16 @@
       }
       commit();
     },
+    // Wrap the selected layers in a new group where the frontmost one was
+    // (Photoshop's Ctrl+G); with nothing selected, add an empty group on top.
     group() {
-      const els = inDocOrder(state.sel);
-      if (!els.length) return;
-      const g = mk('g');
-      els.at(-1).after(g);
-      g.append(...els);
+      const els = normalizeSel(state.sel);
+      const g = mk('g', { 'data-name': nextGroupName() });
+      if (!els.length) doc.append(g);
+      else {
+        els.at(-1).after(g);
+        for (const el of els) reparent(el, g);
+      }
       state.sel = [g];
       commit();
     },
@@ -2351,7 +2537,7 @@
         vcenter: ref.y + ref.h / 2 - (b.y + b.h / 2),
         bottom: ref.y + ref.h - (b.y + b.h),
       }[how];
-      setM(el, new DOMMatrix().translate(dx || 0, dy || 0).multiply(getM(el)));
+      transformDoc(el, new DOMMatrix().translate(dx || 0, dy || 0));
     }
     commit();
   }
@@ -2369,7 +2555,7 @@
     for (const { el, b } of list) {
       const d = at - b[axis];
       const T = axis === 'x' ? new DOMMatrix().translate(d, 0) : new DOMMatrix().translate(0, d);
-      setM(el, T.multiply(getM(el)));
+      transformDoc(el, T);
       at += b[size] + gap;
     }
     commit();
@@ -2378,7 +2564,7 @@
   function nudge(dx, dy) {
     if (!state.sel.length) return;
     const T = new DOMMatrix().translate(dx, dy);
-    for (const el of state.sel) setM(el, T.multiply(getM(el)));
+    for (const el of state.sel) transformDoc(el, T);
     commit();
   }
 
@@ -2560,7 +2746,7 @@
     commit();
   }
 
-  function placeSvg(text) {
+  function placeSvg(text, name = 'Pasted SVG') {
     const s = parseSvg(text);
     defs.append(...s.defs);
     if (s.clip) {
@@ -2571,7 +2757,7 @@
       }
       state.sel = s.nodes;
     } else {
-      const g = mk('g', {}, doc);
+      const g = mk('g', { 'data-name': name }, doc);
       g.append(...s.nodes);
       const k = Math.min(1, (state.w * 0.9) / s.w, (state.h * 0.9) / s.h);
       const tx = (state.w - s.w * k) / 2;
@@ -2619,7 +2805,7 @@
       try {
         const replace = mode === 'open' || (mode === 'auto' && !items().length);
         if (replace) openSvg(r.result, file.name);
-        else placeSvg(r.result);
+        else placeSvg(r.result, file.name);
         say(`${replace ? 'Opened' : 'Imported'} ${file.name}`);
       } catch (err) {
         say(err.message || 'Could not read that file');
@@ -2647,8 +2833,13 @@
       for (const c of defs.childNodes) d.append(c.cloneNode(true));
       root.append(nl(), d);
     }
-    for (const el of selection ? inDocOrder(state.sel) : [...doc.children]) {
+    for (const el of selection ? normalizeSel(state.sel) : [...doc.children]) {
       const c = el.cloneNode(true);
+      // A nested layer copied on its own keeps where it sits and how it looks.
+      if (selection && el.parentNode !== doc) {
+        setM(c, fullM(el));
+        bakeInherited(el, c);
+      }
       root.append(nl(), c);
     }
     root.append(document.createTextNode('\n'));
@@ -3349,6 +3540,32 @@
     if (openMenu && !openMenu.contains(e.target)) closeMenus();
   });
   window.addEventListener('blur', closeMenus);
+
+  // Dropping on the empty part of the Layers list sends layers to the back.
+  const layerList = $('#sc-layers');
+  layerList.addEventListener('dragover', (e) => {
+    if (!dragEls || e.target !== layerList) return;
+    e.preventDefault();
+    clearDropMarks();
+    layerList.classList.add('drop-end');
+  });
+  layerList.addEventListener('dragleave', (e) => {
+    if (e.target === layerList) layerList.classList.remove('drop-end');
+  });
+  layerList.addEventListener('drop', (e) => {
+    if (!dragEls || e.target !== layerList) return;
+    e.preventDefault();
+    moveLayers(dragEls, null, 'end');
+  });
+
+  for (const b of document.querySelectorAll('[data-autosel]')) {
+    b.addEventListener('click', () => {
+      state.autoSelect = b.dataset.autosel;
+      for (const x of document.querySelectorAll('[data-autosel]'))
+        x.setAttribute('aria-checked', x === b);
+    });
+    b.setAttribute('aria-checked', b.dataset.autosel === state.autoSelect);
+  }
 
   // Panel tabs (Color | Swatches).
   for (const group of document.querySelectorAll('[data-tabs]')) {
