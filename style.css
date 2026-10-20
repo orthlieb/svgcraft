@@ -272,6 +272,19 @@ kbd {
   border: 0;
   border-top: 1px solid var(--line-soft);
 }
+.sc-submenu {
+  display: contents;
+}
+.sc-sub-btn[aria-expanded='true'] {
+  background: var(--hover);
+}
+.sc-sub-caret {
+  font-size: 9px;
+  color: var(--text-dim);
+}
+.sc-tf-commit {
+  color: var(--accent);
+}
 .sc-menu-label {
   padding: 4px 14px 2px 36px;
   color: var(--text-dim);
@@ -1123,4 +1136,9 @@ kbd {
   .sc-panel {
     transition: none;
   }
+}
+
+/* Free Transform fields carry decimals, so they get a little more room. */
+.sc-opt[data-for='transform'] input[type='number'] {
+  width: 68px;
 }

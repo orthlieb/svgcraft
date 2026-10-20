@@ -68,6 +68,7 @@
     eraserMode: 'object',
     eyedropMode: 'style',
     autoSelect: 'group',
+    tf: null, // an open Free Transform / Scale / Rotate / Skew session
     eraserSize: 12,
     smoothing: 4,
     fontSize: 32,
@@ -632,34 +633,43 @@
     );
     const n = state.sel.length;
     $('#sc-pos').dataset.sel = `${n} selected · ${f(box.w)}×${f(box.h)}`;
+    syncTransformFields(box);
     if (state.tool !== 'select') return;
+    const mode = state.tf?.mode;
     const top = { x: box.x + box.w / 2, y: box.y };
-    mk('line', { x1: top.x, y1: top.y, x2: top.x, y2: top.y - 22 / z, class: 'sc-ov' }, selLayer);
-    mk(
-      'circle',
-      {
-        cx: top.x,
-        cy: top.y - 22 / z,
-        r: 5 / z,
-        class: 'sc-handle',
-        'data-handle': 'rot',
-        style: 'cursor:grab',
-      },
-      selLayer,
-    );
+    if (mode !== 'scale')
+      mk('line', { x1: top.x, y1: top.y, x2: top.x, y2: top.y - 22 / z, class: 'sc-ov' }, selLayer);
+    if (mode !== 'scale')
+      mk(
+        'circle',
+        {
+          cx: top.x,
+          cy: top.y - 22 / z,
+          r: 5 / z,
+          class: 'sc-handle',
+          'data-handle': 'rot',
+          style: 'cursor:grab',
+        },
+        selLayer,
+      );
     const hs = 8 / z;
     for (const k of HANDLES) {
       const p = handlePos(box, k);
-      const cursor = {
-        n: 'ns',
-        s: 'ns',
-        e: 'ew',
-        w: 'ew',
-        nw: 'nwse',
-        se: 'nwse',
-        ne: 'nesw',
-        sw: 'nesw',
-      }[k];
+      const cursor =
+        mode === 'rotate'
+          ? 'grab'
+          : mode === 'skew' && k.length === 1
+            ? { n: 'ew', s: 'ew', e: 'ns', w: 'ns' }[k] + '-resize'
+            : {
+                n: 'ns',
+                s: 'ns',
+                e: 'ew',
+                w: 'ew',
+                nw: 'nwse',
+                se: 'nwse',
+                ne: 'nesw',
+                sw: 'nesw',
+              }[k] + '-resize';
       mk(
         'rect',
         {
@@ -669,7 +679,7 @@
           height: hs,
           class: 'sc-handle',
           'data-handle': k,
-          style: `cursor:${cursor}-resize`,
+          style: `cursor:${cursor}`,
         },
         selLayer,
       );
@@ -920,8 +930,15 @@
       const h = e.target.closest?.('[data-handle]');
       const box = selBox();
       if (h && box) {
+        const k = h.dataset.handle;
+        const tfMode = state.tf?.mode;
         this.g = {
-          mode: h.dataset.handle === 'rot' ? 'rot' : 'scale',
+          mode:
+            k === 'rot' || tfMode === 'rotate'
+              ? 'rot'
+              : tfMode === 'skew' && k.length === 1
+                ? 'skew'
+                : 'scale',
           k: h.dataset.handle,
           p0: p,
           box,
@@ -1008,15 +1025,33 @@
         if (Math.abs(sx) < 1e-3) sx = 1e-3 * Math.sign(sx || 1);
         if (Math.abs(sy) < 1e-3) sy = 1e-3 * Math.sign(sy || 1);
         T = new DOMMatrix().translate(a.x, a.y).scale(sx, sy).translate(-a.x, -a.y);
+      } else if (g.mode === 'skew') {
+        // Drag an edge sideways along itself; the opposite edge stays put.
+        const b = g.box;
+        const k = g.k;
+        const horiz = k === 'n' || k === 's';
+        const a = e.altKey
+          ? { x: b.x + b.w / 2, y: b.y + b.h / 2 }
+          : handlePos(b, { n: 's', s: 'n', e: 'w', w: 'e' }[k]);
+        const h0 = handlePos(b, k);
+        const arm = horiz ? h0.y - a.y : h0.x - a.x;
+        if (!arm) return;
+        let deg = (Math.atan((horiz ? p.x - g.p0.x : p.y - g.p0.y) / arm) * 180) / Math.PI;
+        if (e.shiftKey) deg = Math.round(deg / 15) * 15;
+        g.deg = clamp(deg, -85, 85);
+        const skew = horiz ? new DOMMatrix().skewX(g.deg) : new DOMMatrix().skewY(g.deg);
+        T = new DOMMatrix().translate(a.x, a.y).multiply(skew).translate(-a.x, -a.y);
       } else {
         const c = { x: g.box.x + g.box.w / 2, y: g.box.y + g.box.h / 2 };
         let deg =
           ((Math.atan2(p.y - c.y, p.x - c.x) - Math.atan2(g.p0.y - c.y, g.p0.x - c.x)) * 180) /
           Math.PI;
         if (e.shiftKey) deg = Math.round(deg / 15) * 15;
+        g.deg = deg;
         T = new DOMMatrix().translate(c.x, c.y).rotate(deg).translate(-c.x, -c.y);
       }
       state.sel.forEach((el, i) => transformDoc(el, T, g.m0[i]));
+      g.T = T;
       g.changed = true;
       drawSelection();
     },
@@ -1026,7 +1061,13 @@
       guides.replaceChildren();
       if (!g) return;
       if (g.mode === 'marquee') setSel(state.sel);
-      else if (g.changed) commit();
+      else if (g.changed) {
+        if (state.tf && g.mode === 'rot') state.tf.angle += g.deg;
+        if (state.tf && g.mode === 'skew')
+          state.tf[g.k === 'n' || g.k === 's' ? 'skx' : 'sky'] += g.deg;
+        noteTransform(g.T, g.box);
+        commit();
+      }
     },
     dblclick(e) {
       const shape = editableFrom(e.target);
@@ -2383,7 +2424,153 @@
     if (!box) return;
     const T = Tfn(box);
     for (const el of state.sel) transformDoc(el, T);
+    noteTransform(T, box);
     commit();
+  }
+
+  // ---- Transform Again --------------------------------------------------
+  // The last transform is kept relative to the centre of what it was applied
+  // to, so repeating it rotates / scales about the new selection's centre
+  // (and Again with Copy builds Photoshop-style step-and-repeat patterns).
+  let lastT = null;
+  function noteTransform(T, box) {
+    if (!T || !box) return;
+    const c = { x: box.x + box.w / 2, y: box.y + box.h / 2 };
+    lastT = new DOMMatrix()
+      .translate(-c.x, -c.y)
+      .multiply(T)
+      .multiply(new DOMMatrix().translate(c.x, c.y));
+  }
+  function transformAgain(copy) {
+    if (!lastT) return say('Nothing to repeat yet — transform something first.');
+    if (!state.sel.length) return say('Select something to transform.');
+    if (copy) {
+      state.sel = inDocOrder(state.sel).map((el) => {
+        const c = el.cloneNode(true);
+        for (const n of [c, ...c.querySelectorAll('[id]')]) n.removeAttribute('id');
+        el.after(c);
+        return c;
+      });
+    }
+    const box = selBox();
+    const c = { x: box.x + box.w / 2, y: box.y + box.h / 2 };
+    const T = new DOMMatrix()
+      .translate(c.x, c.y)
+      .multiply(lastT)
+      .multiply(new DOMMatrix().translate(-c.x, -c.y));
+    for (const el of state.sel) transformDoc(el, T);
+    commit();
+  }
+
+  // ---- Free Transform session (Photoshop's Ctrl+T) ------------------------
+  // Handles act per mode (free / scale / rotate / skew), the options bar
+  // shows X Y W H, angle and skew; Enter commits, Esc rolls the whole
+  // session back.
+  function beginTransform(mode) {
+    if (!state.sel.length) return say('Select something to transform first.');
+    if (state.tool !== 'select') setTool('select');
+    if (state.tf) {
+      state.tf.mode = mode;
+    } else {
+      const box = selBox();
+      state.tf = {
+        mode,
+        entry: hIdx,
+        paths: state.sel.map(treePath),
+        angle: 0,
+        skx: 0,
+        sky: 0,
+        el0: state.sel[0],
+        m0: fullM(state.sel[0]),
+        box0: box,
+      };
+    }
+    updateOptions();
+    drawSelection();
+    $('#sc-hint').textContent = {
+      free: 'Free Transform: drag corners to scale, the top knob to rotate · Enter commits, Esc cancels',
+      scale:
+        'Scale: drag any handle (Shift keeps proportions, Alt from centre) · Enter commits, Esc cancels',
+      rotate:
+        'Rotate: drag any handle around the centre (Shift snaps to 15°) · Enter commits, Esc cancels',
+      skew: 'Skew: drag an edge handle along its edge (Shift snaps to 15°) · Enter commits, Esc cancels',
+    }[mode];
+  }
+  function endTransform(keep) {
+    const tf = state.tf;
+    if (!tf) return;
+    state.tf = null;
+    if (keep) {
+      // Transform Again repeats the whole session as one step.
+      if (tf.el0.isConnected && hIdx > tf.entry)
+        noteTransform(fullM(tf.el0).multiply(tf.m0.inverse()), tf.box0);
+    } else if (hIdx > tf.entry) {
+      hist.length = tf.entry + 1;
+      hIdx = tf.entry;
+      restore(hist[hIdx]);
+      state.sel = tf.paths.map(fromTreePath).filter(Boolean);
+    }
+    updateOptions();
+    $('#sc-hint').textContent = tools[state.tool].hint;
+    drawSelection();
+    renderLayers();
+  }
+
+  // Keep the session's number fields in step with the selection.
+  function syncTransformFields(box) {
+    if (!state.tf) return;
+    const vals = {
+      x: box.x,
+      y: box.y,
+      w: box.w,
+      h: box.h,
+      angle: state.tf.angle,
+      skx: state.tf.skx,
+      sky: state.tf.sky,
+    };
+    for (const el of document.querySelectorAll('[data-tf]'))
+      if (document.activeElement !== el) el.value = f(vals[el.dataset.tf]);
+  }
+
+  // A number field changed: turn the new value into a transform of the selection.
+  function applyTransformField(key, v, final) {
+    const box = selBox();
+    if (!box || !isFinite(v)) return;
+    const tf = state.tf;
+    const c = { x: box.x + box.w / 2, y: box.y + box.h / 2 };
+    const about = (x, y, m) =>
+      new DOMMatrix().translate(x, y).multiply(m).multiply(new DOMMatrix().translate(-x, -y));
+    const linked = $('#sc-tf-link').getAttribute('aria-pressed') === 'true';
+    let T;
+    if (key === 'x') T = new DOMMatrix().translate(v - box.x, 0);
+    else if (key === 'y') T = new DOMMatrix().translate(0, v - box.y);
+    else if (key === 'w' || key === 'h') {
+      if (v <= 0 || !box.w || !box.h) return;
+      const s = key === 'w' ? v / box.w : v / box.h;
+      const sx = key === 'w' || linked ? s : 1;
+      const sy = key === 'h' || linked ? s : 1;
+      T = about(box.x, box.y, new DOMMatrix().scale(sx, sy));
+    } else if (key === 'angle') {
+      T = about(c.x, c.y, new DOMMatrix().rotate(v - tf.angle));
+      tf.angle = v;
+    } else {
+      const d = clamp(v, -89, 89) - tf[key];
+      T = about(c.x, c.y, key === 'skx' ? new DOMMatrix().skewX(d) : new DOMMatrix().skewY(d));
+      tf[key] = clamp(v, -89, 89);
+    }
+    for (const el of state.sel) transformDoc(el, T);
+    noteTransform(T, box);
+    if (final) commit();
+    else drawSelection();
+  }
+
+  function rotateSel(deg) {
+    transformSel((b) => {
+      const cx = b.x + b.w / 2;
+      const cy = b.y + b.h / 2;
+      return new DOMMatrix().translate(cx, cy).rotate(deg).translate(-cx, -cy);
+    });
+    if (state.tf) state.tf.angle += deg;
   }
 
   function nextGroupName() {
@@ -2912,8 +3099,29 @@
     hand: ['hand', 'Hand'],
   };
 
+  // Options bar: the transform session's fields while one is open,
+  // otherwise the groups whose data-for lists the current tool.
+  function updateOptions() {
+    const key = state.tf ? 'transform' : state.tool;
+    for (const o of document.querySelectorAll('.sc-opt'))
+      o.classList.toggle('on', o.dataset.for.split(' ').includes(key));
+    const [ic, label] = state.tf
+      ? {
+          free: ['vector-square', 'Free Transform'],
+          scale: ['maximize', 'Scale'],
+          rotate: ['rotate', 'Rotate'],
+          skew: ['italic', 'Skew'],
+        }[state.tf.mode]
+      : TOOL_META[state.tool];
+    const oi = $('#sc-opt-icon');
+    oi.dataset.icon = ic;
+    oi.innerHTML = icon(ic);
+    $('#sc-opt-name').textContent = label;
+  }
+
   function setTool(name) {
     if (!tools[name]) return;
+    if (state.tf && name !== 'select') endTransform(true);
     const prev = state.sel;
     const changed = name !== state.tool;
     if (changed) {
@@ -2923,13 +3131,7 @@
     state.tool = name;
     for (const b of document.querySelectorAll('[data-tool]'))
       b.setAttribute('aria-pressed', b.dataset.tool === name);
-    // Options bar: show the groups whose data-for lists this tool.
-    for (const o of document.querySelectorAll('.sc-opt'))
-      o.classList.toggle('on', o.dataset.for.split(' ').includes(name));
-    const oi = $('#sc-opt-icon');
-    oi.dataset.icon = TOOL_META[name][0];
-    oi.innerHTML = icon(oi.dataset.icon);
-    $('#sc-opt-name').textContent = TOOL_META[name][1];
+    updateOptions();
     stage.style.cursor = tools[name].cursor;
     $('#sc-hint').textContent = tools[name].hint;
     if (changed) tools[name].enter?.(prev);
@@ -3268,6 +3470,18 @@
       e.preventDefault();
       return;
     }
+    if (state.tf && (e.key === 'Enter' || e.key === 'Escape')) {
+      e.preventDefault();
+      endTransform(e.key === 'Enter');
+      return;
+    }
+    // Browsers keep Ctrl+T / Ctrl+Shift+T for tabs, so Alt stands in.
+    if (e.altKey && e.code === 'KeyT') {
+      e.preventDefault();
+      if (e.shiftKey) transformAgain(mod);
+      else if (!mod) beginTransform('free');
+      return;
+    }
     if (tools[state.tool].key?.(e)) {
       e.preventDefault();
       return;
@@ -3460,6 +3674,17 @@
     themeDark: () => setTheme('dark'),
     themeLight: () => setTheme('light'),
     toggleTheme: () => setTheme(isDark() ? 'light' : 'dark'),
+    freeTransform: () => beginTransform('free'),
+    tfScale: () => beginTransform('scale'),
+    tfRotate: () => beginTransform('rotate'),
+    tfSkew: () => beginTransform('skew'),
+    tfCommit: () => endTransform(true),
+    tfCancel: () => endTransform(false),
+    rot180: () => rotateSel(180),
+    rot90cw: () => rotateSel(90),
+    rot90ccw: () => rotateSel(-90),
+    again: () => transformAgain(false),
+    againCopy: () => transformAgain(true),
     // The browser's own eyedropper (Chromium) reaches anywhere on screen.
     async pickFromScreen() {
       try {
@@ -3483,7 +3708,42 @@
 
   // Menu bar: click to open, hover to switch while one is open, arrows to move.
   let openMenu = null;
+  function closeSubs() {
+    for (const sm of document.querySelectorAll('.sc-submenu')) {
+      sm.querySelector('.sc-sub-list').hidden = true;
+      sm.querySelector('.sc-sub-btn').setAttribute('aria-expanded', 'false');
+    }
+  }
+  function openSub(sm, focusFirst) {
+    closeSubs();
+    const btn = sm.querySelector('.sc-sub-btn');
+    const list = sm.querySelector('.sc-sub-list');
+    list.hidden = false;
+    const r = btn.getBoundingClientRect();
+    const right = r.right + list.offsetWidth + 4 > innerWidth;
+    list.style.left = `${Math.max(4, right ? r.left - list.offsetWidth : r.right)}px`;
+    list.style.top = `${Math.max(4, Math.min(r.top - 4, innerHeight - list.offsetHeight - 4))}px`;
+    btn.setAttribute('aria-expanded', 'true');
+    if (focusFirst) list.querySelector('button').focus();
+  }
+  for (const sm of document.querySelectorAll('.sc-submenu')) {
+    const btn = sm.querySelector('.sc-sub-btn');
+    btn.addEventListener('pointerenter', () => openSub(sm));
+    btn.addEventListener('click', () => openSub(sm, true));
+    sm.querySelector('.sc-sub-list').addEventListener('keydown', (e) => {
+      if (e.key !== 'ArrowLeft' && e.key !== 'Escape') return;
+      e.preventDefault();
+      e.stopPropagation();
+      closeSubs();
+      btn.focus();
+    });
+  }
+  // Hovering any other item of a menu folds an open submenu away.
+  for (const b of document.querySelectorAll('.sc-menu > .sc-menu-list > button'))
+    b.addEventListener('pointerenter', closeSubs);
+
   function closeMenus() {
+    closeSubs();
     if (!openMenu) return;
     openMenu.querySelector('.sc-menu-btn').setAttribute('aria-expanded', 'false');
     openMenu.querySelector('.sc-menu-list').hidden = true;
@@ -3516,14 +3776,20 @@
       }
     });
     list.addEventListener('keydown', (e) => {
-      const items = [...list.querySelectorAll('button')];
+      if (e.target.closest('.sc-sub-list')) return;
+      const items = [
+        ...list.querySelectorAll(':scope > button, :scope > .sc-submenu > .sc-sub-btn'),
+      ];
       const at = items.indexOf(document.activeElement);
       const go = (d) => items[(at + d + items.length) % items.length].focus();
       const hop = (d) => showMenu(menus[(mi + d + menus.length) % menus.length], true);
       const keys = {
         ArrowDown: () => go(1),
         ArrowUp: () => go(-1),
-        ArrowRight: () => hop(1),
+        ArrowRight: () =>
+          document.activeElement.classList.contains('sc-sub-btn')
+            ? openSub(document.activeElement.parentElement, true)
+            : hop(1),
         ArrowLeft: () => hop(-1),
         Escape: () => {
           closeMenus();
@@ -3623,6 +3889,22 @@
         x.setAttribute('aria-checked', x === b);
     });
   }
+  for (const el of document.querySelectorAll('[data-tf]')) {
+    el.addEventListener('input', () =>
+      applyTransformField(el.dataset.tf, parseFloat(el.value), false),
+    );
+    el.addEventListener('change', () => {
+      applyTransformField(el.dataset.tf, parseFloat(el.value), true);
+      drawSelection();
+    });
+    el.addEventListener('keydown', (e) => e.key === 'Enter' && el.blur());
+  }
+  $('#sc-tf-link').addEventListener('click', (e) => {
+    const b = e.currentTarget;
+    const on = b.getAttribute('aria-pressed') !== 'true';
+    b.setAttribute('aria-pressed', on);
+    b.firstElementChild.innerHTML = icon(on ? 'link' : 'link-slash');
+  });
   for (const b of document.querySelectorAll('[data-eyedrop]')) {
     b.addEventListener('click', () => {
       state.eyedropMode = b.dataset.eyedrop;

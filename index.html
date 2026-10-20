@@ -72,6 +72,50 @@
               <i data-icon="trash-can"></i><span>Delete</span><kbd>Del</kbd>
             </button>
             <hr />
+            <button role="menuitem" data-action="freeTransform">
+              <i data-icon="vector-square"></i><span>Free Transform</span><kbd>Alt+T</kbd>
+            </button>
+            <div class="sc-submenu">
+              <button role="menuitem" class="sc-sub-btn" aria-haspopup="menu" aria-expanded="false">
+                <i></i><span>Transform</span><i data-icon="chevron-right" class="sc-sub-caret"></i>
+              </button>
+              <div class="sc-menu-list sc-sub-list" role="menu" hidden>
+                <button role="menuitem" data-action="again">
+                  <i data-icon="repeat"></i><span>Again</span><kbd>Alt+Shift+T</kbd>
+                </button>
+                <button role="menuitem" data-action="againCopy">
+                  <i data-icon="clone"></i><span>Again with Copy</span><kbd>Ctrl+Alt+Shift+T</kbd>
+                </button>
+                <hr />
+                <button role="menuitem" data-action="tfScale">
+                  <i data-icon="maximize"></i><span>Scale</span>
+                </button>
+                <button role="menuitem" data-action="tfRotate">
+                  <i data-icon="rotate"></i><span>Rotate</span>
+                </button>
+                <button role="menuitem" data-action="tfSkew">
+                  <i data-icon="italic"></i><span>Skew</span>
+                </button>
+                <hr />
+                <button role="menuitem" data-action="rot180">
+                  <i></i><span>Rotate 180°</span>
+                </button>
+                <button role="menuitem" data-action="rot90cw">
+                  <i data-icon="rotate-right"></i><span>Rotate 90° Clockwise</span>
+                </button>
+                <button role="menuitem" data-action="rot90ccw">
+                  <i data-icon="rotate-left"></i><span>Rotate 90° Counter Clockwise</span>
+                </button>
+                <hr />
+                <button role="menuitem" data-action="flipH">
+                  <i data-icon="left-right"></i><span>Flip Horizontal</span>
+                </button>
+                <button role="menuitem" data-action="flipV">
+                  <i data-icon="up-down"></i><span>Flip Vertical</span>
+                </button>
+              </div>
+            </div>
+            <hr />
             <button role="menuitem" data-action="selectAll">
               <i></i><span>Select All</span><kbd>Ctrl+A</kbd>
             </button>
@@ -233,6 +277,114 @@
     <div class="sc-options" id="sc-options">
       <div class="sc-opt-tool"><i id="sc-opt-icon"></i><span id="sc-opt-name">Move</span></div>
       <span class="sc-vsep"></span>
+      <div class="sc-opt" data-for="transform">
+        <label class="sc-field"
+          ><span class="sc-scrub" data-tip="Drag to adjust">X:</span
+          ><input
+            type="number"
+            data-tf="x"
+            step="1"
+            min="-100000"
+            max="100000"
+            aria-label="X"
+          /><span class="sc-unit">px</span></label
+        >
+        <label class="sc-field"
+          ><span class="sc-scrub" data-tip="Drag to adjust">Y:</span
+          ><input
+            type="number"
+            data-tf="y"
+            step="1"
+            min="-100000"
+            max="100000"
+            aria-label="Y"
+          /><span class="sc-unit">px</span></label
+        >
+        <span class="sc-vsep"></span>
+        <label class="sc-field"
+          ><span class="sc-scrub" data-tip="Drag to adjust">W:</span
+          ><input
+            type="number"
+            data-tf="w"
+            step="1"
+            min="0.01"
+            max="100000"
+            aria-label="Width"
+          /><span class="sc-unit">px</span></label
+        >
+        <button
+          class="sc-ibtn"
+          id="sc-tf-link"
+          aria-label="Keep proportions"
+          aria-pressed="false"
+          data-tip="Keep width and height in proportion"
+        >
+          <i data-icon="link-slash"></i>
+        </button>
+        <label class="sc-field"
+          ><span class="sc-scrub" data-tip="Drag to adjust">H:</span
+          ><input
+            type="number"
+            data-tf="h"
+            step="1"
+            min="0.01"
+            max="100000"
+            aria-label="Height"
+          /><span class="sc-unit">px</span></label
+        >
+        <span class="sc-vsep"></span>
+        <label class="sc-field"
+          ><span class="sc-scrub" data-tip="Drag to adjust"><i data-icon="rotate"></i></span
+          ><input
+            type="number"
+            data-tf="angle"
+            step="1"
+            min="-3600"
+            max="3600"
+            aria-label="Angle"
+          /><span class="sc-unit">°</span></label
+        >
+        <span class="sc-vsep"></span>
+        <label class="sc-field"
+          ><span class="sc-scrub" data-tip="Horizontal skew — drag to adjust">H:</span
+          ><input
+            type="number"
+            data-tf="skx"
+            step="1"
+            min="-89"
+            max="89"
+            aria-label="Horizontal skew"
+          /><span class="sc-unit">°</span></label
+        >
+        <label class="sc-field"
+          ><span class="sc-scrub" data-tip="Vertical skew — drag to adjust">V:</span
+          ><input
+            type="number"
+            data-tf="sky"
+            step="1"
+            min="-89"
+            max="89"
+            aria-label="Vertical skew"
+          /><span class="sc-unit">°</span></label
+        >
+        <span class="sc-vsep"></span>
+        <button
+          class="sc-ibtn sc-tf-cancel"
+          data-action="tfCancel"
+          aria-label="Cancel transform"
+          data-tip="Cancel transform · Esc"
+        >
+          <i data-icon="xmark"></i>
+        </button>
+        <button
+          class="sc-ibtn sc-tf-commit"
+          data-action="tfCommit"
+          aria-label="Commit transform"
+          data-tip="Commit transform · Enter"
+        >
+          <i data-icon="check"></i>
+        </button>
+      </div>
       <div class="sc-opt" data-for="select">
         <span class="sc-opt-label">Auto-Select:</span>
         <div class="sc-seg" role="radiogroup" aria-label="Clicking the canvas selects">

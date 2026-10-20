@@ -52,6 +52,24 @@ stroke="currentColor"` (common in icon sets) is pushed down so it survives.
 - **Pen**: click for corners, drag for smooth curves, click the first point
   to close. Enter or double-click finishes, Backspace removes the last
   point, and Shift snaps to 45°.
+- **Free Transform and Edit → Transform**, as in Photoshop:
+  - **Free Transform** (Alt+T) opens a transform session. Drag corners to
+    scale and the top knob to rotate, or type exact X, Y, W, H (with a
+    proportion lock), an angle, and horizontal or vertical skew into the
+    options bar. Enter or ✓ commits. Esc or ✕ cancels the whole session.
+  - **Transform → Scale / Rotate / Skew** open the same session with the
+    handles set to that job: corners and edges only scale, any handle
+    rotates, or edge handles slide along their edge to skew. Shift snaps
+    angles to 15°.
+  - **Rotate 180°, Rotate 90° Clockwise / Counter Clockwise, Flip
+    Horizontal / Vertical** each apply in one step, about the selection's
+    centre.
+  - **Again** (Alt+Shift+T) repeats the last transform about the
+    selection's current centre. **Again with Copy** (Ctrl+Alt+Shift+T)
+    duplicates first, so a 30° rotation repeated 11 times makes a ring of 12.
+  - Browsers reserve Ctrl+T and Ctrl+Shift+T for tabs, so these shortcuts
+    use Alt. Distort, Perspective and Warp aren't included, because SVG
+    transforms can only express straight-line (affine) changes.
 - **Align / distribute**: from the Move tool's options bar or Object →
   Align. Align left, centre or right edges, or top, middle or bottom, to
   the selection's bounds. With one object selected, it aligns to the
@@ -127,6 +145,7 @@ The Layers panel works like Photoshop's:
 | Ctrl+Z / Ctrl+Shift+Z | Undo / redo                             |
 | Ctrl+C / X / V        | Copy / cut / paste (as SVG)             |
 | Ctrl+D · Ctrl+A       | Duplicate · select all                  |
+| Alt+T · Alt+Shift+T   | Free Transform · Transform Again        |
 | Ctrl+G · Ctrl+Shift+G | Group · ungroup                         |
 | ] [ · Ctrl+] Ctrl+[   | Forward / backward · to front / to back |
 | Arrows (Shift = 10)   | Nudge                                   |
