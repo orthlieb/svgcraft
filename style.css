@@ -1261,24 +1261,24 @@ select[data-type='style'] {
     12px system-ui,
     sans-serif;
 }
-/* The on-canvas text editor: placed by a matrix, so all sizes are in the
-   text layer's own units. */
+/* The on-canvas rich text editor: placed by a matrix, so all sizes are in
+   the text layer's own units. */
 .sc-type-edit {
   position: absolute;
   left: 0;
   top: 0;
   z-index: 6;
+  display: inline-block;
+  min-width: 2px;
+  min-height: 1lh;
   margin: 0;
   padding: 0;
-  border: 0;
   outline: 1px dashed var(--sel);
-  background: transparent;
-  resize: none;
-  overflow: hidden;
-  white-space: pre;
   transform-origin: 0 0;
   caret-color: var(--sel);
+  overflow-wrap: anywhere;
+  cursor: text;
 }
-.sc-type-edit[wrap='soft'] {
-  white-space: pre-wrap;
+.sc-type-edit ::selection {
+  background: rgba(49, 168, 255, 0.35);
 }

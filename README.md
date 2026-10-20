@@ -123,6 +123,17 @@ The Type tool (T) works like Photoshop's:
   italics the font really has.
 - **Options bar.** Family, style, size and alignment, plus a button that
   opens the Character and Paragraph panels.
+- **Per-character styling.** While editing, select characters (drag,
+  double-click a word, or Shift+arrows) and change the font, style, size,
+  tracking, baseline shift, caps, super/subscript, underline,
+  strikethrough or Fill colour. Only those characters change. The options
+  bar, Character panel, font picker and colour controls all keep the edit
+  open, and they show the settings of the characters under the caret. With
+  nothing selected, a change applies to the whole layer. Applying a setting
+  to a selected layer when you're not editing styles the whole layer and
+  clears that setting from its characters, as in Photoshop. Auto leading is
+  120% of the largest size on each line, and paragraph text wraps by the
+  real width of every run.
 - **Character panel.** Size, leading (empty means Auto, 120%), tracking in
   thousandths of an em as in Photoshop, and baseline shift. Toggles for All
   Caps, Small Caps, Superscript, Subscript, Underline and Strikethrough.
@@ -135,10 +146,12 @@ The Type tool (T) works like Photoshop's:
   isn't allowed to fetch fonts. Installed (local) fonts only look right on
   computers that have them.
 - **Plain SVG underneath.** A text layer is ordinary SVG text, one
-  `<tspan>` per line, with the settings in standard attributes. The type
+  `<tspan>` per line and a nested `<tspan>` per styled run, with the
+  settings in standard attributes. The type
   details survive export and import, and other editors can read the file.
-- **Limits.** Settings apply to the whole text layer (no per-word styling
-  yet). There's no Warp Text or Convert to Shape (outlines) yet either.
+- **Limits.** No Warp Text or Convert to Shape (outlines) yet. Undo while
+  typing covers the typing itself; character-style changes are undone as
+  part of the finished edit.
 
 ## Layers
 

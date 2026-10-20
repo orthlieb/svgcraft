@@ -400,6 +400,11 @@
       setPaintAttr(el, 'opacity', f(state.opacity), 1);
       return;
     }
+    if (key === 'fill' && el.localName === 'text')
+      for (const ts of el.querySelectorAll('tspan[data-run]')) {
+        ts.removeAttribute('fill');
+        ts.removeAttribute('fill-opacity');
+      }
     for (const t of paintTargets(el)) {
       if (key === 'fill') {
         t.style?.removeProperty('fill');
@@ -1512,7 +1517,9 @@
     const cs = getComputedStyle(el);
     const size = parseFloat(el.getAttribute('font-size')) || parseFloat(cs.fontSize) || 16;
     const bs = el.getAttribute('baseline-shift') || '';
-    const deco = `${el.getAttribute('text-decoration') || ''} ${cs.textDecorationLine || ''}`;
+    const deco = el.hasAttribute('data-deco')
+      ? el.getAttribute('data-deco')
+      : `${el.getAttribute('text-decoration') || ''} ${cs.textDecorationLine || ''}`;
     const anchor = el.getAttribute('text-anchor') || cs.textAnchor || 'start';
     return {
       family: fontFromCss(el.getAttribute('font-family') || cs.fontFamily),
@@ -1564,10 +1571,7 @@
     if (t.caps === 'all') el.style.textTransform = 'uppercase';
     else el.style.removeProperty('text-transform');
     if (!el.getAttribute('style')) el.removeAttribute('style');
-    set(
-      'text-decoration',
-      [t.underline && 'underline', t.strike && 'line-through'].filter(Boolean).join(' ') || null,
-    );
+    el.setAttribute('data-deco', decoOf(t.underline, t.strike));
     set('text-anchor', t.align === 'start' ? null : t.align);
     if (t.leading) el.dataset.leading = f(t.leading);
     else delete el.dataset.leading;
@@ -1577,28 +1581,142 @@
     layoutText(el, text);
   }
 
-  // The string a layer holds: lines joined by newlines, soft wraps by spaces.
-  function rawText(el) {
+  // ---- rich text: runs ----------------------------------------------------
+  // A layer's content is a list of runs { t, o }: t is text (newlines
+  // included) and o holds only the character settings that differ from the
+  // layer's own (Photoshop's per-character styling). In the SVG each run is
+  // a nested <tspan data-run> carrying just those attributes.
+  const RUN_KEYS = [
+    'family',
+    'weight',
+    'italic',
+    'size',
+    'tracking',
+    'shift',
+    'script',
+    'caps',
+    'underline',
+    'strike',
+    'fill',
+    'fillA',
+  ];
+  const pickKeys = (o, keys) =>
+    Object.fromEntries(Object.entries(o).filter(([k]) => keys.includes(k)));
+  const sameO = (a, b) => RUN_KEYS.every((k) => a[k] === b[k]);
+  const decoOf = (u, s) => [u && 'underline', s && 'line-through'].filter(Boolean).join(' ');
+
+  function mergeRuns(runs) {
+    const out = [];
+    for (const r of runs) {
+      if (!r.t) continue;
+      const last = out.at(-1);
+      if (last && sameO(last.o, r.o)) last.t += r.t;
+      else out.push({ t: r.t, o: { ...r.o } });
+    }
+    return out;
+  }
+
+  // Drop overrides that match the layer, so runs only say what's different.
+  function pruneO(o, t) {
+    const out = {};
+    for (const k of RUN_KEYS) if (o[k] != null && o[k] !== t[k]) out[k] = o[k];
+    return out;
+  }
+
+  // The overrides a run tspan carries (its own attributes, not inherited).
+  function runFrom(ts, t) {
+    const o = {};
+    const a = (k) => ts.getAttribute(k);
+    if (a('font-family')) o.family = fontFromCss(a('font-family'));
+    if (a('font-weight'))
+      o.weight = parseInt(a('font-weight'), 10) || (a('font-weight') === 'bold' ? 700 : 400);
+    if (a('font-style')) o.italic = /italic|oblique/.test(a('font-style'));
+    if (a('font-size')) o.size = parseFloat(a('font-size'));
+    if (ts.dataset.tracking != null) o.tracking = parseFloat(ts.dataset.tracking);
+    const bs = a('baseline-shift');
+    if (bs === 'super' || bs === 'sub') o.script = bs;
+    else if (bs) {
+      o.shift = (parseFloat(bs) || 0) + (t.script === 'none' ? t.shift : 0);
+      o.script = 'none';
+    }
+    if (a('font-variant') || ts.style.textTransform)
+      o.caps =
+        ts.style.textTransform === 'uppercase'
+          ? 'all'
+          : /small-caps/.test(a('font-variant') || '')
+            ? 'small'
+            : 'none';
+    if (a('text-decoration')) {
+      o.underline = /underline/.test(a('text-decoration'));
+      o.strike = /line-through/.test(a('text-decoration'));
+    }
+    if (a('fill')) o.fill = a('fill');
+    if (a('fill-opacity')) o.fillA = parseFloat(a('fill-opacity'));
+    return pruneO(o, t);
+  }
+
+  // Attributes for one run tspan. Values that inherit badly are written
+  // out in full: letter-spacing is absolute, so a run with its own size
+  // gets its own; baseline-shift stacks, so it's written relative.
+  function runAttrs(o, t) {
+    const e = { ...t, ...o };
+    const at = { 'data-run': '' };
+    if (o.family != null) at['font-family'] = fontByName(o.family).css;
+    if (o.weight != null) at['font-weight'] = o.weight;
+    if (o.italic != null) at['font-style'] = o.italic ? 'italic' : 'normal';
+    if (o.size != null) at['font-size'] = f(o.size);
+    if (o.tracking != null || o.size != null) {
+      const ls = (e.tracking * e.size) / 1000;
+      if (ls || t.tracking) at['letter-spacing'] = f(ls);
+      if (o.tracking != null) at['data-tracking'] = o.tracking;
+    }
+    if (o.script != null && o.script !== 'none') at['baseline-shift'] = o.script;
+    else if (o.shift != null)
+      at['baseline-shift'] = f(o.shift - (t.script === 'none' ? t.shift : 0));
+    if (o.caps != null) {
+      at['font-variant'] = o.caps === 'small' ? 'small-caps' : 'normal';
+      at.style = `text-transform:${o.caps === 'all' ? 'uppercase' : 'none'}`;
+    }
+    if (o.fill != null) at.fill = o.fill;
+    if (o.fillA != null) at['fill-opacity'] = f(o.fillA);
+    return at;
+  }
+
+  // Text from other editors: a tspan with its own x / y / dy starts a line.
+  function foreignText(el) {
+    let out = '';
+    for (const n of el.childNodes) {
+      if (n.nodeType === 3) out += n.textContent;
+      else if (n.localName === 'tspan') {
+        if (out && (n.hasAttribute('x') || n.hasAttribute('dy') || n.hasAttribute('y')))
+          out += '\n';
+        out += n.textContent;
+      }
+    }
+    return out.replace(/\s*\n\s*/g, '\n').trim();
+  }
+
+  function rawRuns(el) {
     const lines = [...el.children].filter(
       (c) => c.localName === 'tspan' && c.hasAttribute('data-line'),
     );
-    if (!lines.length) {
-      // Text from elsewhere: a tspan with its own x or dy starts a new line.
-      let out = '';
-      for (const n of el.childNodes) {
-        if (n.nodeType === 3) out += n.textContent;
-        else if (n.localName === 'tspan') {
-          if (out && (n.hasAttribute('x') || n.hasAttribute('dy') || n.hasAttribute('y')))
-            out += '\n';
-          out += n.textContent;
-        }
+    if (!lines.length) return mergeRuns([{ t: foreignText(el), o: {} }]);
+    const t = typeFrom(el);
+    const runs = [];
+    lines.forEach((l, i) => {
+      if (i) runs.push({ t: l.hasAttribute('data-soft') ? ' ' : '\n', o: runs.at(-1)?.o || {} });
+      for (const n of l.childNodes) {
+        if (n.nodeType === 3) runs.push({ t: n.textContent, o: {} });
+        else if (n.localName === 'tspan') runs.push({ t: n.textContent, o: runFrom(n, t) });
       }
-      return out.replace(/\s*\n\s*/g, '\n').trim();
-    }
-    return lines
-      .map((l, i) => (i ? (l.hasAttribute('data-soft') ? ' ' : '\n') : '') + l.textContent)
-      .join('');
+    });
+    return mergeRuns(runs);
   }
+
+  const rawText = (el) =>
+    rawRuns(el)
+      .map((r) => r.t)
+      .join('');
 
   const measureCtx = document.createElement('canvas').getContext('2d');
   function measurer(t) {
@@ -1608,51 +1726,124 @@
       measureCtx.measureText(t.caps === 'all' ? s.toUpperCase() : s).width + ls * s.length;
   }
 
-  // Greedy word wrap of one paragraph into lines no wider than w.
-  function wrapLine(line, w, width) {
-    if (!line) return [''];
-    const out = [];
-    let cur = '';
-    for (const word of line.split(/(?<=\s)/)) {
-      if (width((cur + word).trimEnd()) <= w || !cur) {
-        cur += word;
-        // A single word wider than the box breaks between letters.
-        while (width(cur.trimEnd()) > w && cur.length > 1) {
-          let k = cur.length - 1;
-          while (k > 1 && width(cur.slice(0, k)) > w) k--;
-          out.push(cur.slice(0, k));
-          cur = cur.slice(k);
-        }
-      } else {
-        out.push(cur.trimEnd());
-        cur = word;
+  // Width of a list of styled characters, each stretch in its own font.
+  function charsWidth(chars, t) {
+    let sum = 0;
+    for (let k = 0; k < chars.length; ) {
+      let j = k;
+      while (j < chars.length && chars[j].o === chars[k].o) j++;
+      sum += measurer({ ...t, ...chars[k].o })(
+        chars
+          .slice(k, j)
+          .map((c) => c.ch)
+          .join(''),
+      );
+      k = j;
+    }
+    return sum;
+  }
+
+  // Greedy word wrap of one paragraph (styled characters) to width w.
+  function wrapChars(chars, w, t) {
+    if (!chars.length) return [[]];
+    const trimEnd = (arr) => {
+      let e = arr.length;
+      while (e && /\s/.test(arr[e - 1].ch)) e--;
+      return arr.slice(0, e);
+    };
+    const words = [];
+    let cur = [];
+    for (const c of chars) {
+      cur.push(c);
+      if (/\s/.test(c.ch)) {
+        words.push(cur);
+        cur = [];
       }
     }
-    out.push(cur.trimEnd());
+    if (cur.length) words.push(cur);
+    const out = [];
+    let line = [];
+    for (const word of words) {
+      if (!line.length || charsWidth(trimEnd([...line, ...word]), t) <= w) {
+        line = [...line, ...word];
+        // A single word wider than the box breaks between letters.
+        while (charsWidth(trimEnd(line), t) > w && line.length > 1) {
+          let k = line.length - 1;
+          while (k > 1 && charsWidth(line.slice(0, k), t) > w) k--;
+          out.push(line.slice(0, k));
+          line = line.slice(k);
+        }
+      } else {
+        out.push(trimEnd(line));
+        line = word;
+      }
+    }
+    out.push(trimEnd(line));
     return out;
   }
 
   const leadingOf = (t) => t.leading || t.size * 1.2;
 
-  function layoutText(el, text = rawText(el)) {
+  // Write content (a string, runs, or the layer's own runs) into the layer:
+  // wrap, place each line (auto leading = 120% of its largest size, as in
+  // Photoshop) and group characters back into run tspans.
+  function layoutText(el, content) {
+    const runs = mergeRuns(
+      content == null
+        ? rawRuns(el)
+        : typeof content === 'string'
+          ? [{ t: content, o: {} }]
+          : content,
+    );
     const t = typeFrom(el);
-    const lead = leadingOf(t);
     const x0 = parseFloat(el.getAttribute('x')) || 0;
     const y0 = parseFloat(el.getAttribute('y')) || 0;
     const ax = t.box ? x0 + { start: 0, middle: t.box / 2, end: t.box }[t.align] : x0;
+    const hard = [[]];
+    for (const r of runs)
+      for (const ch of r.t) ch === '\n' ? hard.push([]) : hard.at(-1).push({ ch, o: r.o });
     const lines = [];
-    const width = t.box ? measurer(t) : null;
-    for (const hard of text.split('\n')) {
-      const parts = t.box ? wrapLine(hard, t.box, width) : [hard];
-      parts.forEach((p, i) => lines.push({ p, soft: i > 0 }));
-    }
+    for (const h of hard)
+      (t.box ? wrapChars(h, t.box, t) : [h]).forEach((p, i) =>
+        lines.push({ chars: p, soft: i > 0 }),
+      );
+    // Decorations can't be switched off inside an underlined parent, so
+    // when runs disagree each run carries its own and the layer none.
+    const perRun = runs.some((r) => r.o.underline != null || r.o.strike != null);
+    const layerDeco = decoOf(t.underline, t.strike);
+    el.setAttribute('data-deco', layerDeco);
+    if (perRun || !layerDeco) el.removeAttribute('text-decoration');
+    else el.setAttribute('text-decoration', layerDeco);
     el.setAttributeNS(XML_NS, 'xml:space', 'preserve');
+    let y = y0;
     el.replaceChildren(
-      ...lines.map(({ p, soft }, i) => {
-        const ts = mk('tspan', { x: f(ax), y: f(y0 + i * lead), 'data-line': '' });
-        if (soft) ts.setAttribute('data-soft', '');
-        ts.textContent = p;
-        return ts;
+      ...lines.map(({ chars, soft }, i) => {
+        const big = chars.length ? Math.max(...chars.map((c) => c.o.size ?? t.size)) : t.size;
+        if (i) y += t.leading || big * 1.2;
+        const line = mk('tspan', { x: f(ax), y: f(y), 'data-line': '' });
+        if (soft) line.setAttribute('data-soft', '');
+        for (let k = 0; k < chars.length; ) {
+          let j = k;
+          while (j < chars.length && chars[j].o === chars[k].o) j++;
+          const text = chars
+            .slice(k, j)
+            .map((c) => c.ch)
+            .join('');
+          const o = chars[k].o;
+          if (!Object.keys(o).length && !perRun) line.append(document.createTextNode(text));
+          else {
+            const ts = mk('tspan', runAttrs(o, t));
+            if (perRun)
+              ts.setAttribute(
+                'text-decoration',
+                decoOf(o.underline ?? t.underline, o.strike ?? t.strike) || 'none',
+              );
+            ts.textContent = text;
+            line.append(ts);
+          }
+          k = j;
+        }
+        return line;
       }),
     );
   }
@@ -1667,96 +1858,327 @@
     return out;
   }
 
-  // ---- on-canvas editing --------------------------------------------------
-  // A textarea styled like the layer and transformed with the layer's own
-  // screen matrix, so the caret sits on the text even when it's rotated.
+  // ---- on-canvas rich editor ------------------------------------------------
+  // A contenteditable box styled like the layer, one span per run, placed
+  // with the layer's own screen matrix so the caret sits on rotated text.
+  // Selecting characters and changing a setting styles just those.
+  const cssColor = (fill, a = 1) => {
+    const h = hex(fill);
+    if (!h) return fill;
+    const n = parseInt(h.slice(1), 16);
+    return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`;
+  };
+
+  function spanCss(o, t) {
+    const e = { ...t, ...o };
+    const css = {
+      fontFamily: fontByName(e.family).css,
+      fontWeight: e.weight,
+      fontStyle: e.italic ? 'italic' : 'normal',
+      fontSize: `${e.size}px`,
+      letterSpacing: `${(e.tracking * e.size) / 1000}px`,
+      textTransform: e.caps === 'all' ? 'uppercase' : 'none',
+      fontVariant: e.caps === 'small' ? 'small-caps' : 'normal',
+      textDecoration: decoOf(e.underline, e.strike) || 'none',
+      verticalAlign: e.script !== 'none' ? e.script : `${e.shift}px`,
+    };
+    if (o.fill != null || o.fillA != null)
+      css.color =
+        o.fill === 'none' ? 'transparent' : cssColor(o.fill ?? t.fill, o.fillA ?? t.fillA);
+    return css;
+  }
+
+  function renderEditor(div, runs, t) {
+    div.replaceChildren(
+      ...runs.map((r) => {
+        const s = document.createElement('span');
+        s.dataset.o = JSON.stringify(r.o);
+        Object.assign(s.style, spanCss(r.o, t));
+        s.textContent = r.t;
+        return s;
+      }),
+    );
+    if (!runs.length || runs.at(-1).t.endsWith('\n'))
+      div.append(Object.assign(document.createElement('br'), { className: 'sc-end' }));
+  }
+
+  // Runs back out of the editor, whatever the browser did to its DOM.
+  function readEditor(div) {
+    const runs = [];
+    const walk = (node, o) => {
+      for (const n of node.childNodes) {
+        if (n.nodeType === 3) runs.push({ t: n.textContent, o });
+        else if (n.nodeName === 'BR') {
+          if (!n.classList.contains('sc-end')) runs.push({ t: '\n', o });
+        } else if (n.nodeType === 1) {
+          if (/^(DIV|P)$/.test(n.nodeName) && runs.length && !runs.at(-1).t.endsWith('\n'))
+            runs.push({ t: '\n', o });
+          walk(n, n.dataset?.o ? JSON.parse(n.dataset.o) : o);
+        }
+      }
+    };
+    walk(div, {});
+    return mergeRuns(runs);
+  }
+
+  // Character offsets of the editor's selection, and back.
+  function editorRange(div) {
+    const sel = getSelection();
+    if (!sel.rangeCount || !div.contains(sel.anchorNode)) return null;
+    const r = sel.getRangeAt(0);
+    const at = (node, off) => {
+      const pre = document.createRange();
+      pre.selectNodeContents(div);
+      pre.setEnd(node, off);
+      const tmp = document.createElement('div');
+      tmp.append(pre.cloneContents());
+      return readEditor(tmp).reduce((n, x) => n + x.t.length, 0);
+    };
+    const a = at(r.startContainer, r.startOffset);
+    const b = at(r.endContainer, r.endOffset);
+    return { start: Math.min(a, b), end: Math.max(a, b) };
+  }
+  function setEditorRange(div, start, end) {
+    const find = (pos) => {
+      let n = 0;
+      const walker = document.createTreeWalker(div, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT);
+      let last = null;
+      while (walker.nextNode()) {
+        const node = walker.currentNode;
+        if (node.nodeType === 3) {
+          if (pos <= n + node.length) return [node, pos - n];
+          n += node.length;
+          last = node;
+        } else if (node.nodeName === 'BR' && !node.classList.contains('sc-end')) {
+          if (pos <= n) return [node.parentNode, [...node.parentNode.childNodes].indexOf(node)];
+          n += 1;
+        }
+      }
+      return last ? [last, last.length] : [div, 0];
+    };
+    const r = document.createRange();
+    r.setStart(...find(start));
+    r.setEnd(...find(end));
+    const sel = getSelection();
+    sel.removeAllRanges();
+    sel.addRange(r);
+  }
+
   let typeEdit = null;
   function editTextLayer(el, isNew = false) {
     if (typeEdit) finishTypeEdit(true);
-    const t = typeFrom(el);
     const wrapEl = $('#sc-stage-wrap');
-    const ta = document.createElement('textarea');
-    ta.className = 'sc-type-edit';
-    ta.value = rawText(el);
-    ta.spellcheck = false;
-    ta.wrap = t.box ? 'soft' : 'off';
-    ta.setAttribute('aria-label', 'Edit text');
-    const cs = getComputedStyle(el);
-    const lead = leadingOf(t);
-    Object.assign(ta.style, {
-      fontFamily: fontByName(t.family).css,
-      fontWeight: t.weight,
-      fontStyle: t.italic ? 'italic' : 'normal',
-      fontSize: `${t.size}px`,
-      lineHeight: `${lead}px`,
-      letterSpacing: `${(t.tracking * t.size) / 1000}px`,
-      textTransform: t.caps === 'all' ? 'uppercase' : 'none',
-      fontVariant: t.caps === 'small' ? 'small-caps' : 'normal',
-      textDecoration:
-        [t.underline && 'underline', t.strike && 'line-through'].filter(Boolean).join(' ') ||
-        'none',
-      textAlign: { start: 'left', middle: 'center', end: 'right' }[t.align],
-      color: cs.fill && cs.fill !== 'none' && !cs.fill.startsWith('url') ? cs.fill : '#000',
-      opacity: (parseFloat(cs.fillOpacity) || 1) * (parseFloat(cs.opacity) || 1),
-    });
-    wrapEl.append(ta);
-    const place = () => {
-      const lines = ta.value.split('\n').length;
-      let w;
-      if (t.box) w = t.box;
-      else {
-        ta.style.width = '1px';
-        w = ta.scrollWidth + t.size * 0.6;
+    const div = document.createElement('div');
+    div.className = 'sc-type-edit';
+    div.contentEditable = 'true';
+    div.spellcheck = false;
+    div.setAttribute('role', 'textbox');
+    div.setAttribute('aria-multiline', 'true');
+    div.setAttribute('aria-label', 'Edit text');
+    const runs = rawRuns(el);
+    const ed = { el, div, isNew, before: JSON.stringify(runs), range: null };
+    // Layer-wide look (runs override it span by span).
+    ed.restyle = () => {
+      const t = typeFrom(el);
+      const cs = getComputedStyle(el);
+      ed.t = { ...t, fill: cs.fill, fillA: parseFloat(cs.fillOpacity) || 1 };
+      Object.assign(div.style, spanCss({}, ed.t), {
+        lineHeight: t.leading ? `${t.leading}px` : '1.2',
+        textAlign: { start: 'left', middle: 'center', end: 'right' }[t.align],
+        color:
+          cs.fill && cs.fill !== 'none' && !cs.fill.startsWith('url')
+            ? cssColor(cs.fill, ed.t.fillA)
+            : '#000',
+        opacity: parseFloat(cs.opacity) || 1,
+        whiteSpace: t.box ? 'pre-wrap' : 'pre',
+        width: t.box ? `${t.box}px` : 'auto',
+        verticalAlign: 'baseline',
+      });
+    };
+    ed.place = () => {
+      const t = ed.t;
+      const content = readEditor(div);
+      const firstLine = [];
+      for (const r of content) {
+        firstLine.push(r);
+        if (r.t.includes('\n')) break;
       }
-      ta.style.width = `${w}px`;
-      ta.style.height = '1px';
-      ta.style.height = `${Math.max(lines * lead, ta.scrollHeight)}px`;
+      const big = Math.max(t.size, ...firstLine.map((r) => r.o.size ?? t.size));
+      const lead = t.leading || big * 1.2;
+      const w = t.box || div.offsetWidth;
       const x0 = parseFloat(el.getAttribute('x')) || 0;
       const y0 = parseFloat(el.getAttribute('y')) || 0;
       const bx = t.box ? x0 : x0 - { start: 0, middle: w / 2, end: w }[t.align];
-      const by = y0 - ((lead - t.size) / 2 + t.size * 0.8);
+      const by = y0 - ((lead - big) / 2 + big * 0.8);
       const M = el.getScreenCTM().translate(bx, by);
       const r = wrapEl.getBoundingClientRect();
-      ta.style.transform = `matrix(${M.a},${M.b},${M.c},${M.d},${M.e - r.left},${M.f - r.top})`;
+      div.style.transform = `matrix(${M.a},${M.b},${M.c},${M.d},${M.e - r.left},${M.f - r.top})`;
     };
-    place();
+    ed.restyle();
+    renderEditor(div, runs, ed.t);
+    wrapEl.append(div);
     el.style.visibility = 'hidden';
-    typeEdit = { el, ta, isNew, before: ta.value };
-    ta.addEventListener('input', place);
-    ta.addEventListener('keydown', (e) => {
+    typeEdit = ed;
+    ed.place();
+    div.addEventListener('input', () => {
+      const runsNow = readEditor(div);
+      if (
+        runsNow.length &&
+        runsNow.at(-1).t.endsWith('\n') &&
+        !div.lastChild?.classList?.contains('sc-end')
+      )
+        div.append(Object.assign(document.createElement('br'), { className: 'sc-end' }));
+      ed.place();
+    });
+    div.addEventListener('keydown', (e) => {
       e.stopPropagation();
       if (e.key === 'Escape') finishTypeEdit(false);
-      else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) finishTypeEdit(true);
+      else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        finishTypeEdit(true);
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        document.execCommand('insertText', false, '\n');
+      }
     });
-    ta.addEventListener('blur', () => typeEdit?.ta === ta && finishTypeEdit(true));
+    div.addEventListener('paste', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      document.execCommand('insertText', false, e.clipboardData.getData('text/plain'));
+    });
+    // Clicks on the panels, options bar, font picker or paint chips keep the
+    // edit open (they style the selected characters); anywhere else ends it.
+    div.addEventListener('blur', () =>
+      setTimeout(() => {
+        if (typeEdit !== ed || document.activeElement === div) return;
+        if (document.activeElement?.closest?.('.sc-options, .sc-panel, #sc-fontpop, .sc-chips'))
+          return;
+        finishTypeEdit(true);
+      }, 0),
+    );
     state.sel = [el];
     readTypeFromSelection();
     drawSelection();
     setTimeout(() => {
-      ta.focus();
-      if (!isNew) ta.select();
+      div.focus();
+      const len = runs.reduce((n, r) => n + r.t.length, 0);
+      setEditorRange(div, isNew ? len : 0, len);
     }, 0);
+  }
+
+  // The panels follow the characters under the caret / selection.
+  document.addEventListener('selectionchange', () => {
+    const ed = typeEdit;
+    if (!ed || document.activeElement !== ed.div) return;
+    ed.range = editorRange(ed.div) || ed.range;
+    if (!ed.range) return;
+    const runs = readEditor(ed.div);
+    const at = ed.range.start === ed.range.end ? Math.max(0, ed.range.start - 1) : ed.range.start;
+    let pos = 0;
+    let o = {};
+    for (const r of runs) {
+      if (at < pos + r.t.length) {
+        o = r.o;
+        break;
+      }
+      pos += r.t.length;
+    }
+    state.type = {
+      ...typeFrom(ed.el),
+      ...pickKeys(
+        o,
+        RUN_KEYS.filter((k) => k !== 'fill' && k !== 'fillA'),
+      ),
+    };
+    syncTypeUI();
+    if (o.fill && o.fill !== 'none') {
+      state.fill = hex(o.fill) || state.fill;
+      state.fillOn = true;
+    } else if (o.fill === 'none') state.fillOn = false;
+    else readStyle(ed.el);
+    if (o.fillA != null) state.fillA = o.fillA;
+    syncStyleUI();
+  });
+
+  // Style the selected characters (all of them when nothing is selected);
+  // paragraph settings go to the layer.
+  function applyToEdit(patch, refocus = true) {
+    const ed = typeEdit;
+    const div = ed.div;
+    const layerPatch = pickKeys(patch, ['leading', 'align', 'box']);
+    const runPatch = pickKeys(patch, RUN_KEYS);
+    let runs = readEditor(div);
+    const len = runs.reduce((n, r) => n + r.t.length, 0);
+    const range = ed.range && ed.range.end > ed.range.start ? ed.range : { start: 0, end: len };
+    if (Object.keys(layerPatch).length) {
+      applyType(ed.el, { ...typeFrom(ed.el), ...layerPatch }, runs);
+      ed.restyle();
+    }
+    if (Object.keys(runPatch).length) {
+      const lt = ed.t;
+      const next = [];
+      let pos = 0;
+      for (const r of runs) {
+        const a = pos;
+        const b = pos + r.t.length;
+        pos = b;
+        const cuts = [
+          [a, Math.max(a, Math.min(b, range.start)), false],
+          [Math.max(a, range.start), Math.min(b, range.end), true],
+          [Math.max(a, Math.min(b, range.end)), b, false],
+        ];
+        for (const [s, e, hit] of cuts) {
+          if (e <= s) continue;
+          let o = r.o;
+          if (hit) {
+            o = { ...o, ...runPatch };
+            if (runPatch.family)
+              Object.assign(
+                o,
+                fitStyle(runPatch.family, o.weight ?? lt.weight, o.italic ?? lt.italic),
+              );
+            if (runPatch.shift != null) o.script = 'none';
+            o = pruneO(o, lt);
+          }
+          next.push({ t: r.t.slice(s - a, e - a), o });
+        }
+      }
+      runs = mergeRuns(next);
+      renderEditor(div, runs, lt);
+      if (runPatch.family) ensureFont(runPatch.family);
+    }
+    ed.place();
+    if (refocus) {
+      div.focus();
+      setEditorRange(div, range.start, range.end);
+      ed.range = range;
+    }
   }
 
   function finishTypeEdit(keep) {
     const ed = typeEdit;
     if (!ed) return;
     typeEdit = null;
-    const { el, ta, isNew, before } = ed;
-    ta.remove();
+    const { el, div, isNew, before } = ed;
+    const runs = readEditor(div);
+    div.remove();
     el.style.removeProperty('visibility');
     if (!el.getAttribute('style')) el.removeAttribute('style');
-    const v = ta.value;
     if (!keep) {
       if (isNew) {
         el.remove();
         state.sel = [];
-      }
+      } else layoutText(el, JSON.parse(before));
       drawSelection();
       renderLayers();
       return;
     }
-    if (!v.trim()) {
+    if (
+      !runs
+        .map((r) => r.t)
+        .join('')
+        .trim()
+    ) {
       el.remove();
       state.sel = [];
       if (isNew) {
@@ -1765,8 +2187,8 @@
       } else commit();
       return;
     }
-    if (!isNew && v === before) return drawSelection();
-    layoutText(el, v);
+    layoutText(el, runs);
+    if (!isNew && JSON.stringify(rawRuns(el)) === before) return drawSelection();
     state.sel = [el];
     commit();
   }
@@ -1828,6 +2250,7 @@
       });
       doc.append(el);
       applyType(el, t, '');
+      renderLayers();
       setTimeout(() => editTextLayer(el, true), 0);
     },
     leave() {
@@ -1896,12 +2319,23 @@
     if (patch.family)
       Object.assign(state.type, fitStyle(patch.family, state.type.weight, state.type.italic));
     ensureFont(state.type.family);
-    const targets = typeEdit ? [typeEdit.el] : selectedTexts();
-    if (typeEdit) finishTypeEdit(true);
+    if (typeEdit) {
+      applyToEdit(patch, final);
+      syncTypeUI();
+      return;
+    }
+    const targets = selectedTexts();
+    // Styling a whole layer clears the same setting from its characters.
+    const keys = Object.keys(patch).filter((k) => RUN_KEYS.includes(k));
+    if (patch.family) keys.push('weight', 'italic');
     for (const el of targets) {
       const t = { ...typeFrom(el), ...patch };
       if (patch.family) Object.assign(t, fitStyle(patch.family, t.weight, t.italic));
-      applyType(el, t);
+      const runs = rawRuns(el).map((r) => ({
+        t: r.t,
+        o: Object.fromEntries(Object.entries(r.o).filter(([k]) => !keys.includes(k))),
+      }));
+      applyType(el, t, runs);
     }
     syncTypeUI();
     if (!targets.length) return;
@@ -1914,12 +2348,12 @@
     if (!els.length) return say('Select a text layer first.');
     for (const el of els) {
       const t = typeFrom(el);
-      const text = rawText(el);
+      const text = rawRuns(el);
       if (t.box) {
         // Paragraph → point: one line per paragraph, anchored where the box was.
         const x0 = parseFloat(el.getAttribute('x')) || 0;
         el.setAttribute('x', f(x0 + { start: 0, middle: t.box / 2, end: t.box }[t.align]));
-        applyType(el, { ...t, box: 0 }, text.replace(/\n/g, '\n'));
+        applyType(el, { ...t, box: 0 }, text);
       } else {
         const b = el.getBBox();
         el.setAttribute('x', f(b.x));
@@ -1987,7 +2421,6 @@
     items[fontActive]?.scrollIntoView({ block: 'nearest' });
   }
   function openFontPicker(btn) {
-    if (typeEdit) finishTypeEdit(true);
     loadFontPreviews();
     fontPop.hidden = false;
     const r = btn.getBoundingClientRect();
@@ -2107,7 +2540,13 @@
       if (p) changeType(p, true);
       syncTypeUI();
     });
-    el.addEventListener('keydown', (e) => e.key === 'Enter' && el.blur());
+    el.addEventListener('keydown', (e) => {
+      // Swallow the key: focus may move to the canvas text editor while it's handled.
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        el.blur();
+      }
+    });
   }
   for (const b of document.querySelectorAll('[data-type-align]'))
     b.addEventListener('click', () => changeType({ align: b.dataset.typeAlign }));
@@ -3655,8 +4094,12 @@
     };
   }
 
-  const loadDocFonts = () =>
-    doc.querySelectorAll('text').forEach((el) => ensureFont(typeFrom(el).family));
+  // Every family named by a text layer or one of its runs.
+  const docFamilies = () =>
+    [...doc.querySelectorAll('text, tspan[font-family]')].map((el) =>
+      el.localName === 'text' ? typeFrom(el).family : fontFromCss(el.getAttribute('font-family')),
+    );
+  const loadDocFonts = () => docFamilies().forEach(ensureFont);
 
   function openSvg(text, name) {
     const s = parseSvg(text, { dedupe: false });
@@ -3750,7 +4193,7 @@
   // ---------------------------------------------------------------------
   // Google families used by text in the drawing.
   function usedGoogleFonts() {
-    const names = new Set([...doc.querySelectorAll('text')].map((el) => typeFrom(el).family));
+    const names = new Set(docFamilies());
     return FONTS.filter((ft) => ft.src === 'google' && names.has(ft.name));
   }
 
@@ -3975,6 +4418,10 @@
   // Push a style change to the selection; `final` commits it to history.
   function styleChanged(key, final) {
     syncStyleUI();
+    if (typeEdit && key === 'fill') {
+      applyToEdit({ fill: state.fillOn ? state.fill : 'none', fillA: state.fillA }, final);
+      return;
+    }
     const targets = state.tool === 'node' && tools.node.el ? [tools.node.el] : state.sel;
     if (!targets.length) return;
     for (const el of targets) applyStyle(el, key);
@@ -4260,7 +4707,7 @@
     const typing = e.target.matches?.(
       'input:not([type=range]):not([type=checkbox]), textarea, select',
     );
-    if (typing) return;
+    if (typing || e.target.isContentEditable) return;
     const mod = e.ctrlKey || e.metaKey;
     const k = e.key.toLowerCase();
     if (e.key === ' ') {
@@ -4333,18 +4780,20 @@
 
   // Clipboard: copy / cut the selection as SVG, paste SVG markup or images.
   document.addEventListener('copy', (e) => {
-    if (e.target.matches?.('input, textarea') || !state.sel.length) return;
+    if (e.target.matches?.('input, textarea') || e.target.isContentEditable || !state.sel.length)
+      return;
     e.clipboardData.setData('text/plain', serialize({ selection: true }));
     e.preventDefault();
   });
   document.addEventListener('cut', (e) => {
-    if (e.target.matches?.('input, textarea') || !state.sel.length) return;
+    if (e.target.matches?.('input, textarea') || e.target.isContentEditable || !state.sel.length)
+      return;
     e.clipboardData.setData('text/plain', serialize({ selection: true }));
     e.preventDefault();
     cmds.delete();
   });
   document.addEventListener('paste', (e) => {
-    if (e.target.matches?.('input, textarea')) return;
+    if (e.target.matches?.('input, textarea') || e.target.isContentEditable) return;
     const file = [...(e.clipboardData?.files || [])][0];
     if (file) {
       e.preventDefault();
@@ -4655,7 +5104,13 @@
     if (v > 0) zoomAt(v / 100);
     else updateTitle();
   });
-  zoomInput.addEventListener('keydown', (e) => e.key === 'Enter' && zoomInput.blur());
+  zoomInput.addEventListener('keydown', (e) => {
+    // Swallow the key: focus may move to the canvas text editor while it's handled.
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      zoomInput.blur();
+    }
+  });
   for (const id of ['#sc-w', '#sc-h']) {
     $(id).addEventListener('change', () => {
       setSize($('#sc-w').value, $('#sc-h').value);
@@ -4699,7 +5154,13 @@
       applyTransformField(el.dataset.tf, parseFloat(el.value), true);
       drawSelection();
     });
-    el.addEventListener('keydown', (e) => e.key === 'Enter' && el.blur());
+    el.addEventListener('keydown', (e) => {
+      // Swallow the key: focus may move to the canvas text editor while it's handled.
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        el.blur();
+      }
+    });
   }
   $('#sc-tf-link').addEventListener('click', (e) => {
     const b = e.currentTarget;
