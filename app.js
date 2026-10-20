@@ -71,7 +71,21 @@
     tf: null, // an open Free Transform / Scale / Rotate / Skew session
     eraserSize: 12,
     smoothing: 4,
-    fontSize: 32,
+    type: {
+      family: 'System UI',
+      weight: 400,
+      italic: false,
+      size: 32,
+      leading: 0,
+      tracking: 0,
+      shift: 0,
+      script: 'none',
+      caps: 'none',
+      underline: false,
+      strike: false,
+      align: 'start',
+      box: 0,
+    },
     active: 'fill',
     fillOn: true,
     fill: '#e8a33d',
@@ -590,6 +604,8 @@
     state.sel = normalizeSel(els);
     els = state.sel;
     if (els.length) readStyle(els[0]);
+    if (els.length && readTypeFromSelection() && els.every((el) => el.localName === 'text'))
+      $('[data-tab="character"]').click();
     drawSelection();
     markLayers();
   }
@@ -698,7 +714,7 @@
     if (own) return own;
     const tag = el.localName;
     const id = el.id ? ` #${el.id}` : '';
-    if (tag === 'text') return `text “${(el.textContent || '').trim().slice(0, 24)}”`;
+    if (tag === 'text') return `“${rawText(el).replace(/\s+/g, ' ').trim().slice(0, 28)}”`;
     if (tag === 'g') return `group (${el.children.length})${id}`;
     if (tag === 'path') return `path${id}`;
     return tag + id;
@@ -1077,14 +1093,7 @@
         return;
       }
       const el = doc.contains(e.target) ? e.target.closest('text') : null;
-      if (!el) return;
-      const r = el.getBoundingClientRect();
-      editText(r.left, r.bottom, el.textContent, r.height, (t) => {
-        if (t == null || t === el.textContent) return;
-        if (t) el.textContent = t;
-        else el.remove();
-        commit();
-      });
+      if (el) editTextLayer(el);
     },
     cancel() {
       this.g = null;
@@ -1332,67 +1341,797 @@
     'Drag for a line · Shift snaps to 45° · Alt draws from the centre',
   );
 
-  tools.text = {
-    hint: 'Click to place text · Double-click text with the Select tool to edit it',
-    cursor: 'text',
-    up(e, p) {
-      p = snapPt(p);
-      const m = view.getScreenCTM();
-      const s = new DOMPoint(p.x, p.y).matrixTransform(m);
-      editText(s.x, s.y, '', state.fontSize * state.zoom, (t) => {
-        if (t) place(t);
+  // ---------------------------------------------------------------------
+  // Type (Photoshop-style)
+  //
+  // A text layer is <text x y> with one <tspan data-line> per line, each
+  // absolutely positioned (x = the alignment anchor, y = baseline + n ×
+  // leading) so empty lines keep their place. Paragraph text carries
+  // data-box (its width); its soft-wrapped lines are marked data-soft so
+  // the original string can be rebuilt for editing. Character settings
+  // live in ordinary SVG attributes, so exports render anywhere.
+  // ---------------------------------------------------------------------
+  const XML_NS = 'http://www.w3.org/XML/1998/namespace';
+  const WEIGHT_NAMES = {
+    100: 'Thin',
+    200: 'ExtraLight',
+    300: 'Light',
+    400: 'Regular',
+    500: 'Medium',
+    600: 'SemiBold',
+    700: 'Bold',
+    800: 'ExtraBold',
+    900: 'Black',
+  };
+  const ALL_W = [100, 200, 300, 400, 500, 600, 700, 800, 900];
+  // name, CSS stack, weights, has italics, source. Google weights are the
+  // ones each family really ships, so every requested style exists.
+  const FONTS = [
+    { name: 'System UI', css: 'system-ui, sans-serif', w: ALL_W, i: true, src: 'system' },
+    { name: 'Arial', css: 'Arial, Helvetica, sans-serif', w: [400, 700], i: true, src: 'system' },
+    { name: 'Georgia', css: 'Georgia, serif', w: [400, 700], i: true, src: 'system' },
+    {
+      name: 'Times New Roman',
+      css: "'Times New Roman', Times, serif",
+      w: [400, 700],
+      i: true,
+      src: 'system',
+    },
+    {
+      name: 'Courier New',
+      css: "'Courier New', Courier, monospace",
+      w: [400, 700],
+      i: true,
+      src: 'system',
+    },
+    { name: 'Verdana', css: 'Verdana, sans-serif', w: [400, 700], i: true, src: 'system' },
+    {
+      name: 'Trebuchet MS',
+      css: "'Trebuchet MS', sans-serif",
+      w: [400, 700],
+      i: true,
+      src: 'system',
+    },
+    { name: 'Impact', css: 'Impact, sans-serif', w: [400], i: false, src: 'system' },
+    { name: 'Roboto', cat: 'sans-serif', w: ALL_W, i: true },
+    { name: 'Open Sans', cat: 'sans-serif', w: [300, 400, 500, 600, 700, 800], i: true },
+    { name: 'Lato', cat: 'sans-serif', w: [100, 300, 400, 700, 900], i: true },
+    { name: 'Montserrat', cat: 'sans-serif', w: ALL_W, i: true },
+    { name: 'Inter', cat: 'sans-serif', w: ALL_W, i: false },
+    { name: 'Raleway', cat: 'sans-serif', w: ALL_W, i: true },
+    { name: 'Josefin Sans', cat: 'sans-serif', w: [100, 200, 300, 400, 500, 600, 700], i: true },
+    { name: 'Oswald', cat: 'sans-serif', w: [200, 300, 400, 500, 600, 700], i: false },
+    { name: 'Bebas Neue', cat: 'sans-serif', w: [400], i: false },
+    { name: 'Archivo Black', cat: 'sans-serif', w: [400], i: false },
+    { name: 'Playfair Display', cat: 'serif', w: [400, 500, 600, 700, 800, 900], i: true },
+    { name: 'Merriweather', cat: 'serif', w: [300, 400, 700, 900], i: true },
+    { name: 'Source Serif 4', cat: 'serif', w: [200, 300, 400, 500, 600, 700, 800, 900], i: true },
+    { name: 'Lora', cat: 'serif', w: [400, 500, 600, 700], i: true },
+    { name: 'Cinzel', cat: 'serif', w: [400, 500, 600, 700, 800, 900], i: false },
+    { name: 'Abril Fatface', cat: 'serif', w: [400], i: false },
+    { name: 'Lobster', cat: 'cursive', w: [400], i: false },
+    { name: 'Pacifico', cat: 'cursive', w: [400], i: false },
+    { name: 'Dancing Script', cat: 'cursive', w: [400, 500, 600, 700], i: false },
+    { name: 'Caveat', cat: 'cursive', w: [400, 500, 600, 700], i: false },
+    { name: 'Permanent Marker', cat: 'cursive', w: [400], i: false },
+    { name: 'Fira Code', cat: 'monospace', w: [300, 400, 500, 600, 700], i: false },
+    { name: 'Space Mono', cat: 'monospace', w: [400, 700], i: true },
+    { name: 'Press Start 2P', cat: 'monospace', w: [400], i: false },
+  ];
+  for (const ft of FONTS) {
+    if (!ft.src) ft.src = 'google';
+    if (!ft.css) ft.css = `'${ft.name}', ${ft.cat}`;
+  }
+
+  const fontByName = (name) =>
+    FONTS.find((ft) => ft.name.toLowerCase() === String(name).toLowerCase()) || {
+      name,
+      css: `'${name}', sans-serif`,
+      w: [400, 700],
+      i: true,
+      src: 'unknown',
+    };
+
+  // The family a font-family value starts with, matched to the catalogue.
+  function fontFromCss(value) {
+    const first = String(value || '')
+      .split(',')[0]
+      .trim()
+      .replace(/^['"]|['"]$/g, '');
+    if (!first) return 'System UI';
+    const hit = FONTS.find(
+      (ft) =>
+        ft.name.toLowerCase() === first.toLowerCase() ||
+        ft.css.split(',')[0].trim().replace(/['"]/g, '').toLowerCase() === first.toLowerCase(),
+    );
+    return hit ? hit.name : first;
+  }
+
+  const googleSpec = (ft) =>
+    `family=${encodeURIComponent(ft.name).replace(/%20/g, '+')}:` +
+    (ft.i
+      ? `ital,wght@${[...ft.w.map((w) => `0,${w}`), ...ft.w.map((w) => `1,${w}`)].join(';')}`
+      : `wght@${ft.w.join(';')}`);
+  const googleUrl = (fonts) =>
+    `https://fonts.googleapis.com/css2?${fonts.map(googleSpec).join('&')}&display=swap`;
+
+  // Load a Google family (all its styles) once; re-wrap paragraph text in
+  // it when it arrives, since line breaks depend on the real glyph widths.
+  const loadedFonts = new Set();
+  function ensureFont(name) {
+    const ft = fontByName(name);
+    if (ft.src !== 'google' || loadedFonts.has(ft.name)) return;
+    loadedFonts.add(ft.name);
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = googleUrl([ft]);
+    link.onload = () =>
+      document.fonts.load(`16px '${ft.name}'`).then(() => {
+        for (const el of doc.querySelectorAll('text[data-box]'))
+          if (typeFrom(el).family === ft.name) layoutText(el);
+        drawSelection();
       });
-      const place = (t) => {
-        const el = mk(
-          'text',
-          {
-            ...newStyle('text'),
-            x: f(p.x),
-            y: f(p.y),
-            'font-size': state.fontSize,
-            'font-family': 'system-ui, sans-serif',
-          },
-          doc,
-        );
-        el.textContent = t;
-        state.sel = [el];
-        commit();
-      };
+    document.head.append(link);
+  }
+
+  // One small request that draws every catalogue name in its own face.
+  let previewsLoaded = false;
+  function loadFontPreviews() {
+    if (previewsLoaded) return;
+    previewsLoaded = true;
+    const g = FONTS.filter((ft) => ft.src === 'google');
+    const chars = [...new Set(g.map((ft) => ft.name).join(''))].join('');
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href =
+      'https://fonts.googleapis.com/css2?' +
+      g.map((ft) => `family=${encodeURIComponent(ft.name).replace(/%20/g, '+')}`).join('&') +
+      `&text=${encodeURIComponent(chars)}&display=swap`;
+    document.head.append(link);
+  }
+
+  // Style menu entries for a family: [weight, italic, label].
+  function fontStyles(name) {
+    const ft = fontByName(name);
+    const out = ft.w.map((w) => [w, false, WEIGHT_NAMES[w] || String(w)]);
+    if (ft.i)
+      for (const w of ft.w)
+        out.push([w, true, w === 400 ? 'Italic' : `${WEIGHT_NAMES[w] || w} Italic`]);
+    return out;
+  }
+
+  // Nearest style a family actually has.
+  function fitStyle(name, weight, italic) {
+    const ft = fontByName(name);
+    const w = ft.w.reduce((a, b) => (Math.abs(b - weight) < Math.abs(a - weight) ? b : a), ft.w[0]);
+    return { weight: w, italic: italic && ft.i };
+  }
+
+  // ---- reading / writing a layer's character + paragraph settings
+  function typeFrom(el) {
+    const cs = getComputedStyle(el);
+    const size = parseFloat(el.getAttribute('font-size')) || parseFloat(cs.fontSize) || 16;
+    const bs = el.getAttribute('baseline-shift') || '';
+    const deco = `${el.getAttribute('text-decoration') || ''} ${cs.textDecorationLine || ''}`;
+    const anchor = el.getAttribute('text-anchor') || cs.textAnchor || 'start';
+    return {
+      family: fontFromCss(el.getAttribute('font-family') || cs.fontFamily),
+      weight: parseInt(cs.fontWeight, 10) || 400,
+      italic: /italic|oblique/.test(cs.fontStyle),
+      size,
+      leading: parseFloat(el.dataset.leading) || 0,
+      tracking: el.dataset.tracking
+        ? parseFloat(el.dataset.tracking)
+        : Math.round(((parseFloat(el.getAttribute('letter-spacing')) || 0) / size) * 1000),
+      shift: /^-?[\d.]+$/.test(bs) ? parseFloat(bs) : 0,
+      script: bs === 'super' || bs === 'sub' ? bs : 'none',
+      caps:
+        el.style.textTransform === 'uppercase'
+          ? 'all'
+          : /small-caps/.test(el.getAttribute('font-variant') || '')
+            ? 'small'
+            : 'none',
+      underline: /underline/.test(deco),
+      strike: /line-through/.test(deco),
+      align: { middle: 'middle', end: 'end' }[anchor] || 'start',
+      box: parseFloat(el.dataset.box) || 0,
+    };
+  }
+
+  function applyType(el, t, text) {
+    const set = (k, v) => (v == null || v === '' ? el.removeAttribute(k) : el.setAttribute(k, v));
+    for (const k of [
+      'font-family',
+      'font-weight',
+      'font-style',
+      'font-size',
+      'letter-spacing',
+      'text-anchor',
+      'text-decoration',
+      'font-variant',
+      'baseline-shift',
+    ])
+      el.style.removeProperty(k);
+    set('font-family', fontByName(t.family).css);
+    set('font-weight', t.weight === 400 ? null : t.weight);
+    set('font-style', t.italic ? 'italic' : null);
+    set('font-size', f(t.size));
+    set('letter-spacing', t.tracking ? f((t.tracking * t.size) / 1000) : null);
+    el.dataset.tracking = t.tracking;
+    if (!t.tracking) delete el.dataset.tracking;
+    set('baseline-shift', t.script !== 'none' ? t.script : t.shift ? f(t.shift) : null);
+    set('font-variant', t.caps === 'small' ? 'small-caps' : null);
+    if (t.caps === 'all') el.style.textTransform = 'uppercase';
+    else el.style.removeProperty('text-transform');
+    if (!el.getAttribute('style')) el.removeAttribute('style');
+    set(
+      'text-decoration',
+      [t.underline && 'underline', t.strike && 'line-through'].filter(Boolean).join(' ') || null,
+    );
+    set('text-anchor', t.align === 'start' ? null : t.align);
+    if (t.leading) el.dataset.leading = f(t.leading);
+    else delete el.dataset.leading;
+    if (t.box) el.dataset.box = f(t.box);
+    else delete el.dataset.box;
+    ensureFont(t.family);
+    layoutText(el, text);
+  }
+
+  // The string a layer holds: lines joined by newlines, soft wraps by spaces.
+  function rawText(el) {
+    const lines = [...el.children].filter(
+      (c) => c.localName === 'tspan' && c.hasAttribute('data-line'),
+    );
+    if (!lines.length) {
+      // Text from elsewhere: a tspan with its own x or dy starts a new line.
+      let out = '';
+      for (const n of el.childNodes) {
+        if (n.nodeType === 3) out += n.textContent;
+        else if (n.localName === 'tspan') {
+          if (out && (n.hasAttribute('x') || n.hasAttribute('dy') || n.hasAttribute('y')))
+            out += '\n';
+          out += n.textContent;
+        }
+      }
+      return out.replace(/\s*\n\s*/g, '\n').trim();
+    }
+    return lines
+      .map((l, i) => (i ? (l.hasAttribute('data-soft') ? ' ' : '\n') : '') + l.textContent)
+      .join('');
+  }
+
+  const measureCtx = document.createElement('canvas').getContext('2d');
+  function measurer(t) {
+    measureCtx.font = `${t.italic ? 'italic ' : ''}${t.caps === 'small' ? 'small-caps ' : ''}${t.weight} ${t.size}px ${fontByName(t.family).css}`;
+    const ls = (t.tracking * t.size) / 1000;
+    return (s) =>
+      measureCtx.measureText(t.caps === 'all' ? s.toUpperCase() : s).width + ls * s.length;
+  }
+
+  // Greedy word wrap of one paragraph into lines no wider than w.
+  function wrapLine(line, w, width) {
+    if (!line) return [''];
+    const out = [];
+    let cur = '';
+    for (const word of line.split(/(?<=\s)/)) {
+      if (width((cur + word).trimEnd()) <= w || !cur) {
+        cur += word;
+        // A single word wider than the box breaks between letters.
+        while (width(cur.trimEnd()) > w && cur.length > 1) {
+          let k = cur.length - 1;
+          while (k > 1 && width(cur.slice(0, k)) > w) k--;
+          out.push(cur.slice(0, k));
+          cur = cur.slice(k);
+        }
+      } else {
+        out.push(cur.trimEnd());
+        cur = word;
+      }
+    }
+    out.push(cur.trimEnd());
+    return out;
+  }
+
+  const leadingOf = (t) => t.leading || t.size * 1.2;
+
+  function layoutText(el, text = rawText(el)) {
+    const t = typeFrom(el);
+    const lead = leadingOf(t);
+    const x0 = parseFloat(el.getAttribute('x')) || 0;
+    const y0 = parseFloat(el.getAttribute('y')) || 0;
+    const ax = t.box ? x0 + { start: 0, middle: t.box / 2, end: t.box }[t.align] : x0;
+    const lines = [];
+    const width = t.box ? measurer(t) : null;
+    for (const hard of text.split('\n')) {
+      const parts = t.box ? wrapLine(hard, t.box, width) : [hard];
+      parts.forEach((p, i) => lines.push({ p, soft: i > 0 }));
+    }
+    el.setAttributeNS(XML_NS, 'xml:space', 'preserve');
+    el.replaceChildren(
+      ...lines.map(({ p, soft }, i) => {
+        const ts = mk('tspan', { x: f(ax), y: f(y0 + i * lead), 'data-line': '' });
+        if (soft) ts.setAttribute('data-soft', '');
+        ts.textContent = p;
+        return ts;
+      }),
+    );
+  }
+
+  // Text layers among the selection (including inside selected groups).
+  function selectedTexts() {
+    const out = [];
+    for (const el of state.sel) {
+      if (el.localName === 'text') out.push(el);
+      else out.push(...el.querySelectorAll('text'));
+    }
+    return out;
+  }
+
+  // ---- on-canvas editing --------------------------------------------------
+  // A textarea styled like the layer and transformed with the layer's own
+  // screen matrix, so the caret sits on the text even when it's rotated.
+  let typeEdit = null;
+  function editTextLayer(el, isNew = false) {
+    if (typeEdit) finishTypeEdit(true);
+    const t = typeFrom(el);
+    const wrapEl = $('#sc-stage-wrap');
+    const ta = document.createElement('textarea');
+    ta.className = 'sc-type-edit';
+    ta.value = rawText(el);
+    ta.spellcheck = false;
+    ta.wrap = t.box ? 'soft' : 'off';
+    ta.setAttribute('aria-label', 'Edit text');
+    const cs = getComputedStyle(el);
+    const lead = leadingOf(t);
+    Object.assign(ta.style, {
+      fontFamily: fontByName(t.family).css,
+      fontWeight: t.weight,
+      fontStyle: t.italic ? 'italic' : 'normal',
+      fontSize: `${t.size}px`,
+      lineHeight: `${lead}px`,
+      letterSpacing: `${(t.tracking * t.size) / 1000}px`,
+      textTransform: t.caps === 'all' ? 'uppercase' : 'none',
+      fontVariant: t.caps === 'small' ? 'small-caps' : 'normal',
+      textDecoration:
+        [t.underline && 'underline', t.strike && 'line-through'].filter(Boolean).join(' ') ||
+        'none',
+      textAlign: { start: 'left', middle: 'center', end: 'right' }[t.align],
+      color: cs.fill && cs.fill !== 'none' && !cs.fill.startsWith('url') ? cs.fill : '#000',
+      opacity: (parseFloat(cs.fillOpacity) || 1) * (parseFloat(cs.opacity) || 1),
+    });
+    wrapEl.append(ta);
+    const place = () => {
+      const lines = ta.value.split('\n').length;
+      let w;
+      if (t.box) w = t.box;
+      else {
+        ta.style.width = '1px';
+        w = ta.scrollWidth + t.size * 0.6;
+      }
+      ta.style.width = `${w}px`;
+      ta.style.height = '1px';
+      ta.style.height = `${Math.max(lines * lead, ta.scrollHeight)}px`;
+      const x0 = parseFloat(el.getAttribute('x')) || 0;
+      const y0 = parseFloat(el.getAttribute('y')) || 0;
+      const bx = t.box ? x0 : x0 - { start: 0, middle: w / 2, end: w }[t.align];
+      const by = y0 - ((lead - t.size) / 2 + t.size * 0.8);
+      const M = el.getScreenCTM().translate(bx, by);
+      const r = wrapEl.getBoundingClientRect();
+      ta.style.transform = `matrix(${M.a},${M.b},${M.c},${M.d},${M.e - r.left},${M.f - r.top})`;
+    };
+    place();
+    el.style.visibility = 'hidden';
+    typeEdit = { el, ta, isNew, before: ta.value };
+    ta.addEventListener('input', place);
+    ta.addEventListener('keydown', (e) => {
+      e.stopPropagation();
+      if (e.key === 'Escape') finishTypeEdit(false);
+      else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) finishTypeEdit(true);
+    });
+    ta.addEventListener('blur', () => typeEdit?.ta === ta && finishTypeEdit(true));
+    state.sel = [el];
+    readTypeFromSelection();
+    drawSelection();
+    setTimeout(() => {
+      ta.focus();
+      if (!isNew) ta.select();
+    }, 0);
+  }
+
+  function finishTypeEdit(keep) {
+    const ed = typeEdit;
+    if (!ed) return;
+    typeEdit = null;
+    const { el, ta, isNew, before } = ed;
+    ta.remove();
+    el.style.removeProperty('visibility');
+    if (!el.getAttribute('style')) el.removeAttribute('style');
+    const v = ta.value;
+    if (!keep) {
+      if (isNew) {
+        el.remove();
+        state.sel = [];
+      }
+      drawSelection();
+      renderLayers();
+      return;
+    }
+    if (!v.trim()) {
+      el.remove();
+      state.sel = [];
+      if (isNew) {
+        drawSelection();
+        renderLayers();
+      } else commit();
+      return;
+    }
+    if (!isNew && v === before) return drawSelection();
+    layoutText(el, v);
+    state.sel = [el];
+    commit();
+  }
+
+  // ---- Type tool ------------------------------------------------------------
+  tools.text = {
+    hint: 'Click to add point text, or drag a box for paragraph text · Click text to edit it · Ctrl+Enter or click away finishes, Esc cancels',
+    cursor: 'text',
+    down(e, p) {
+      // As in Photoshop, a click while typing only commits the text (the
+      // editor's blur does that); the next click starts a new layer.
+      if (typeEdit) {
+        this.hit = this.g = null;
+        return;
+      }
+      const hit = doc.contains(e.target) ? e.target.closest('text') : null;
+      this.hit = hit;
+      this.g = hit ? null : { p0: snapPt(p) };
+    },
+    move(e, p) {
+      if (!this.g) return;
+      const q = snapPt(p);
+      const a = this.g.p0;
+      guides.replaceChildren();
+      mk(
+        'rect',
+        {
+          x: Math.min(a.x, q.x),
+          y: Math.min(a.y, q.y),
+          width: Math.abs(q.x - a.x),
+          height: Math.abs(q.y - a.y),
+          class: 'sc-ov sc-ov-dash',
+        },
+        guides,
+      );
+    },
+    up(e, p) {
+      guides.replaceChildren();
+      if (this.hit) {
+        const el = this.hit;
+        this.hit = null;
+        setTimeout(() => editTextLayer(el), 0);
+        return;
+      }
+      const g = this.g;
+      this.g = null;
+      if (!g) return;
+      const q = snapPt(p);
+      const w = Math.abs(q.x - g.p0.x);
+      const h = Math.abs(q.y - g.p0.y);
+      const area = w * state.zoom > 12 && h * state.zoom > 12;
+      const t = { ...state.type, box: area ? w : 0 };
+      const lead = leadingOf(t);
+      const top = Math.min(g.p0.y, q.y);
+      const el = mk('text', {
+        ...newStyle('text'),
+        x: f(area ? Math.min(g.p0.x, q.x) : g.p0.x),
+        y: f(area ? top + (lead - t.size) / 2 + t.size * 0.8 : g.p0.y),
+      });
+      doc.append(el);
+      applyType(el, t, '');
+      setTimeout(() => editTextLayer(el, true), 0);
+    },
+    leave() {
+      if (typeEdit) finishTypeEdit(true);
+      guides.replaceChildren();
     },
   };
 
-  // Inline text field floated over the stage (prompt() is blocked in many
-  // embedded/sandboxed pages). (x, y) is the screen baseline-left point.
-  // Enter or blur commits, Escape cancels; onDone(null) on cancel.
-  function editText(x, y, initial, px, onDone) {
-    const wrap = $('#sc-stage-wrap');
-    const r = wrap.getBoundingClientRect();
-    const size = clamp(px, 12, 96);
-    const input = document.createElement('input');
-    input.className = 'sc-text-input';
-    input.value = initial;
-    input.style.left = `${x - r.left}px`;
-    input.style.top = `${y - r.top - size * 1.15}px`;
-    input.style.fontSize = `${size}px`;
-    input.style.color = state.fillOn ? state.fill : state.stroke;
-    wrap.append(input);
-    let done = false;
-    const finish = (value) => {
-      if (done) return;
-      done = true;
-      input.remove();
-      onDone(value);
+  // ---- options bar / Character / Paragraph panels ---------------------------
+  function readTypeFromSelection() {
+    const el = selectedTexts()[0];
+    if (el) state.type = { ...typeFrom(el) };
+    syncTypeUI();
+    return !!el;
+  }
+
+  function syncTypeUI() {
+    const t = state.type;
+    for (const b of document.querySelectorAll('[data-type-show="family"]')) {
+      b.textContent = t.family;
+      b.style.fontFamily = fontByName(t.family).css;
+    }
+    for (const sel of document.querySelectorAll('select[data-type="style"]')) {
+      sel.replaceChildren(
+        ...fontStyles(t.family).map(([w, it, label]) => {
+          const o = document.createElement('option');
+          o.value = `${w}${it ? 'i' : ''}`;
+          o.textContent = label;
+          return o;
+        }),
+      );
+      sel.value = `${t.weight}${t.italic ? 'i' : ''}`;
+    }
+    const show = {
+      size: f(t.size),
+      leading: t.leading ? f(t.leading) : '',
+      tracking: t.tracking,
+      shift: t.script !== 'none' ? '' : f(t.shift),
+      box: t.box ? f(t.box) : '',
     };
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') finish(input.value);
-      else if (e.key === 'Escape') finish(null);
-      e.stopPropagation();
+    for (const el of document.querySelectorAll('input[data-type]'))
+      if (document.activeElement !== el) el.value = show[el.dataset.type];
+    const boxField = $('[data-type="box"]');
+    if (boxField) boxField.disabled = !t.box;
+    for (const b of document.querySelectorAll('[data-type-align]'))
+      b.setAttribute('aria-checked', b.dataset.typeAlign === t.align);
+    const on = {
+      caps: t.caps === 'all',
+      smallcaps: t.caps === 'small',
+      super: t.script === 'super',
+      sub: t.script === 'sub',
+      underline: t.underline,
+      strike: t.strike,
+    };
+    for (const b of document.querySelectorAll('[data-type-toggle]'))
+      b.setAttribute('aria-pressed', !!on[b.dataset.typeToggle]);
+    $('#sc-type-convert').textContent = t.box
+      ? 'Convert to Point Text'
+      : 'Convert to Paragraph Text';
+  }
+
+  // Change one setting on the text being edited, else on the selected text
+  // layers (each keeps its other settings), and make it the default.
+  function changeType(patch, final = true) {
+    Object.assign(state.type, patch);
+    if (patch.family)
+      Object.assign(state.type, fitStyle(patch.family, state.type.weight, state.type.italic));
+    ensureFont(state.type.family);
+    const targets = typeEdit ? [typeEdit.el] : selectedTexts();
+    if (typeEdit) finishTypeEdit(true);
+    for (const el of targets) {
+      const t = { ...typeFrom(el), ...patch };
+      if (patch.family) Object.assign(t, fitStyle(patch.family, t.weight, t.italic));
+      applyType(el, t);
+    }
+    syncTypeUI();
+    if (!targets.length) return;
+    if (final) commit();
+    else drawSelection();
+  }
+
+  function convertTextKind() {
+    const els = selectedTexts();
+    if (!els.length) return say('Select a text layer first.');
+    for (const el of els) {
+      const t = typeFrom(el);
+      const text = rawText(el);
+      if (t.box) {
+        // Paragraph → point: one line per paragraph, anchored where the box was.
+        const x0 = parseFloat(el.getAttribute('x')) || 0;
+        el.setAttribute('x', f(x0 + { start: 0, middle: t.box / 2, end: t.box }[t.align]));
+        applyType(el, { ...t, box: 0 }, text.replace(/\n/g, '\n'));
+      } else {
+        const b = el.getBBox();
+        el.setAttribute('x', f(b.x));
+        applyType(el, { ...t, box: Math.max(b.width, t.size * 4) }, text);
+      }
+    }
+    readTypeFromSelection();
+    commit();
+  }
+
+  // ---- font picker ------------------------------------------------------------
+  const fontPop = $('#sc-fontpop');
+  const fontSearch = fontPop.querySelector('input');
+  const fontList = fontPop.querySelector('ul');
+  let fontActive = 0;
+  function renderFontList() {
+    const q = fontSearch.value.trim().toLowerCase();
+    const groups = [
+      ['System fonts', 'system'],
+      ['Google Fonts', 'google'],
+      ['Installed on this computer', 'local'],
+    ];
+    fontList.replaceChildren();
+    let idx = 0;
+    for (const [title, src] of groups) {
+      const list = FONTS.filter((ft) => ft.src === src && ft.name.toLowerCase().includes(q));
+      if (!list.length) continue;
+      const h = document.createElement('li');
+      h.className = 'sc-font-head';
+      h.textContent = title;
+      fontList.append(h);
+      for (const ft of list) {
+        const li = document.createElement('li');
+        li.className = 'sc-font-item';
+        li.setAttribute('role', 'option');
+        li.dataset.font = ft.name;
+        li.dataset.idx = idx++;
+        li.setAttribute('aria-selected', ft.name === state.type.family);
+        li.textContent = ft.name;
+        li.style.fontFamily = ft.css;
+        li.addEventListener('pointerdown', (e) => {
+          e.preventDefault();
+          pickFont(ft.name);
+        });
+        fontList.append(li);
+      }
+    }
+    if (!idx) {
+      const li = document.createElement('li');
+      li.className = 'sc-font-head';
+      li.textContent = 'No fonts match';
+      fontList.append(li);
+    }
+    fontActive = Math.max(
+      0,
+      [...fontList.querySelectorAll('.sc-font-item')].findIndex(
+        (li) => li.dataset.font === state.type.family,
+      ),
+    );
+    markFontActive();
+  }
+  function markFontActive() {
+    const items = [...fontList.querySelectorAll('.sc-font-item')];
+    items.forEach((li, i) => li.classList.toggle('active', i === fontActive));
+    items[fontActive]?.scrollIntoView({ block: 'nearest' });
+  }
+  function openFontPicker(btn) {
+    if (typeEdit) finishTypeEdit(true);
+    loadFontPreviews();
+    fontPop.hidden = false;
+    const r = btn.getBoundingClientRect();
+    fontPop.style.left = `${Math.max(4, Math.min(r.left, innerWidth - fontPop.offsetWidth - 4))}px`;
+    const below = r.bottom + 2 + fontPop.offsetHeight < innerHeight;
+    fontPop.style.top = `${below ? r.bottom + 2 : Math.max(4, r.top - fontPop.offsetHeight - 2)}px`;
+    fontSearch.value = '';
+    renderFontList();
+    fontSearch.focus();
+    $('#sc-local-fonts').hidden =
+      !('queryLocalFonts' in window) || FONTS.some((ft) => ft.src === 'local');
+  }
+  function closeFontPicker() {
+    fontPop.hidden = true;
+  }
+  function pickFont(name) {
+    closeFontPicker();
+    changeType({ family: name });
+  }
+  fontSearch.addEventListener('input', renderFontList);
+  fontSearch.addEventListener('keydown', (e) => {
+    const items = [...fontList.querySelectorAll('.sc-font-item')];
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      fontActive = clamp(fontActive + (e.key === 'ArrowDown' ? 1 : -1), 0, items.length - 1);
+      markFontActive();
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (items[fontActive]) pickFont(items[fontActive].dataset.font);
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      closeFontPicker();
+    }
+    e.stopPropagation();
+  });
+  document.addEventListener('pointerdown', (e) => {
+    if (!fontPop.hidden && !fontPop.contains(e.target) && !e.target.closest('[data-fontpick]'))
+      closeFontPicker();
+  });
+  for (const b of document.querySelectorAll('[data-fontpick]'))
+    b.addEventListener('click', () => (fontPop.hidden ? openFontPicker(b) : closeFontPicker()));
+
+  // Chromium's Local Font Access lists the fonts installed on this computer.
+  async function loadLocalFonts() {
+    try {
+      const data = await window.queryLocalFonts();
+      const fam = new Map();
+      for (const d of data) {
+        if (FONTS.some((ft) => ft.name === d.family)) continue;
+        const s = d.style.toLowerCase();
+        const w = /thin|hairline/.test(s)
+          ? 100
+          : /extra ?light|ultra ?light/.test(s)
+            ? 200
+            : /light/.test(s)
+              ? 300
+              : /medium/.test(s)
+                ? 500
+                : /semi ?bold|demi/.test(s)
+                  ? 600
+                  : /extra ?bold|ultra ?bold/.test(s)
+                    ? 800
+                    : /black|heavy/.test(s)
+                      ? 900
+                      : /bold/.test(s)
+                        ? 700
+                        : 400;
+        const e = fam.get(d.family) || { w: new Set(), i: false };
+        e.w.add(w);
+        if (/italic|oblique/.test(s)) e.i = true;
+        fam.set(d.family, e);
+      }
+      for (const [name, e] of [...fam].sort((a, b) => a[0].localeCompare(b[0])))
+        FONTS.push({
+          name,
+          css: `'${name}', sans-serif`,
+          w: [...e.w].sort((a, b) => a - b),
+          i: e.i,
+          src: 'local',
+        });
+      say(
+        `${fam.size} installed font families added. They only look right on computers that have them.`,
+      );
+      $('#sc-local-fonts').hidden = true;
+      renderFontList();
+    } catch {
+      say('The browser did not allow access to installed fonts.');
+    }
+  }
+  $('#sc-local-fonts').addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    loadLocalFonts();
+  });
+
+  // ---- type controls ------------------------------------------------------------
+  for (const sel of document.querySelectorAll('select[data-type="style"]'))
+    sel.addEventListener('change', () =>
+      changeType({ weight: parseInt(sel.value, 10), italic: sel.value.endsWith('i') }),
+    );
+  for (const el of document.querySelectorAll('input[data-type]')) {
+    const key = el.dataset.type;
+    const read = () => {
+      const v = parseFloat(el.value);
+      if (key === 'leading') return { leading: isFinite(v) && v > 0 ? v : 0 };
+      if (!isFinite(v)) return null;
+      if (key === 'shift') return { shift: v, script: 'none' };
+      if (key === 'box') return state.type.box ? { box: Math.max(1, v) } : null;
+      if (key === 'size') return { size: Math.max(0.5, v) };
+      return { [key]: v };
+    };
+    el.addEventListener('input', () => {
+      const p = read();
+      if (p && !typeEdit) changeType(p, false);
     });
-    input.addEventListener('blur', () => finish(input.value));
-    setTimeout(() => {
-      input.focus();
-      input.select();
-    }, 0);
+    el.addEventListener('change', () => {
+      const p = read();
+      if (p) changeType(p, true);
+      syncTypeUI();
+    });
+    el.addEventListener('keydown', (e) => e.key === 'Enter' && el.blur());
+  }
+  for (const b of document.querySelectorAll('[data-type-align]'))
+    b.addEventListener('click', () => changeType({ align: b.dataset.typeAlign }));
+  for (const b of document.querySelectorAll('[data-type-toggle]')) {
+    b.addEventListener('click', () => {
+      const k = b.dataset.typeToggle;
+      const t = state.type;
+      const patch = {
+        caps: { caps: t.caps === 'all' ? 'none' : 'all' },
+        smallcaps: { caps: t.caps === 'small' ? 'none' : 'small' },
+        super: { script: t.script === 'super' ? 'none' : 'super' },
+        sub: { script: t.script === 'sub' ? 'none' : 'sub' },
+        underline: { underline: !t.underline },
+        strike: { strike: !t.strike },
+      }[k];
+      changeType(patch);
+    });
+  }
+  $('#sc-type-convert').addEventListener('click', convertTextKind);
+
+  // Open the Properties group on its Character tab.
+  function showCharacterPanel() {
+    $('[data-tab="character"]').click();
+    $('#sc-panel').classList.add('open');
   }
 
   // Raster of the artboard for pixel sampling, rebuilt lazily after edits.
@@ -2916,6 +3655,9 @@
     };
   }
 
+  const loadDocFonts = () =>
+    doc.querySelectorAll('text').forEach((el) => ensureFont(typeFrom(el).family));
+
   function openSvg(text, name) {
     const s = parseSvg(text, { dedupe: false });
     tools[state.tool].leave?.();
@@ -2927,6 +3669,7 @@
       doc.append(n);
     }
     setSize(s.w, s.h);
+    loadDocFonts();
     if (name) state.fileName = name.replace(/\.svg$/i, '');
     state.sel = [];
     fit();
@@ -2952,6 +3695,7 @@
       setM(g, new DOMMatrix().translate(tx, ty).scale(k).translate(-s.minX, -s.minY));
       state.sel = [g];
     }
+    loadDocFonts();
     setTool('select');
     commit();
   }
@@ -3004,7 +3748,44 @@
   // ---------------------------------------------------------------------
   // Export
   // ---------------------------------------------------------------------
-  function serialize({ selection = false } = {}) {
+  // Google families used by text in the drawing.
+  function usedGoogleFonts() {
+    const names = new Set([...doc.querySelectorAll('text')].map((el) => typeFrom(el).family));
+    return FONTS.filter((ft) => ft.src === 'google' && names.has(ft.name));
+  }
+
+  // @font-face rules with the font files inlined, for PNG export: an SVG
+  // drawn as an image may not load anything from the network.
+  const embedCache = new Map();
+  async function embeddedFontCss(fonts) {
+    let out = '';
+    for (const ft of fonts) {
+      if (!embedCache.has(ft.name)) {
+        embedCache.set(
+          ft.name,
+          (async () => {
+            let css = await (await fetch(googleUrl([ft]))).text();
+            for (const url of new Set(css.match(/https:[^)'"]+/g) || [])) {
+              const buf = await (await fetch(url)).arrayBuffer();
+              let bin = '';
+              const bytes = new Uint8Array(buf);
+              for (let k = 0; k < bytes.length; k += 0x8000)
+                bin += String.fromCharCode(...bytes.subarray(k, k + 0x8000));
+              css = css.split(url).join(`data:font/woff2;base64,${btoa(bin)}`);
+            }
+            return css;
+          })().catch(() => {
+            embedCache.delete(ft.name);
+            return '';
+          }),
+        );
+      }
+      out += await embedCache.get(ft.name);
+    }
+    return out;
+  }
+
+  function serialize({ selection = false, fontCss = '' } = {}) {
     const root = document.createElementNS(NS, 'svg');
     let box = { x: 0, y: 0, w: state.w, h: state.h };
     if (selection) {
@@ -3015,8 +3796,13 @@
     root.setAttribute('height', f(box.h));
     root.setAttribute('viewBox', [box.x, box.y, box.w, box.h].map(f).join(' '));
     const nl = () => document.createTextNode('\n  ');
-    if (defs.children.length) {
+    if (defs.children.length || fontCss) {
       const d = document.createElementNS(NS, 'defs');
+      if (fontCss) {
+        const st = document.createElementNS(NS, 'style');
+        st.textContent = fontCss;
+        d.append(st);
+      }
       for (const c of defs.childNodes) d.append(c.cloneNode(true));
       root.append(nl(), d);
     }
@@ -3046,12 +3832,26 @@
     setTimeout(() => URL.revokeObjectURL(a.href), 2000);
   }
 
+  // An exported SVG links the Google Fonts it uses, so browsers draw it right.
+  const fontImport = () => {
+    const g = usedGoogleFonts();
+    return g.length ? `@import url('${googleUrl(g)}');` : '';
+  };
+
   function exportSvg() {
-    download(new Blob([serialize()], { type: 'image/svg+xml' }), `${state.fileName}.svg`);
+    download(
+      new Blob([serialize({ fontCss: fontImport() })], { type: 'image/svg+xml' }),
+      `${state.fileName}.svg`,
+    );
   }
 
-  function exportPng(scale = 2) {
-    const url = URL.createObjectURL(new Blob([serialize()], { type: 'image/svg+xml' }));
+  async function exportPng(scale = 2) {
+    const g = usedGoogleFonts();
+    if (g.length) say('Embedding fonts…');
+    const fontCss = await embeddedFontCss(g);
+    if (g.length && !fontCss)
+      say('Could not fetch the fonts (offline?) — the PNG uses fallback fonts.');
+    const url = URL.createObjectURL(new Blob([serialize({ fontCss })], { type: 'image/svg+xml' }));
     const img = new Image();
     img.onload = () => {
       const c = document.createElement('canvas');
@@ -3073,7 +3873,7 @@
   }
 
   async function copySvg() {
-    const text = serialize({ selection: state.sel.length > 0 });
+    const text = serialize({ selection: state.sel.length > 0, fontCss: fontImport() });
     try {
       await navigator.clipboard.writeText(text);
       say(state.sel.length ? 'Copied the selection as SVG' : 'Copied the drawing as SVG');
@@ -3135,6 +3935,7 @@
     stage.style.cursor = tools[name].cursor;
     $('#sc-hint').textContent = tools[name].hint;
     if (changed) tools[name].enter?.(prev);
+    if (changed && name === 'text') $('[data-tab="character"]').click();
     drawSelection();
     renderLayers();
   }
@@ -3674,6 +4475,7 @@
     themeDark: () => setTheme('dark'),
     themeLight: () => setTheme('light'),
     toggleTheme: () => setTheme(isDark() ? 'light' : 'dark'),
+    showCharacter: showCharacterPanel,
     freeTransform: () => beginTransform('free'),
     tfScale: () => beginTransform('scale'),
     tfRotate: () => beginTransform('rotate'),
@@ -3929,7 +4731,7 @@
   wireScrubbers();
   bindNumber('#sc-smooth', 'smoothing');
   bindNumber('#sc-eraser-size', 'eraserSize');
-  bindNumber('#sc-font-size', 'fontSize');
+  syncTypeUI();
   syncStyleUI();
   setGrid();
   setTool('select');

@@ -577,17 +577,59 @@
         <span class="sc-opt-note">Object deletes what you rub · Cut splits strokes</span>
       </div>
       <div class="sc-opt" data-for="text">
+        <button
+          class="sc-fontbtn"
+          data-fontpick
+          aria-haspopup="listbox"
+          aria-label="Font family"
+          data-tip="Font family"
+        >
+          <span data-type-show="family">System UI</span><i data-icon="chevron-down"></i>
+        </button>
+        <select data-type="style" aria-label="Font style"></select>
         <label class="sc-field"
-          ><span class="sc-scrub" data-tip="Drag to adjust">Size:</span
+          ><span class="sc-scrub" data-tip="Font size — drag to adjust"
+            ><i data-icon="text-height"></i></span
           ><input
-            id="sc-font-size"
             type="number"
-            min="6"
-            max="400"
-            value="32"
+            data-type="size"
+            min="0.5"
+            max="2000"
+            step="1"
             aria-label="Font size"
           /><span class="sc-unit">px</span></label
         >
+        <span class="sc-vsep"></span>
+        <div class="sc-seg sc-seg-icons" role="radiogroup" aria-label="Alignment">
+          <button
+            data-type-align="start"
+            role="radio"
+            aria-label="Align left"
+            data-tip="Left align text"
+          >
+            <i data-icon="align-left"></i>
+          </button>
+          <button data-type-align="middle" role="radio" aria-label="Centre" data-tip="Centre text">
+            <i data-icon="align-center"></i>
+          </button>
+          <button
+            data-type-align="end"
+            role="radio"
+            aria-label="Align right"
+            data-tip="Right align text"
+          >
+            <i data-icon="align-right"></i>
+          </button>
+        </div>
+        <span class="sc-vsep"></span>
+        <button
+          class="sc-ibtn"
+          data-action="showCharacter"
+          aria-label="Character and Paragraph panels"
+          data-tip="Character and Paragraph panels"
+        >
+          <i data-icon="paragraph"></i>
+        </button>
       </div>
       <div class="sc-opt" data-for="eyedropper">
         <span class="sc-opt-label">Sample:</span>
@@ -801,9 +843,150 @@
           </div>
         </section>
 
-        <section class="sc-pgroup">
-          <div class="sc-ptabs"><span class="sc-ptitle">Properties</span></div>
-          <div class="sc-pbody">
+        <section class="sc-pgroup" data-tabs>
+          <div class="sc-ptabs" role="tablist">
+            <button role="tab" aria-selected="true" data-tab="props">Properties</button>
+            <button role="tab" aria-selected="false" data-tab="character">Character</button>
+            <button role="tab" aria-selected="false" data-tab="paragraph">Paragraph</button>
+          </div>
+          <div class="sc-pbody sc-char" data-pane="character" hidden>
+            <button
+              class="sc-fontbtn sc-fontbtn-wide"
+              data-fontpick
+              aria-haspopup="listbox"
+              aria-label="Font family"
+            >
+              <span data-type-show="family">System UI</span><i data-icon="chevron-down"></i>
+            </button>
+            <select data-type="style" aria-label="Font style" class="sc-wide"></select>
+            <div class="sc-prop-grid">
+              <label class="sc-field" data-tip="Font size"
+                ><span class="sc-scrub"><i data-icon="text-height"></i></span
+                ><input
+                  type="number"
+                  data-type="size"
+                  min="0.5"
+                  max="2000"
+                  step="1"
+                  aria-label="Font size"
+                /><span class="sc-unit">px</span></label
+              >
+              <label class="sc-field" data-tip="Leading (line spacing) — empty for Auto"
+                ><span class="sc-scrub">Lead</span
+                ><input
+                  type="number"
+                  data-type="leading"
+                  min="0"
+                  max="4000"
+                  step="1"
+                  placeholder="Auto"
+                  aria-label="Leading"
+                /><span class="sc-unit">px</span></label
+              >
+              <label class="sc-field" data-tip="Tracking, in thousandths of an em"
+                ><span class="sc-scrub">Track</span
+                ><input
+                  type="number"
+                  data-type="tracking"
+                  min="-500"
+                  max="2000"
+                  step="5"
+                  aria-label="Tracking"
+              /></label>
+              <label class="sc-field" data-tip="Baseline shift"
+                ><span class="sc-scrub">Shift</span
+                ><input
+                  type="number"
+                  data-type="shift"
+                  min="-1000"
+                  max="1000"
+                  step="1"
+                  aria-label="Baseline shift"
+                /><span class="sc-unit">px</span></label
+              >
+            </div>
+            <div class="sc-tgl-row" role="group" aria-label="Type options">
+              <button
+                class="sc-tgl"
+                data-type-toggle="caps"
+                aria-pressed="false"
+                data-tip="All Caps"
+              >
+                TT
+              </button>
+              <button
+                class="sc-tgl"
+                data-type-toggle="smallcaps"
+                aria-pressed="false"
+                data-tip="Small Caps"
+              >
+                T<small>T</small>
+              </button>
+              <button
+                class="sc-tgl"
+                data-type-toggle="super"
+                aria-pressed="false"
+                data-tip="Superscript"
+              >
+                <i data-icon="superscript"></i>
+              </button>
+              <button
+                class="sc-tgl"
+                data-type-toggle="sub"
+                aria-pressed="false"
+                data-tip="Subscript"
+              >
+                <i data-icon="subscript"></i>
+              </button>
+              <button
+                class="sc-tgl"
+                data-type-toggle="underline"
+                aria-pressed="false"
+                data-tip="Underline"
+              >
+                <i data-icon="underline"></i>
+              </button>
+              <button
+                class="sc-tgl"
+                data-type-toggle="strike"
+                aria-pressed="false"
+                data-tip="Strikethrough"
+              >
+                <i data-icon="strikethrough"></i>
+              </button>
+            </div>
+            <p class="sc-hint">Applies to the whole text layer. Colour comes from Fill.</p>
+          </div>
+          <div class="sc-pbody sc-char" data-pane="paragraph" hidden>
+            <div class="sc-seg sc-seg-icons" role="radiogroup" aria-label="Alignment">
+              <button data-type-align="start" role="radio" aria-label="Align left">
+                <i data-icon="align-left"></i>
+              </button>
+              <button data-type-align="middle" role="radio" aria-label="Centre">
+                <i data-icon="align-center"></i>
+              </button>
+              <button data-type-align="end" role="radio" aria-label="Align right">
+                <i data-icon="align-right"></i>
+              </button>
+            </div>
+            <label class="sc-field" data-tip="Width of the paragraph box"
+              ><span class="sc-scrub">Box width</span
+              ><input
+                type="number"
+                data-type="box"
+                min="1"
+                max="20000"
+                step="1"
+                aria-label="Paragraph box width"
+              /><span class="sc-unit">px</span></label
+            >
+            <button class="sc-tbtn sc-wide" id="sc-type-convert">Convert to Paragraph Text</button>
+            <p class="sc-hint">
+              Point text grows as you type. Paragraph text wraps inside its box. Drag with the Type
+              tool to make one.
+            </p>
+          </div>
+          <div class="sc-pbody" data-pane="props">
             <div class="sc-prop-grid">
               <label class="sc-field"
                 ><span class="sc-scrub" data-tip="Drag to adjust">Stroke</span
@@ -916,6 +1099,20 @@
           </div>
         </section>
       </aside>
+    </div>
+
+    <!-- Font picker (shared by the options bar and the Character panel). -->
+    <div class="sc-fontpop" id="sc-fontpop" hidden>
+      <input
+        type="search"
+        placeholder="Search fonts"
+        aria-label="Search fonts"
+        spellcheck="false"
+      />
+      <ul role="listbox" aria-label="Fonts"></ul>
+      <button class="sc-tbtn" id="sc-local-fonts" hidden>
+        Show fonts installed on this computer…
+      </button>
     </div>
 
     <!-- ── Status bar ─────────────────────────────────────────────────────── -->

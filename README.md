@@ -104,6 +104,42 @@ stroke="currentColor"` (common in icon sets) is pushed down so it survives.
   (wheel, Ctrl+wheel, pinch, Space-drag); undo / redo; and autosave to
   `localStorage`.
 
+## Type
+
+The Type tool (T) works like Photoshop's:
+
+- **Point and paragraph text.** Click to start point text, which grows as
+  you type. Drag a box to start paragraph text, which wraps inside the box.
+  Enter starts a new line. Ctrl/⌘+Enter, or clicking away, finishes; Esc
+  cancels.
+- **Editing in place.** Click text with the Type tool, or double-click it
+  with Move, to edit it right on the canvas, in its own font, size, colour
+  and rotation.
+- **Fonts.** The font picker (searchable, each name shown in its own face)
+  lists web-safe system fonts and about 25 Google Fonts covering sans,
+  serif, display, script and mono. In Chromium browsers, "Show fonts
+  installed on this computer" adds your own fonts through the browser's
+  Local Font Access permission. The Style menu only offers weights and
+  italics the font really has.
+- **Options bar.** Family, style, size and alignment, plus a button that
+  opens the Character and Paragraph panels.
+- **Character panel.** Size, leading (empty means Auto, 120%), tracking in
+  thousandths of an em as in Photoshop, and baseline shift. Toggles for All
+  Caps, Small Caps, Superscript, Subscript, Underline and Strikethrough.
+  Colour comes from the Fill paint.
+- **Paragraph panel.** Alignment, paragraph box width, and Convert to Point
+  / Paragraph Text.
+- **Fonts go with your file.** An exported SVG links the Google Fonts it
+  uses, so it renders the same in any browser. A PNG export downloads those
+  fonts and embeds them in the image, because an SVG drawn into an image
+  isn't allowed to fetch fonts. Installed (local) fonts only look right on
+  computers that have them.
+- **Plain SVG underneath.** A text layer is ordinary SVG text, one
+  `<tspan>` per line, with the settings in standard attributes. The type
+  details survive export and import, and other editors can read the file.
+- **Limits.** Settings apply to the whole text layer (no per-word styling
+  yet). There's no Warp Text or Convert to Shape (outlines) yet either.
+
 ## Layers
 
 The Layers panel works like Photoshop's:
