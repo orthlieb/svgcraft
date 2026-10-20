@@ -143,7 +143,7 @@ roadmap. **Tier 3** is niche or out of scope for a single-page tool.
 | 27   | Align / distribute                   | ✅ shipped after the first version           |
 | 28   | Gradients (linear / radial)          | ✅ shipped after the first version           |
 | 29   | Eyedropper                           | ✅ shipped after the first version           |
-| 30   | Boolean ops                          | 9/13; needs a path-clipping library          |
+| 30   | Boolean ops                          | ✅ shipped after the first version           |
 | 31   | Pressure-sensitive brush             | 5/13; pencil + stroke width covers most uses |
 | 32   | Effects (blur, drop shadow)          | 9/13                                         |
 

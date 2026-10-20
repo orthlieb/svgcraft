@@ -147,4 +147,13 @@ window.SC_ICONS = {
   // Not Font Awesome (it has no gradient icon): a drawn fade, same box.
   'sc-gradient':
     '<svg viewBox="0 0 512 512" aria-hidden="true"><defs><linearGradient id="sc-gradient-ico" x1="0" x2="1"><stop offset="0" stop-color="currentColor"/><stop offset="1" stop-color="currentColor" stop-opacity="0.08"/></linearGradient></defs><rect x="40" y="96" width="432" height="320" rx="48" fill="url(#sc-gradient-ico)"/><rect x="40" y="96" width="432" height="320" rx="48" fill="none" stroke="currentColor" stroke-width="36"/></svg>',
+  // Not Font Awesome (no pathfinder icons there): two overlapping squares.
+  'sc-unite':
+    '<svg viewBox="0 0 512 512" aria-hidden="true"><path d="M40 40H320V192H472V472H192V320H40Z"/></svg>',
+  'sc-subtract':
+    '<svg viewBox="0 0 512 512" aria-hidden="true"><path d="M40 40H320V192H192V320H40Z"/><rect x="192" y="192" width="280" height="280" fill="none" stroke="currentColor" stroke-width="28" stroke-dasharray="36 28"/></svg>',
+  'sc-intersect':
+    '<svg viewBox="0 0 512 512" aria-hidden="true"><rect x="54" y="54" width="252" height="252" fill="none" stroke="currentColor" stroke-width="28"/><rect x="206" y="206" width="252" height="252" fill="none" stroke="currentColor" stroke-width="28"/><path d="M192 192H320V320H192Z"/></svg>',
+  'sc-exclude':
+    '<svg viewBox="0 0 512 512" aria-hidden="true"><path fill-rule="evenodd" d="M40 40H320V320H40ZM192 192H472V472H192Z"/></svg>',
 };

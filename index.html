@@ -153,6 +153,27 @@
               <i data-icon="angles-down"></i><span>Send to Back</span><kbd>Ctrl+[</kbd>
             </button>
             <hr />
+            <div class="sc-submenu">
+              <button role="menuitem" class="sc-sub-btn" aria-haspopup="menu" aria-expanded="false">
+                <i data-icon="sc-unite"></i><span>Combine Shapes</span
+                ><i data-icon="chevron-right" class="sc-sub-caret"></i>
+              </button>
+              <div class="sc-menu-list sc-sub-list" role="menu" hidden>
+                <button role="menuitem" data-action="combineUnite">
+                  <i data-icon="sc-unite"></i><span>Unite</span>
+                </button>
+                <button role="menuitem" data-action="combineSubtract">
+                  <i data-icon="sc-subtract"></i><span>Subtract Front</span>
+                </button>
+                <button role="menuitem" data-action="combineIntersect">
+                  <i data-icon="sc-intersect"></i><span>Intersect</span>
+                </button>
+                <button role="menuitem" data-action="combineExclude">
+                  <i data-icon="sc-exclude"></i><span>Exclude</span>
+                </button>
+              </div>
+            </div>
+            <hr />
             <span class="sc-menu-label">Align</span>
             <button role="menuitem" data-action="alignLeft">
               <i data-icon="align-left"></i><span>Left Edges</span>
@@ -481,6 +502,39 @@
           data-tip="Distribute vertical spacing (3+ objects)"
         >
           <i data-icon="grip-lines"></i>
+        </button>
+        <span class="sc-vsep"></span>
+        <button
+          class="sc-ibtn"
+          data-action="combineUnite"
+          aria-label="Unite"
+          data-tip="Unite shapes"
+        >
+          <i data-icon="sc-unite"></i>
+        </button>
+        <button
+          class="sc-ibtn"
+          data-action="combineSubtract"
+          aria-label="Subtract Front"
+          data-tip="Subtract front shapes from the back one"
+        >
+          <i data-icon="sc-subtract"></i>
+        </button>
+        <button
+          class="sc-ibtn"
+          data-action="combineIntersect"
+          aria-label="Intersect"
+          data-tip="Keep only where shapes overlap"
+        >
+          <i data-icon="sc-intersect"></i>
+        </button>
+        <button
+          class="sc-ibtn"
+          data-action="combineExclude"
+          aria-label="Exclude"
+          data-tip="Remove where shapes overlap"
+        >
+          <i data-icon="sc-exclude"></i>
         </button>
         <span class="sc-vsep"></span>
         <button

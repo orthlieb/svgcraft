@@ -233,6 +233,26 @@ The Layers panel works like Photoshop's:
   align, distribute, duplicate, copy, colours, the eraser and point editing
   all work on a layer inside a group, so you never have to ungroup first.
 
+## Combine Shapes
+
+Object → Combine Shapes, or the four buttons in the Move tool's options
+bar, merges the selected shapes into one path, as Photoshop and
+Illustrator do:
+
+- **Unite**: the outline of all the shapes together.
+- **Subtract Front**: the backmost shape minus everything in front of it.
+- **Intersect**: only the area where all the shapes overlap.
+- **Exclude**: the areas where an odd number of shapes overlap, so the
+  overlaps become holes.
+
+The result takes the place, name and style of the topmost shape (the
+backmost one for Subtract Front), and keeps its curves, so you can point-edit
+it straight away. A group counts as one shape made of everything in it.
+Rotated, scaled and nested layers combine where they are on screen.
+Text and images are skipped, and you get a message saying so. The geometry
+comes from [paper.js](http://paperjs.org), which loads the first time you
+combine shapes.
+
 ## Shortcuts
 
 | Key                   | Action                                  |
@@ -274,4 +294,8 @@ Icons are from [Font Awesome Free](https://fontawesome.com) 6.7.2 by
 Fonticons, Inc., licensed [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
 `icons.js` holds them as SVG snippets keyed by name, and any element marked
 `data-icon="name"` gets its snippet at startup, so nothing loads from a CDN.
-To add an icon, copy its SVG from fontawesome.com into `icons.js`.
+To add an icon, copy its SVG from fontawesome.com into `icons.js`. The
+Combine Shapes glyphs and the gradient glyph are custom.
+
+Boolean geometry uses [paper.js](http://paperjs.org) 0.12.18 (MIT),
+vendored in `vendor/`. See `vendor/README.md` for its version and checksum.
