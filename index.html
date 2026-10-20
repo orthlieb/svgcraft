@@ -697,6 +697,19 @@
           <i data-icon="paragraph"></i>
         </button>
       </div>
+      <div class="sc-opt" data-for="gradient">
+        <div class="sc-seg" role="radiogroup" aria-label="Gradient type">
+          <button data-gtype="linear" role="radio">
+            <span class="sc-kind-glyph linear"></span> Linear
+          </button>
+          <button data-gtype="radial" role="radio">
+            <span class="sc-kind-glyph radial"></span> Radial
+          </button>
+        </div>
+        <span class="sc-opt-note"
+          >Applies to the active paint (fill or stroke) of the selection</span
+        >
+      </div>
       <div class="sc-opt" data-for="eyedropper">
         <span class="sc-opt-label">Sample:</span>
         <div class="sc-seg" role="radiogroup" aria-label="Eyedropper samples">
@@ -729,6 +742,9 @@
         </button>
         <button data-tool="eraser" aria-label="Eraser" data-tip="Eraser · E">
           <i data-icon="eraser"></i>
+        </button>
+        <button data-tool="gradient" aria-label="Gradient" data-tip="Gradient · G">
+          <i data-icon="sc-gradient"></i>
         </button>
         <button data-tool="eyedropper" aria-label="Eyedropper" data-tip="Eyedropper · I">
           <i data-icon="eye-dropper"></i>
@@ -867,6 +883,40 @@
                   >100%</output
                 ></label
               >
+              <div class="sc-row sc-kind-row">
+                Type
+                <div
+                  class="sc-seg sc-paint-kind"
+                  role="radiogroup"
+                  aria-label="Fill type"
+                  data-kind-for="fill"
+                >
+                  <button
+                    data-kind="solid"
+                    role="radio"
+                    aria-label="Solid colour"
+                    data-tip="Solid colour"
+                  >
+                    <span class="sc-kind-glyph solid"></span>
+                  </button>
+                  <button
+                    data-kind="linear"
+                    role="radio"
+                    aria-label="Linear gradient"
+                    data-tip="Linear gradient"
+                  >
+                    <span class="sc-kind-glyph linear"></span>
+                  </button>
+                  <button
+                    data-kind="radial"
+                    role="radio"
+                    aria-label="Radial gradient"
+                    data-tip="Radial gradient"
+                  >
+                    <span class="sc-kind-glyph radial"></span>
+                  </button>
+                </div>
+              </div>
             </div>
             <div class="sc-paint" data-target="stroke">
               <div class="sc-paint-head">
@@ -899,7 +949,114 @@
                   >100%</output
                 ></label
               >
+              <div class="sc-row sc-kind-row">
+                Type
+                <div
+                  class="sc-seg sc-paint-kind"
+                  role="radiogroup"
+                  aria-label="Stroke type"
+                  data-kind-for="stroke"
+                >
+                  <button
+                    data-kind="solid"
+                    role="radio"
+                    aria-label="Solid colour"
+                    data-tip="Solid colour"
+                  >
+                    <span class="sc-kind-glyph solid"></span>
+                  </button>
+                  <button
+                    data-kind="linear"
+                    role="radio"
+                    aria-label="Linear gradient"
+                    data-tip="Linear gradient"
+                  >
+                    <span class="sc-kind-glyph linear"></span>
+                  </button>
+                  <button
+                    data-kind="radial"
+                    role="radio"
+                    aria-label="Radial gradient"
+                    data-tip="Radial gradient"
+                  >
+                    <span class="sc-kind-glyph radial"></span>
+                  </button>
+                </div>
+              </div>
             </div>
+          </div>
+          <div class="sc-pbody sc-grad" id="sc-grad" hidden>
+            <div class="sc-grad-head">
+              <span class="sc-subhead" id="sc-grad-title">Fill gradient</span>
+              <select id="sc-grad-preset" aria-label="Gradient presets">
+                <option value="">Presets…</option>
+              </select>
+              <button
+                class="sc-ibtn"
+                id="sc-grad-reverse"
+                aria-label="Reverse gradient"
+                data-tip="Reverse"
+              >
+                <i data-icon="right-left"></i>
+              </button>
+            </div>
+            <div class="sc-grad-track" id="sc-grad-track">
+              <div class="sc-grad-bar" id="sc-grad-bar"></div>
+              <div class="sc-grad-stops" id="sc-grad-stops"></div>
+            </div>
+            <div class="sc-gstop-row">
+              <input id="sc-gstop-color" type="color" aria-label="Stop colour" />
+              <input id="sc-gstop-hex" class="sc-hex" aria-label="Stop hex" spellcheck="false" />
+              <button
+                class="sc-ibtn"
+                id="sc-gstop-del"
+                aria-label="Delete stop"
+                data-tip="Delete stop"
+              >
+                <i data-icon="trash-can"></i>
+              </button>
+            </div>
+            <div class="sc-gstop-row">
+              <label class="sc-field" data-tip="Stop opacity"
+                ><span class="sc-scrub">Opacity</span
+                ><input
+                  type="number"
+                  id="sc-gstop-a"
+                  min="0"
+                  max="100"
+                  step="1"
+                  aria-label="Stop opacity"
+                /><span class="sc-unit">%</span></label
+              >
+              <label class="sc-field" data-tip="Stop location"
+                ><span class="sc-scrub">Location</span
+                ><input
+                  type="number"
+                  id="sc-gstop-o"
+                  min="0"
+                  max="100"
+                  step="1"
+                  aria-label="Stop location"
+                /><span class="sc-unit">%</span></label
+              >
+            </div>
+            <div class="sc-gstop-row" id="sc-grad-angle-wrap">
+              <label class="sc-field" data-tip="Angle (90° runs bottom to top)"
+                ><span class="sc-scrub">Angle</span
+                ><input
+                  type="number"
+                  id="sc-grad-angle"
+                  min="-360"
+                  max="360"
+                  step="1"
+                  aria-label="Gradient angle"
+                /><span class="sc-unit">°</span></label
+              >
+            </div>
+            <p class="sc-hint">
+              Click the bar to add a stop. Drag a stop to move it, or down off the bar to remove it.
+              The Gradient tool (G) sets the direction on the canvas.
+            </p>
           </div>
           <div class="sc-pbody" data-pane="swatches" hidden>
             <div class="sc-palette" id="sc-palette" aria-label="Swatches"></div>

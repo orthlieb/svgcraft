@@ -92,6 +92,22 @@ stroke="currentColor"` (common in icon sets) is pushed down so it survives.
   polygons. A basic shape turns into a `<path>` only once you change it.
 - **Eraser**: **Object** mode deletes anything you rub. **Cut** mode splits
   stroked lines and paths where you rub and leaves filled shapes alone.
+- **Gradients**, for fill and stroke:
+  - Set a paint's **Type** to Solid, Linear or Radial in the Color panel.
+  - **Gradient editor**: click the bar to add a stop, drag a stop to move
+    it, or drag it down off the bar to remove it. Each stop has a colour,
+    opacity and location. There's also an angle field, Reverse, and
+    presets (colour → transparent, black ↔ white, sunset, ocean, rainbow,
+    gold, mint). With a gradient active, clicking a swatch recolours the
+    selected stop.
+  - **Gradient tool** (G): drag across the selection to lay the gradient
+    (Shift snaps to 45°). Radial drags from the centre outwards. Drag the
+    end handles on the canvas to adjust it.
+  - Each shape gets its own gradient in its own coordinates, so angles
+    stay true and the gradient moves, rotates and scales with the shape.
+    Duplicates split off their own copy when edited, unused gradients are
+    removed automatically, and gradients in imported files are read,
+    including ones that borrow stops from another gradient.
 - **Stroke options**, in the options bar of the drawing tools and in
   Properties:
   - **Caps**: butt, round or square line ends.

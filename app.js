@@ -99,6 +99,10 @@
     dash: 'solid', // solid | dash | dot | long (sized from the stroke width)
     radius: 0, // corner radius for new rectangles
     radiusLinked: true,
+    fillGrad: null, // { type, stops, angle } when the fill is a gradient
+    strokeGrad: null,
+    gradStop: 0, // selected stop in the gradient editor
+    gradType: 'linear', // type the Gradient tool lays down
     opacity: 1,
   };
 
@@ -433,15 +437,13 @@
         ts.removeAttribute('fill-opacity');
       }
     for (const t of paintTargets(el)) {
-      if (key === 'fill') {
-        t.style?.removeProperty('fill');
-        t.setAttribute('fill', state.fillOn ? state.fill : 'none');
-        setPaintAttr(t, 'fill-opacity', f(state.fillA), 1);
-      } else if (key === 'stroke') {
-        t.style?.removeProperty('stroke');
-        if (state.strokeOn) t.setAttribute('stroke', state.stroke);
-        else t.setAttribute('stroke', 'none');
-        setPaintAttr(t, 'stroke-opacity', f(state.strokeA), 1);
+      if (key === 'fill' || key === 'stroke') {
+        t.style?.removeProperty(key);
+        const grad = state[key + 'On'] && state[key + 'Grad'];
+        if (grad && t.matches(GRAD_SHAPES)) setGradPaint(t, key, grad);
+        else if (!grad || t.localName === 'g')
+          t.setAttribute(key, state[key + 'On'] ? state[key] : 'none');
+        setPaintAttr(t, `${key}-opacity`, f(state[key + 'A']), 1);
       } else if (key === 'width') {
         setPaintAttr(t, 'stroke-width', f(state.strokeWidth));
         refreshDash(t);
@@ -470,13 +472,16 @@
     if (shape) {
       const cs = getComputedStyle(shape);
       const fill = cs.fill;
-      state.fillOn = !!fill && fill !== 'none' && !fill.startsWith('url');
+      state.fillOn = !!fill && fill !== 'none';
       if (state.fillOn) state.fill = hex(fill) || state.fill;
       state.fillA = parseFloat(cs.fillOpacity) * colorAlpha(fill);
+      state.fillGrad = gradFor(shape, 'fill');
       const stroke = cs.stroke;
-      state.strokeOn = !!stroke && stroke !== 'none' && !stroke.startsWith('url');
+      state.strokeOn = !!stroke && stroke !== 'none';
       if (state.strokeOn) state.stroke = hex(stroke) || state.stroke;
       state.strokeA = parseFloat(cs.strokeOpacity) * colorAlpha(stroke);
+      state.strokeGrad = gradFor(shape, 'stroke');
+      state.gradStop = 0;
       state.strokeWidth = parseFloat(cs.strokeWidth) || 0;
       state.cap = cs.strokeLinecap || 'butt';
       state.join = cs.strokeLinejoin || 'miter';
@@ -620,6 +625,431 @@
       if (document.activeElement !== inp) inp.value = f(r[inp.dataset.corner]);
   }
 
+  // ---- gradients --------------------------------------------------------------
+  // A paint gradient is { type: 'linear' | 'radial', stops: [{ o, c, a }],
+  // angle } (angle as in Photoshop: 0° = left → right, 90° = bottom → top).
+  // Each shape gets a gradient of its own, in its own coordinates
+  // (userSpaceOnUse), so angles stay true on wide shapes and the gradient
+  // travels with the shape. Ours carry data-sc-grad; unused ones are pruned.
+  const evenStops = (cs) => cs.map((c, i) => ({ o: i / (cs.length - 1), c, a: 1 }));
+  const GRAD_PRESETS = {
+    fade: [
+      'Colour → Transparent',
+      (c) => [
+        { o: 0, c, a: 1 },
+        { o: 1, c, a: 0 },
+      ],
+    ],
+    bw: ['Black → White', () => evenStops(['#000000', '#ffffff'])],
+    wb: ['White → Black', () => evenStops(['#ffffff', '#000000'])],
+    sunset: ['Sunset', () => evenStops(['#facc15', '#f97316', '#db2777', '#7c3aed'])],
+    ocean: ['Ocean', () => evenStops(['#67e8f9', '#0ea5e9', '#1e3a8a'])],
+    rainbow: [
+      'Rainbow',
+      () => evenStops(['#ef4444', '#f97316', '#facc15', '#22c55e', '#3b82f6', '#8b5cf6']),
+    ],
+    gold: ['Gold', () => evenStops(['#b8892f', '#f5d76e', '#fff2b2', '#c8a24a'])],
+    mint: ['Mint', () => evenStops(['#d1fae5', '#14b8a6'])],
+  };
+  const GRAD_SHAPES = 'path,rect,circle,ellipse,line,polyline,polygon,text,use';
+  let gradReset = false; // next gradient write re-derives geometry (angle / type changed)
+
+  const cloneGrad = (g) => g && { ...g, stops: g.stops.map((s) => ({ ...s })) };
+  const stopList = (g) => g.stops.map((s) => `${cssColor(s.c, s.a)} ${f(s.o * 100)}%`).join(', ');
+  // CSS previews: a left-to-right bar for the editor, the real look for chips
+  // (CSS angles run clockwise from "to top"; Photoshop's anticlockwise from 3 o'clock).
+  const gradCss = (g) => `linear-gradient(90deg, ${stopList(g)})`;
+  const chipCss = (g) =>
+    g.type === 'radial'
+      ? `radial-gradient(circle, ${stopList(g)})`
+      : `linear-gradient(${90 - g.angle}deg, ${stopList(g)})`;
+
+  function newGradId() {
+    let n = 1;
+    while (document.getElementById(`sc-grad-${n}`)) n++;
+    return `sc-grad-${n}`;
+  }
+  const urlId = (v) =>
+    (String(v || '').match(/url\(\s*["']?#([^"')]+)["']?\s*\)/) || [])[1] || null;
+  const paintRef = (el, attr) => urlId(el.getAttribute(attr));
+  const refCount = (id) =>
+    doc.querySelectorAll(`[fill="url(#${id})"], [stroke="url(#${id})"]`).length;
+
+  // Stops of a gradient, following href chains (imported files reuse stops).
+  function stopsOf(g) {
+    for (let n = g, i = 0; n && i < 6; i++) {
+      const st = n.querySelectorAll(':scope > stop');
+      if (st.length)
+        return [...st].map((s) => {
+          const off = s.getAttribute('offset') || '0';
+          const col =
+            s.getAttribute('stop-color') ||
+            s.style.stopColor ||
+            getComputedStyle(s).stopColor ||
+            '#000';
+          const op = parseFloat(s.getAttribute('stop-opacity') ?? (s.style.stopOpacity || 1));
+          return {
+            o: clamp(off.endsWith('%') ? parseFloat(off) / 100 : parseFloat(off) || 0, 0, 1),
+            c: hex(col) || '#000000',
+            a: clamp((isFinite(op) ? op : 1) * colorAlpha(col), 0, 1),
+          };
+        });
+      const h = n.getAttribute('href') || n.getAttributeNS(XLINK, 'href');
+      n = h ? document.getElementById(h.slice(1)) : null;
+    }
+    return [];
+  }
+
+  function readGrad(g) {
+    if (!g || !/^(linear|radial)Gradient$/.test(g.localName)) return null;
+    const type = g.localName === 'radialGradient' ? 'radial' : 'linear';
+    let angle = 0;
+    if (type === 'linear') {
+      const v = (k, d) => parseFloat(g.getAttribute(k) ?? d);
+      angle = Math.round(
+        (Math.atan2(-(v('y2', 0) - v('y1', 0)), v('x2', 1) - v('x1', 0)) * 180) / Math.PI,
+      );
+    }
+    const stops = stopsOf(g).sort((a, b) => a.o - b.o);
+    if (!stops.length) return null;
+    return { type, stops, angle };
+  }
+  // The gradient model behind an element's fill or stroke (computed, so
+  // inherited and CSS paints count too), or null.
+  const gradFor = (el, attr) =>
+    readGrad(document.getElementById(urlId(getComputedStyle(el)[attr])));
+
+  function defaultGeo(el, type, angle) {
+    const b = el.getBBox();
+    const cx = b.x + b.width / 2;
+    const cy = b.y + b.height / 2;
+    if (type === 'radial') return { cx, cy, r: Math.max(b.width, b.height) / 2 || 1 };
+    const t = (angle * Math.PI) / 180;
+    const dx = Math.cos(t);
+    const dy = -Math.sin(t);
+    const half = (Math.abs(b.width * dx) + Math.abs(b.height * dy)) / 2 || 1;
+    return { x1: cx - dx * half, y1: cy - dy * half, x2: cx + dx * half, y2: cy + dy * half };
+  }
+  function geoOf(g) {
+    const v = (k) => parseFloat(g.getAttribute(k)) || 0;
+    return g.localName === 'radialGradient'
+      ? { cx: v('cx'), cy: v('cy'), r: v('r') }
+      : { x1: v('x1'), y1: v('y1'), x2: v('x2'), y2: v('y2') };
+  }
+  function writeGrad(g, model, geo) {
+    g.setAttribute('gradientUnits', 'userSpaceOnUse');
+    g.setAttribute('data-sc-grad', '');
+    for (const [k, v] of Object.entries(geo)) g.setAttribute(k, f(v));
+    g.replaceChildren(
+      ...model.stops.map((s) =>
+        mk('stop', { offset: f(s.o), 'stop-color': s.c, 'stop-opacity': s.a < 1 ? f(s.a) : null }),
+      ),
+    );
+  }
+
+  // Point el's fill / stroke at a gradient of its own. Its geometry is kept
+  // unless gradReset or a geo is passed; a gradient shared with another
+  // element (a duplicate) is split off first.
+  function setGradPaint(el, attr, model, geo = null) {
+    const tag = model.type === 'radial' ? 'radialGradient' : 'linearGradient';
+    const id = paintRef(el, attr);
+    let g = id && document.getElementById(id);
+    const mine = g && g.hasAttribute('data-sc-grad') && g.localName === tag && defs.contains(g);
+    const keep = mine && !gradReset ? geoOf(g) : null;
+    if (!mine || refCount(id) > 1) {
+      g = mk(tag);
+      g.id = newGradId();
+      defs.append(g);
+    }
+    writeGrad(g, model, geo || keep || defaultGeo(el, model.type, model.angle));
+    el.style?.removeProperty(attr);
+    el.setAttribute(attr, `url(#${g.id})`);
+  }
+
+  function pruneGradients() {
+    for (const g of defs.querySelectorAll('[data-sc-grad]'))
+      if (!refCount(g.id) && !doc.querySelector(`[style*="#${g.id}"]`)) g.remove();
+  }
+
+  // Shapes a gradient lands on: the selection, with groups opened up.
+  function gradTargets() {
+    const out = [];
+    for (const el of state.sel) {
+      if (el.matches(GRAD_SHAPES)) out.push(el);
+      else out.push(...el.querySelectorAll(GRAD_SHAPES));
+    }
+    return out;
+  }
+
+  // ---- gradient editor (Color panel) --------------------------------------------
+  const activeGrad = () => (state[state.active + 'On'] ? state[state.active + 'Grad'] : null);
+
+  function renderGradEditor() {
+    const g = activeGrad();
+    const box = $('#sc-grad');
+    box.hidden = !g;
+    if (!g) return;
+    state.gradStop = clamp(state.gradStop || 0, 0, g.stops.length - 1);
+    const s = g.stops[state.gradStop];
+    $('#sc-grad-title').textContent = `${state.active === 'fill' ? 'Fill' : 'Stroke'} gradient`;
+    $('#sc-grad-bar').style.backgroundImage = `${gradCss(g)}, var(--checker)`;
+    const marks = $('#sc-grad-stops');
+    marks.replaceChildren(
+      ...g.stops.map((st, i) => {
+        const b = document.createElement('button');
+        b.className = 'sc-gstop' + (i === state.gradStop ? ' sel' : '');
+        b.style.left = `${st.o * 100}%`;
+        b.style.setProperty('--c', cssColor(st.c, 1));
+        b.setAttribute('aria-label', `Stop ${i + 1} at ${Math.round(st.o * 100)}%`);
+        b.dataset.i = i;
+        return b;
+      }),
+    );
+    const set = (sel, v) => {
+      const el = $(sel);
+      if (document.activeElement !== el) el.value = v;
+    };
+    set('#sc-gstop-color', s.c);
+    set('#sc-gstop-hex', s.c);
+    set('#sc-gstop-a', Math.round(s.a * 100));
+    set('#sc-gstop-o', Math.round(s.o * 100));
+    set('#sc-grad-angle', g.angle);
+    $('#sc-grad-angle-wrap').hidden = g.type === 'radial';
+    $('#sc-gstop-del').disabled = g.stops.length <= 2;
+    for (const b of document.querySelectorAll('[data-gtype]'))
+      b.setAttribute('aria-checked', b.dataset.gtype === g.type);
+  }
+
+  // Colour of the gradient at o (for new stops).
+  function gradAt(g, o) {
+    const st = g.stops;
+    if (o <= st[0].o) return { ...st[0], o };
+    if (o >= st.at(-1).o) return { ...st.at(-1), o };
+    const i = st.findIndex((s) => s.o >= o);
+    const a = st[i - 1];
+    const b = st[i];
+    const t = (o - a.o) / (b.o - a.o || 1);
+    const ca = parseInt(a.c.slice(1), 16);
+    const cb = parseInt(b.c.slice(1), 16);
+    const mix = (sh) => Math.round(((ca >> sh) & 255) * (1 - t) + ((cb >> sh) & 255) * t);
+    return {
+      o,
+      c: '#' + [16, 8, 0].map((sh) => mix(sh).toString(16).padStart(2, '0')).join(''),
+      a: a.a * (1 - t) + b.a * t,
+    };
+  }
+
+  // Edit the active gradient in place, then push it to the selection.
+  function editGrad(fn, final = true) {
+    const g = activeGrad();
+    if (!g) return;
+    fn(g);
+    g.stops.sort((a, b) => a.o - b.o);
+    styleChanged(state.active, final);
+    renderGradEditor();
+  }
+
+  // Switch a paint between solid / linear / radial.
+  function setPaintKind(k, kind) {
+    state.active = k;
+    if (kind === 'solid') state[k + 'Grad'] = null;
+    else {
+      const cur = state[k + 'Grad'];
+      state[k + 'Grad'] = cur
+        ? { ...cloneGrad(cur), type: kind }
+        : { type: kind, stops: GRAD_PRESETS.fade[1](state[k]), angle: 0 };
+      state[k + 'On'] = true;
+      state.gradStop = 0;
+    }
+    gradReset = true;
+    styleChanged(k, true);
+    gradReset = false;
+  }
+
+  function wireGradEditor() {
+    for (const b of document.querySelectorAll('[data-kind]'))
+      b.addEventListener('click', () =>
+        setPaintKind(b.closest('[data-kind-for]').dataset.kindFor, b.dataset.kind),
+      );
+    for (const b of document.querySelectorAll('[data-gtype]'))
+      b.addEventListener('click', () => {
+        state.gradType = b.dataset.gtype;
+        if (activeGrad()) setPaintKind(state.active, b.dataset.gtype);
+        else renderGradEditor();
+        for (const x of document.querySelectorAll('[data-gtype]'))
+          x.setAttribute('aria-checked', x.dataset.gtype === state.gradType);
+      });
+    const presets = $('#sc-grad-preset');
+    presets.append(
+      ...Object.entries(GRAD_PRESETS).map(([k, [label]]) =>
+        Object.assign(document.createElement('option'), { value: k, textContent: label }),
+      ),
+    );
+    presets.addEventListener('change', () => {
+      const p = GRAD_PRESETS[presets.value];
+      if (p)
+        editGrad((g) => {
+          g.stops = p[1](state[state.active]);
+          state.gradStop = 0;
+        });
+      presets.value = '';
+    });
+    $('#sc-grad-reverse').addEventListener('click', () =>
+      editGrad((g) => {
+        g.stops = g.stops.map((s) => ({ ...s, o: 1 - s.o })).reverse();
+        state.gradStop = g.stops.length - 1 - state.gradStop;
+      }),
+    );
+    const angle = $('#sc-grad-angle');
+    const setAngle = (final) => {
+      const v = parseFloat(angle.value);
+      if (!isFinite(v)) return;
+      gradReset = true;
+      editGrad((g) => (g.angle = ((((v + 180) % 360) + 360) % 360) - 180), final);
+      gradReset = false;
+    };
+    angle.addEventListener('input', () => setAngle(false));
+    angle.addEventListener('change', () => setAngle(true));
+    // Stop fields.
+    const color = $('#sc-gstop-color');
+    color.addEventListener('input', () =>
+      editGrad((g) => (g.stops[state.gradStop].c = color.value), false),
+    );
+    color.addEventListener('change', () => editGrad(() => {}, true));
+    const hx = $('#sc-gstop-hex');
+    hx.addEventListener('change', () => {
+      const v = hex(hx.value.trim().startsWith('#') ? hx.value.trim() : '#' + hx.value.trim());
+      if (v && /^#[0-9a-f]{6}$/.test(v)) editGrad((g) => (g.stops[state.gradStop].c = v));
+      else renderGradEditor();
+    });
+    for (const [id, key] of [
+      ['#sc-gstop-a', 'a'],
+      ['#sc-gstop-o', 'o'],
+    ]) {
+      const el = $(id);
+      const apply = (final) => {
+        const v = parseFloat(el.value);
+        if (!isFinite(v)) return;
+        editGrad((g) => {
+          const s = g.stops[state.gradStop];
+          s[key] = clamp(v / 100, 0, 1);
+          if (key === 'o') {
+            g.stops.sort((a, b) => a.o - b.o);
+            state.gradStop = g.stops.indexOf(s);
+          }
+        }, final);
+      };
+      el.addEventListener('input', () => apply(false));
+      el.addEventListener('change', () => apply(true));
+    }
+    for (const el of document.querySelectorAll('#sc-grad input[type="number"]'))
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          el.blur();
+        }
+      });
+    $('#sc-gstop-del').addEventListener('click', () =>
+      editGrad((g) => {
+        if (g.stops.length > 2) g.stops.splice(state.gradStop, 1);
+        state.gradStop = Math.max(0, state.gradStop - 1);
+      }),
+    );
+    // The bar: click to add a stop; drag a stop along it, or off it to remove.
+    const bar = $('#sc-grad-bar');
+    const oAt = (e) => {
+      const r = bar.getBoundingClientRect();
+      return clamp((e.clientX - r.left) / r.width, 0, 1);
+    };
+    $('#sc-grad-track').addEventListener('pointerdown', (e) => {
+      const g = activeGrad();
+      if (!g) return;
+      const mark = e.target.closest('.sc-gstop');
+      if (!mark) {
+        const s = gradAt(g, oAt(e));
+        editGrad((gg) => {
+          gg.stops.push(s);
+          gg.stops.sort((a, b) => a.o - b.o);
+          state.gradStop = gg.stops.indexOf(s);
+        });
+        return;
+      }
+      e.preventDefault();
+      state.gradStop = +mark.dataset.i;
+      const stop = g.stops[state.gradStop];
+      renderGradEditor();
+      const track = e.currentTarget;
+      track.setPointerCapture(e.pointerId);
+      let off = false;
+      const move = (ev) => {
+        const r = bar.getBoundingClientRect();
+        off = g.stops.length > 2 && ev.clientY > r.bottom + 28;
+        editGrad((gg) => {
+          stop.o = oAt(ev);
+          gg.stops.sort((a, b) => a.o - b.o);
+          state.gradStop = gg.stops.indexOf(stop);
+        }, false);
+        track.querySelector('.sc-gstop.sel')?.classList.toggle('removing', off);
+      };
+      const up = () => {
+        track.removeEventListener('pointermove', move);
+        track.removeEventListener('pointerup', up);
+        track.removeEventListener('pointercancel', up);
+        editGrad((gg) => {
+          if (off) {
+            gg.stops.splice(gg.stops.indexOf(stop), 1);
+            state.gradStop = 0;
+          }
+        });
+      };
+      track.addEventListener('pointermove', move);
+      track.addEventListener('pointerup', up);
+      track.addEventListener('pointercancel', up);
+    });
+  }
+
+  // The gradient's line and end handles over the first selected shape.
+  function drawGradAnnotator(z) {
+    const el = gradTargets()[0];
+    if (!el) return;
+    const ge = document.getElementById(paintRef(el, state.active) || '');
+    if (!ge || !ge.hasAttribute('data-sc-grad')) return;
+    const M = fullM(el);
+    const geo = geoOf(ge);
+    const radial = ge.localName === 'radialGradient';
+    const pt = (x, y) => new DOMPoint(x, y).matrixTransform(M);
+    const A = radial ? pt(geo.cx, geo.cy) : pt(geo.x1, geo.y1);
+    const B = radial ? pt(geo.cx + geo.r, geo.cy) : pt(geo.x2, geo.y2);
+    if (radial) {
+      const R = Math.hypot(B.x - A.x, B.y - A.y);
+      mk('circle', { cx: A.x, cy: A.y, r: R, class: 'sc-ov sc-ov-dash' }, selLayer);
+    }
+    mk('line', { x1: A.x, y1: A.y, x2: B.x, y2: B.y, class: 'sc-grad-line-bg' }, selLayer);
+    mk('line', { x1: A.x, y1: A.y, x2: B.x, y2: B.y, class: 'sc-ov' }, selLayer);
+    for (const s of readGrad(ge)?.stops || []) {
+      const x = A.x + (B.x - A.x) * s.o;
+      const y = A.y + (B.y - A.y) * s.o;
+      mk(
+        'rect',
+        {
+          x: x - 3.5 / z,
+          y: y - 3.5 / z,
+          width: 7 / z,
+          height: 7 / z,
+          fill: s.c,
+          class: 'sc-grad-mark',
+        },
+        selLayer,
+      );
+    }
+    mk('circle', { cx: A.x, cy: A.y, r: 6 / z, class: 'sc-grad-h', 'data-grad-h': 'a' }, selLayer);
+    mk(
+      'circle',
+      { cx: B.x, cy: B.y, r: 5 / z, class: 'sc-grad-h end', 'data-grad-h': 'b' },
+      selLayer,
+    );
+  }
+
   // ---------------------------------------------------------------------
   // History + autosave
   // ---------------------------------------------------------------------
@@ -632,6 +1062,7 @@
   }
 
   function commit() {
+    pruneGradients();
     hist.splice(hIdx + 1);
     hist.push(snapshot());
     if (hist.length > 150) hist.shift();
@@ -809,6 +1240,7 @@
     const n = state.sel.length;
     $('#sc-pos').dataset.sel = `${n} selected · ${f(box.w)}×${f(box.h)}`;
     syncTransformFields(box);
+    if (state.tool === 'gradient') drawGradAnnotator(z);
     if (state.tool !== 'select') return;
     const mode = state.tf?.mode;
     const ce = !state.tf && cornerTarget();
@@ -2892,6 +3324,84 @@
     },
   };
 
+  // ---- Gradient tool ----------------------------------------------------------------
+  tools.gradient = {
+    hint: 'Drag across the selection to lay the active paint’s gradient (Shift snaps to 45°; radial drags from the centre out) · Drag the end handles to adjust',
+    cursor: 'crosshair',
+    down(e, p) {
+      const targets = gradTargets();
+      if (!targets.length) return say('Select the shapes to fill first.');
+      const k = state.active;
+      if (!state[k + 'Grad'] || !state[k + 'On']) {
+        state[k + 'Grad'] = {
+          type: state.gradType || 'linear',
+          stops: GRAD_PRESETS.fade[1](state[k]),
+          angle: 0,
+        };
+        state[k + 'On'] = true;
+        state.gradStop = 0;
+        syncStyleUI();
+      }
+      const h = e.target.closest?.('[data-grad-h]');
+      this.g = h
+        ? { mode: 'handle', k: h.dataset.gradH, el: targets[0] }
+        : { mode: 'drag', p0: p, targets };
+    },
+    move(e, p) {
+      const g = this.g;
+      if (!g) return;
+      const k = state.active;
+      const model = state[k + 'Grad'];
+      if (g.mode === 'handle') {
+        const ge = document.getElementById(paintRef(g.el, k));
+        if (!ge) return;
+        const q = fullM(g.el).inverse().transformPoint(new DOMPoint(p.x, p.y));
+        const geo = geoOf(ge);
+        if (ge.localName === 'radialGradient') {
+          if (g.k === 'a') Object.assign(geo, { cx: q.x, cy: q.y });
+          else geo.r = Math.hypot(q.x - geo.cx, q.y - geo.cy);
+        } else if (g.k === 'a') Object.assign(geo, { x1: q.x, y1: q.y });
+        else Object.assign(geo, { x2: q.x, y2: q.y });
+        writeGrad(ge, model, geo);
+        if (ge.localName === 'linearGradient')
+          model.angle = Math.round(
+            (Math.atan2(-(geo.y2 - geo.y1), geo.x2 - geo.x1) * 180) / Math.PI,
+          );
+        g.changed = true;
+        drawSelection();
+        return;
+      }
+      const q = e.shiftKey ? constrain45(g.p0, p) : p;
+      if (dist(g.p0, q) * state.zoom < 3) return;
+      for (const el of g.targets) {
+        const inv = fullM(el).inverse();
+        const a = inv.transformPoint(new DOMPoint(g.p0.x, g.p0.y));
+        const b = inv.transformPoint(new DOMPoint(q.x, q.y));
+        setGradPaint(
+          el,
+          k,
+          model,
+          model.type === 'radial'
+            ? { cx: a.x, cy: a.y, r: Math.hypot(b.x - a.x, b.y - a.y) }
+            : { x1: a.x, y1: a.y, x2: b.x, y2: b.y },
+        );
+        setPaintAttr(el, `${k}-opacity`, f(state[k + 'A']), 1);
+      }
+      if (model.type === 'linear')
+        model.angle = Math.round((Math.atan2(-(q.y - g.p0.y), q.x - g.p0.x) * 180) / Math.PI);
+      g.changed = true;
+      drawSelection();
+    },
+    up() {
+      const g = this.g;
+      this.g = null;
+      if (g?.changed) {
+        commit();
+        syncStyleUI();
+      }
+    },
+  };
+
   tools.hand = {
     hint: 'Drag to pan · Ctrl/⌘ + wheel or pinch to zoom',
     cursor: 'grab',
@@ -4556,6 +5066,7 @@
     line: ['slash', 'Line'],
     text: ['font', 'Type'],
     eyedropper: ['eye-dropper', 'Eyedropper'],
+    gradient: ['sc-gradient', 'Gradient'],
     hand: ['hand', 'Hand'],
   };
 
@@ -4586,7 +5097,7 @@
     const changed = name !== state.tool;
     if (changed) {
       tools[state.tool].leave?.();
-      if (!['select', 'hand', 'eyedropper'].includes(name)) state.sel = [];
+      if (!['select', 'hand', 'eyedropper', 'gradient'].includes(name)) state.sel = [];
     }
     state.tool = name;
     for (const b of document.querySelectorAll('[data-tool]'))
@@ -4610,13 +5121,19 @@
       $(`#sc-${k}-a-out`).textContent = a + '%';
       const chip = $(`#sc-${k}-chip`);
       chip.classList.toggle('none', !state[k + 'On']);
+      const g = state[k + 'On'] && state[k + 'Grad'];
       chip.style.setProperty(
         '--chip',
-        state[k] +
-          Math.round(state[k + 'A'] * 255)
-            .toString(16)
-            .padStart(2, '0'),
+        g
+          ? chipCss(g)
+          : state[k] +
+              Math.round(state[k + 'A'] * 255)
+                .toString(16)
+                .padStart(2, '0'),
       );
+      const kind = g ? g.type : 'solid';
+      for (const b of document.querySelectorAll(`[data-kind-for="${k}"] [data-kind]`))
+        b.setAttribute('aria-checked', b.dataset.kind === kind);
       chip.closest('.sc-paint').classList.toggle('active', state.active === k);
     }
     for (const b of document.querySelectorAll('[data-stroke-cap]'))
@@ -4627,6 +5144,9 @@
       sel.querySelector('[value="custom"]').hidden = state.dash !== 'custom';
       sel.value = state.dash;
     }
+    renderGradEditor();
+    for (const b of document.querySelectorAll('[data-gtype]'))
+      b.setAttribute('aria-checked', b.dataset.gtype === (activeGrad()?.type || state.gradType));
     // Toolbar chips (Photoshop's foreground / background squares).
     for (const k of ['fill', 'stroke']) {
       const chip = $(`#sc-tb-${k}`);
@@ -4664,6 +5184,7 @@
       color.addEventListener('input', () => {
         state[k] = color.value;
         state[k + 'On'] = true;
+        state[k + 'Grad'] = null;
         styleChanged(k, false);
       });
       color.addEventListener('change', () => styleChanged(k, true));
@@ -4673,6 +5194,7 @@
         if (v && /^#[0-9a-f]{6}$/.test(v)) {
           state[k] = v;
           state[k + 'On'] = true;
+          state[k + 'Grad'] = null;
         }
         styleChanged(k, true);
       });
@@ -4728,10 +5250,13 @@
       else b.style.background = c;
       b.addEventListener('click', (e) => {
         const k = e.shiftKey ? (state.active === 'fill' ? 'stroke' : 'fill') : state.active;
+        if (c !== 'none' && k === state.active && activeGrad())
+          return editGrad((g) => (g.stops[state.gradStop].c = c));
         if (c === 'none') state[k + 'On'] = false;
         else {
           state[k] = c;
           state[k + 'On'] = true;
+          state[k + 'Grad'] = null;
         }
         styleChanged(k, true);
       });
@@ -4743,6 +5268,7 @@
     [state.fill, state.stroke] = [state.stroke, state.fill];
     [state.fillOn, state.strokeOn] = [state.strokeOn, state.fillOn];
     [state.fillA, state.strokeA] = [state.strokeA, state.fillA];
+    [state.fillGrad, state.strokeGrad] = [state.strokeGrad, state.fillGrad];
     syncStyleUI();
     if (state.sel.length) {
       for (const el of state.sel) {
@@ -4921,6 +5447,7 @@
     l: 'line',
     t: 'text',
     i: 'eyedropper',
+    g: 'gradient',
     h: 'hand',
   };
 
@@ -5466,6 +5993,7 @@
   hydrateIcons();
   syncTheme();
   wireStyle();
+  wireGradEditor();
   wireScrubbers();
   bindNumber('#sc-smooth', 'smoothing');
   bindNumber('#sc-eraser-size', 'eraserSize');

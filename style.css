@@ -1354,3 +1354,144 @@ select[data-stroke-dash] {
 .sc-prop-rows:first-of-type {
   margin-top: 0;
 }
+
+/* ---- gradients ---------------------------------------------------------- */
+:root {
+  --checker: repeating-conic-gradient(#cccccc 0 25%, #ffffff 0 50%);
+}
+.sc-kind-row .sc-seg button {
+  display: grid;
+  place-items: center;
+  padding: 0 6px;
+  height: 22px;
+}
+.sc-kind-glyph {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--text-dim);
+  border-radius: 2px;
+  vertical-align: -3px;
+}
+.sc-kind-glyph.solid {
+  background: var(--text-dim);
+}
+.sc-kind-glyph.linear {
+  background: linear-gradient(90deg, var(--text), transparent);
+}
+.sc-kind-glyph.radial {
+  background: radial-gradient(circle, var(--text), transparent 75%);
+}
+.sc-grad {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 1px solid var(--line-soft);
+}
+.sc-grad[hidden] {
+  display: none;
+}
+.sc-grad-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.sc-grad-head .sc-subhead {
+  flex: 1;
+  margin: 0;
+}
+#sc-grad-preset {
+  height: 22px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: var(--field);
+}
+.sc-grad-track {
+  position: relative;
+  padding: 0 7px 16px;
+  cursor: copy;
+}
+.sc-grad-bar {
+  height: 22px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background-size:
+    auto,
+    10px 10px;
+}
+.sc-grad-stops {
+  position: absolute;
+  left: 7px;
+  right: 7px;
+  top: 24px;
+  height: 14px;
+}
+.sc-gstop {
+  position: absolute;
+  top: 0;
+  width: 12px;
+  height: 14px;
+  margin-left: -6px;
+  padding: 0;
+  border: 1px solid var(--text-dim);
+  border-radius: 2px 2px 3px 3px;
+  background: var(--c);
+  cursor: ew-resize;
+  clip-path: polygon(50% 0, 100% 30%, 100% 100%, 0 100%, 0 30%);
+}
+.sc-gstop.sel {
+  border-color: var(--accent);
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  clip-path: none;
+}
+.sc-gstop.removing {
+  opacity: 0.3;
+}
+.sc-gstop-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sc-gstop-row input[type='color'] {
+  width: 26px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: none;
+}
+.sc-gstop-row input[type='number'] {
+  width: 52px;
+}
+.sc-grad-line-bg {
+  stroke: #ffffff;
+  stroke-width: 3;
+  vector-effect: non-scaling-stroke;
+}
+.sc-grad-mark {
+  stroke: #ffffff;
+  vector-effect: non-scaling-stroke;
+}
+.sc-grad-h {
+  fill: #ffffff;
+  stroke: var(--sel);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+  cursor: move;
+}
+.sc-grad-h.end {
+  fill: var(--sel);
+}
+#sc-selection [data-grad-h] {
+  pointer-events: all;
+}
+.sc-gstop-row[hidden] {
+  display: none;
+}
+.sc-grad-head .sc-subhead {
+  white-space: nowrap;
+}
+#sc-grad-preset {
+  max-width: 120px;
+}

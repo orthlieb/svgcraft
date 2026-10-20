@@ -139,4 +139,7 @@ window.SC_ICONS = {
     '<svg viewBox="0 0 576 512" aria-hidden="true"><path d="M64 128l0-32 64 0 0 320-32 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l128 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-32 0 0-320 64 0 0 32c0 17.7 14.3 32 32 32s32-14.3 32-32l0-48c0-26.5-21.5-48-48-48L160 32 48 32C21.5 32 0 53.5 0 80l0 48c0 17.7 14.3 32 32 32s32-14.3 32-32zM502.6 41.4c-12.5-12.5-32.8-12.5-45.3 0l-64 64c-9.2 9.2-11.9 22.9-6.9 34.9s16.6 19.8 29.6 19.8l32 0 0 192-32 0c-12.9 0-24.6 7.8-29.6 19.8s-2.2 25.7 6.9 34.9l64 64c12.5 12.5 32.8 12.5 45.3 0l64-64c9.2-9.2 11.9-22.9 6.9-34.9s-16.6-19.8-29.6-19.8l-32 0 0-192 32 0c12.9 0 24.6-7.8 29.6-19.8s2.2-25.7-6.9-34.9l-64-64z"/></svg>',
   paragraph:
     '<svg viewBox="0 0 448 512" aria-hidden="true"><path d="M192 32l64 0 160 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-32 0 0 352c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-352-32 0 0 352c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-96-32 0c-88.4 0-160-71.6-160-160s71.6-160 160-160z"/></svg>',
+  // Not Font Awesome (it has no gradient icon): a drawn fade, same box.
+  'sc-gradient':
+    '<svg viewBox="0 0 512 512" aria-hidden="true"><defs><linearGradient id="sc-gradient-ico" x1="0" x2="1"><stop offset="0" stop-color="currentColor"/><stop offset="1" stop-color="currentColor" stop-opacity="0.08"/></linearGradient></defs><rect x="40" y="96" width="432" height="320" rx="48" fill="url(#sc-gradient-ico)"/><rect x="40" y="96" width="432" height="320" rx="48" fill="none" stroke="currentColor" stroke-width="36"/></svg>',
 };
