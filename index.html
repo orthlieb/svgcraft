@@ -551,6 +551,72 @@
             aria-label="Stroke width"
           /><span class="sc-unit">px</span></label
         >
+        <div class="sc-seg sc-seg-glyph" role="radiogroup" aria-label="Line caps">
+          <button
+            data-stroke-cap="butt"
+            role="radio"
+            aria-label="Butt cap — ends at the point"
+            data-tip="Butt cap — ends at the point"
+          >
+            <svg class="sc-glyph" viewBox="0 0 24 16" aria-hidden="true">
+              <rect x="2" y="5" width="13" height="6" />
+              <path
+                d="M15 1v14"
+                stroke="currentColor"
+                stroke-width="1"
+                stroke-dasharray="2 1.5"
+                opacity=".6"
+              />
+            </svg></button
+          ><button data-stroke-cap="round" role="radio" aria-label="Round cap" data-tip="Round cap">
+            <svg class="sc-glyph" viewBox="0 0 24 16" aria-hidden="true">
+              <path d="M2 5h13a3 3 0 0 1 0 6H2z" />
+              <path
+                d="M15 1v14"
+                stroke="currentColor"
+                stroke-width="1"
+                stroke-dasharray="2 1.5"
+                opacity=".6"
+              />
+            </svg></button
+          ><button
+            data-stroke-cap="square"
+            role="radio"
+            aria-label="Square cap — extends past the point"
+            data-tip="Square cap — extends past the point"
+          >
+            <svg class="sc-glyph" viewBox="0 0 24 16" aria-hidden="true">
+              <rect x="2" y="5" width="16" height="6" />
+              <path
+                d="M15 1v14"
+                stroke="currentColor"
+                stroke-width="1"
+                stroke-dasharray="2 1.5"
+                opacity=".6"
+              />
+            </svg>
+          </button>
+        </div>
+        <select data-stroke-dash aria-label="Dashes">
+          <option value="solid">Solid</option>
+          <option value="dash">Dashed</option>
+          <option value="dot">Dotted</option>
+          <option value="long">Long dash</option>
+          <option value="custom" hidden>Custom</option>
+        </select>
+      </div>
+      <div class="sc-opt" data-for="rect">
+        <label class="sc-field" data-tip="Corner radius for new rectangles (and the selected one)"
+          ><span class="sc-scrub">Radius:</span
+          ><input
+            type="number"
+            data-corner-all
+            min="0"
+            max="10000"
+            step="1"
+            aria-label="Corner radius"
+          /><span class="sc-unit">px</span></label
+        >
       </div>
       <div class="sc-opt" data-for="pencil">
         <label class="sc-field"
@@ -990,9 +1056,10 @@
             </p>
           </div>
           <div class="sc-pbody" data-pane="props">
-            <div class="sc-prop-grid">
-              <label class="sc-field"
-                ><span class="sc-scrub" data-tip="Drag to adjust">Stroke</span
+            <span class="sc-subhead">Stroke</span>
+            <div class="sc-prop-rows">
+              <span class="sc-opt-label">Width</span
+              ><label class="sc-field sc-field-bare"
                 ><input
                   type="number"
                   data-bind="strokeWidth"
@@ -1002,7 +1069,177 @@
                   aria-label="Stroke width"
                 /><span class="sc-unit">px</span></label
               >
-              <span></span>
+              <span class="sc-opt-label">Caps</span>
+              <div class="sc-seg sc-seg-glyph" role="radiogroup" aria-label="Line caps">
+                <button
+                  data-stroke-cap="butt"
+                  role="radio"
+                  aria-label="Butt cap — ends at the point"
+                  data-tip="Butt cap — ends at the point"
+                >
+                  <svg class="sc-glyph" viewBox="0 0 24 16" aria-hidden="true">
+                    <rect x="2" y="5" width="13" height="6" />
+                    <path
+                      d="M15 1v14"
+                      stroke="currentColor"
+                      stroke-width="1"
+                      stroke-dasharray="2 1.5"
+                      opacity=".6"
+                    />
+                  </svg></button
+                ><button
+                  data-stroke-cap="round"
+                  role="radio"
+                  aria-label="Round cap"
+                  data-tip="Round cap"
+                >
+                  <svg class="sc-glyph" viewBox="0 0 24 16" aria-hidden="true">
+                    <path d="M2 5h13a3 3 0 0 1 0 6H2z" />
+                    <path
+                      d="M15 1v14"
+                      stroke="currentColor"
+                      stroke-width="1"
+                      stroke-dasharray="2 1.5"
+                      opacity=".6"
+                    />
+                  </svg></button
+                ><button
+                  data-stroke-cap="square"
+                  role="radio"
+                  aria-label="Square cap — extends past the point"
+                  data-tip="Square cap — extends past the point"
+                >
+                  <svg class="sc-glyph" viewBox="0 0 24 16" aria-hidden="true">
+                    <rect x="2" y="5" width="16" height="6" />
+                    <path
+                      d="M15 1v14"
+                      stroke="currentColor"
+                      stroke-width="1"
+                      stroke-dasharray="2 1.5"
+                      opacity=".6"
+                    />
+                  </svg>
+                </button>
+              </div>
+              <span class="sc-opt-label">Joins</span>
+              <div class="sc-seg sc-seg-glyph" role="radiogroup" aria-label="Corner joins">
+                <button
+                  data-stroke-join="miter"
+                  role="radio"
+                  aria-label="Miter join"
+                  data-tip="Miter join"
+                >
+                  <svg class="sc-glyph" viewBox="0 0 24 16" aria-hidden="true">
+                    <path
+                      d="M3 14 12 4l9 10"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="4.5"
+                      stroke-linejoin="miter"
+                    />
+                  </svg></button
+                ><button
+                  data-stroke-join="round"
+                  role="radio"
+                  aria-label="Round join"
+                  data-tip="Round join"
+                >
+                  <svg class="sc-glyph" viewBox="0 0 24 16" aria-hidden="true">
+                    <path
+                      d="M3 14 12 4l9 10"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="4.5"
+                      stroke-linejoin="round"
+                    />
+                  </svg></button
+                ><button
+                  data-stroke-join="bevel"
+                  role="radio"
+                  aria-label="Bevel join"
+                  data-tip="Bevel join"
+                >
+                  <svg class="sc-glyph" viewBox="0 0 24 16" aria-hidden="true">
+                    <path
+                      d="M3 14 12 4l9 10"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="4.5"
+                      stroke-linejoin="bevel"
+                    />
+                  </svg>
+                </button>
+              </div>
+              <span class="sc-opt-label">Dashes</span
+              ><select data-stroke-dash aria-label="Dashes">
+                <option value="solid">Solid</option>
+                <option value="dash">Dashed</option>
+                <option value="dot">Dotted</option>
+                <option value="long">Long dash</option>
+                <option value="custom" hidden>Custom</option>
+              </select>
+            </div>
+            <div class="sc-corners" id="sc-corner-props" hidden>
+              <div class="sc-corners-head">
+                <span class="sc-opt-label">Corner radius</span>
+                <button
+                  class="sc-ibtn"
+                  id="sc-corner-link"
+                  aria-label="Link corner radii"
+                  aria-pressed="true"
+                  data-tip="Change all corners together"
+                >
+                  <i data-icon="link"></i>
+                </button>
+              </div>
+              <div class="sc-corner-grid">
+                <label class="sc-field" data-tip="Top left"
+                  ><span class="sc-scrub">⌜</span
+                  ><input
+                    type="number"
+                    data-corner="tl"
+                    min="0"
+                    max="10000"
+                    step="1"
+                    aria-label="Top-left radius"
+                /></label>
+                <label class="sc-field" data-tip="Top right"
+                  ><span class="sc-scrub">⌝</span
+                  ><input
+                    type="number"
+                    data-corner="tr"
+                    min="0"
+                    max="10000"
+                    step="1"
+                    aria-label="Top-right radius"
+                /></label>
+                <label class="sc-field" data-tip="Bottom left"
+                  ><span class="sc-scrub">⌞</span
+                  ><input
+                    type="number"
+                    data-corner="bl"
+                    min="0"
+                    max="10000"
+                    step="1"
+                    aria-label="Bottom-left radius"
+                /></label>
+                <label class="sc-field" data-tip="Bottom right"
+                  ><span class="sc-scrub">⌟</span
+                  ><input
+                    type="number"
+                    data-corner="br"
+                    min="0"
+                    max="10000"
+                    step="1"
+                    aria-label="Bottom-right radius"
+                /></label>
+              </div>
+              <p class="sc-hint">
+                Or drag the round handles inside the corners. Alt-drag moves one corner.
+              </p>
+            </div>
+            <span class="sc-subhead">Document</span>
+            <div class="sc-prop-grid">
               <label class="sc-field"
                 ><span class="sc-scrub" data-tip="Drag to adjust">W</span
                 ><input

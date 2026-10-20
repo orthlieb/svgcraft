@@ -94,6 +94,11 @@
     stroke: '#1f2933',
     strokeA: 1,
     strokeWidth: 3,
+    cap: 'round', // stroke-linecap for new strokes: butt | round | square
+    join: 'round', // stroke-linejoin: miter | round | bevel
+    dash: 'solid', // solid | dash | dot | long (sized from the stroke width)
+    radius: 0, // corner radius for new rectangles
+    radiusLinked: true,
     opacity: 1,
   };
 
@@ -395,6 +400,28 @@
     else el.setAttribute(name, value);
   }
 
+  // Dash patterns in multiples of the stroke width, as Photoshop sizes them.
+  // Round and square caps add half a width to each end of a dash, so the
+  // pattern is shortened to keep the look (and turns dots round).
+  function dashArray(dash, w, cap) {
+    w = Math.max(w || 1, 0.25);
+    const capped = cap === 'round' || cap === 'square';
+    const pat = {
+      dash: capped ? [3, 3] : [4, 2],
+      dot: capped ? [0, 2] : [1, 1],
+      long: capped ? [7, 4] : [8, 3],
+    }[dash];
+    return pat ? pat.map((n) => f(n * w)).join(' ') : null;
+  }
+
+  // Re-derive an element's dashes after its width or cap changed.
+  function refreshDash(t) {
+    const d = t.getAttribute('data-dash');
+    if (!d) return;
+    const cs = getComputedStyle(t);
+    t.setAttribute('stroke-dasharray', dashArray(d, parseFloat(cs.strokeWidth), cs.strokeLinecap));
+  }
+
   function applyStyle(el, key) {
     if (key === 'opacity') {
       setPaintAttr(el, 'opacity', f(state.opacity), 1);
@@ -417,6 +444,21 @@
         setPaintAttr(t, 'stroke-opacity', f(state.strokeA), 1);
       } else if (key === 'width') {
         setPaintAttr(t, 'stroke-width', f(state.strokeWidth));
+        refreshDash(t);
+      } else if (key === 'cap') {
+        setPaintAttr(t, 'stroke-linecap', state.cap, 'butt');
+        refreshDash(t);
+      } else if (key === 'join') {
+        setPaintAttr(t, 'stroke-linejoin', state.join, 'miter');
+      } else if (key === 'dash') {
+        t.style?.removeProperty('stroke-dasharray');
+        if (state.dash === 'solid') {
+          t.removeAttribute('data-dash');
+          t.removeAttribute('stroke-dasharray');
+        } else if (state.dash !== 'custom') {
+          t.setAttribute('data-dash', state.dash);
+          refreshDash(t);
+        }
       }
     }
   }
@@ -436,6 +478,11 @@
       if (state.strokeOn) state.stroke = hex(stroke) || state.stroke;
       state.strokeA = parseFloat(cs.strokeOpacity) * colorAlpha(stroke);
       state.strokeWidth = parseFloat(cs.strokeWidth) || 0;
+      state.cap = cs.strokeLinecap || 'butt';
+      state.join = cs.strokeLinejoin || 'miter';
+      state.dash =
+        shape.getAttribute('data-dash') ||
+        (cs.strokeDasharray && cs.strokeDasharray !== 'none' ? 'custom' : 'solid');
     }
     syncStyleUI();
   }
@@ -451,20 +498,126 @@
       a.stroke = state.strokeOn ? state.stroke : state.fill;
       if (alpha < 1) a['stroke-opacity'] = f(alpha);
       a['stroke-width'] = f(state.strokeWidth || 1);
-      a['stroke-linecap'] = 'round';
-      a['stroke-linejoin'] = 'round';
+      if (state.cap !== 'butt') a['stroke-linecap'] = state.cap;
+      if (state.join !== 'miter') a['stroke-linejoin'] = state.join;
     } else {
       a.fill = state.fillOn ? state.fill : 'none';
       if (state.fillA < 1) a['fill-opacity'] = f(state.fillA);
       if (kind !== 'text' && state.strokeOn && state.strokeWidth > 0) {
         a.stroke = state.stroke;
         a['stroke-width'] = f(state.strokeWidth);
-        a['stroke-linejoin'] = 'round';
+        if (state.cap !== 'butt') a['stroke-linecap'] = state.cap;
+        if (state.join !== 'miter') a['stroke-linejoin'] = state.join;
         if (state.strokeA < 1) a['stroke-opacity'] = f(state.strokeA);
       }
     }
+    if (a.stroke && a.stroke !== 'none' && ['dash', 'dot', 'long'].includes(state.dash)) {
+      a['data-dash'] = state.dash;
+      a['stroke-dasharray'] = dashArray(
+        state.dash,
+        parseFloat(a['stroke-width']),
+        a['stroke-linecap'] || 'butt',
+      );
+    }
     if (state.opacity < 1) a.opacity = f(state.opacity);
     return a;
+  }
+
+  // ---- rounded rectangles -------------------------------------------------
+  // Equal radii stay a plain <rect rx>; unequal ones become a <path> that
+  // remembers it's a rectangle (data-rect, data-radii) so the radii stay
+  // editable — until its points are edited, when it becomes a plain path.
+  const CORNERS = ['tl', 'tr', 'br', 'bl'];
+  function rectGeom(el) {
+    if (el.localName === 'rect') {
+      const v = (k) => el[k].baseVal.value;
+      return { x: v('x'), y: v('y'), w: v('width'), h: v('height') };
+    }
+    const [x, y, w, h] = (el.getAttribute('data-rect') || '').split(' ').map(Number);
+    return { x, y, w, h };
+  }
+  const isCornerShape = (el) =>
+    el && (el.localName === 'rect' || (el.localName === 'path' && el.hasAttribute('data-rect')));
+  function getRadii(el) {
+    if (el.localName === 'rect') {
+      const r = el.hasAttribute('rx')
+        ? el.rx.baseVal.value
+        : el.hasAttribute('ry')
+          ? el.ry.baseVal.value
+          : 0;
+      return { tl: r, tr: r, br: r, bl: r };
+    }
+    const [tl, tr, br, bl] = (el.getAttribute('data-radii') || '0 0 0 0').split(' ').map(Number);
+    return { tl, tr, br, bl };
+  }
+  function roundedRectD({ x, y, w, h }, r) {
+    const a = (rr, ex, ey) =>
+      rr ? `A${f(rr)} ${f(rr)} 0 0 1 ${f(ex)} ${f(ey)}` : `L${f(ex)} ${f(ey)}`;
+    return (
+      `M${f(x + r.tl)} ${f(y)}H${f(x + w - r.tr)}` +
+      a(r.tr, x + w, y + r.tr) +
+      `V${f(y + h - r.br)}` +
+      a(r.br, x + w - r.br, y + h) +
+      `H${f(x + r.bl)}` +
+      a(r.bl, x, y + h - r.bl) +
+      `V${f(y + r.tl)}` +
+      a(r.tl, x + r.tl, y) +
+      'Z'
+    );
+  }
+  // Set the radii; returns the element now standing in for el (it may
+  // have switched between <rect> and <path>).
+  function setRadii(el, radii) {
+    const g = rectGeom(el);
+    const max = Math.min(g.w, g.h) / 2;
+    const r = Object.fromEntries(CORNERS.map((k) => [k, clamp(+radii[k] || 0, 0, max)]));
+    const equal = CORNERS.every((k) => r[k] === r.tl);
+    const geomAttrs = ['x', 'y', 'width', 'height', 'rx', 'ry', 'd', 'data-rect', 'data-radii'];
+    const swap = (tag) => {
+      const n = mk(tag);
+      for (const at of el.attributes)
+        if (!geomAttrs.includes(at.name)) n.setAttribute(at.name, at.value);
+      el.replaceWith(n);
+      state.sel = state.sel.map((x) => (x === el ? n : x));
+      return n;
+    };
+    let out = el;
+    if (equal) {
+      if (el.localName !== 'rect') {
+        out = swap('rect');
+        for (const [k, v] of Object.entries({ x: g.x, y: g.y, width: g.w, height: g.h }))
+          out.setAttribute(k, f(v));
+      }
+      if (r.tl) {
+        out.setAttribute('rx', f(r.tl));
+        out.setAttribute('ry', f(r.tl));
+      } else {
+        out.removeAttribute('rx');
+        out.removeAttribute('ry');
+      }
+    } else {
+      if (el.localName !== 'path') out = swap('path');
+      out.setAttribute('data-rect', [g.x, g.y, g.w, g.h].map(f).join(' '));
+      out.setAttribute('data-radii', CORNERS.map((k) => f(r[k])).join(' '));
+      out.setAttribute('d', roundedRectD(g, r));
+    }
+    return out;
+  }
+  const cornerTarget = () =>
+    state.sel.length === 1 && isCornerShape(state.sel[0]) ? state.sel[0] : null;
+
+  function syncCornerUI() {
+    const el = cornerTarget();
+    $('#sc-corner-props').hidden = !el;
+    const link = $('#sc-corner-link');
+    link.setAttribute('aria-pressed', state.radiusLinked);
+    link.firstElementChild.innerHTML = icon(state.radiusLinked ? 'link' : 'link-slash');
+    const all = $('[data-corner-all]');
+    if (document.activeElement !== all) all.value = f(el ? getRadii(el).tl : state.radius);
+    if (!el) return;
+    const r = getRadii(el);
+    for (const inp of document.querySelectorAll('[data-corner]'))
+      if (document.activeElement !== inp) inp.value = f(r[inp.dataset.corner]);
   }
 
   // ---------------------------------------------------------------------
@@ -636,6 +789,7 @@
 
   function drawSelection() {
     selLayer.replaceChildren();
+    syncCornerUI();
     $('#sc-pos').dataset.sel = '';
     if (!state.sel.length || state.tool === 'node') return;
     const z = state.zoom;
@@ -657,6 +811,29 @@
     syncTransformFields(box);
     if (state.tool !== 'select') return;
     const mode = state.tf?.mode;
+    const ce = !state.tf && cornerTarget();
+    if (ce) {
+      // Round handles sitting inside each corner, at least 12px in.
+      const g = rectGeom(ce);
+      const r = getRadii(ce);
+      const M = fullM(ce);
+      const s = Math.sqrt(Math.abs(M.a * M.d - M.b * M.c)) || 1;
+      const inset = (k) => Math.min(Math.max(r[k], 12 / (z * s)), Math.min(g.w, g.h) / 2);
+      const at = {
+        tl: (d) => [g.x + d, g.y + d],
+        tr: (d) => [g.x + g.w - d, g.y + d],
+        br: (d) => [g.x + g.w - d, g.y + g.h - d],
+        bl: (d) => [g.x + d, g.y + g.h - d],
+      };
+      for (const k of CORNERS) {
+        const q = new DOMPoint(...at[k](inset(k))).matrixTransform(M);
+        mk(
+          'circle',
+          { cx: q.x, cy: q.y, r: 4 / z, class: 'sc-corner', 'data-corner-h': k },
+          selLayer,
+        );
+      }
+    }
     const top = { x: box.x + box.w / 2, y: box.y };
     if (mode !== 'scale')
       mk('line', { x1: top.x, y1: top.y, x2: top.x, y2: top.y - 22 / z, class: 'sc-ov' }, selLayer);
@@ -948,6 +1125,19 @@
     hint: 'Click to select · Shift-click adds · Drag to move · Handles scale (Shift keeps ratio, Alt from centre) · Arrows nudge · Double-click a shape to edit its points, or text to edit it',
     cursor: 'default',
     down(e, p) {
+      const ch = e.target.closest?.('[data-corner-h]');
+      if (ch && cornerTarget()) {
+        const el = cornerTarget();
+        this.g = {
+          mode: 'corner',
+          k: ch.dataset.cornerH,
+          el,
+          r0: getRadii(el),
+          M: fullM(el),
+          geo: rectGeom(el),
+        };
+        return;
+      }
       const h = e.target.closest?.('[data-handle]');
       const box = selBox();
       if (h && box) {
@@ -1006,6 +1196,24 @@
           return b && b.x < x + w && b.x + b.w > x && b.y < y + h && b.y + b.h > y;
         });
         state.sel = normalizeSel([...g.base, ...hit]);
+        drawSelection();
+        return;
+      }
+      if (g.mode === 'corner') {
+        // Distance from the corner along its inward diagonal sets the radius.
+        const q = g.M.inverse().transformPoint(new DOMPoint(p.x, p.y));
+        const { x, y, w, h } = g.geo;
+        const d = {
+          tl: (q.x - x + (q.y - y)) / 2,
+          tr: (x + w - q.x + (q.y - y)) / 2,
+          br: (x + w - q.x + (y + h - q.y)) / 2,
+          bl: (q.x - x + (y + h - q.y)) / 2,
+        }[g.k];
+        const rr = Math.round(clamp(d, 0, Math.min(w, h) / 2));
+        const one = e.altKey || !state.radiusLinked;
+        const next = one ? { ...g.r0, [g.k]: rr } : { tl: rr, tr: rr, br: rr, bl: rr };
+        g.el = setRadii(g.el, next);
+        g.changed = true;
         drawSelection();
         return;
       }
@@ -1082,7 +1290,9 @@
       guides.replaceChildren();
       if (!g) return;
       if (g.mode === 'marquee') setSel(state.sel);
-      else if (g.changed) {
+      else if (g.mode === 'corner') {
+        if (g.changed) commit();
+      } else if (g.changed) {
         if (state.tf && g.mode === 'rot') state.tf.angle += g.deg;
         if (state.tf && g.mode === 'skew')
           state.tf[g.k === 'n' || g.k === 's' ? 'skx' : 'sky'] += g.deg;
@@ -1313,6 +1523,11 @@
             ? { x, y, width: W, height: H }
             : { cx: x + W / 2, cy: y + H / 2, rx: W / 2, ry: H / 2 };
         for (const [k, v] of Object.entries(attrs)) this.el.setAttribute(k, f(v));
+        if (kind === 'rect' && state.radius) {
+          const r = Math.min(state.radius, W / 2, H / 2);
+          this.el.setAttribute('rx', f(r));
+          this.el.setAttribute('ry', f(r));
+        }
       },
       up() {
         const el = this.el;
@@ -3278,6 +3493,8 @@
         this.el = toPath(this.el);
         state.sel = [this.el];
       }
+      this.el.removeAttribute('data-rect');
+      this.el.removeAttribute('data-radii');
       this.el.setAttribute('d', nodesD(this.subs));
       this.redraw();
     },
@@ -4402,6 +4619,14 @@
       );
       chip.closest('.sc-paint').classList.toggle('active', state.active === k);
     }
+    for (const b of document.querySelectorAll('[data-stroke-cap]'))
+      b.setAttribute('aria-checked', b.dataset.strokeCap === state.cap);
+    for (const b of document.querySelectorAll('[data-stroke-join]'))
+      b.setAttribute('aria-checked', b.dataset.strokeJoin === state.join);
+    for (const sel of document.querySelectorAll('select[data-stroke-dash]')) {
+      sel.querySelector('[value="custom"]').hidden = state.dash !== 'custom';
+      sel.value = state.dash;
+    }
     // Toolbar chips (Photoshop's foreground / background squares).
     for (const k of ['fill', 'stroke']) {
       const chip = $(`#sc-tb-${k}`);
@@ -5168,6 +5393,58 @@
     b.setAttribute('aria-pressed', on);
     b.firstElementChild.innerHTML = icon(on ? 'link' : 'link-slash');
   });
+  for (const b of document.querySelectorAll('[data-stroke-cap]'))
+    b.addEventListener('click', () => {
+      state.cap = b.dataset.strokeCap;
+      styleChanged('cap', true);
+    });
+  for (const b of document.querySelectorAll('[data-stroke-join]'))
+    b.addEventListener('click', () => {
+      state.join = b.dataset.strokeJoin;
+      styleChanged('join', true);
+    });
+  for (const sel of document.querySelectorAll('select[data-stroke-dash]'))
+    sel.addEventListener('change', () => {
+      state.dash = sel.value;
+      styleChanged('dash', true);
+    });
+
+  // Corner radius: one field for all corners (options bar), four in Properties.
+  function radiiChanged(patch, final) {
+    const el = cornerTarget();
+    if (!el) return;
+    const r = state.radiusLinked
+      ? Object.fromEntries(CORNERS.map((k) => [k, Object.values(patch)[0]]))
+      : { ...getRadii(el), ...patch };
+    setRadii(el, r);
+    if (final) commit();
+    else drawSelection();
+  }
+  const allField = $('[data-corner-all]');
+  allField.addEventListener('input', () => {
+    const v = Math.max(0, parseFloat(allField.value) || 0);
+    state.radius = v;
+    const el = cornerTarget();
+    if (el) {
+      setRadii(el, { tl: v, tr: v, br: v, bl: v });
+      drawSelection();
+    }
+  });
+  allField.addEventListener('change', () => cornerTarget() && commit());
+  for (const inp of document.querySelectorAll('[data-corner]')) {
+    const k = inp.dataset.corner;
+    inp.addEventListener('input', () =>
+      radiiChanged({ [k]: Math.max(0, parseFloat(inp.value) || 0) }, false),
+    );
+    inp.addEventListener('change', () =>
+      radiiChanged({ [k]: Math.max(0, parseFloat(inp.value) || 0) }, true),
+    );
+  }
+  $('#sc-corner-link').addEventListener('click', () => {
+    state.radiusLinked = !state.radiusLinked;
+    syncCornerUI();
+  });
+
   for (const b of document.querySelectorAll('[data-eyedrop]')) {
     b.addEventListener('click', () => {
       state.eyedropMode = b.dataset.eyedrop;

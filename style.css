@@ -631,6 +631,7 @@ kbd {
   pointer-events: none;
 }
 #sc-selection [data-handle],
+#sc-selection [data-corner-h],
 #sc-nodes [data-node],
 #sc-nodes [data-hnd] {
   pointer-events: all;
@@ -1281,4 +1282,75 @@ select[data-type='style'] {
 }
 .sc-type-edit ::selection {
   background: rgba(49, 168, 255, 0.35);
+}
+
+/* ---- stroke options + corners ------------------------------------------ */
+.sc-glyph {
+  width: 22px;
+  height: 14px;
+  fill: currentColor;
+  display: block;
+}
+.sc-seg-glyph button {
+  display: grid;
+  place-items: center;
+  padding: 0 6px;
+}
+select[data-stroke-dash] {
+  height: 24px;
+  padding: 0 6px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: var(--field);
+}
+.sc-prop-rows {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 10px;
+  align-items: center;
+  margin-top: 10px;
+}
+.sc-prop-rows .sc-seg,
+.sc-prop-rows select {
+  justify-self: start;
+}
+.sc-corners {
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line-soft);
+}
+.sc-corners-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.sc-corner-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 10px;
+}
+.sc-corner-grid input[type='number'] {
+  width: 64px;
+}
+.sc-corner {
+  fill: #ffffff;
+  stroke: var(--sel);
+  vector-effect: non-scaling-stroke;
+  cursor: pointer;
+}
+.sc-subhead {
+  display: block;
+  margin: 2px 0 6px;
+  color: var(--text-dim);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.sc-pbody .sc-subhead ~ .sc-subhead {
+  margin-top: 12px;
+}
+.sc-prop-rows:first-of-type {
+  margin-top: 0;
 }

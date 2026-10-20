@@ -92,6 +92,24 @@ stroke="currentColor"` (common in icon sets) is pushed down so it survives.
   polygons. A basic shape turns into a `<path>` only once you change it.
 - **Eraser**: **Object** mode deletes anything you rub. **Cut** mode splits
   stroked lines and paths where you rub and leaves filled shapes alone.
+- **Stroke options**, in the options bar of the drawing tools and in
+  Properties:
+  - **Caps**: butt, round or square line ends.
+  - **Joins**: miter, round or bevel corners.
+  - **Dashes**: solid, dashed, dotted or long dash. Dash lengths are sized
+    in multiples of the stroke width, as in Photoshop, so they keep their
+    proportions when the width changes. They also allow for round and
+    square caps, which extend each dash, so dotted lines come out as round
+    dots.
+- **Rounded rectangles**:
+  - Set a **Radius** on the Rectangle tool's options bar before drawing,
+    or edit a selected rectangle's four corners in Properties. The link
+    toggle changes them all together.
+  - Or drag the round handles inside the corners on the canvas. Alt-drag
+    moves a single corner, as in Photoshop's live corners.
+  - Equal corners stay a plain `<rect rx>`. Unequal corners become a path
+    that remembers it's a rectangle, so its radii stay editable until you
+    edit its points.
 - **Colours**: fill and stroke, each with an on/off switch, a colour
   picker, a hex field and a palette. Press X to swap fill and stroke.
   Shift-click a swatch to apply it to the other target.
