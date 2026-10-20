@@ -598,6 +598,42 @@ kbd {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  grid-template-rows: 18px minmax(0, 1fr);
+}
+.sc-stage-wrap.no-rulers {
+  grid-template-columns: 0 minmax(0, 1fr);
+  grid-template-rows: 0 minmax(0, 1fr);
+}
+.sc-stage-wrap > #sc-stage {
+  grid-area: 2 / 2;
+  min-width: 0;
+  min-height: 0;
+}
+.sc-ruler-corner {
+  grid-area: 1 / 1;
+  background: var(--shell);
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.sc-ruler {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+.sc-ruler-h {
+  grid-area: 1 / 2;
+  cursor: row-resize;
+}
+.sc-ruler-v {
+  grid-area: 2 / 1;
+  cursor: col-resize;
+}
+.no-rulers .sc-ruler,
+.no-rulers .sc-ruler-corner {
+  visibility: hidden;
 }
 #sc-stage {
   display: block;
@@ -1494,4 +1530,84 @@ select[data-stroke-dash] {
 }
 #sc-grad-preset {
   max-width: 120px;
+}
+
+/* ---- guides + smart guides ---------------------------------------------- */
+:root {
+  --guide: #00b8e6;
+  --smart: #ff2bd6;
+}
+.sc-guide {
+  stroke: var(--guide);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+.sc-guide-hit {
+  stroke: transparent;
+  stroke-width: 7;
+  vector-effect: non-scaling-stroke;
+  pointer-events: stroke;
+}
+.sc-guide-hit.x {
+  cursor: col-resize;
+}
+.sc-guide-hit.y {
+  cursor: row-resize;
+}
+#sc-stage:not([data-tool='select']) .sc-guide-hit,
+#sc-guidelines[data-locked] .sc-guide-hit {
+  pointer-events: none;
+}
+#sc-smart {
+  pointer-events: none;
+}
+.sc-smart {
+  stroke: var(--smart);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+.sc-smart.guide {
+  stroke-width: 2;
+}
+.sc-dialog {
+  position: fixed;
+  z-index: 80;
+  top: 96px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 260px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--menu);
+  box-shadow: 0 10px 30px var(--shadow);
+}
+.sc-dialog[hidden] {
+  display: none;
+}
+.sc-dialog-title {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--line);
+  font-weight: 600;
+}
+.sc-dialog-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+}
+.sc-dialog-body input[type='number'] {
+  width: 80px;
+}
+.sc-dialog-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  padding: 8px 12px;
+  border-top: 1px solid var(--line);
+}
+.sc-primary-btn {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-fg);
 }

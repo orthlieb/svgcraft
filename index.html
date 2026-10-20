@@ -212,6 +212,26 @@
               <i data-icon="magnet"></i><span>Snap to Grid</span>
             </button>
             <hr />
+            <button role="menuitemcheckbox" data-action="toggleRulers" aria-checked="true">
+              <i data-icon="ruler"></i><span>Rulers</span>
+            </button>
+            <button role="menuitemcheckbox" data-action="toggleGuides" aria-checked="true">
+              <i></i><span>Show Guides</span>
+            </button>
+            <button role="menuitemcheckbox" data-action="toggleLockGuides" aria-checked="false">
+              <i data-icon="lock"></i><span>Lock Guides</span>
+            </button>
+            <button role="menuitemcheckbox" data-action="toggleSnapGuides" aria-checked="true">
+              <i></i><span>Snap to Guides</span>
+            </button>
+            <button role="menuitemcheckbox" data-action="toggleSmart" aria-checked="true">
+              <i data-icon="wand-magic-sparkles"></i><span>Smart Guides</span>
+            </button>
+            <button role="menuitem" data-action="newGuide"><i></i><span>New Guide…</span></button>
+            <button role="menuitem" data-action="clearGuides">
+              <i></i><span>Clear Guides</span>
+            </button>
+            <hr />
             <span class="sc-menu-label">Theme</span>
             <button role="menuitemradio" data-action="themeSystem" data-theme-opt="system">
               <i data-icon="circle-half-stroke"></i><span>Match System</span>
@@ -807,6 +827,17 @@
           </div>
         </div>
         <div class="sc-stage-wrap" id="sc-stage-wrap">
+          <div class="sc-ruler-corner" aria-hidden="true"></div>
+          <canvas
+            class="sc-ruler sc-ruler-h"
+            id="sc-ruler-h"
+            aria-label="Horizontal ruler — drag down to make a guide"
+          ></canvas>
+          <canvas
+            class="sc-ruler sc-ruler-v"
+            id="sc-ruler-v"
+            aria-label="Vertical ruler — drag right to make a guide"
+          ></canvas>
           <svg id="sc-stage" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <pattern id="sc-checker" patternUnits="userSpaceOnUse" width="16" height="16">
@@ -832,9 +863,11 @@
               <defs id="sc-defs"></defs>
               <g id="sc-doc"></g>
               <rect id="sc-board-frame" x="0" y="0" width="800" height="600" fill="none" />
+              <g id="sc-guidelines"></g>
               <g id="sc-selection"></g>
               <g id="sc-nodes"></g>
               <g id="sc-guides"></g>
+              <g id="sc-smart"></g>
             </g>
           </svg>
           <div class="sc-drop" id="sc-drop">Drop an SVG or image to import</div>
@@ -1496,6 +1529,34 @@
           </div>
         </section>
       </aside>
+    </div>
+
+    <!-- View → New Guide… -->
+    <div
+      class="sc-dialog"
+      id="sc-newguide"
+      role="dialog"
+      aria-modal="false"
+      aria-labelledby="sc-ng-title"
+      hidden
+    >
+      <div class="sc-dialog-title" id="sc-ng-title">New Guide</div>
+      <div class="sc-dialog-body">
+        <label class="sc-check"
+          ><input type="radio" name="sc-ng-axis" value="y" checked /> Horizontal</label
+        >
+        <label class="sc-check"><input type="radio" name="sc-ng-axis" value="x" /> Vertical</label>
+        <label class="sc-field"
+          >Position <input type="number" step="1" aria-label="Guide position" /><span
+            class="sc-unit"
+            >px</span
+          ></label
+        >
+      </div>
+      <div class="sc-dialog-foot">
+        <button class="sc-tbtn" data-ng="cancel">Cancel</button>
+        <button class="sc-tbtn sc-primary-btn" data-ng="ok">OK</button>
+      </div>
     </div>
 
     <!-- Font picker (shared by the options bar and the Character panel). -->

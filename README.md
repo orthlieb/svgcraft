@@ -31,6 +31,22 @@ The layout follows Photoshop:
 - **Auto-Select** on the Move tool's options bar: **Group** makes a canvas
   click pick the whole top-level item. **Layer** picks the exact shape
   under the cursor, even deep inside groups.
+- **Rulers, guides and smart guides**:
+  - **Rulers** run along the top and left, in document pixels. Their ticks
+    re-scale with zoom, and a marker follows the cursor. View → Rulers
+    turns them off.
+  - **Guides:** drag one out of a ruler. Drag it with the Move tool to
+    reposition it (Shift rounds to 10 px), or drag it back onto a ruler
+    to delete it. View → New Guide… places one at an exact position, and
+    the View menu has Show Guides, Lock Guides and Clear Guides. Guides
+    are part of undo and are saved in the file as invisible metadata
+    (`data-sc-guides`).
+  - **Snapping:** moving and drawing snap to guides, and with **Smart
+    Guides** on, to the edges and centres of other objects and of the
+    artboard. A moved selection snaps by its left, centre or right edge
+    (and top, middle or bottom), and magenta lines show what lined up.
+    A guide or smart match within 6 screen pixels takes priority over
+    the grid. Hold Ctrl/⌘ while dragging to skip snapping.
 - **Status bar**: an editable zoom field and the document size.
 - **Theme**: follows your OS by default. The sun / moon button and
   View → Theme switch between Dark and Light, and the choice is remembered.
