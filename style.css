@@ -1104,6 +1104,65 @@ kbd {
   text-underline-offset: 2px;
 }
 
+/* File Info dialog. */
+.sc-dialog.sc-info-dialog {
+  width: min(460px, calc(100vw - 32px));
+  top: 64px;
+  max-height: calc(100dvh - 80px);
+  overflow-y: auto;
+}
+.sc-info-field {
+  display: grid;
+  grid-template-columns: 116px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+.sc-info-field[hidden] {
+  display: none;
+}
+.sc-info-field > span:first-child {
+  color: var(--text-dim);
+}
+.sc-info-field input,
+.sc-info-field select,
+.sc-info-field textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 22px;
+  padding: 0 5px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: var(--field);
+  color: var(--text);
+  font: inherit;
+}
+.sc-info-field textarea {
+  padding: 3px 5px;
+  resize: vertical;
+}
+.sc-info-field:has(textarea) {
+  align-items: start;
+}
+.sc-info-field:has(textarea) > span:first-child {
+  padding-top: 4px;
+}
+.sc-info-field [aria-invalid='true'] {
+  border-color: var(--danger);
+}
+.sc-info-err {
+  margin: 0;
+  color: var(--danger);
+}
+.sc-info-err[hidden] {
+  display: none;
+}
+@media (max-width: 480px) {
+  .sc-info-field {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
+}
+
 /* Layer Style dialog. */
 .sc-dialog.sc-fx-dialog {
   width: min(560px, calc(100vw - 32px));

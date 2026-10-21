@@ -532,6 +532,49 @@ reuses it). Define Pattern on an instance takes the symbol into the tile.
 Symbols in an imported file, including the top-level `<symbol>`s of icon
 sprite sheets, show up in the panel.
 
+## File Info
+
+File → File Info… (Alt+Shift+Ctrl+I, as in Photoshop; Inkscape calls it
+Document Metadata) describes the drawing: **Title**, **Author**,
+**Description**, **Keywords** (comma separated), **Date** (today's date to
+start with, free text), **Copyright Status** (Unknown, Copyrighted, Public
+Domain), **Copyright Notice**, **Licence**, **Source / Info URL** and
+**Language**. The licence is one of CC BY, BY-SA, BY-ND, BY-NC and
+BY-NC-SA 4.0, CC0 1.0, All rights reserved, or a custom URL. The source
+and a custom licence must be `http://` or `https://` addresses; anything
+else is refused with a note under the fields.
+
+- OK is one undo step and puts the \* on the tab; Cancel or Esc throws the
+  edits away. Each tab has its own File Info, and it comes back with the
+  tab after a reload.
+- A titled drawing's tab shows the title in its tooltip.
+- **Saved as standard SVG.** The title and description become the root's
+  first `<title>` and `<desc>` (screen readers read them, and browsers show
+  the title as a tooltip). Everything goes into a `<metadata>` block of
+  RDF/XML in the shape Inkscape writes: a `cc:Work` with Dublin Core
+  `dc:title`, `dc:creator` and `dc:rights` (each a `cc:Agent`), `dc:date`,
+  `dc:description`, `dc:subject` (an `rdf:Bag` of keywords), `dc:source`,
+  `dc:language` and `cc:license`, followed by a `cc:License` block listing
+  what a Creative Commons licence permits, requires and prohibits.
+  Copyright Status uses XMP's `xmpRights:Marked` (`True` copyrighted,
+  `False` public domain, left out when unknown), and All rights reserved is
+  `xmpRights:UsageTerms`, as Adobe's apps do. The values are written with
+  the DOM's XML APIs, so `<`, `&`, quotes and emoji are escaped properly.
+- **Read back from files.** Open reads that RDF, including files from
+  Inkscape (older `http://` Creative Commons URLs are recognised and
+  written back as `https://`), and falls back to a plain `<title>` /
+  `<desc>`. Only text and `http(s)` URLs are taken from it: nothing in a
+  `<metadata>` block ever enters the drawing, and none of it (or Inkscape's
+  `sodipodi:namedview`) shows up as a layer.
+- **Import keeps your File Info.** Importing or pasting an SVG into a
+  drawing leaves the drawing's own File Info alone. Copy and cut of a
+  selection leave the document's File Info out, since it describes the
+  whole drawing. Copy as SVG markup with nothing selected copies the whole
+  file, File Info included.
+- Other RDF fields Inkscape can write (publisher, contributors, identifier,
+  relation, coverage) aren't kept; a field the dialog doesn't show is
+  dropped when the file is saved again.
+
 ## Shortcuts
 
 | Key                   | Action                                    |
@@ -555,6 +598,7 @@ sprite sheets, show up in the panel.
 | + − 0 1               | Zoom in / out · fit · 100%                |
 | Ctrl+S · Ctrl+O       | Save as SVG · open                        |
 | Ctrl+U                | Show / hide the SVG source                |
+| Alt+Shift+Ctrl+I      | File Info                                 |
 
 ## SVG source
 
@@ -597,6 +641,10 @@ same editable drawing:
 - gradients, patterns, styled text runs, text on a path, guides and the
   document size
 - symbols and their instances
+- File Info: title, author, description, keywords, date, copyright and
+  licence, as `<title>`, `<desc>` and RDF `<metadata>`. Open brings it
+  back; Import leaves the receiving drawing's own (see
+  [File Info](#file-info))
 
 Each setting is stored on its element, as a `data-*` attribute
 (`data-sc-fx`, `data-sc-lock`, `data-name`, …) or as CSS, next to real SVG
