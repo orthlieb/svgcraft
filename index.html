@@ -72,6 +72,10 @@
               <i data-icon="trash-can"></i><span>Delete</span><kbd>Del</kbd>
             </button>
             <hr />
+            <button role="menuitem" data-action="definePattern">
+              <i data-icon="table-cells"></i><span>Define Pattern…</span>
+            </button>
+            <hr />
             <button role="menuitem" data-action="freeTransform">
               <i data-icon="vector-square"></i><span>Free Transform</span><kbd>Alt+T</kbd>
             </button>
@@ -1099,6 +1103,8 @@
           <div class="sc-ptabs" role="tablist">
             <button role="tab" aria-selected="true" data-tab="color">Color</button>
             <button role="tab" aria-selected="false" data-tab="swatches">Swatches</button>
+            <button role="tab" aria-selected="false" data-tab="gradients">Gradients</button>
+            <button role="tab" aria-selected="false" data-tab="patterns">Patterns</button>
             <button
               class="sc-ibtn sc-ptab-end"
               id="sc-screen-pick"
@@ -1167,6 +1173,9 @@
                   >
                     <span class="sc-kind-glyph radial"></span>
                   </button>
+                  <button data-kind="pattern" role="radio" aria-label="Pattern" data-tip="Pattern">
+                    <span class="sc-kind-glyph pattern"></span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -1233,6 +1242,9 @@
                   >
                     <span class="sc-kind-glyph radial"></span>
                   </button>
+                  <button data-kind="pattern" role="radio" aria-label="Pattern" data-tip="Pattern">
+                    <span class="sc-kind-glyph pattern"></span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -1243,6 +1255,14 @@
               <select id="sc-grad-preset" aria-label="Gradient presets">
                 <option value="">Presets…</option>
               </select>
+              <button
+                class="sc-ibtn"
+                id="sc-grad-save"
+                aria-label="Save to the Gradients panel"
+                data-tip="Save to the Gradients panel"
+              >
+                <i data-icon="plus"></i>
+              </button>
               <button
                 class="sc-ibtn"
                 id="sc-grad-reverse"
@@ -1310,10 +1330,208 @@
               The Gradient tool (G) sets the direction on the canvas.
             </p>
           </div>
+          <div class="sc-pbody sc-grad" id="sc-pat" hidden>
+            <div class="sc-grad-head">
+              <span class="sc-subhead" id="sc-pat-title">Fill pattern</span>
+              <select id="sc-pat-pick" aria-label="Pattern"></select>
+            </div>
+            <div class="sc-pat-preview" id="sc-pat-preview"></div>
+            <div class="sc-gstop-row">
+              <label class="sc-field" data-tip="Pattern scale"
+                ><span class="sc-scrub">Scale</span
+                ><input
+                  type="number"
+                  id="sc-pat-scale"
+                  min="5"
+                  max="5000"
+                  step="5"
+                  aria-label="Pattern scale"
+                /><span class="sc-unit">%</span></label
+              >
+              <label class="sc-field" data-tip="Pattern angle"
+                ><span class="sc-scrub">Angle</span
+                ><input
+                  type="number"
+                  id="sc-pat-angle"
+                  min="-360"
+                  max="360"
+                  step="1"
+                  aria-label="Pattern angle"
+                /><span class="sc-unit">°</span></label
+              >
+            </div>
+            <p class="sc-hint">
+              The paint's colour inks the built-in patterns. Pick another in the Patterns panel.
+            </p>
+          </div>
           <div class="sc-pbody" data-pane="swatches" hidden>
             <div class="sc-palette" id="sc-palette" aria-label="Swatches"></div>
+            <div class="sc-lib-bar" data-lib="swatches">
+              <button
+                class="sc-ibtn"
+                data-lib-act="add"
+                aria-label="Add the current colour as a swatch"
+                data-tip="Add the current colour as a swatch"
+              >
+                <i data-icon="plus"></i>
+              </button>
+              <button
+                class="sc-ibtn"
+                data-lib-act="rename"
+                aria-label="Rename the selected item"
+                data-tip="Rename the selected item (or double-click it)"
+              >
+                <i data-icon="pen"></i>
+              </button>
+              <button
+                class="sc-ibtn"
+                data-lib-act="delete"
+                aria-label="Delete the selected item"
+                data-tip="Delete the selected item (or Alt-click it)"
+              >
+                <i data-icon="trash-can"></i>
+              </button>
+              <span class="sc-lib-gap"></span>
+              <button
+                class="sc-ibtn"
+                data-lib-act="export"
+                aria-label="Export library"
+                data-tip="Export the whole library (swatches, gradients, patterns) as a file"
+              >
+                <i data-icon="file-export"></i>
+              </button>
+              <button
+                class="sc-ibtn"
+                data-lib-act="import"
+                aria-label="Import library"
+                data-tip="Import a library file and add its contents"
+              >
+                <i data-icon="file-import"></i>
+              </button>
+              <button
+                class="sc-ibtn"
+                data-lib-act="reset"
+                aria-label="Reset to defaults"
+                data-tip="Reset this panel to the built-in set"
+              >
+                <i data-icon="rotate-left"></i>
+              </button>
+            </div>
             <p class="sc-hint">
               A swatch goes to the active paint. Shift-click sends it to the other one.
+            </p>
+          </div>
+          <div class="sc-pbody" data-pane="gradients" hidden>
+            <div class="sc-palette sc-lib-grid" id="sc-gradlib" aria-label="Gradients"></div>
+            <div class="sc-lib-bar" data-lib="gradients">
+              <button
+                class="sc-ibtn"
+                data-lib-act="add"
+                aria-label="Save the active gradient"
+                data-tip="Save the active gradient"
+              >
+                <i data-icon="plus"></i>
+              </button>
+              <button
+                class="sc-ibtn"
+                data-lib-act="rename"
+                aria-label="Rename the selected item"
+                data-tip="Rename the selected item (or double-click it)"
+              >
+                <i data-icon="pen"></i>
+              </button>
+              <button
+                class="sc-ibtn"
+                data-lib-act="delete"
+                aria-label="Delete the selected item"
+                data-tip="Delete the selected item (or Alt-click it)"
+              >
+                <i data-icon="trash-can"></i>
+              </button>
+              <span class="sc-lib-gap"></span>
+              <button
+                class="sc-ibtn"
+                data-lib-act="export"
+                aria-label="Export library"
+                data-tip="Export the whole library (swatches, gradients, patterns) as a file"
+              >
+                <i data-icon="file-export"></i>
+              </button>
+              <button
+                class="sc-ibtn"
+                data-lib-act="import"
+                aria-label="Import library"
+                data-tip="Import a library file and add its contents"
+              >
+                <i data-icon="file-import"></i>
+              </button>
+              <button
+                class="sc-ibtn"
+                data-lib-act="reset"
+                aria-label="Reset to defaults"
+                data-tip="Reset this panel to the built-in set"
+              >
+                <i data-icon="rotate-left"></i>
+              </button>
+            </div>
+            <p class="sc-hint">Click a gradient to apply it to the active paint.</p>
+          </div>
+          <div class="sc-pbody" data-pane="patterns" hidden>
+            <div class="sc-palette sc-lib-grid" id="sc-patlib" aria-label="Patterns"></div>
+            <div class="sc-lib-bar" data-lib="patterns">
+              <button
+                class="sc-ibtn"
+                data-lib-act="add"
+                aria-label="Define a pattern from the selection"
+                data-tip="Define a pattern from the selection"
+              >
+                <i data-icon="plus"></i>
+              </button>
+              <button
+                class="sc-ibtn"
+                data-lib-act="rename"
+                aria-label="Rename the selected item"
+                data-tip="Rename the selected item (or double-click it)"
+              >
+                <i data-icon="pen"></i>
+              </button>
+              <button
+                class="sc-ibtn"
+                data-lib-act="delete"
+                aria-label="Delete the selected item"
+                data-tip="Delete the selected item (or Alt-click it)"
+              >
+                <i data-icon="trash-can"></i>
+              </button>
+              <span class="sc-lib-gap"></span>
+              <button
+                class="sc-ibtn"
+                data-lib-act="export"
+                aria-label="Export library"
+                data-tip="Export the whole library (swatches, gradients, patterns) as a file"
+              >
+                <i data-icon="file-export"></i>
+              </button>
+              <button
+                class="sc-ibtn"
+                data-lib-act="import"
+                aria-label="Import library"
+                data-tip="Import a library file and add its contents"
+              >
+                <i data-icon="file-import"></i>
+              </button>
+              <button
+                class="sc-ibtn"
+                data-lib-act="reset"
+                aria-label="Reset to defaults"
+                data-tip="Reset this panel to the built-in set"
+              >
+                <i data-icon="rotate-left"></i>
+              </button>
+            </div>
+            <p class="sc-hint">
+              Click a pattern to apply it to the active paint. Built-in patterns are drawn in the
+              paint's colour. Edit → Define Pattern turns the selection into a pattern.
             </p>
           </div>
         </section>
@@ -1869,6 +2087,27 @@
         <button class="sc-tbtn sc-primary-btn" data-ng="ok">OK</button>
       </div>
     </div>
+
+    <!-- Name / confirm prompts (library items, Define Pattern, Reset). -->
+    <div
+      class="sc-dialog"
+      id="sc-ask"
+      role="dialog"
+      aria-modal="false"
+      aria-labelledby="sc-ask-title"
+      hidden
+    >
+      <div class="sc-dialog-title" id="sc-ask-title"></div>
+      <div class="sc-dialog-body">
+        <p class="sc-ask-text"></p>
+        <input type="text" class="sc-ask-input" aria-label="Name" spellcheck="false" />
+      </div>
+      <div class="sc-dialog-foot">
+        <button class="sc-tbtn" data-ask="cancel">Cancel</button>
+        <button class="sc-tbtn sc-primary-btn" data-ask="ok">OK</button>
+      </div>
+    </div>
+    <input type="file" id="sc-lib-file" accept=".json,application/json" hidden />
 
     <!-- Font picker (shared by the options bar and the Character panel). -->
     <div class="sc-fontpop" id="sc-fontpop" hidden>

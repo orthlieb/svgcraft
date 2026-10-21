@@ -105,6 +105,8 @@
     radiusLinked: true,
     fillGrad: null, // { type, stops, angle } when the fill is a gradient
     strokeGrad: null,
+    fillPat: null, // { id, name, w, h, svg, scale, angle } when the fill is a pattern
+    strokePat: null,
     gradStop: 0, // selected stop in the gradient editor
     gradType: 'linear', // type the Gradient tool lays down
     guides: [], // { axis: 'x' | 'y', pos }
@@ -976,8 +978,10 @@
       if (key === 'fill' || key === 'stroke') {
         t.style?.removeProperty(key);
         const grad = state[key + 'On'] && state[key + 'Grad'];
-        if (grad && t.matches(GRAD_SHAPES)) setGradPaint(t, key, grad);
-        else if (!grad || t.localName === 'g')
+        const pat = state[key + 'On'] && state[key + 'Pat'];
+        if (pat && t.matches(GRAD_SHAPES)) setPatPaint(t, key, pat, state[key]);
+        else if (grad && t.matches(GRAD_SHAPES)) setGradPaint(t, key, grad);
+        else if ((!grad && !pat) || t.localName === 'g')
           t.setAttribute(key, state[key + 'On'] ? state[key] : 'none');
         setPaintAttr(t, `${key}-opacity`, f(state[key + 'A']), 1);
       } else if (key === 'width') {
@@ -1018,11 +1022,15 @@
       if (state.fillOn) state.fill = hex(fill) || state.fill;
       state.fillA = parseFloat(cs.fillOpacity) * colorAlpha(fill);
       state.fillGrad = gradFor(shape, 'fill');
+      state.fillPat = patFor(shape, 'fill');
+      if (state.fillPat) state.fill = patInk(shape, 'fill') || state.fill;
       const stroke = cs.stroke;
       state.strokeOn = !!stroke && stroke !== 'none';
       if (state.strokeOn) state.stroke = hex(stroke) || state.stroke;
       state.strokeA = parseFloat(cs.strokeOpacity) * colorAlpha(stroke);
       state.strokeGrad = gradFor(shape, 'stroke');
+      state.strokePat = patFor(shape, 'stroke');
+      if (state.strokePat) state.stroke = patInk(shape, 'stroke') || state.stroke;
       state.gradStop = 0;
       state.strokeWidth = strokeW(shape);
       state.strokeAlign = alignOf(shape);
@@ -1324,8 +1332,113 @@
   }
 
   function pruneGradients() {
-    for (const g of defs.querySelectorAll('[data-sc-grad]'))
+    for (const g of defs.querySelectorAll(':scope > [data-sc-grad], :scope > [data-sc-pat]'))
       if (!refCount(g.id) && !doc.querySelector(`[style*="#${g.id}"]`)) g.remove();
+  }
+
+  // ---- patterns -----------------------------------------------------------------
+  // A paint pattern is { id, name, w, h, svg, scale, angle }: svg is the tile's
+  // markup, drawn in 0..w × 0..h. Built-in tiles draw in currentColor, so the
+  // paint's colour is their ink (the <pattern> carries it as `color`). As with
+  // gradients, each shape gets a <pattern> of its own (data-sc-pat), in its own
+  // coordinates and starting at its top-left corner, so it travels with it.
+  const BUILTIN_PATTERNS = [
+    ['Stripes', 8, 8, '<rect width="8" height="3" fill="currentColor"/>'],
+    [
+      'Diagonal',
+      8,
+      8,
+      '<path d="M-2 2l4-4M0 8l8-8M6 10l4-4" stroke="currentColor" stroke-width="2"/>',
+    ],
+    ['Dots', 10, 10, '<circle cx="5" cy="5" r="2.2" fill="currentColor"/>'],
+    ['Grid', 10, 10, '<path d="M0 .5h10M.5 0v10" stroke="currentColor" fill="none"/>'],
+    ['Checks', 16, 16, '<path d="M0 0h8v8H0zM8 8h8v8H8z" fill="currentColor"/>'],
+    [
+      'Crosshatch',
+      8,
+      8,
+      '<path d="M-2 2l4-4M0 8l8-8M6 10l4-4M-2 6l4 4M0 0l8 8M6-2l4 4" stroke="currentColor" fill="none"/>',
+    ],
+    [
+      'Waves',
+      20,
+      10,
+      '<path d="M0 5q5-5 10 0t10 0" stroke="currentColor" stroke-width="1.5" fill="none"/>',
+    ],
+    [
+      'Bricks',
+      20,
+      10,
+      '<path d="M0 .5h20M0 5.5h20M5 .5v5M15 5.5v5" stroke="currentColor" fill="none"/>',
+    ],
+    ['Triangles', 12, 12, '<path d="M6 2l4 8H2z" fill="currentColor"/>'],
+  ];
+
+  function newDefId(prefix) {
+    let n = 1;
+    while (document.getElementById(`${prefix}-${n}`)) n++;
+    return `${prefix}-${n}`;
+  }
+
+  // The pattern model behind an element's fill or stroke, or null. Only
+  // Svgcraft's own patterns read back; imported ones are left as they are.
+  function patFor(el, attr) {
+    const p = document.getElementById(urlId(getComputedStyle(el)[attr]));
+    if (!p || p.localName !== 'pattern' || !p.hasAttribute('data-sc-pat')) return null;
+    const n = (k, d) => parseFloat(p.getAttribute(k)) || d;
+    return {
+      id: p.getAttribute('data-sc-pat'),
+      name: p.getAttribute('data-name') || 'Pattern',
+      w: n('width', 10),
+      h: n('height', 10),
+      svg: p.innerHTML,
+      scale: n('data-scale', 1),
+      angle: parseFloat(p.getAttribute('data-angle')) || 0,
+    };
+  }
+  // The ink a pattern paint was given (its `color`), for the colour fields.
+  const patInk = (el, attr) =>
+    hex(document.getElementById(urlId(getComputedStyle(el)[attr])).getAttribute('color'));
+
+  function setPatPaint(el, attr, model, ink) {
+    const id = paintRef(el, attr);
+    let p = id && document.getElementById(id);
+    const mine = p && p.hasAttribute('data-sc-pat') && defs.contains(p);
+    if (!mine || refCount(id) > 1) {
+      p = mk('pattern', { id: newDefId('sc-pat') });
+      defs.append(p);
+    }
+    let b;
+    try {
+      b = el.getBBox();
+    } catch {
+      b = { x: 0, y: 0 };
+    }
+    const sc = clamp(model.scale || 1, 0.05, 50);
+    for (const [k, v] of Object.entries({
+      patternUnits: 'userSpaceOnUse',
+      width: f(model.w),
+      height: f(model.h),
+      patternTransform: `translate(${f(b.x)} ${f(b.y)}) rotate(${f(model.angle || 0)}) scale(${f(sc)})`,
+      color: ink,
+      'data-sc-pat': model.id || '',
+      'data-name': model.name,
+      'data-scale': f(sc),
+      'data-angle': f(model.angle || 0),
+    }))
+      p.setAttribute(k, v);
+    if (p.innerHTML !== model.svg) p.innerHTML = model.svg;
+    el.style?.removeProperty(attr);
+    el.setAttribute(attr, `url(#${p.id})`);
+  }
+
+  // A CSS background showing the tile, for chips and the Patterns panel.
+  function patCss(p, ink, px = 1) {
+    const s = (p.scale || 1) * px;
+    const svg =
+      `<svg xmlns="${NS}" width="${f(p.w * s)}" height="${f(p.h * s)}" ` +
+      `viewBox="0 0 ${f(p.w)} ${f(p.h)}" color="${ink}">${p.svg}</svg>`;
+    return `url("data:image/svg+xml,${encodeURIComponent(svg)}") 0 0 / ${f(p.w * s)}px ${f(p.h * s)}px repeat`;
   }
 
   // Shapes a gradient lands on: the selection, with groups opened up.
@@ -1409,8 +1522,14 @@
   // Switch a paint between solid / linear / radial.
   function setPaintKind(k, kind) {
     state.active = k;
+    if (kind !== 'pattern') state[k + 'Pat'] = null;
     if (kind === 'solid') state[k + 'Grad'] = null;
-    else {
+    else if (kind === 'pattern') {
+      state[k + 'Grad'] = null;
+      state[k + 'Pat'] ||= { ...lib.patterns[0], scale: 1, angle: 0 };
+      if (!state[k + 'Pat'].svg) state[k + 'Pat'] = null;
+      state[k + 'On'] = true;
+    } else {
       const cur = state[k + 'Grad'];
       state[k + 'Grad'] = cur
         ? { ...cloneGrad(cur), type: kind }
@@ -1436,21 +1555,23 @@
         for (const x of document.querySelectorAll('[data-gtype]'))
           x.setAttribute('aria-checked', x.dataset.gtype === state.gradType);
       });
+    // Presets: Colour → Transparent plus the Gradients library (its options are
+    // filled by renderLibraries). Picking one swaps in its stops.
     const presets = $('#sc-grad-preset');
-    presets.append(
-      ...Object.entries(GRAD_PRESETS).map(([k, [label]]) =>
-        Object.assign(document.createElement('option'), { value: k, textContent: label }),
-      ),
-    );
     presets.addEventListener('change', () => {
-      const p = GRAD_PRESETS[presets.value];
-      if (p)
+      const v = presets.value;
+      const stops =
+        v === 'fade'
+          ? GRAD_PRESETS.fade[1](state[state.active])
+          : libItem('gradients', v)?.stops.map((x) => ({ ...x }));
+      if (stops)
         editGrad((g) => {
-          g.stops = p[1](state[state.active]);
+          g.stops = stops;
           state.gradStop = 0;
         });
       presets.value = '';
     });
+    $('#sc-grad-save').addEventListener('click', () => addLibItem('gradients'));
     $('#sc-grad-reverse').addEventListener('click', () =>
       editGrad((g) => {
         g.stops = g.stops.map((s) => ({ ...s, o: 1 - s.o })).reverse();
@@ -3943,6 +4064,7 @@
       const targets = gradTargets();
       if (!targets.length) return say('Select the shapes to fill first.');
       const k = state.active;
+      state[k + 'Pat'] = null;
       if (!state[k + 'Grad'] || !state[k + 'On']) {
         state[k + 'Grad'] = {
           type: state.gradType || 'linear',
@@ -5985,16 +6107,19 @@
       const chip = $(`#sc-${k}-chip`);
       chip.classList.toggle('none', !state[k + 'On']);
       const g = state[k + 'On'] && state[k + 'Grad'];
+      const pt = state[k + 'On'] && state[k + 'Pat'];
       chip.style.setProperty(
         '--chip',
-        g
-          ? chipCss(g)
-          : state[k] +
+        pt
+          ? patCss({ ...pt, scale: 1 }, state[k], 1.2)
+          : g
+            ? chipCss(g)
+            : state[k] +
               Math.round(state[k + 'A'] * 255)
                 .toString(16)
                 .padStart(2, '0'),
       );
-      const kind = g ? g.type : 'solid';
+      const kind = pt ? 'pattern' : g ? g.type : 'solid';
       for (const b of document.querySelectorAll(`[data-kind-for="${k}"] [data-kind]`))
         b.setAttribute('aria-checked', b.dataset.kind === kind);
       chip.closest('.sc-paint').classList.toggle('active', state.active === k);
@@ -6015,6 +6140,7 @@
         if (document.activeElement !== inp) inp.value = state.dashPat[i] ?? '';
       });
     renderGradEditor();
+    renderPatEditor();
     for (const b of document.querySelectorAll('[data-gtype]'))
       b.setAttribute('aria-checked', b.dataset.gtype === (activeGrad()?.type || state.gradType));
     // Toolbar chips (Photoshop's foreground / background squares).
@@ -6119,27 +6245,506 @@
         syncStyleUI();
       });
     }
+  }
 
-    const pal = $('#sc-palette');
-    for (const c of PALETTE) {
-      const b = document.createElement('button');
-      b.setAttribute('aria-label', c === 'none' ? 'No paint' : c);
-      if (c === 'none') b.className = 'none';
-      else b.style.background = c;
-      b.addEventListener('click', (e) => {
-        const k = e.shiftKey ? (state.active === 'fill' ? 'stroke' : 'fill') : state.active;
-        if (c !== 'none' && k === state.active && activeGrad())
-          return editGrad((g) => (g.stops[state.gradStop].c = c));
-        if (c === 'none') state[k + 'On'] = false;
-        else {
-          state[k] = c;
-          state[k + 'On'] = true;
-          state[k + 'Grad'] = null;
-        }
-        styleChanged(k, true);
-      });
-      pal.append(b);
+  // ---- libraries: swatches, gradients, patterns -----------------------------------
+  // Kept in this browser's localStorage. The built-ins seed it, and like
+  // Photoshop's presets they can be renamed, deleted and restored. Export /
+  // Import Library carries the lot between browsers as a JSON file.
+  const LIB_KEY = 'svgcraft.library.v1';
+  const uid = () => Math.random().toString(36).slice(2, 10);
+  function defaultLibrary(kind) {
+    const all = {
+      swatches: PALETTE.filter((c) => c !== 'none').map((c) => ({ id: uid(), name: c, c, a: 1 })),
+      gradients: Object.entries(GRAD_PRESETS)
+        .filter(([k]) => k !== 'fade')
+        .map(([id, [name, fn]]) => ({ id, name, type: 'linear', angle: 0, stops: fn() })),
+      patterns: BUILTIN_PATTERNS.map(([name, w, h, svg]) => ({
+        id: name.toLowerCase(),
+        name,
+        w,
+        h,
+        svg,
+      })),
+    };
+    return kind ? all[kind] : all;
+  }
+
+  // A pattern tile from outside (a library file) is sanitised like an
+  // imported drawing, and its <style> rules are baked in so they can't
+  // restyle the editor.
+  function cleanTile(markup) {
+    const d = new DOMParser().parseFromString(
+      `<svg xmlns="${NS}" xmlns:xlink="${XLINK}">${markup}</svg>`,
+      'image/svg+xml',
+    );
+    if (d.querySelector('parsererror')) return '';
+    const root = d.documentElement;
+    inlineStyles(root);
+    sanitize(root);
+    for (const st of root.querySelectorAll('style')) st.remove();
+    return [...root.childNodes]
+      .map((n) => new XMLSerializer().serializeToString(n))
+      .join('')
+      .replaceAll(` xmlns="${NS}"`, '');
+  }
+
+  // Keep only well-formed entries. `fresh` gives everything new ids (imports).
+  function cleanLibrary(raw, fresh = false) {
+    const out = { swatches: [], gradients: [], patterns: [] };
+    if (!raw || typeof raw !== 'object') return out;
+    const list = (v) => (Array.isArray(v) ? v.filter((x) => x && typeof x === 'object') : []);
+    const id = (v) => (!fresh && typeof v === 'string' && /^[a-z0-9]{1,16}$/.test(v) ? v : uid());
+    const name = (v, d) => String(v ?? '').slice(0, 80) || d;
+    const color = (v) =>
+      typeof v === 'string' && /^#[0-9a-f]{6}$/i.test(v) ? v.toLowerCase() : null;
+    const num = (v, lo, hi, d) => (v != null && isFinite(+v) ? clamp(+v, lo, hi) : d);
+    for (const x of list(raw.swatches)) {
+      const c = color(x.c);
+      if (c) out.swatches.push({ id: id(x.id), name: name(x.name, c), c, a: num(x.a, 0, 1, 1) });
     }
+    for (const x of list(raw.gradients)) {
+      const stops = list(x.stops)
+        .map((st) => ({ o: num(st.o, 0, 1, 0), c: color(st.c), a: num(st.a, 0, 1, 1) }))
+        .filter((st) => st.c)
+        .sort((a, b) => a.o - b.o);
+      if (stops.length >= 2)
+        out.gradients.push({
+          id: id(x.id),
+          name: name(x.name, 'Gradient'),
+          type: x.type === 'radial' ? 'radial' : 'linear',
+          angle: num(x.angle, -180, 180, 0),
+          stops,
+        });
+    }
+    for (const x of list(raw.patterns)) {
+      const w = num(x.w, 0.5, 4096, 0);
+      const h = num(x.h, 0.5, 4096, 0);
+      const svg = typeof x.svg === 'string' && x.svg.length < 2e6 ? cleanTile(x.svg) : '';
+      if (w && h && svg)
+        out.patterns.push({ id: id(x.id), name: name(x.name, 'Pattern'), w, h, svg });
+    }
+    return out;
+  }
+
+  function loadLibrary() {
+    try {
+      const raw = localStorage.getItem(LIB_KEY);
+      if (raw) return cleanLibrary(JSON.parse(raw));
+    } catch {
+      /* unreadable or blocked: start from the built-ins */
+    }
+    return defaultLibrary();
+  }
+  const lib = loadLibrary();
+  const libSel = { swatches: null, gradients: null, patterns: null };
+
+  function saveLibrary() {
+    try {
+      localStorage.setItem(LIB_KEY, JSON.stringify(lib));
+    } catch {
+      say('Couldn’t save the library: this browser’s storage is full or blocked.');
+    }
+    renderLibraries();
+  }
+
+  // Name / confirm prompt. Resolves to the text (or true without an input),
+  // or null when cancelled.
+  const askDlg = $('#sc-ask');
+  let askDone = null;
+  function ask(title, { value = null, text = '', ok = 'OK' } = {}) {
+    askDone?.(null);
+    $('#sc-ask-title').textContent = title;
+    askDlg.querySelector('.sc-ask-text').textContent = text;
+    askDlg.querySelector('.sc-ask-text').hidden = !text;
+    const inp = askDlg.querySelector('.sc-ask-input');
+    inp.hidden = value == null;
+    inp.value = value ?? '';
+    askDlg.querySelector('[data-ask="ok"]').textContent = ok;
+    askDlg.hidden = false;
+    setTimeout(() => {
+      if (value == null) askDlg.querySelector('[data-ask="ok"]').focus();
+      else {
+        inp.focus();
+        inp.select();
+      }
+    }, 0);
+    return new Promise((resolve) => {
+      askDone = (v) => {
+        askDone = null;
+        askDlg.hidden = true;
+        resolve(v);
+      };
+    });
+  }
+  const askOk = () => {
+    const inp = askDlg.querySelector('.sc-ask-input');
+    askDone?.(inp.hidden ? true : inp.value.trim() || null);
+  };
+  askDlg.addEventListener('keydown', (e) => {
+    e.stopPropagation();
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      askOk();
+    } else if (e.key === 'Escape') askDone?.(null);
+  });
+  askDlg.querySelector('[data-ask="ok"]').addEventListener('click', askOk);
+  askDlg.querySelector('[data-ask="cancel"]').addEventListener('click', () => askDone?.(null));
+
+  const otherPaint = () => (state.active === 'fill' ? 'stroke' : 'fill');
+
+  function applySwatch(c, a, e) {
+    const k = e?.shiftKey ? otherPaint() : state.active;
+    if (c !== 'none' && k === state.active && activeGrad())
+      return editGrad((g) => {
+        g.stops[state.gradStop].c = c;
+        if (a != null) g.stops[state.gradStop].a = a;
+      });
+    if (c === 'none') state[k + 'On'] = false;
+    else {
+      state[k] = c;
+      if (a != null) state[k + 'A'] = a;
+      state[k + 'On'] = true;
+      state[k + 'Grad'] = null;
+    }
+    styleChanged(k, true);
+  }
+  function applyLibGrad(g, e) {
+    const k = e?.shiftKey ? otherPaint() : state.active;
+    state[k + 'Grad'] = { type: g.type, angle: g.angle, stops: g.stops.map((x) => ({ ...x })) };
+    state[k + 'Pat'] = null;
+    state[k + 'On'] = true;
+    state.gradStop = 0;
+    gradReset = true;
+    styleChanged(k, true);
+    gradReset = false;
+  }
+  function applyLibPat(p, e) {
+    const k = e?.shiftKey ? otherPaint() : state.active;
+    const cur = state[k + 'Pat'];
+    state[k + 'Pat'] = { ...p, scale: cur?.scale || 1, angle: cur?.angle || 0 };
+    state[k + 'Grad'] = null;
+    state[k + 'On'] = true;
+    styleChanged(k, true);
+  }
+
+  // Tile backgrounds: colours and gradients over a checkerboard; patterns in
+  // the active paint's colour.
+  const solidCss = (c, a) => `linear-gradient(${cssColor(c, a)}, ${cssColor(c, a)})`;
+  const libGradCss = (g) => (g.type === 'radial' ? chipCss(g) : gradCss(g));
+  let patTileInk = null;
+
+  function libTile(kind, item, bg, apply) {
+    const b = document.createElement('button');
+    b.className = 'sc-tile' + (libSel[kind] === item.id ? ' sel' : '');
+    b.dataset.id = item.id;
+    b.dataset.tip = item.name;
+    b.setAttribute('aria-label', item.name);
+    b.style.setProperty('--tile', bg);
+    b.addEventListener('click', (e) => {
+      // Alt-click deletes, as in Photoshop's Swatches panel.
+      if (e.altKey) return removeLibItem(kind, item.id);
+      libSel[kind] = item.id;
+      for (const x of b.parentNode.children) x.classList.toggle('sel', x === b);
+      if (e.detail < 2) apply(e);
+    });
+    b.addEventListener('dblclick', () => renameLibItem(kind, item.id));
+    return b;
+  }
+
+  function renderLibraries() {
+    const none = document.createElement('button');
+    none.className = 'sc-tile none';
+    none.dataset.tip = 'No paint';
+    none.setAttribute('aria-label', 'No paint');
+    none.addEventListener('click', (e) => applySwatch('none', null, e));
+    $('#sc-palette').replaceChildren(
+      none,
+      ...lib.swatches.map((x) =>
+        libTile('swatches', x, solidCss(x.c, x.a), (e) => applySwatch(x.c, x.a, e)),
+      ),
+    );
+    $('#sc-gradlib').replaceChildren(
+      ...lib.gradients.map((x) =>
+        libTile('gradients', x, libGradCss(x), (e) => applyLibGrad(x, e)),
+      ),
+    );
+    renderPatTiles(true);
+    // The gradient editor's Presets list and the pattern editor's picker follow
+    // the library too.
+    const presets = $('#sc-grad-preset');
+    presets.replaceChildren(
+      Object.assign(document.createElement('option'), { value: '', textContent: 'Presets…' }),
+      Object.assign(document.createElement('option'), {
+        value: 'fade',
+        textContent: GRAD_PRESETS.fade[0],
+      }),
+      ...lib.gradients.map((x) =>
+        Object.assign(document.createElement('option'), { value: x.id, textContent: x.name }),
+      ),
+    );
+    renderPatEditor();
+  }
+  function renderPatTiles(force = false) {
+    const ink = state[state.active];
+    if (!force && ink === patTileInk) return;
+    patTileInk = ink;
+    $('#sc-patlib').replaceChildren(
+      ...lib.patterns.map((x) =>
+        libTile('patterns', x, patCss({ ...x, scale: 1 }, ink, 1.5), (e) => applyLibPat(x, e)),
+      ),
+    );
+  }
+
+  const LIB_NOUN = { swatches: 'swatch', gradients: 'gradient', patterns: 'pattern' };
+  const libItem = (kind, id) => lib[kind].find((x) => x.id === id);
+
+  async function renameLibItem(kind, id = libSel[kind]) {
+    const item = libItem(kind, id);
+    if (!item) return say(`Click a ${LIB_NOUN[kind]} first, then rename it.`);
+    const name = await ask(`Rename ${LIB_NOUN[kind]}`, { value: item.name });
+    if (!name) return;
+    item.name = name.slice(0, 80);
+    saveLibrary();
+  }
+  function removeLibItem(kind, id = libSel[kind]) {
+    const i = lib[kind].findIndex((x) => x.id === id);
+    if (i < 0) return say(`Click a ${LIB_NOUN[kind]} first, then delete it.`);
+    const [gone] = lib[kind].splice(i, 1);
+    if (libSel[kind] === id) libSel[kind] = null;
+    saveLibrary();
+    say(`Deleted “${gone.name}”.`);
+  }
+  async function addLibItem(kind) {
+    if (kind === 'patterns') return definePattern();
+    const k = state.active;
+    let item;
+    if (kind === 'swatches') {
+      const g = activeGrad();
+      const st = g?.stops[state.gradStop];
+      const c = st ? st.c : state[k];
+      const a = st ? st.a : state[k + 'A'];
+      item = { c, a, name: a < 1 ? `${c} ${Math.round(a * 100)}%` : c };
+    } else {
+      const g = activeGrad();
+      if (!g) return say('Set the fill or stroke to a gradient first, then save it.');
+      item = { type: g.type, angle: g.angle, stops: g.stops.map((x) => ({ ...x })) };
+      item.name = `Gradient ${lib.gradients.length + 1}`;
+    }
+    const name = await ask(`New ${LIB_NOUN[kind]}`, { value: item.name, ok: 'Add' });
+    if (!name) return;
+    item = { id: uid(), ...item, name: name.slice(0, 80) };
+    lib[kind].push(item);
+    libSel[kind] = item.id;
+    saveLibrary();
+  }
+  async function resetLib(kind) {
+    const ok = await ask(`Reset ${kind}`, {
+      text: `Replace your ${kind} with the built-in set? Export the library first to keep a copy.`,
+      ok: 'Reset',
+    });
+    if (!ok) return;
+    lib[kind] = defaultLibrary(kind);
+    libSel[kind] = null;
+    saveLibrary();
+  }
+  function exportLibrary() {
+    const strip = (xs) =>
+      xs.map((x) => Object.fromEntries(Object.entries(x).filter(([k]) => k !== 'id')));
+    const data = {
+      app: 'svgcraft',
+      kind: 'library',
+      version: 1,
+      swatches: strip(lib.swatches),
+      gradients: strip(lib.gradients),
+      patterns: strip(lib.patterns),
+    };
+    download(
+      new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }),
+      'svgcraft-library.json',
+    );
+  }
+  async function importLibrary(file) {
+    let raw;
+    try {
+      raw = JSON.parse(await file.text());
+    } catch {
+      return say('That file isn’t a library: it isn’t valid JSON.');
+    }
+    const add = cleanLibrary(raw, true);
+    // Skip what's already there (same colour, same stops, same tile).
+    const key = {
+      swatches: (x) => `${x.c}/${f(x.a)}`,
+      gradients: (x) => JSON.stringify([x.type, x.angle, x.stops]),
+      patterns: (x) => `${f(x.w)}x${f(x.h)}:${x.svg}`,
+    };
+    const counts = [];
+    for (const kind of ['swatches', 'gradients', 'patterns']) {
+      const have = new Set(lib[kind].map(key[kind]));
+      const fresh = add[kind].filter((x) => !have.has(key[kind](x)));
+      lib[kind].push(...fresh);
+      if (fresh.length)
+        counts.push(`${fresh.length} ${fresh.length === 1 ? LIB_NOUN[kind] : kind}`);
+    }
+    saveLibrary();
+    say(counts.length ? `Imported ${counts.join(', ')}.` : 'Nothing new in that library.');
+  }
+
+  function wireLibraries() {
+    for (const bar of document.querySelectorAll('[data-lib]'))
+      for (const b of bar.querySelectorAll('[data-lib-act]'))
+        b.addEventListener('click', () => {
+          const kind = bar.dataset.lib;
+          ({
+            add: () => addLibItem(kind),
+            rename: () => renameLibItem(kind),
+            delete: () => removeLibItem(kind),
+            export: exportLibrary,
+            import: () => $('#sc-lib-file').click(),
+            reset: () => resetLib(kind),
+          })[b.dataset.libAct]();
+        });
+    $('#sc-lib-file').addEventListener('change', (e) => {
+      if (e.target.files[0]) importLibrary(e.target.files[0]);
+      e.target.value = '';
+    });
+    renderLibraries();
+  }
+
+  // ---- pattern editor (Color panel) -----------------------------------------------
+  const activePat = () => (state[state.active + 'On'] ? state[state.active + 'Pat'] : null);
+  function renderPatEditor() {
+    renderPatTiles();
+    const p = activePat();
+    const box = $('#sc-pat');
+    box.hidden = !p;
+    if (!p) return;
+    $('#sc-pat-title').textContent = `${state.active === 'fill' ? 'Fill' : 'Stroke'} pattern`;
+    $('#sc-pat-preview').style.setProperty('--tile', patCss(p, state[state.active], 1));
+    const pick = $('#sc-pat-pick');
+    const inLib = lib.patterns.some((x) => x.id === p.id);
+    pick.replaceChildren(
+      ...(inLib
+        ? []
+        : [Object.assign(document.createElement('option'), { value: '', textContent: p.name })]),
+      ...lib.patterns.map((x) =>
+        Object.assign(document.createElement('option'), { value: x.id, textContent: x.name }),
+      ),
+    );
+    pick.value = inLib ? p.id : '';
+    const set = (sel, v) => {
+      const el = $(sel);
+      if (document.activeElement !== el) el.value = v;
+    };
+    set('#sc-pat-scale', Math.round((p.scale || 1) * 100));
+    set('#sc-pat-angle', Math.round(p.angle || 0));
+  }
+  function editPat(fn, final = true) {
+    const p = activePat();
+    if (!p) return;
+    fn(p);
+    styleChanged(state.active, final);
+  }
+  function wirePatEditor() {
+    $('#sc-pat-pick').addEventListener('change', (e) => {
+      const x = libItem('patterns', e.target.value);
+      if (x) applyLibPat(x);
+    });
+    for (const [sel, set] of [
+      ['#sc-pat-scale', (p, v) => (p.scale = clamp(v, 5, 5000) / 100)],
+      ['#sc-pat-angle', (p, v) => (p.angle = ((((v + 180) % 360) + 360) % 360) - 180)],
+    ]) {
+      const inp = $(sel);
+      const go = (final) => {
+        const v = parseFloat(inp.value);
+        if (isFinite(v)) editPat((p) => set(p, v), final);
+      };
+      inp.addEventListener('input', () => go(false));
+      inp.addEventListener('change', () => go(true));
+    }
+  }
+
+  // Edit → Define Pattern…: the selection (as it looks, transforms and all)
+  // becomes a tile the size of its painted box. Gradients, patterns and clips
+  // it uses travel inside the tile under ids of their own.
+  async function definePattern() {
+    const els = normalizeSel(state.sel).filter(isShown);
+    if (!els.length) return say('Select the artwork to turn into a pattern.');
+    const box = paintBox(els);
+    if (!box || box.w < 0.5 || box.h < 0.5)
+      return say('There’s nothing visible to make a pattern from.');
+    const x = Math.floor(box.x);
+    const y = Math.floor(box.y);
+    const w = Math.ceil(box.x + box.w) - x;
+    const h = Math.ceil(box.y + box.h) - y;
+    if (w > 4096 || h > 4096) return say('That’s too big for a pattern tile (4096 px at most).');
+    const T = new DOMMatrix().translate(-x, -y);
+    const parts = els.map((el) => {
+      const c = el.cloneNode(true);
+      setM(c, T.multiply(fullM(el)));
+      bakeInherited(el, c);
+      return c;
+    });
+    const tileDefs = carryDefs(parts, `p${uid()}-`);
+    const name = await ask('Define Pattern', {
+      value: `Pattern ${lib.patterns.length + 1}`,
+      text: `${w} × ${h} px tile from the selection.`,
+    });
+    if (!name) return;
+    const ser = (n) => new XMLSerializer().serializeToString(n).replaceAll(` xmlns="${NS}"`, '');
+    const svg = (tileDefs.childNodes.length ? ser(tileDefs) : '') + parts.map(ser).join('');
+    const item = { id: uid(), name: name.slice(0, 80), w, h, svg };
+    lib.patterns.push(item);
+    libSel.patterns = item.id;
+    saveLibrary();
+    $('[data-tab="patterns"]').click();
+    say(`Defined “${item.name}”. Click it in the Patterns panel to fill with it.`);
+  }
+
+  // Copy every defs entry the nodes point at (url(#…) or href="#…"), and what
+  // those point at in turn, under prefixed ids; then repoint the references.
+  function carryDefs(nodes, prefix) {
+    const out = mk('defs');
+    const map = new Map();
+    const refsIn = (el) => {
+      const ids = [];
+      for (const a of el.attributes) {
+        for (const m of a.value.matchAll(/url\(\s*["']?#([^"')]+)["']?\s*\)/g)) ids.push(m[1]);
+        if (a.localName === 'href' && a.value.startsWith('#')) ids.push(a.value.slice(1));
+      }
+      return ids;
+    };
+    const queue = [...nodes];
+    while (queue.length) {
+      const n = queue.shift();
+      for (const el of [n, ...n.querySelectorAll('*')])
+        for (const id of refsIn(el)) {
+          if (map.has(id)) continue;
+          const src = document.getElementById(id);
+          if (!src || !defs.contains(src)) continue;
+          map.set(id, prefix + id);
+          const c = src.cloneNode(true);
+          c.id = prefix + id;
+          out.append(c);
+          queue.push(c);
+        }
+    }
+    for (const n of [...nodes, out])
+      for (const el of [n, ...n.querySelectorAll('*')]) {
+        // Copies aren't Svgcraft's per-shape paints any more: keep them out of
+        // the pruning and syncing that would otherwise remove them.
+        for (const k of ['data-sc-grad', 'data-sc-pat', 'data-sc-sa']) el.removeAttribute(k);
+        for (const a of [...el.attributes]) {
+          let v = a.value;
+          for (const [from, to] of map) {
+            const esc = from.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            v = v.replace(new RegExp(`url\\(\\s*["']?#${esc}["']?\\s*\\)`, 'g'), `url(#${to})`);
+            if (a.localName === 'href' && v === `#${from}`) v = `#${to}`;
+          }
+          if (v !== a.value) el.setAttributeNS(a.namespaceURI, a.name, v);
+        }
+      }
+    return out;
   }
 
   function swapPaint() {
@@ -6147,6 +6752,7 @@
     [state.fillOn, state.strokeOn] = [state.strokeOn, state.fillOn];
     [state.fillA, state.strokeA] = [state.strokeA, state.fillA];
     [state.fillGrad, state.strokeGrad] = [state.strokeGrad, state.fillGrad];
+    [state.fillPat, state.strokePat] = [state.strokePat, state.fillPat];
     syncStyleUI();
     if (state.sel.length) {
       for (const el of state.sel) {
@@ -6552,6 +7158,7 @@
   // Actions: every menu item and button with data-action="name" -------------
   const actions = {
     ...cmds,
+    definePattern,
     new: newDoc,
     open: () => openPicker('open'),
     place: () => openPicker('place'),
@@ -7095,6 +7702,8 @@
   syncTheme();
   wireStyle();
   wireGradEditor();
+  wirePatEditor();
+  wireLibraries();
   wireScrubbers();
   bindNumber('#sc-smooth', 'smoothing');
   bindNumber('#sc-eraser-size', 'eraserSize');

@@ -26,8 +26,8 @@ The layout follows Photoshop:
   Click a chip to make it the active paint, and click it again to pick a
   colour. Below the chips are swap (X) and "none".
 - **Document tab** above the canvas, showing the file name and zoom.
-- **Docked panels**: Color / Swatches, Properties (stroke width, document
-  size, grid and snap) and Layers (see below).
+- **Docked panels**: Color / Swatches / Gradients / Patterns, Properties
+  (stroke width, document size, grid and snap) and Layers (see below).
 - **Auto-Select** on the Move tool's options bar: **Group** makes a canvas
   click pick the whole top-level item. **Layer** picks the exact shape
   under the cursor, even deep inside groups.
@@ -129,10 +129,10 @@ stroke="currentColor"` (common in icon sets) is pushed down so it survives.
   - Set a paint's **Type** to Solid, Linear or Radial in the Color panel.
   - **Gradient editor**: click the bar to add a stop, drag a stop to move
     it, or drag it down off the bar to remove it. Each stop has a colour,
-    opacity and location. There's also an angle field, Reverse, and
-    presets (colour → transparent, black ↔ white, sunset, ocean, rainbow,
-    gold, mint). With a gradient active, clicking a swatch recolours the
-    selected stop.
+    opacity and location. There's also an angle field, Reverse, a Presets
+    list (Colour → Transparent plus everything in the Gradients panel) and
+    a + button that saves the gradient to the Gradients panel. With a
+    gradient active, clicking a swatch recolours the selected stop.
   - **Gradient tool** (G): drag across the selection to lay the gradient
     (Shift snaps to 45°). Radial drags from the centre outwards. Drag the
     end handles on the canvas to adjust it.
@@ -170,8 +170,36 @@ stroke="currentColor"` (common in icon sets) is pushed down so it survives.
   - Equal corners stay a plain `<rect rx>`. Unequal corners become a path
     that remembers it's a rectangle, so its radii stay editable until you
     edit its points.
+- **Patterns**, for fill and stroke:
+  - Set a paint's **Type** to Pattern, or click a tile in the **Patterns**
+    panel. The built-ins (stripes, diagonal, dots, grid, checks,
+    crosshatch, waves, bricks, triangles) are drawn in the paint's colour,
+    so changing the colour re-inks them.
+  - The pattern editor in the Color panel sets **Scale** and **Angle** and
+    picks another pattern. The tiles start at the shape's top-left corner.
+  - **Edit → Define Pattern…** turns the selection into a pattern tile the
+    size of its visible box, as in Photoshop. It looks the same as it does
+    on the canvas, including transforms, gradients and clip paths.
+  - As with gradients, each shape gets its own `<pattern>` in its own
+    coordinates, so the pattern moves and rotates with the shape. Patterns
+    export as plain SVG.
+- **Libraries**: the **Swatches**, **Gradients** and **Patterns** panels
+  are saved in this browser (localStorage), like Photoshop's presets.
+  - **+** adds the current colour (with its alpha), saves the active
+    gradient, or defines a pattern from the selection. Each asks for a
+    name.
+  - Click a tile to apply it to the active paint, or Shift-click to apply
+    it to the other one. Double-click renames it, Alt-click deletes it,
+    and the bar's buttons do the same for the selected tile. **Reset**
+    brings back the built-in set for that panel.
+  - **Export** saves all three libraries to `svgcraft-library.json`, and
+    **Import** adds a library file's contents, skipping anything you
+    already have. Browser storage belongs to one browser on one machine
+    and is lost if you clear the site's data, so export to keep a copy.
+    Pattern tiles from a library file are sanitised like imported
+    drawings.
 - **Colours**: fill and stroke, each with an on/off switch, a colour
-  picker, a hex field and a palette. Press X to swap fill and stroke.
+  picker, a hex field and the Swatches panel. Press X to swap fill and stroke.
   Shift-click a swatch to apply it to the other target.
 - **Transparency**: fill alpha, stroke alpha and object opacity are
   separate sliders, and a checkerboard artboard shows the result.

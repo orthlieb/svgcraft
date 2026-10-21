@@ -772,7 +772,13 @@ kbd {
 }
 .sc-ptabs [role='tab'],
 .sc-ptitle {
-  padding: 0 12px;
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0 6px;
+  font-size: 11.5px;
   border: 0;
   border-right: 1px solid var(--line);
   background: transparent;
@@ -892,7 +898,8 @@ kbd {
 .sc-palette button:hover {
   outline: 1px solid var(--text);
 }
-.sc-palette button.none {
+.sc-palette button.none,
+.sc-palette .sc-tile.none {
   background: linear-gradient(
     to top right,
     #fff calc(50% - 1px),
@@ -1455,6 +1462,57 @@ select[data-stroke-dash] {
 }
 .sc-kind-glyph.radial {
   background: radial-gradient(circle, var(--text), transparent 75%);
+}
+.sc-kind-glyph.pattern {
+  background: radial-gradient(circle, var(--text) 1.3px, transparent 1.6px) 0 0 / 4.5px 4.5px;
+}
+
+/* ---- libraries (Swatches / Gradients / Patterns panels) -------------------- */
+.sc-palette .sc-tile {
+  background:
+    var(--tile, transparent),
+    var(--checker) 0 0 / 8px 8px;
+}
+.sc-palette .sc-tile.sel {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.sc-lib-grid {
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+}
+#sc-patlib .sc-tile {
+  background: var(--tile, transparent), var(--field);
+}
+.sc-lib-bar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--line-soft);
+}
+.sc-lib-gap {
+  flex: 1;
+}
+.sc-pat-preview {
+  height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background:
+    var(--tile, transparent),
+    var(--checker) 0 0 / 8px 8px;
+}
+.sc-ask-text {
+  margin: 0;
+  color: var(--text-dim);
+}
+.sc-ask-input {
+  width: 100%;
+}
+.sc-ask-input[hidden],
+.sc-ask-text[hidden] {
+  display: none;
 }
 .sc-grad {
   display: flex;
