@@ -92,8 +92,13 @@ function iou(a, b) {
 }
 
 const line = (x, y, inner) => `<tspan x="${x}" y="${y}" data-line="">${inner}</tspan>`;
+// geometricPrecision: with hinting (Linux CI), the browser snaps letter
+// widths to the pixel grid, so text laid out on screen and the same text in
+// the 2× reference image drift apart along a line. Unhinted layout is the
+// same at every scale, so the outlines (which follow the on-screen layout)
+// and the reference can be compared pixel for pixel.
 const text = (id, x, y, inner, attrs = '') =>
-  `<text id="${id}" x="${x}" y="${y}" font-family="'Lato', sans-serif" font-size="48" xml:space="preserve" ${attrs}>${line(x, y, inner)}</text>`;
+  `<text id="${id}" x="${x}" y="${y}" font-family="'Lato', sans-serif" font-size="48" text-rendering="geometricPrecision" xml:space="preserve" ${attrs}>${line(x, y, inner)}</text>`;
 
 const paths = (page, sel) =>
   page.$$eval(`${sel} > path`, (ps) =>
