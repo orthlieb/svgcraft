@@ -2302,3 +2302,30 @@ select[data-stroke-dash] {
 .sc-syn-txt {
   color: var(--text);
 }
+.sc-symview {
+  display: flex;
+  margin-bottom: 6px;
+}
+.sc-symview button {
+  flex: 1;
+}
+.sc-libsym-filter {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+.sc-libsym-filter select {
+  flex: none;
+  max-width: 45%;
+}
+.sc-libsym-filter input {
+  flex: 1;
+  min-width: 0;
+}
+.sc-libsym-thumb {
+  display: block;
+  padding: 6px;
+  background:
+    var(--tile) center / contain no-repeat content-box,
+    #fff;
+}
