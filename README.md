@@ -282,7 +282,9 @@ The Type tool (T) works like Photoshop's:
   `<tspan>` per line and a nested `<tspan>` per styled run, with the
   settings in standard attributes. The type
   details survive export and import, and other editors can read the file.
-- **Limits.** No Warp Text or Convert to Shape (outlines) yet. Undo while
+- **Create Outlines.** Object → Create Outlines turns text into shapes
+  (see below).
+- **Limits.** No Warp Text yet. Undo while
   typing covers the typing itself; character-style changes are undone as
   part of the finished edit.
 
@@ -447,6 +449,47 @@ groups clip on their own. Locked layers can't be clipped, and a locked
 clipping group can't be released. The clip is saved in the file and is
 still live when you open it again.
 
+## Create Outlines
+
+Object → Create Outlines (Ctrl+Shift+O), Illustrator's Create Outlines and
+Photoshop's Convert to Shape, turns the selected text layers (or the text
+inside selected groups) into filled paths that look exactly like the text
+did, so the drawing no longer needs the fonts and the letters can be
+point-edited:
+
+- **Placed as drawn.** Every character goes where the browser drew it, so
+  kerning, tracking, alignment, line spacing, paragraph wrapping, baseline
+  shift, super/subscript and rotation all carry over. All Caps becomes
+  capitals and Small Caps becomes smaller capitals.
+- **One path per style.** Each layer becomes a group named "…
+  (outlines)" holding one path per character style, in that style's fill,
+  stroke and opacity, so a bold word or a red word is its own path.
+  Underline and strikethrough become bars in the same paths.
+- **Keeps the layer.** The group takes the text's place in the stack, its
+  transform, Layer Style effects, blend mode, opacity, lock and hidden
+  state. One undo brings the text back.
+- **Fonts.** The glyph shapes come from the real font files. Google Fonts
+  download from Fontsource's CDN (jsDelivr), with extra character sets
+  (Latin Extended, Cyrillic, Greek, Vietnamese) fetched only when the text
+  needs them. Fonts installed on your computer are read directly once
+  you've allowed installed fonts in the font picker (Chromium only).
+  Otherwise system fonts use open stand-ins, and the message says which:
+  Arimo for Arial and Helvetica, Tinos for Times New Roman, Cousine for
+  Courier New (these three match the originals letter for letter), Gelasio
+  for Georgia, DejaVu Sans for Verdana, Fira Sans for Trebuchet MS, Anton for
+  Impact and Roboto for System UI. A font the browser fakes (an italic the
+  family doesn't have) is slanted the same way.
+- **If a font can't be downloaded** (offline, say), that layer is left as
+  text and the message says why.
+- **Limits.** Characters are outlined one by one, so ligatures and the
+  joined forms of scripts like Arabic and Devanagari aren't reproduced,
+  and Small Caps uses scaled capitals rather than a font's own small caps.
+  A gradient that fills text is measured against each path rather than the
+  whole line. A bold the family doesn't have, which the browser fakes by
+  thickening the letters, comes out at the family's nearest real weight.
+  The glyph shapes come from [opentype.js](https://opentype.js.org), which
+  loads the first time you create outlines.
+
 ## Shortcuts
 
 | Key                   | Action                                    |
@@ -462,6 +505,7 @@ still live when you open it again.
 | Alt+T · Alt+Shift+T   | Free Transform · Transform Again          |
 | Ctrl+G · Ctrl+Shift+G | Group · ungroup                           |
 | Ctrl+7 · Ctrl+Alt+7   | Make / release clipping mask              |
+| Ctrl+Shift+O          | Create Outlines                           |
 | ] [ · Ctrl+] Ctrl+[   | Forward / backward · to front / to back   |
 | Arrows (Shift = 10)   | Nudge                                     |
 | Del / Backspace       | Delete                                    |
@@ -538,5 +582,8 @@ Fonticons, Inc., licensed [CC BY 4.0](https://creativecommons.org/licenses/by/4.
 To add an icon, copy its SVG from fontawesome.com into `icons.js`. The
 Combine Shapes glyphs and the gradient glyph are custom.
 
-Boolean geometry uses [paper.js](http://paperjs.org) 0.12.18 (MIT),
-vendored in `vendor/`. See `vendor/README.md` for its version and checksum.
+Boolean geometry uses [paper.js](http://paperjs.org) 0.12.18 (MIT) and
+Create Outlines reads fonts with [opentype.js](https://opentype.js.org)
+1.3.4 (MIT), both vendored in `vendor/`. See `vendor/README.md` for their
+versions and checksums. The tests serve Lato (SIL Open Font License 1.1)
+from `tests/fonts/`.
