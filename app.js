@@ -965,6 +965,268 @@
     ],
   });
 
+  // ---- layer locks -------------------------------------------------------------
+  // Photoshop's Lock Position and Lock All, kept as data-sc-lock on the layer
+  // ("position" | "all"). A lock on a group covers everything in it. Locked
+  // layers can still be selected; Lock Position refuses moves and transforms,
+  // Lock All refuses every change.
+  function lockOf(el) {
+    let pos = false;
+    for (let n = el; n && n !== doc; n = n.parentNode) {
+      const v = n.getAttribute?.('data-sc-lock');
+      if (v === 'all') return 'all';
+      if (v === 'position') pos = true;
+    }
+    return pos ? 'position' : null;
+  }
+  // True (and says why) when any of els, or anything inside them, is locked
+  // against `what`: 'move' (position or all) or 'edit' (all).
+  function refuseLocked(els, what = 'move') {
+    for (const el of els) {
+      const inner = el.querySelector?.(what === 'move' ? '[data-sc-lock]' : '[data-sc-lock="all"]');
+      const l = lockOf(el) || (inner && (what === 'move' ? 'position' : 'all'));
+      if (l === 'all' || (what === 'move' && l === 'position')) {
+        say(`“${layerName(inner && !lockOf(el) ? inner : el)}” is locked.`);
+        return true;
+      }
+    }
+    return false;
+  }
+  function setLock(els, value) {
+    for (const el of els)
+      if (value) el.setAttribute('data-sc-lock', value);
+      else el.removeAttribute('data-sc-lock');
+    commit();
+    renderLayers();
+  }
+
+  // ---- layer effects (Photoshop's Layer Style) -----------------------------------
+  // data-sc-fx holds the effects as JSON; syncEffects() builds a matching
+  // <filter> (sc-fx-N, in defs) for each layer and keeps it in step with the
+  // layer's size and transform. Distances, sizes and the light angle are in
+  // document pixels, as Photoshop measures them, so a rotated or scaled layer
+  // still casts its shadow down and to the right.
+  const FX_DEFAULTS = {
+    ds: { on: false, c: '#000000', o: 35, a: 120, d: 5, sp: 0, s: 5 },
+    is: { on: false, c: '#000000', o: 35, a: 120, d: 5, sp: 0, s: 5 },
+    og: { on: false, c: '#ffffbe', o: 35, sp: 0, s: 5 },
+    ig: { on: false, c: '#ffffbe', o: 35, sp: 0, s: 5 },
+    co: { on: false, c: '#ff0000', o: 100 },
+    bl: { on: false, r: 4 },
+  };
+  const FX_LIMITS = {
+    o: [0, 100],
+    a: [-180, 180],
+    d: [0, 500],
+    sp: [0, 100],
+    s: [0, 250],
+    r: [0, 100],
+  };
+  function readFx(el) {
+    let raw = {};
+    try {
+      raw = JSON.parse(el.getAttribute('data-sc-fx') || '{}') || {};
+    } catch {
+      /* unreadable: no effects */
+    }
+    const fx = {};
+    for (const [k, def] of Object.entries(FX_DEFAULTS)) {
+      const r = raw[k] && typeof raw[k] === 'object' ? raw[k] : {};
+      fx[k] = { ...def };
+      if (k in raw) fx[k].on = r.on !== false;
+      for (const p of Object.keys(def)) {
+        if (p === 'on') continue;
+        if (p === 'c') {
+          if (typeof r.c === 'string' && /^#[0-9a-f]{6}$/i.test(r.c)) fx[k].c = r.c.toLowerCase();
+        } else if (r[p] != null && isFinite(+r[p])) fx[k][p] = clamp(+r[p], ...FX_LIMITS[p]);
+      }
+    }
+    return fx;
+  }
+  const fxOn = (fx) => Object.values(fx).some((e) => e.on);
+  // Only the effects that are on are written.
+  function writeFx(el, fx) {
+    const out = {};
+    for (const [k, e] of Object.entries(fx))
+      if (e.on) out[k] = Object.fromEntries(Object.entries(e).filter(([p]) => p !== 'on'));
+    if (Object.keys(out).length) el.setAttribute('data-sc-fx', JSON.stringify(out));
+    else el.removeAttribute('data-sc-fx');
+  }
+
+  // The filter for fx on el: its region (in el's own units) and primitives.
+  function fxFilter(el, fx) {
+    const M = fullM(el);
+    const sc = Math.sqrt(Math.abs(M.a * M.d - M.b * M.c)) || 1;
+    const inv = M.inverse();
+    const L = (v) => v / sc;
+    const local = (dx, dy) => [inv.a * dx + inv.c * dy, inv.b * dx + inv.d * dy];
+    const parts = [];
+    let base = 'SourceGraphic';
+    let A = 'SourceAlpha';
+    if (fx.bl.on && fx.bl.r > 0) {
+      parts.push(
+        `<feGaussianBlur in="SourceGraphic" stdDeviation="${f(L(fx.bl.r))}" result="bl"/>`,
+        '<feColorMatrix in="bl" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0" result="blA"/>',
+      );
+      base = 'bl';
+      A = 'blA';
+    }
+    const flood = (k, e) =>
+      `<feFlood flood-color="${e.c}" flood-opacity="${f(e.o / 100)}" result="${k}C"/>`;
+    // Outer: shadow / glow spread out from the shape (dilate, blur, offset).
+    const outer = (k, e, dx = 0, dy = 0) => {
+      const sp = e.sp / 100;
+      let src = A;
+      if (sp > 0 && e.s > 0) {
+        parts.push(
+          `<feMorphology in="${A}" operator="dilate" radius="${f(L(e.s * sp))}" result="${k}M"/>`,
+        );
+        src = `${k}M`;
+      }
+      parts.push(
+        `<feGaussianBlur in="${src}" stdDeviation="${f(L((e.s * (1 - sp)) / 2))}" result="${k}B"/>`,
+      );
+      let shape = `${k}B`;
+      if (dx || dy) {
+        const [lx, ly] = local(dx, dy);
+        parts.push(`<feOffset in="${k}B" dx="${f(lx)}" dy="${f(ly)}" result="${k}O"/>`);
+        shape = `${k}O`;
+      }
+      parts.push(
+        flood(k, e),
+        `<feComposite in="${k}C" in2="${shape}" operator="in" result="${k}"/>`,
+      );
+    };
+    // Inner: the shape minus a blurred (and shifted) copy of itself.
+    const inner = (k, e, dx = 0, dy = 0) => {
+      parts.push(
+        `<feGaussianBlur in="${A}" stdDeviation="${f(L((e.s * (1 - e.sp / 100)) / 2))}" result="${k}B"/>`,
+      );
+      let shape = `${k}B`;
+      if (dx || dy) {
+        const [lx, ly] = local(dx, dy);
+        parts.push(`<feOffset in="${k}B" dx="${f(lx)}" dy="${f(ly)}" result="${k}O"/>`);
+        shape = `${k}O`;
+      }
+      parts.push(
+        `<feComposite in="${A}" in2="${shape}" operator="out" result="${k}M"/>`,
+        flood(k, e),
+        `<feComposite in="${k}C" in2="${k}M" operator="in" result="${k}"/>`,
+      );
+    };
+    // Photoshop's angle is where the light comes from; shadows fall away from it.
+    const away = (e) => {
+      const t = (e.a * Math.PI) / 180;
+      return [-Math.cos(t) * e.d, Math.sin(t) * e.d];
+    };
+    const merge = [];
+    if (fx.ds.on) {
+      outer('ds', fx.ds, ...away(fx.ds));
+      merge.push('ds');
+    }
+    if (fx.og.on) {
+      outer('og', fx.og);
+      merge.push('og');
+    }
+    merge.push(base);
+    if (fx.co.on) {
+      parts.push(
+        flood('co', fx.co),
+        `<feComposite in="coC" in2="${A}" operator="in" result="co"/>`,
+      );
+      merge.push('co');
+    }
+    if (fx.ig.on) {
+      inner('ig', fx.ig);
+      merge.push('ig');
+    }
+    if (fx.is.on) {
+      // Light from the top-left: the copy moves down and right, leaving the
+      // shadow along the inside top and left edges, as in Photoshop.
+      inner('is', fx.is, ...away(fx.is));
+      merge.push('is');
+    }
+    parts.push(`<feMerge>${merge.map((r) => `<feMergeNode in="${r}"/>`).join('')}</feMerge>`);
+    // Region: the layer's box plus room for everything that spills out.
+    let reach = 2;
+    if (fx.ds.on) reach = Math.max(reach, fx.ds.d + fx.ds.s * 2);
+    if (fx.og.on) reach = Math.max(reach, fx.og.s * 2);
+    if (fx.bl.on) reach += fx.bl.r * 3;
+    let b;
+    try {
+      b = el.getBBox();
+    } catch {
+      b = { x: 0, y: 0, width: 0, height: 0 };
+    }
+    const cs = getComputedStyle(el);
+    const sw = cs.stroke && cs.stroke !== 'none' ? parseFloat(cs.strokeWidth) || 0 : 0;
+    // The reach is in document pixels; in local units it's larger along any
+    // axis the layer is squashed in.
+    const m = (Math.hypot(inv.a, inv.b) + Math.hypot(inv.c, inv.d)) * reach + sw;
+    return {
+      attrs: {
+        filterUnits: 'userSpaceOnUse',
+        x: f(b.x - m),
+        y: f(b.y - m),
+        width: f(b.width + 2 * m),
+        height: f(b.height + 2 * m),
+        'color-interpolation-filters': 'sRGB',
+      },
+      html: parts.join(''),
+    };
+  }
+
+  const fxRef = (el) => /^url\(#(sc-fx-\d+)\)$/.exec(el.getAttribute('filter') || '')?.[1];
+  function syncEffects() {
+    const owned = new Set();
+    for (const el of doc.querySelectorAll('[data-sc-fx]')) {
+      const fx = readFx(el);
+      if (!fxOn(fx)) continue;
+      let id = fxRef(el);
+      let host = id && defs.querySelector(`:scope > #${id}`);
+      if (!host || owned.has(id)) {
+        let n = 1;
+        while (document.getElementById(`sc-fx-${n}`) || owned.has(`sc-fx-${n}`)) n++;
+        id = `sc-fx-${n}`;
+        host = mk('filter', { id, 'data-sc-fx': '' }, defs);
+        el.setAttribute('filter', `url(#${id})`);
+      }
+      owned.add(id);
+      const { attrs, html } = fxFilter(el, fx);
+      for (const [k, v] of Object.entries(attrs))
+        if (host.getAttribute(k) !== v) host.setAttribute(k, v);
+      if (host.innerHTML !== html) host.innerHTML = html;
+    }
+    for (const el of doc.querySelectorAll('[filter]')) {
+      const id = fxRef(el);
+      if (id && !owned.has(id)) el.removeAttribute('filter');
+    }
+    for (const host of defs.querySelectorAll(':scope > filter[data-sc-fx]'))
+      if (!owned.has(host.id)) host.remove();
+  }
+  let fxQueued = false;
+  new MutationObserver(() => {
+    if (fxQueued) return;
+    fxQueued = true;
+    queueMicrotask(() => {
+      fxQueued = false;
+      syncEffects();
+    });
+  }).observe(doc, {
+    subtree: true,
+    childList: true,
+    attributes: true,
+    attributeFilter: [...SA_GEOM, 'data-sc-fx', 'transform', 'stroke-width', 'font-size', 'x', 'y'],
+  });
+
+  // Blend mode (Photoshop's Layers-panel menu) is CSS mix-blend-mode on the layer.
+  const blendOf = (el) => el.style?.mixBlendMode || 'normal';
+  function setBlend(el, mode) {
+    if (!mode || mode === 'normal') el.style.removeProperty('mix-blend-mode');
+    else el.style.mixBlendMode = mode;
+    if (!el.getAttribute('style')) el.removeAttribute('style');
+  }
+
   function applyStyle(el, key) {
     if (key === 'opacity') {
       setPaintAttr(el, 'opacity', f(state.opacity), 1);
@@ -1047,6 +1309,7 @@
           .map((v) => Math.round((parseFloat(v) / Math.max(state.strokeWidth, 0.25)) * 100) / 100);
     }
     syncStyleUI();
+    syncLayerHead();
   }
 
   // Attributes for a newly drawn element. Line-ish tools never fill; if the
@@ -1742,6 +2005,7 @@
 
   function commit() {
     syncStrokeAlign();
+    syncEffects();
     pruneGradients();
     hist.splice(hIdx + 1);
     hist.push(snapshot());
@@ -2207,6 +2471,16 @@
       if (li.layerEl) li.classList.toggle('sel', state.sel.includes(li.layerEl));
   }
 
+  // The Layers panel's blend mode and lock buttons follow the selection.
+  function syncLayerHead() {
+    const el = state.sel[0];
+    const blend = $('#sc-blend');
+    blend.value = el ? blendOf(el) : 'normal';
+    const lock = el?.getAttribute('data-sc-lock') || null;
+    for (const b of document.querySelectorAll('[data-lock]'))
+      b.setAttribute('aria-pressed', lock === b.dataset.lock);
+  }
+
   function toggleSel(el) {
     setSel(state.sel.includes(el) ? state.sel.filter((x) => x !== el) : [...state.sel, el]);
   }
@@ -2222,6 +2496,7 @@
   function drawSelection() {
     selLayer.replaceChildren();
     syncCornerUI();
+    syncLayerHead();
     $('#sc-pos').dataset.sel = '';
     if (!state.sel.length || state.tool === 'node') return;
     const z = state.zoom;
@@ -2377,6 +2652,7 @@
       }
     };
     walk(doc, 0);
+    syncLayerHead();
   }
 
   function layerRow(el, depth, open, n) {
@@ -2429,6 +2705,32 @@
       renameLayer(el, name);
     });
     li.append(eye, twisty, thumb, name);
+    if (fxOn(readFx(el))) {
+      const fx = document.createElement('button');
+      fx.className = 'sc-fx-badge';
+      fx.innerHTML = icon('sc-fx');
+      fx.setAttribute('aria-label', 'Layer style');
+      fx.dataset.tip = 'Layer style · double-click to edit';
+      fx.addEventListener('dblclick', (e) => {
+        e.stopPropagation();
+        setSel([el]);
+        openLayerStyle();
+      });
+      li.append(fx);
+    }
+    const lock = el.getAttribute('data-sc-lock');
+    if (lock) {
+      const b = document.createElement('button');
+      b.className = 'sc-row-lock';
+      b.innerHTML = icon(lock === 'all' ? 'lock' : 'up-down-left-right');
+      b.setAttribute('aria-label', 'Unlock layer');
+      b.dataset.tip = `${lock === 'all' ? 'Locked' : 'Position locked'} · click to unlock`;
+      b.addEventListener('click', (e) => {
+        e.stopPropagation();
+        setLock([el], null);
+      });
+      li.append(b);
+    }
 
     // Photoshop's rules: click selects, Ctrl/⌘-click toggles, Shift-click
     // selects the run of rows from the last plain click.
@@ -2561,6 +2863,7 @@
       const ch = e.target.closest?.('[data-corner-h]');
       if (ch && cornerTarget()) {
         const el = cornerTarget();
+        if (refuseLocked([el], 'edit')) return;
         this.g = {
           mode: 'corner',
           k: ch.dataset.cornerH,
@@ -2574,6 +2877,7 @@
       const h = e.target.closest?.('[data-handle]');
       const box = selBox();
       if (h && box) {
+        if (refuseLocked(state.sel)) return;
         const k = h.dataset.handle;
         const tfMode = state.tf?.mode;
         this.g = {
@@ -2610,6 +2914,12 @@
       ) {
         this.g = { mode: 'marquee', p0: p, base: e.shiftKey ? [...state.sel] : [] };
         if (!e.shiftKey) setSel([]);
+        return;
+      }
+      // A locked layer stays selected but doesn't move.
+      if (state.sel.some((x) => lockOf(x) || x.querySelector?.('[data-sc-lock]'))) {
+        this.g = null;
+        refuseLocked(state.sel);
         return;
       }
       this.g = { mode: 'move', p0: p, box: selBox(), m0: state.sel.map(getM) };
@@ -3617,6 +3927,7 @@
 
   let typeEdit = null;
   function editTextLayer(el, isNew = false) {
+    if (refuseLocked([el], 'edit')) return;
     if (typeEdit) finishTypeEdit(true);
     const wrapEl = $('#sc-stage-wrap');
     const div = document.createElement('div');
@@ -4335,6 +4646,7 @@
     down(e, p) {
       const targets = gradTargets();
       if (!targets.length) return say('Select the shapes to fill first.');
+      if (refuseLocked(targets, 'edit')) return;
       const k = state.active;
       state[k + 'Pat'] = null;
       if (!state[k + 'Grad'] || !state[k + 'On']) {
@@ -4502,7 +4814,7 @@
       for (const [dx, dy] of probes) {
         for (const n of document.elementsFromPoint(e.clientX + dx, e.clientY + dy)) {
           const el = doc.contains(n) && n !== doc ? n.closest('text') || n : null;
-          if (el && !this.hits.has(el)) {
+          if (el && !this.hits.has(el) && lockOf(el) !== 'all') {
             this.hits.add(el);
             if (state.eraserMode === 'object') el.style.opacity = '0.2';
           }
@@ -5027,6 +5339,7 @@
     subs: [],
     picked: [],
     target(el) {
+      if (el && refuseLocked([el], 'edit')) el = null;
       if (el && !EDITABLE.has(el.localName)) {
         say(
           el.localName === 'g'
@@ -5397,7 +5710,7 @@
   // ---------------------------------------------------------------------
   function transformSel(Tfn) {
     const box = selBox();
-    if (!box) return;
+    if (!box || refuseLocked(state.sel)) return;
     const T = Tfn(box);
     for (const el of state.sel) transformDoc(el, T);
     noteTransform(T, box);
@@ -5457,6 +5770,7 @@
 
   async function combineShapes(op) {
     const sel = normalizeSel(state.sel);
+    if (refuseLocked(sel, 'edit')) return;
     if (sel.length < 2) return say('Select two or more shapes to combine.');
     let P;
     try {
@@ -5580,6 +5894,7 @@
   function transformAgain(copy) {
     if (!lastT) return say('Nothing to repeat yet — transform something first.');
     if (!state.sel.length) return say('Select something to transform.');
+    if (!copy && refuseLocked(state.sel)) return;
     if (copy) {
       state.sel = inDocOrder(state.sel).map((el) => {
         const c = el.cloneNode(true);
@@ -5604,6 +5919,7 @@
   // session back.
   function beginTransform(mode) {
     if (!state.sel.length) return say('Select something to transform first.');
+    if (refuseLocked(state.sel)) return;
     if (state.tool !== 'select') setTool('select');
     if (state.tf) {
       state.tf.mode = mode;
@@ -5718,9 +6034,176 @@
     return `Group ${n + 1}`;
   }
 
+  // ---- Layer Style dialog ---------------------------------------------------------
+  // Photoshop's: effects listed down the left (tick to turn on, click to edit),
+  // their settings on the right, live preview; OK keeps, Cancel restores.
+  const fxDlg = $('#sc-fx');
+  let fxSess = null;
+  const FX_PAGES = ['ds', 'is', 'og', 'ig', 'co', 'bl'];
+
+  function openLayerStyle(page) {
+    const els = normalizeSel(state.sel);
+    if (!els.length) return say('Select a layer to give it a layer style.');
+    if (refuseLocked(els, 'edit')) return;
+    fxSess = {
+      els,
+      orig: els.map((el) => ({
+        el,
+        fx: el.getAttribute('data-sc-fx'),
+        style: el.getAttribute('style'),
+        opacity: el.getAttribute('opacity'),
+      })),
+      fx: readFx(els[0]),
+      blend: blendOf(els[0]),
+      opacity: Math.round((parseFloat(getComputedStyle(els[0]).opacity) || 0) * 100),
+    };
+    const first = FX_PAGES.find((k) => fxSess.fx[k].on);
+    showFxPage(page || first || 'ds');
+    fxDlg.hidden = false;
+    // Focus lands on OK, the button the user is about to press.
+    setTimeout(() => fxDlg.querySelector('[data-fxd="ok"]').focus(), 0);
+  }
+
+  function showFxPage(page) {
+    fxSess.page = page;
+    for (const it of fxDlg.querySelectorAll('[data-fx-page]'))
+      it.classList.toggle('sel', it.dataset.fxPage === page);
+    for (const pane of fxDlg.querySelectorAll('[data-fx-pane]'))
+      pane.hidden = pane.dataset.fxPane !== page;
+    renderFxFields();
+  }
+
+  function renderFxFields() {
+    const sess = fxSess;
+    for (const cb of fxDlg.querySelectorAll('[data-fx-on]'))
+      cb.checked = sess.fx[cb.dataset.fxOn].on;
+    for (const inp of fxDlg.querySelectorAll('[data-fx], [data-fx-range]')) {
+      const key = inp.dataset.fx || inp.dataset.fxRange;
+      const v =
+        key === 'blend'
+          ? sess.blend
+          : key === 'opacity'
+            ? sess.opacity
+            : sess.fx[key.split('.')[0]][key.split('.')[1]];
+      if (document.activeElement !== inp) inp.value = v;
+    }
+  }
+
+  // Push the session to the layers (or put them back while Preview is off).
+  function fxPreview() {
+    const live = $('#sc-fx-preview').checked;
+    for (const o of fxSess.orig) {
+      if (live) {
+        writeFx(o.el, fxSess.fx);
+        setBlend(o.el, fxSess.blend);
+        setPaintAttr(o.el, 'opacity', f(fxSess.opacity / 100), 1);
+      } else fxRestore(o);
+    }
+  }
+  function fxRestore(o) {
+    for (const [a, v] of [
+      ['data-sc-fx', o.fx],
+      ['style', o.style],
+      ['opacity', o.opacity],
+    ])
+      if (v == null) o.el.removeAttribute(a);
+      else o.el.setAttribute(a, v);
+  }
+
+  function closeLayerStyle(ok) {
+    if (!fxSess) return;
+    if (ok) {
+      $('#sc-fx-preview').checked = true;
+      fxPreview();
+      commit();
+      readStyle(fxSess.els[0]);
+    } else for (const o of fxSess.orig) fxRestore(o);
+    fxSess = null;
+    fxDlg.hidden = true;
+    renderLayers();
+  }
+
+  function wireLayerStyle() {
+    const sel = fxDlg.querySelector('[data-fx="blend"]');
+    sel.append(...[...$('#sc-blend').options].map((o) => o.cloneNode(true)));
+    for (const it of fxDlg.querySelectorAll('[data-fx-page]')) {
+      // Clicking an effect's name turns it on and shows its settings.
+      const btn = it.matches('button') ? it : it.querySelector('button');
+      btn.addEventListener('click', () => {
+        const k = it.dataset.fxPage;
+        if (k !== 'blend') fxSess.fx[k].on = true;
+        showFxPage(k);
+        fxPreview();
+      });
+    }
+    for (const cb of fxDlg.querySelectorAll('[data-fx-on]'))
+      cb.addEventListener('change', () => {
+        fxSess.fx[cb.dataset.fxOn].on = cb.checked;
+        showFxPage(cb.dataset.fxOn);
+        fxPreview();
+      });
+    for (const inp of fxDlg.querySelectorAll('[data-fx], [data-fx-range]'))
+      inp.addEventListener('input', () => {
+        const key = inp.dataset.fx || inp.dataset.fxRange;
+        if (key === 'blend') fxSess.blend = inp.value;
+        else if (key === 'opacity') fxSess.opacity = clamp(+inp.value || 0, 0, 100);
+        else {
+          const [k, p] = key.split('.');
+          const v = p === 'c' ? inp.value : +inp.value;
+          if (p !== 'c' && !isFinite(v)) return;
+          fxSess.fx[k][p] = p === 'c' ? v : clamp(v, ...FX_LIMITS[p]);
+          fxSess.fx[k].on = true;
+        }
+        renderFxFields();
+        fxPreview();
+      });
+    $('#sc-fx-preview').addEventListener('change', fxPreview);
+    fxDlg.querySelector('[data-fxd="ok"]').addEventListener('click', () => closeLayerStyle(true));
+    fxDlg
+      .querySelector('[data-fxd="cancel"]')
+      .addEventListener('click', () => closeLayerStyle(false));
+    fxDlg.addEventListener('keydown', (e) => {
+      e.stopPropagation();
+      if (e.key === 'Escape') closeLayerStyle(false);
+      else if (e.key === 'Enter' && !e.target.matches('select, button')) {
+        e.preventDefault();
+        closeLayerStyle(true);
+      }
+    });
+
+    // Layers panel: blend mode and the lock buttons.
+    $('#sc-blend').addEventListener('change', (e) => {
+      const els = normalizeSel(state.sel);
+      if (!els.length) {
+        syncLayerHead();
+        return say('Select the layers to blend.');
+      }
+      if (refuseLocked(els, 'edit')) return syncLayerHead();
+      for (const el of els) setBlend(el, e.target.value);
+      commit();
+    });
+    for (const b of document.querySelectorAll('[data-lock]'))
+      b.addEventListener('click', () => {
+        const els = normalizeSel(state.sel);
+        if (!els.length) return say('Select the layers to lock.');
+        const on = b.getAttribute('aria-pressed') !== 'true';
+        setLock(els, on ? b.dataset.lock : null);
+      });
+  }
+
   const cmds = {
+    layerStyle: () => openLayerStyle(),
+    clearLayerStyle() {
+      const els = normalizeSel(state.sel);
+      if (!els.length || refuseLocked(els, 'edit')) return;
+      for (const el of els) el.removeAttribute('data-sc-fx');
+      commit();
+    },
+    lockPosition: () => state.sel.length && setLock(normalizeSel(state.sel), 'position'),
+    lockAll: () => state.sel.length && setLock(normalizeSel(state.sel), 'all'),
+    unlockLayers: () => state.sel.length && setLock(normalizeSel(state.sel), null),
     delete() {
-      if (!state.sel.length) return;
+      if (!state.sel.length || refuseLocked(state.sel, 'edit')) return;
       state.sel.forEach((el) => el.remove());
       state.sel = [];
       commit();
@@ -5800,6 +6283,7 @@
       commit();
     },
     ungroup() {
+      if (refuseLocked(state.sel, 'edit')) return;
       const out = [];
       let blocked = 0;
       for (const g of inDocOrder(state.sel)) {
@@ -5864,6 +6348,7 @@
   // of the artboard when only one object is selected (Photoshop's rule).
   function alignSel(how) {
     if (!state.sel.length) return say('Select the objects to align first.');
+    if (refuseLocked(state.sel)) return;
     const ref = state.sel.length === 1 ? { x: 0, y: 0, w: state.w, h: state.h } : selBox();
     if (!ref) return;
     for (const el of state.sel) {
@@ -5888,6 +6373,7 @@
   function distributeSel(axis) {
     const list = state.sel.map((el) => ({ el, b: bboxDoc(el) })).filter((i) => i.b);
     if (list.length < 3) return say('Select three or more objects to distribute.');
+    if (refuseLocked(state.sel)) return;
     const size = axis === 'x' ? 'w' : 'h';
     list.sort((a, b) => a.b[axis] + a.b[size] / 2 - (b.b[axis] + b.b[size] / 2));
     const first = list[0].b;
@@ -5904,7 +6390,7 @@
   }
 
   function nudge(dx, dy) {
-    if (!state.sel.length) return;
+    if (!state.sel.length || refuseLocked(state.sel)) return;
     const T = new DOMMatrix().translate(dx, dy);
     for (const el of state.sel) transformDoc(el, T);
     commit();
@@ -6446,6 +6932,11 @@
     }
     const targets = state.tool === 'node' && tools.node.el ? [tools.node.el] : state.sel;
     if (!targets.length) return;
+    // Lock All: the layer keeps its own look (the panels go back to showing it).
+    if (refuseLocked(targets, 'edit')) {
+      readStyle(targets[0]);
+      return;
+    }
     for (const el of targets) applyStyle(el, key);
     if (key === 'align' && state.strokeAlign !== 'center') {
       const shapes = targets.flatMap(paintTargets).filter((t) => t.localName !== 'g');
@@ -7981,6 +8472,7 @@
   wireGradEditor();
   wirePatEditor();
   wireLibraries();
+  wireLayerStyle();
   wireScrubbers();
   bindNumber('#sc-smooth', 'smoothing');
   bindNumber('#sc-eraser-size', 'eraserSize');

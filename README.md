@@ -307,6 +307,35 @@ The Layers panel works like Photoshop's:
   an empty name goes back to the automatic one. Names are saved as
   `data-name`, which Illustrator uses too, and Inkscape layer labels are
   read on import.
+- **Blend mode and Opacity** at the top of the panel, as in Photoshop:
+  Normal, Darken, Multiply, Color Burn, Lighten, Screen, Color Dodge,
+  Overlay, Soft Light, Hard Light, Difference, Exclusion, Hue, Saturation,
+  Color and Luminosity. They're saved as the layer's CSS `mix-blend-mode`,
+  which browsers apply to exported SVGs too.
+- **Lock**: **Lock position** stops the layer moving, scaling, rotating,
+  flipping, nudging and aligning. **Lock all** stops every change: paint,
+  styles, blend mode, point and text edits, deleting and erasing. Locked
+  layers can still be selected, and a lock on a group covers everything in
+  it. A padlock on the row shows the lock; click it to unlock. The same
+  commands are in Object → Lock Position / Lock All / Unlock.
+- **Layer Style (fx)**: the fx button at the bottom of the panel, Object →
+  Layer Style…, or double-clicking a layer's fx badge opens Photoshop's
+  Layer Style dialog. Effects are listed down the left: tick one to turn it
+  on, or click its name to turn it on and edit it. The canvas previews the
+  changes as you edit (untick Preview to compare). OK keeps them, and
+  Cancel or Esc puts everything back.
+  - **Drop Shadow** and **Inner Shadow**: colour, opacity, angle,
+    distance, spread / choke and size.
+  - **Outer Glow** and **Inner Glow**: colour, opacity, spread / choke and
+    size.
+  - **Color Overlay**: colour and opacity.
+  - **Gaussian Blur**: radius.
+  - **Blending Options**: blend mode and opacity.
+  - Angles, distances and sizes are in document pixels, as in Photoshop,
+    so a rotated or scaled layer still casts its shadow the same way.
+    Each layer gets its own SVG `<filter>`, which follows the layer as it
+    changes and is exported with it. Object → Clear Layer Style removes
+    the effects.
 - **Everything works at any depth.** Move, scale, rotate, flip, nudge,
   align, distribute, duplicate, copy, colours, the eraser and point editing
   all work on a layer inside a group, so you never have to ungroup first.

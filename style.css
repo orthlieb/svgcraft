@@ -966,9 +966,151 @@ kbd {
 /* Layers */
 .sc-layers-head {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   padding: 6px 10px;
   border-bottom: 1px solid var(--line-soft);
+}
+#sc-blend {
+  min-width: 0;
+  flex: 1;
+  max-width: 130px;
+}
+.sc-layers-lock {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px 10px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.sc-layers-lock .sc-opt-label {
+  margin-right: 4px;
+}
+.sc-layers-lock [aria-pressed='true'] {
+  background: var(--row-sel);
+  color: var(--text);
+}
+.sc-fx-badge,
+.sc-row-lock {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--text-dim);
+}
+.sc-fx-badge svg,
+.sc-row-lock svg {
+  width: 13px;
+  height: 13px;
+  fill: currentColor;
+}
+.sc-fx-badge svg {
+  width: 16px;
+  height: 16px;
+}
+.sc-fx-badge:hover,
+.sc-row-lock:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
+/* Layer Style dialog. */
+.sc-dialog.sc-fx-dialog {
+  width: min(560px, calc(100vw - 32px));
+  top: 72px;
+}
+.sc-fx-body {
+  display: grid;
+  grid-template-columns: 170px minmax(0, 1fr);
+  min-height: 300px;
+}
+.sc-fx-nav {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 0;
+  border-right: 1px solid var(--line);
+}
+.sc-fx-navhead {
+  padding: 2px 12px 6px;
+  color: var(--text-dim);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.sc-fx-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  min-height: 26px;
+}
+button.sc-fx-item,
+.sc-fx-item button {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  font: inherit;
+  padding: 4px 0;
+}
+button.sc-fx-item {
+  flex: none;
+  padding: 4px 10px 4px 32px;
+}
+.sc-fx-item.sel,
+button.sc-fx-item.sel {
+  background: var(--row-sel);
+}
+.sc-fx-item input {
+  accent-color: var(--accent);
+  margin: 0;
+}
+.sc-fx-pages {
+  padding: 10px 14px;
+}
+.sc-fx-page {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sc-fx-page[hidden] {
+  display: none;
+}
+.sc-fx-field {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) 56px 18px;
+  align-items: center;
+  gap: 8px;
+}
+.sc-fx-field > span:first-child {
+  color: var(--text-dim);
+}
+.sc-fx-field input[type='color'] {
+  grid-column: 2 / span 1;
+  width: 44px;
+  height: 22px;
+  padding: 0;
+}
+.sc-fx-field select {
+  grid-column: 2 / span 2;
+}
+.sc-fx-field input[type='range'] {
+  accent-color: var(--accent);
+  min-width: 0;
+}
+.sc-fx-field input[type='number'] {
+  width: 100%;
+  min-width: 0;
+}
+.sc-dialog-foot .sc-check {
+  margin-right: auto;
 }
 .sc-layers {
   flex: 1;

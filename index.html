@@ -157,6 +157,22 @@
               <i data-icon="object-ungroup"></i><span>Ungroup</span><kbd>Ctrl+Shift+G</kbd>
             </button>
             <hr />
+            <button role="menuitem" data-action="layerStyle">
+              <i data-icon="sc-fx"></i><span>Layer Style…</span>
+            </button>
+            <button role="menuitem" data-action="clearLayerStyle">
+              <i></i><span>Clear Layer Style</span>
+            </button>
+            <button role="menuitem" data-action="lockPosition">
+              <i data-icon="up-down-left-right"></i><span>Lock Position</span>
+            </button>
+            <button role="menuitem" data-action="lockAll">
+              <i data-icon="lock"></i><span>Lock All</span>
+            </button>
+            <button role="menuitem" data-action="unlockLayers">
+              <i data-icon="lock-open"></i><span>Unlock</span>
+            </button>
+            <hr />
             <button role="menuitem" data-action="front">
               <i data-icon="angles-up"></i><span>Bring to Front</span><kbd>Ctrl+]</kbd>
             </button>
@@ -2020,6 +2036,29 @@
         <section class="sc-pgroup sc-grow">
           <div class="sc-ptabs"><span class="sc-ptitle">Layers</span></div>
           <div class="sc-layers-head">
+            <select id="sc-blend" aria-label="Blend mode" data-tip="Blend mode">
+              <option value="normal">Normal</option>
+              <option disabled>──────────</option>
+              <option value="darken">Darken</option>
+              <option value="multiply">Multiply</option>
+              <option value="color-burn">Color Burn</option>
+              <option disabled>──────────</option>
+              <option value="lighten">Lighten</option>
+              <option value="screen">Screen</option>
+              <option value="color-dodge">Color Dodge</option>
+              <option disabled>──────────</option>
+              <option value="overlay">Overlay</option>
+              <option value="soft-light">Soft Light</option>
+              <option value="hard-light">Hard Light</option>
+              <option disabled>──────────</option>
+              <option value="difference">Difference</option>
+              <option value="exclusion">Exclusion</option>
+              <option disabled>──────────</option>
+              <option value="hue">Hue</option>
+              <option value="saturation">Saturation</option>
+              <option value="color">Color</option>
+              <option value="luminosity">Luminosity</option>
+            </select>
             <label class="sc-field"
               ><span class="sc-scrub" data-tip="Drag to adjust">Opacity:</span
               ><input
@@ -2031,8 +2070,37 @@
               /><span class="sc-unit">%</span></label
             >
           </div>
+          <div class="sc-layers-lock">
+            <span class="sc-opt-label">Lock:</span>
+            <button
+              class="sc-ibtn"
+              data-lock="position"
+              aria-pressed="false"
+              aria-label="Lock position"
+              data-tip="Lock position: no moving, scaling or rotating"
+            >
+              <i data-icon="up-down-left-right"></i>
+            </button>
+            <button
+              class="sc-ibtn"
+              data-lock="all"
+              aria-pressed="false"
+              aria-label="Lock all"
+              data-tip="Lock all: no changes at all"
+            >
+              <i data-icon="lock"></i>
+            </button>
+          </div>
           <ol class="sc-layers" id="sc-layers"></ol>
           <div class="sc-layers-foot">
+            <button
+              class="sc-ibtn"
+              data-action="layerStyle"
+              aria-label="Layer style"
+              data-tip="Layer style (effects)"
+            >
+              <i data-icon="sc-fx"></i>
+            </button>
             <button
               class="sc-ibtn"
               data-action="group"
@@ -2103,6 +2171,311 @@
       <div class="sc-dialog-foot">
         <button class="sc-tbtn" data-ng="cancel">Cancel</button>
         <button class="sc-tbtn sc-primary-btn" data-ng="ok">OK</button>
+      </div>
+    </div>
+
+    <!-- Object → Layer Style… (Photoshop's fx dialog). -->
+    <div
+      class="sc-dialog sc-fx-dialog"
+      id="sc-fx"
+      role="dialog"
+      aria-modal="false"
+      aria-labelledby="sc-fx-title"
+      hidden
+    >
+      <div class="sc-dialog-title" id="sc-fx-title">Layer Style</div>
+      <div class="sc-fx-body">
+        <nav class="sc-fx-nav" aria-label="Effects">
+          <div class="sc-fx-navhead">Styles</div>
+          <button class="sc-fx-item" data-fx-page="blend">Blending Options</button>
+          <div class="sc-fx-item" data-fx-page="ds">
+            <input type="checkbox" data-fx-on="ds" aria-label="Drop Shadow on" /><button>
+              Drop Shadow
+            </button>
+          </div>
+          <div class="sc-fx-item" data-fx-page="is">
+            <input type="checkbox" data-fx-on="is" aria-label="Inner Shadow on" /><button>
+              Inner Shadow
+            </button>
+          </div>
+          <div class="sc-fx-item" data-fx-page="og">
+            <input type="checkbox" data-fx-on="og" aria-label="Outer Glow on" /><button>
+              Outer Glow
+            </button>
+          </div>
+          <div class="sc-fx-item" data-fx-page="ig">
+            <input type="checkbox" data-fx-on="ig" aria-label="Inner Glow on" /><button>
+              Inner Glow
+            </button>
+          </div>
+          <div class="sc-fx-item" data-fx-page="co">
+            <input type="checkbox" data-fx-on="co" aria-label="Color Overlay on" /><button>
+              Color Overlay
+            </button>
+          </div>
+          <div class="sc-fx-item" data-fx-page="bl">
+            <input type="checkbox" data-fx-on="bl" aria-label="Gaussian Blur on" /><button>
+              Gaussian Blur
+            </button>
+          </div>
+        </nav>
+        <div class="sc-fx-pages">
+          <div class="sc-fx-page" data-fx-pane="blend" hidden>
+            <div class="sc-subhead">Blending Options</div>
+            <label class="sc-fx-field"
+              ><span>Blend Mode</span
+              ><select data-fx="blend" aria-label="Blend mode"></select
+            ></label>
+            <label class="sc-fx-field"
+              ><span>Opacity</span
+              ><input type="range" data-fx-range="opacity" min="0" max="100" step="1" /><input
+                type="number"
+                data-fx="opacity"
+                min="0"
+                max="100"
+                step="1"
+                aria-label="Opacity"
+              /><span class="sc-unit">%</span></label
+            >
+          </div>
+          <div class="sc-fx-page" data-fx-pane="ds" hidden>
+            <div class="sc-subhead">Drop Shadow</div>
+            <label class="sc-fx-field"
+              ><span>Color</span><input type="color" data-fx="ds.c" aria-label="Color"
+            /></label>
+            <label class="sc-fx-field"
+              ><span>Opacity</span
+              ><input type="range" data-fx-range="ds.o" min="0" max="100" step="1" /><input
+                type="number"
+                data-fx="ds.o"
+                min="0"
+                max="100"
+                step="1"
+                aria-label="Opacity"
+              /><span class="sc-unit">%</span></label
+            >
+            <label class="sc-fx-field"
+              ><span>Angle</span
+              ><input type="range" data-fx-range="ds.a" min="-180" max="180" step="1" /><input
+                type="number"
+                data-fx="ds.a"
+                min="-180"
+                max="180"
+                step="1"
+                aria-label="Angle"
+              /><span class="sc-unit">°</span></label
+            >
+            <label class="sc-fx-field"
+              ><span>Distance</span
+              ><input type="range" data-fx-range="ds.d" min="0" max="500" step="1" /><input
+                type="number"
+                data-fx="ds.d"
+                min="0"
+                max="500"
+                step="1"
+                aria-label="Distance"
+              /><span class="sc-unit">px</span></label
+            >
+            <label class="sc-fx-field"
+              ><span>Spread</span
+              ><input type="range" data-fx-range="ds.sp" min="0" max="100" step="1" /><input
+                type="number"
+                data-fx="ds.sp"
+                min="0"
+                max="100"
+                step="1"
+                aria-label="Spread"
+              /><span class="sc-unit">%</span></label
+            >
+            <label class="sc-fx-field"
+              ><span>Size</span
+              ><input type="range" data-fx-range="ds.s" min="0" max="250" step="1" /><input
+                type="number"
+                data-fx="ds.s"
+                min="0"
+                max="250"
+                step="1"
+                aria-label="Size"
+              /><span class="sc-unit">px</span></label
+            >
+          </div>
+          <div class="sc-fx-page" data-fx-pane="is" hidden>
+            <div class="sc-subhead">Inner Shadow</div>
+            <label class="sc-fx-field"
+              ><span>Color</span><input type="color" data-fx="is.c" aria-label="Color"
+            /></label>
+            <label class="sc-fx-field"
+              ><span>Opacity</span
+              ><input type="range" data-fx-range="is.o" min="0" max="100" step="1" /><input
+                type="number"
+                data-fx="is.o"
+                min="0"
+                max="100"
+                step="1"
+                aria-label="Opacity"
+              /><span class="sc-unit">%</span></label
+            >
+            <label class="sc-fx-field"
+              ><span>Angle</span
+              ><input type="range" data-fx-range="is.a" min="-180" max="180" step="1" /><input
+                type="number"
+                data-fx="is.a"
+                min="-180"
+                max="180"
+                step="1"
+                aria-label="Angle"
+              /><span class="sc-unit">°</span></label
+            >
+            <label class="sc-fx-field"
+              ><span>Distance</span
+              ><input type="range" data-fx-range="is.d" min="0" max="500" step="1" /><input
+                type="number"
+                data-fx="is.d"
+                min="0"
+                max="500"
+                step="1"
+                aria-label="Distance"
+              /><span class="sc-unit">px</span></label
+            >
+            <label class="sc-fx-field"
+              ><span>Choke</span
+              ><input type="range" data-fx-range="is.sp" min="0" max="100" step="1" /><input
+                type="number"
+                data-fx="is.sp"
+                min="0"
+                max="100"
+                step="1"
+                aria-label="Choke"
+              /><span class="sc-unit">%</span></label
+            >
+            <label class="sc-fx-field"
+              ><span>Size</span
+              ><input type="range" data-fx-range="is.s" min="0" max="250" step="1" /><input
+                type="number"
+                data-fx="is.s"
+                min="0"
+                max="250"
+                step="1"
+                aria-label="Size"
+              /><span class="sc-unit">px</span></label
+            >
+          </div>
+          <div class="sc-fx-page" data-fx-pane="og" hidden>
+            <div class="sc-subhead">Outer Glow</div>
+            <label class="sc-fx-field"
+              ><span>Color</span><input type="color" data-fx="og.c" aria-label="Color"
+            /></label>
+            <label class="sc-fx-field"
+              ><span>Opacity</span
+              ><input type="range" data-fx-range="og.o" min="0" max="100" step="1" /><input
+                type="number"
+                data-fx="og.o"
+                min="0"
+                max="100"
+                step="1"
+                aria-label="Opacity"
+              /><span class="sc-unit">%</span></label
+            >
+            <label class="sc-fx-field"
+              ><span>Spread</span
+              ><input type="range" data-fx-range="og.sp" min="0" max="100" step="1" /><input
+                type="number"
+                data-fx="og.sp"
+                min="0"
+                max="100"
+                step="1"
+                aria-label="Spread"
+              /><span class="sc-unit">%</span></label
+            >
+            <label class="sc-fx-field"
+              ><span>Size</span
+              ><input type="range" data-fx-range="og.s" min="0" max="250" step="1" /><input
+                type="number"
+                data-fx="og.s"
+                min="0"
+                max="250"
+                step="1"
+                aria-label="Size"
+              /><span class="sc-unit">px</span></label
+            >
+          </div>
+          <div class="sc-fx-page" data-fx-pane="ig" hidden>
+            <div class="sc-subhead">Inner Glow</div>
+            <label class="sc-fx-field"
+              ><span>Color</span><input type="color" data-fx="ig.c" aria-label="Color"
+            /></label>
+            <label class="sc-fx-field"
+              ><span>Opacity</span
+              ><input type="range" data-fx-range="ig.o" min="0" max="100" step="1" /><input
+                type="number"
+                data-fx="ig.o"
+                min="0"
+                max="100"
+                step="1"
+                aria-label="Opacity"
+              /><span class="sc-unit">%</span></label
+            >
+            <label class="sc-fx-field"
+              ><span>Choke</span
+              ><input type="range" data-fx-range="ig.sp" min="0" max="100" step="1" /><input
+                type="number"
+                data-fx="ig.sp"
+                min="0"
+                max="100"
+                step="1"
+                aria-label="Choke"
+              /><span class="sc-unit">%</span></label
+            >
+            <label class="sc-fx-field"
+              ><span>Size</span
+              ><input type="range" data-fx-range="ig.s" min="0" max="250" step="1" /><input
+                type="number"
+                data-fx="ig.s"
+                min="0"
+                max="250"
+                step="1"
+                aria-label="Size"
+              /><span class="sc-unit">px</span></label
+            >
+          </div>
+          <div class="sc-fx-page" data-fx-pane="co" hidden>
+            <div class="sc-subhead">Color Overlay</div>
+            <label class="sc-fx-field"
+              ><span>Color</span><input type="color" data-fx="co.c" aria-label="Color"
+            /></label>
+            <label class="sc-fx-field"
+              ><span>Opacity</span
+              ><input type="range" data-fx-range="co.o" min="0" max="100" step="1" /><input
+                type="number"
+                data-fx="co.o"
+                min="0"
+                max="100"
+                step="1"
+                aria-label="Opacity"
+              /><span class="sc-unit">%</span></label
+            >
+          </div>
+          <div class="sc-fx-page" data-fx-pane="bl" hidden>
+            <div class="sc-subhead">Gaussian Blur</div>
+            <label class="sc-fx-field"
+              ><span>Radius</span
+              ><input type="range" data-fx-range="bl.r" min="0" max="100" step="0.5" /><input
+                type="number"
+                data-fx="bl.r"
+                min="0"
+                max="100"
+                step="0.5"
+                aria-label="Radius"
+              /><span class="sc-unit">px</span></label
+            >
+          </div>
+        </div>
+      </div>
+      <div class="sc-dialog-foot">
+        <label class="sc-check"><input type="checkbox" id="sc-fx-preview" checked /> Preview</label>
+        <span class="sc-lib-gap"></span>
+        <button class="sc-tbtn" data-fxd="cancel">Cancel</button>
+        <button class="sc-tbtn sc-primary-btn" data-fxd="ok">OK</button>
       </div>
     </div>
 
