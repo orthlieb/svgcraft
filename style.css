@@ -19,8 +19,6 @@
   --row-sel: rgba(20, 115, 230, 0.16);
   --menu: #f7f7f7;
   --shadow: rgba(0, 0, 0, 0.18);
-  --logo-bg: #001e36;
-  --logo-fg: #31a8ff;
   --check-a: #ffffff;
   --check-b: #cccccc;
   --frame: rgba(0, 0, 0, 0.35);
@@ -204,17 +202,10 @@ kbd {
   background: var(--shell);
 }
 .sc-logo {
-  display: inline-grid;
-  place-items: center;
+  display: block;
   width: 22px;
   height: 22px;
   margin-right: 6px;
-  border-radius: 4px;
-  background: var(--logo-bg);
-  color: var(--logo-fg);
-  font-weight: 700;
-  font-size: 11px;
-  letter-spacing: -0.02em;
   flex: none;
 }
 .sc-menus {
