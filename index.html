@@ -302,6 +302,10 @@
               <i></i><span>Clear Guides</span>
             </button>
             <hr />
+            <button role="menuitemcheckbox" data-action="toggleSource" aria-checked="false">
+              <i data-icon="code"></i><span>SVG Source</span><kbd>Ctrl+U</kbd>
+            </button>
+            <hr />
             <span class="sc-menu-label">Theme</span>
             <button role="menuitemradio" data-action="themeSystem" data-theme-opt="system">
               <i data-icon="circle-half-stroke"></i><span>Match System</span>
@@ -2500,6 +2504,73 @@
       </div>
     </div>
     <input type="file" id="sc-lib-file" accept=".json,application/json" hidden />
+
+    <!-- View → SVG Source: a floating, read-only view of the saved markup. -->
+    <div
+      class="sc-src"
+      id="sc-source"
+      role="dialog"
+      aria-modal="false"
+      aria-labelledby="sc-src-title"
+      hidden
+    >
+      <div class="sc-src-titlebar" id="sc-src-titlebar">
+        <span class="sc-src-grip" aria-hidden="true">⠿</span>
+        <i data-icon="code"></i>
+        <span class="sc-src-name" id="sc-src-title">SVG Source</span>
+        <button class="sc-src-x" id="sc-src-close" aria-label="Close" data-tip="Close (Esc)">
+          <i data-icon="xmark"></i>
+        </button>
+      </div>
+      <div class="sc-src-bar">
+        <input
+          type="search"
+          id="sc-src-find"
+          placeholder="Find"
+          aria-label="Find in source"
+          spellcheck="false"
+          autocomplete="off"
+        />
+        <span class="sc-src-count" id="sc-src-count" aria-live="polite"></span>
+        <button
+          class="sc-src-btn"
+          id="sc-src-prev"
+          aria-label="Previous match"
+          data-tip="Previous match (Shift+Enter)"
+        >
+          <i data-icon="arrow-up"></i>
+        </button>
+        <button
+          class="sc-src-btn"
+          id="sc-src-next"
+          aria-label="Next match"
+          data-tip="Next match (Enter)"
+        >
+          <i data-icon="arrow-down"></i>
+        </button>
+        <span class="sc-src-gap"></span>
+        <button class="sc-src-btn" id="sc-src-wrap" aria-pressed="false" data-tip="Wrap long lines">
+          Wrap
+        </button>
+        <button class="sc-src-btn" id="sc-src-copy" data-tip="Copy the whole source">
+          <i data-icon="copy"></i> Copy
+        </button>
+        <button
+          class="sc-src-btn"
+          id="sc-src-download"
+          data-tip="Download the source as shown, as an .svg file"
+        >
+          <i data-icon="download"></i> Download
+        </button>
+      </div>
+      <div
+        class="sc-src-code"
+        id="sc-src-code"
+        tabindex="0"
+        role="region"
+        aria-label="SVG source, read only"
+      ></div>
+    </div>
 
     <!-- Font picker (shared by the options bar and the Character panel). -->
     <div class="sc-fontpop" id="sc-fontpop" hidden>

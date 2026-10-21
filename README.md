@@ -398,6 +398,36 @@ combine shapes.
 | X                     | Swap fill and stroke                      |
 | + − 0 1               | Zoom in / out · fit · 100%                |
 | Ctrl+S · Ctrl+O       | Save as SVG · open                        |
+| Ctrl+U                | Show / hide the SVG source                |
+
+## SVG source
+
+View → SVG Source (Ctrl+U, as in a browser's view-source) opens a floating
+window with the drawing's SVG, exactly as Save as SVG would write it,
+including the `@import` for any Google Fonts. It's read-only, laid out one
+element per line, indented by nesting, with long attribute lists wrapped,
+and coloured for tags, attributes, values, comments and text. Drag the
+window by its title bar and resize it from its corner.
+
+- **Live.** The source follows your edits, undo and tab switches. It waits
+  while you're selecting text in it, and keeps its scroll position.
+- **Linked to the canvas.** Selecting layers highlights their lines and
+  scrolls them into view. Clicking an element's start tag selects that
+  layer. A run inside a text layer selects the text.
+- **Copy** puts the whole source on the clipboard. **Download** saves it
+  as an `.svg` file. This doesn't count as saving the drawing, so the tab
+  keeps its \*. You can also select any part of the text and copy that.
+- **Find** (Ctrl+F in the window) highlights every match. Enter and
+  Shift+Enter, or F3, step through them.
+- **Wrap** wraps long lines instead of scrolling sideways.
+- Long embedded `data:` URIs (images, fonts) are shortened with an … on
+  screen, but Copy and Download give the full text. Copying a selection
+  with the mouse copies what you see, so use Copy for those.
+- Everything in the drawing is shown as text, never run: a text layer that
+  says `<script>` shows up as `&lt;script&gt;`, as it is in the file.
+- Large drawings stay quick: lines are drawn as they scroll into view.
+- Esc closes the window. Keys pressed inside it don't edit the drawing,
+  apart from undo, redo, save and open.
 
 ## What the saved SVG keeps
 
