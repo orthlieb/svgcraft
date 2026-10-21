@@ -1019,6 +1019,25 @@ kbd {
   background: var(--hover);
   color: var(--text);
 }
+/* Clipping group / clipping path marker; the clipping path's name is
+   underlined, as Illustrator does. */
+.sc-clip-badge {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  color: var(--text-dim);
+}
+.sc-clip-badge svg {
+  width: 12px;
+  height: 12px;
+  fill: currentColor;
+}
+.sc-layers li.sc-clipper .sc-layer-name {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
 
 /* Layer Style dialog. */
 .sc-dialog.sc-fx-dialog {

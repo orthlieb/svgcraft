@@ -545,6 +545,9 @@
   // Axis-aligned bounding box of an element (at any depth), in document
   // units; pass m to measure it under another matrix instead.
   function bboxDoc(el, m = fullM(el)) {
+    // A clipping group is as big as its window (Illustrator's rule).
+    const cl = clipperOf(el);
+    if (cl) return bboxDoc(cl, m.multiply(getM(cl)));
     let b;
     try {
       b = el.getBBox();
@@ -595,8 +598,9 @@
     if (!isShown(el)) return null;
     let b = null;
     if (el.localName === 'g') {
+      const cl = clipperOf(el);
       for (const c of el.children) {
-        if (!selectable(c)) continue;
+        if (!selectable(c) || c === cl) continue;
         const cb = layerPaintBox(c);
         if (cb)
           b = b
@@ -607,6 +611,17 @@
                 y2: Math.max(b.y2, cb.y2),
               }
             : cb;
+      }
+      // Nothing is painted outside the clipping shape's outline.
+      const w = cl && bboxDoc(cl);
+      if (b && w) {
+        b = {
+          x1: Math.max(b.x1, w.x),
+          y1: Math.max(b.y1, w.y),
+          x2: Math.min(b.x2, w.x + w.w),
+          y2: Math.min(b.y2, w.y + w.h),
+        };
+        if (b.x1 >= b.x2 || b.y1 >= b.y2) b = null;
       }
     } else b = outlineBox(el);
     return b && withEffects(el, b);
@@ -1388,6 +1403,145 @@
     attributes: true,
     attributeFilter: [...SA_GEOM, 'data-sc-fx', 'transform', 'stroke-width', 'font-size', 'x', 'y'],
   });
+
+  // ---- clipping masks (Illustrator's Object → Clipping Mask) ---------------------
+  // A clipping group is <g data-sc-clip> whose clipper — a single shape or
+  // text, marked data-sc-clipper — stays inside it, hidden with
+  // visibility="hidden" (so it can still be measured, selected and edited, and
+  // keeps its own paint for Release). syncClips() keeps a <clipPath> (sc-clip-N,
+  // in defs) holding a copy of the clipper in step with it, so moving or
+  // reshaping the clipper moves the window, not the art. A clipper that leaves
+  // its group, or a group that loses its clipper, stops clipping.
+  const CLIP_SHAPES = ['path', 'rect', 'circle', 'ellipse', 'polygon', 'polyline', 'line', 'text'];
+  // The clipping shape of a clipping group (the first marked direct child).
+  function clipperOf(g) {
+    if (!g?.hasAttribute?.('data-sc-clip')) return null;
+    for (const c of g.children)
+      if (c.hasAttribute('data-sc-clipper') && CLIP_SHAPES.includes(c.localName)) return c;
+    return null;
+  }
+  const clipRef = (g) => /^url\(#(sc-clip-\d+)\)$/.exec(g.getAttribute('clip-path') || '')?.[1];
+
+  // The clipper's geometry as clipPath content: same transform relative to
+  // the group (clipPathUnits="userSpaceOnUse" is the group's own space), with
+  // the font it inherits, and none of the editor's bookkeeping or anything that
+  // would hide it.
+  function clipCopy(cl) {
+    const c = cl.cloneNode(true);
+    bakeInherited(cl, c);
+    for (const n of [c, ...c.querySelectorAll('*')]) {
+      for (const a of [...n.attributes])
+        if (a.name === 'id' || a.name.startsWith('data-')) n.removeAttribute(a.name);
+    }
+    for (const a of ['visibility', 'display', 'clip-path', 'mask', 'filter', 'opacity'])
+      c.removeAttribute(a);
+    for (const p of ['visibility', 'display', 'mix-blend-mode', 'isolation', 'opacity'])
+      c.style.removeProperty(p);
+    if (!c.getAttribute('style')) c.removeAttribute('style');
+    if (getComputedStyle(cl).fillRule === 'evenodd') c.setAttribute('clip-rule', 'evenodd');
+    return c;
+  }
+
+  function syncClips() {
+    // A clipper outside a clipping group (or a second one in it) is an
+    // ordinary shape again.
+    for (const c of doc.querySelectorAll('[data-sc-clipper]'))
+      if (clipperOf(c.parentNode) !== c) {
+        c.removeAttribute('data-sc-clipper');
+        if (c.getAttribute('visibility') === 'hidden') c.removeAttribute('visibility');
+      }
+    const owned = new Set();
+    for (const g of doc.querySelectorAll('[data-sc-clip]')) {
+      const cl = clipperOf(g);
+      if (!cl) {
+        g.removeAttribute('data-sc-clip');
+        continue;
+      }
+      let id = clipRef(g);
+      let host = id && defs.querySelector(`:scope > #${id}`);
+      // A duplicated group still points at the original's clipPath: give it its own.
+      if (!host || !host.hasAttribute('data-sc-clip') || owned.has(id)) {
+        let n = 1;
+        while (document.getElementById(`sc-clip-${n}`) || owned.has(`sc-clip-${n}`)) n++;
+        id = `sc-clip-${n}`;
+        host = mk('clipPath', { id, 'data-sc-clip': '', clipPathUnits: 'userSpaceOnUse' }, defs);
+      }
+      if (g.getAttribute('clip-path') !== `url(#${id})`) g.setAttribute('clip-path', `url(#${id})`);
+      if (cl.getAttribute('visibility') !== 'hidden') cl.setAttribute('visibility', 'hidden');
+      owned.add(id);
+      const copy = clipCopy(cl);
+      if (host.innerHTML !== copy.outerHTML) host.replaceChildren(copy);
+    }
+    for (const g of doc.querySelectorAll('[clip-path]')) {
+      const id = clipRef(g);
+      if (id && !owned.has(id)) g.removeAttribute('clip-path');
+    }
+    for (const host of defs.querySelectorAll(':scope > clipPath[data-sc-clip]'))
+      if (!owned.has(host.id)) host.remove();
+  }
+  let clipQueued = false;
+  // Any change can reshape a clipper (geometry, transform, font, the text
+  // itself), and syncClips() only writes what differs, so watch everything.
+  new MutationObserver(() => {
+    if (clipQueued) return;
+    clipQueued = true;
+    queueMicrotask(() => {
+      clipQueued = false;
+      syncClips();
+    });
+  }).observe(doc, { subtree: true, childList: true, attributes: true, characterData: true });
+
+  // Object → Clipping Mask → Make: the topmost selected layer clips the rest.
+  function makeClip() {
+    const els = normalizeSel(state.sel);
+    if (els.length < 2)
+      return say('Select the art and, on top of it, the shape or text to clip it with.');
+    const top = els.at(-1);
+    if (!CLIP_SHAPES.includes(top.localName))
+      return say(
+        `The topmost selected layer (${layerName(top)}) must be a single shape or text to clip with.`,
+      );
+    if (refuseLocked(els, 'edit')) return;
+    const g = mk('g', { 'data-name': 'Clipping group', 'data-sc-clip': '' });
+    top.after(g);
+    for (const el of els) reparent(el, g);
+    top.setAttribute('data-sc-clipper', '');
+    top.setAttribute('visibility', 'hidden');
+    state.sel = [g];
+    commit();
+  }
+
+  // Release: the group stays (as in Illustrator); the clipper shows again.
+  function releaseClip() {
+    const groups = new Set();
+    for (const el of state.sel) {
+      const g = el.closest?.('[data-sc-clip]');
+      if (g && doc.contains(g)) groups.add(g);
+    }
+    if (!groups.size) return say('Select a clipping group, or a layer in one, to release.');
+    if (
+      refuseLocked(
+        [...groups].map((g) => clipperOf(g) || g),
+        'edit',
+      )
+    )
+      return;
+    const out = [];
+    for (const g of groups) {
+      const cl = clipperOf(g);
+      g.removeAttribute('data-sc-clip');
+      g.removeAttribute('clip-path');
+      if (g.getAttribute('data-name') === 'Clipping group')
+        g.setAttribute('data-name', nextGroupName());
+      if (cl) {
+        cl.removeAttribute('data-sc-clipper');
+        cl.removeAttribute('visibility');
+      }
+      out.push(g);
+    }
+    state.sel = out;
+    commit();
+  }
 
   // Blend mode (Photoshop's Layers-panel menu) is CSS mix-blend-mode on the
   // layer. Groups also have Photoshop's Pass Through, their default: nothing
@@ -2199,6 +2353,7 @@
   function commit() {
     syncStrokeAlign();
     syncEffects();
+    syncClips();
     pruneGradients();
     hist.splice(hIdx + 1);
     hist.push(snapshot());
@@ -2817,6 +2972,8 @@
     const c = el.cloneNode(true);
     bakeInherited(el, c);
     c.removeAttribute('display');
+    // A clipping shape is hidden on the canvas, but its row shows it.
+    if (el.hasAttribute('data-sc-clipper')) c.removeAttribute('visibility');
     for (const n of [c, ...c.querySelectorAll('[id]')]) n.removeAttribute('id');
     t.append(c);
     return t;
@@ -2899,6 +3056,19 @@
       renameLayer(el, name);
     });
     li.append(eye, twisty, thumb, name);
+    // Clipping: the group row says it clips, the clipping shape's row says
+    // it's the window (and is underlined, as in Illustrator).
+    const clipper = clipperOf(el.parentNode) === el;
+    if (clipper || clipperOf(el)) {
+      if (clipper) li.classList.add('sc-clipper');
+      const b = document.createElement('span');
+      b.className = 'sc-clip-badge';
+      b.innerHTML = icon('scissors');
+      b.dataset.tip = clipper ? 'Clipping path' : 'Clipping group';
+      b.setAttribute('role', 'img');
+      b.setAttribute('aria-label', b.dataset.tip);
+      li.append(b);
+    }
     if (fxOn(readFx(el))) {
       const fx = document.createElement('button');
       fx.className = 'sc-fx-badge';
@@ -6394,6 +6564,8 @@
       for (const el of els) el.removeAttribute('data-sc-fx');
       commit();
     },
+    clipMake: () => makeClip(),
+    clipRelease: () => releaseClip(),
     lockPosition: () => state.sel.length && setLock(normalizeSel(state.sel), 'position'),
     lockAll: () => state.sel.length && setLock(normalizeSel(state.sel), 'all'),
     unlockLayers: () => state.sel.length && setLock(normalizeSel(state.sel), null),
@@ -7701,7 +7873,14 @@
       for (const el of [n, ...n.querySelectorAll('*')]) {
         // Copies aren't Svgcraft's per-shape paints any more: keep them out of
         // the pruning and syncing that would otherwise remove them.
-        for (const k of ['data-sc-grad', 'data-sc-pat', 'data-sc-sa']) el.removeAttribute(k);
+        for (const k of [
+          'data-sc-grad',
+          'data-sc-pat',
+          'data-sc-sa',
+          'data-sc-clip',
+          'data-sc-clipper',
+        ])
+          el.removeAttribute(k);
         for (const a of [...el.attributes]) {
           let v = a.value;
           for (const [from, to] of map) {
@@ -7957,6 +8136,13 @@
     }
     if (tools[state.tool].key?.(e)) {
       e.preventDefault();
+      return;
+    }
+    // Ctrl+7 / Ctrl+Alt+7, by key position: Alt can change the character typed.
+    if (mod && e.code === 'Digit7') {
+      e.preventDefault();
+      if (e.altKey) releaseClip();
+      else makeClip();
       return;
     }
     if (mod) {

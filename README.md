@@ -378,6 +378,32 @@ Text and images are skipped, and you get a message saying so. The geometry
 comes from [paper.js](http://paperjs.org), which loads the first time you
 combine shapes.
 
+## Clipping masks
+
+Object → Clipping Mask → Make (Ctrl+7), or the scissors button at the bottom
+of the Layers panel, clips the selected layers to the topmost of them, as
+Illustrator does. The topmost selected layer is the clipping path, and it
+has to be a single shape or a text layer; anything else (a group, an
+image) gets a message saying why, and nothing changes. Everything selected
+goes into a new "Clipping group" where the clipping path was, without
+moving on screen. Only the art inside the clipping path's outline shows;
+the clipping path itself isn't painted.
+
+The clipping path stays in the group as an ordinary layer, so the clip stays
+live. In the Layers panel the group and the clipping path are marked with
+scissors, and the clipping path's name is underlined. Click its row to
+select it, then move, transform or point-edit it: the window changes and the
+art stays put. Moving the whole group moves both together. Drop another
+layer into the group to clip it too. Deleting the clipping path, or
+dragging it out of the group, ends the clip.
+
+Object → Clipping Mask → Release (Ctrl+Alt+7), with the group or any layer
+in it selected, turns the clip off: the clipping path shows again with its
+own fill and stroke, and the layers stay grouped. Duplicated clipping
+groups clip on their own. Locked layers can't be clipped, and a locked
+clipping group can't be released. The clip is saved in the file and is
+still live when you open it again.
+
 ## Shortcuts
 
 | Key                   | Action                                    |
@@ -392,6 +418,7 @@ combine shapes.
 | Shift+F7              | Select inverse                            |
 | Alt+T · Alt+Shift+T   | Free Transform · Transform Again          |
 | Ctrl+G · Ctrl+Shift+G | Group · ungroup                           |
+| Ctrl+7 · Ctrl+Alt+7   | Make / release clipping mask              |
 | ] [ · Ctrl+] Ctrl+[   | Forward / backward · to front / to back   |
 | Arrows (Shift = 10)   | Nudge                                     |
 | Del / Backspace       | Delete                                    |
@@ -407,6 +434,7 @@ same editable drawing:
 
 - layer names, hidden layers, locks, blend modes and opacity
 - effects, stroke align, custom dashes and per-corner radii
+- clipping masks, still live and editable
 - gradients, patterns, styled text runs, guides and the document size
 
 Each setting is stored on its element, as a `data-*` attribute
