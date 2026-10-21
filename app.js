@@ -119,6 +119,9 @@
     opacity: 1,
   };
 
+  // The symbol being edited in place, if any (see enterIso).
+  let iso = null;
+
   // ---------------------------------------------------------------------
   // Small helpers
   // ---------------------------------------------------------------------
@@ -534,12 +537,9 @@
   }
 
   function setM(el, m) {
-    if (m.isIdentity) el.removeAttribute('transform');
-    else
-      el.setAttribute(
-        'transform',
-        `matrix(${[m.a, m.b, m.c, m.d, m.e, m.f].map((n, i) => +n.toFixed(i < 4 ? 5 : 3) || 0).join(' ')})`,
-      );
+    const v = [m.a, m.b, m.c, m.d, m.e, m.f].map((n, i) => +n.toFixed(i < 4 ? 5 : 3) || 0);
+    if (v.join(' ') === '1 0 0 1 0 0') el.removeAttribute('transform');
+    else el.setAttribute('transform', `matrix(${v.join(' ')})`);
   }
 
   // Axis-aligned bounding box of an element (at any depth), in document
@@ -591,13 +591,41 @@
     return box && { x: box.x1, y: box.y1, w: box.x2 - box.x1, h: box.y2 - box.y1 };
   }
 
-  function layerPaintBox(el) {
+  function layerPaintBox(el, depth = 0) {
     if (!isShown(el)) return null;
     let b = null;
-    if (el.localName === 'g') {
+    const sym = symbolOf(el);
+    if (sym) {
+      // A symbol instance paints what its symbol's content paints, where
+      // the instance puts it: measure a stand-in group built in its place.
+      if (depth > 8) return null;
+      const g = mk('g');
+      setM(g, useM(el));
+      g.append(...[...sym.children].map((c) => c.cloneNode(true)));
+      for (const n of [g, ...g.querySelectorAll('[id]')]) n.removeAttribute('id');
+      el.parentNode.insertBefore(g, el);
+      for (const a of INHERITED) if (el.hasAttribute(a)) g.setAttribute(a, el.getAttribute(a));
+      try {
+        for (const c of g.children) {
+          if (!selectable(c)) continue;
+          const cb = layerPaintBox(c, depth + 1);
+          if (cb)
+            b = b
+              ? {
+                  x1: Math.min(b.x1, cb.x1),
+                  y1: Math.min(b.y1, cb.y1),
+                  x2: Math.max(b.x2, cb.x2),
+                  y2: Math.max(b.y2, cb.y2),
+                }
+              : cb;
+        }
+      } finally {
+        g.remove();
+      }
+    } else if (el.localName === 'g') {
       for (const c of el.children) {
         if (!selectable(c)) continue;
-        const cb = layerPaintBox(c);
+        const cb = layerPaintBox(c, depth);
         if (cb)
           b = b
             ? {
@@ -807,9 +835,12 @@
   }
 
   // Element-local → document transform, through every enclosing group.
+  // Inside a <symbol> it stops at the symbol: its content is drawn in
+  // document coordinates, as an instance with no transform shows it.
   function fullM(el) {
     let m = getM(el);
-    for (let n = el.parentNode; n && n !== doc; n = n.parentNode) m = getM(n).multiply(m);
+    for (let n = el.parentNode; n && n !== doc && n.localName !== 'symbol'; n = n.parentNode)
+      m = getM(n).multiply(m);
     return m;
   }
 
@@ -1109,8 +1140,9 @@
         const id = saRef(t, k);
         if (id && !owned.has(id)) t.removeAttribute(k);
       }
+    const kept = keptIds();
     for (const host of defs.querySelectorAll('[data-sc-sa]'))
-      if (!owned.has(host.id)) host.remove();
+      if (!owned.has(host.id) && !kept.has(host.id)) host.remove();
   }
   let saQueued = false;
   new MutationObserver(() => {
@@ -1371,8 +1403,9 @@
       const id = fxRef(el);
       if (id && !owned.has(id)) el.removeAttribute('filter');
     }
+    const kept = keptIds();
     for (const host of defs.querySelectorAll(':scope > filter[data-sc-fx]'))
-      if (!owned.has(host.id)) host.remove();
+      if (!owned.has(host.id) && !kept.has(host.id)) host.remove();
   }
   let fxQueued = false;
   new MutationObserver(() => {
@@ -1789,8 +1822,10 @@
   }
 
   function pruneGradients() {
+    const kept = keptIds();
     for (const g of defs.querySelectorAll(':scope > [data-sc-grad], :scope > [data-sc-pat]'))
-      if (!refCount(g.id) && !doc.querySelector(`[style*="#${g.id}"]`)) g.remove();
+      if (!refCount(g.id) && !doc.querySelector(`[style*="#${g.id}"]`) && !kept.has(g.id))
+        g.remove();
   }
 
   // ---- patterns -----------------------------------------------------------------
@@ -2192,8 +2227,12 @@
   let hIdx = -1;
   let saveTimer = 0;
 
+  // While a symbol is being edited (see enterIso) the history still records
+  // the real drawing: the edits written back into the <symbol>, and the
+  // layers set aside behind it.
   function snapshot() {
-    return { d: doc.innerHTML, f: defs.innerHTML, w: state.w, h: state.h, g: guidesAttr() };
+    isoWrite();
+    return { d: docHtml(), f: defs.innerHTML, w: state.w, h: state.h, g: guidesAttr() };
   }
 
   function commit() {
@@ -2208,6 +2247,7 @@
   }
 
   function restore(s, keepSel = false) {
+    dropIso();
     doc.innerHTML = s.d;
     defs.innerHTML = s.f;
     setSize(s.w, s.h);
@@ -2218,13 +2258,23 @@
     afterChange();
   }
 
+  // Undo and redo while editing a symbol stay in the editing, on the same
+  // instance, as long as it's still there.
+  function restoreInIso(s) {
+    const was = iso && { path: iso.path, id: iso.sym.id };
+    restore(s);
+    if (!was) return;
+    const inst = fromTreePath(was.path);
+    if (symbolOf(inst)?.id === was.id) enterIso(inst, true);
+  }
+
   function undo() {
     tools[state.tool].cancel?.();
-    if (hIdx > 0) restore(hist[--hIdx]);
+    if (hIdx > 0) restoreInIso(hist[--hIdx]);
   }
 
   function redo() {
-    if (hIdx < hist.length - 1) restore(hist[++hIdx]);
+    if (hIdx < hist.length - 1) restoreInIso(hist[++hIdx]);
   }
 
   function afterChange() {
@@ -2234,6 +2284,7 @@
     state.sel = state.sel.filter((el) => doc.contains(el));
     drawSelection();
     renderLayers();
+    renderSymbols();
     updateTitle();
     tools[state.tool].redraw?.();
     if (curDoc) {
@@ -2347,6 +2398,7 @@
   function stashDoc() {
     if (!curDoc) return;
     tools[state.tool].leave?.();
+    exitIso();
     curDoc.name = state.fileName;
     curDoc.svg = serialize();
     curDoc.hist = hist.slice();
@@ -2411,6 +2463,7 @@
   function newDoc() {
     const d = addDoc(nextUntitled());
     tools[state.tool].leave?.();
+    dropIso();
     doc.replaceChildren();
     defs.replaceChildren();
     state.sel = [];
@@ -2609,6 +2662,7 @@
     const h = Math.ceil(box.y + box.h) - y;
     if (x === 0 && y === 0 && w === state.w && h === state.h)
       return say(`The artboard already fits ${what}.`);
+    exitIso();
     if (x || y) {
       const T = new DOMMatrix().translate(-x, -y);
       for (const el of doc.children) if (el instanceof SVGGraphicsElement) transformDoc(el, T);
@@ -2800,6 +2854,8 @@
     const id = el.id ? ` #${el.id}` : '';
     if (tag === 'text') return `“${rawText(el).replace(/\s+/g, ' ').trim().slice(0, 28)}”`;
     if (tag === 'g') return `group (${el.children.length})${id}`;
+    const sym = symbolOf(el);
+    if (sym) return symName(sym);
     if (tag === 'path') return `path${id}`;
     return tag + id;
   }
@@ -2899,6 +2955,14 @@
       renameLayer(el, name);
     });
     li.append(eye, twisty, thumb, name);
+    if (symbolOf(el)) {
+      const s = document.createElement('i');
+      s.className = 'sc-sym-badge';
+      s.innerHTML = icon('clover');
+      s.dataset.tip = `Instance of the symbol “${symName(symbolOf(el))}”`;
+      name.before(s);
+      li.classList.add('sc-instance');
+    }
     if (fxOn(readFx(el))) {
       const fx = document.createElement('button');
       fx.className = 'sc-fx-badge';
@@ -3240,6 +3304,17 @@
       }
     },
     dblclick(e) {
+      // Double-click an instance to edit its symbol; double-click outside
+      // the symbol being edited to finish.
+      const inst = doc.contains(e.target) ? e.target.closest('use') : null;
+      if (inst && symbolOf(inst)) {
+        enterIso(inst);
+        return;
+      }
+      if (iso && !topLevel(e.target)) {
+        exitIso();
+        return;
+      }
       const shape = editableFrom(e.target);
       if (shape) {
         setTool('node');
@@ -6660,17 +6735,46 @@
       map.set(id, `${id}-${n}`);
       el.id = `${id}-${n}`;
     }
+    renameRefs([root], map);
+  }
+
+  // Repoint url(#…) and href="#…" references under roots by an old → new id map.
+  function renameRefs(roots, map) {
     if (!map.size) return;
-    for (const el of [root, ...root.querySelectorAll('*')]) {
-      for (const a of [...el.attributes]) {
-        let v = a.value;
-        for (const [o, nw] of map) {
-          v = v.split(`url(#${o})`).join(`url(#${nw})`).split(`url("#${o}")`).join(`url(#${nw})`);
-          if (v === `#${o}`) v = `#${nw}`;
+    for (const r of roots)
+      for (const el of [r, ...r.querySelectorAll('*')]) {
+        for (const a of [...el.attributes]) {
+          let v = a.value;
+          for (const [o, nw] of map) {
+            v = v
+              .split(`url(#${o})`)
+              .join(`url(#${nw})`)
+              .split(`url("#${o}")`)
+              .join(`url(#${nw})`)
+              .split(`url('#${o}')`)
+              .join(`url(#${nw})`);
+            if (v === `#${o}`) v = `#${nw}`;
+          }
+          if (v !== a.value) el.setAttributeNS(a.namespaceURI, a.name, v);
         }
-        if (v !== a.value) el.setAttributeNS(a.namespaceURI, a.name, v);
       }
+  }
+
+  // Svgcraft's own symbols come back as sc-sym-N, numbered after the ones
+  // already in the drawing (unless it's being replaced).
+  function renumberSymbols(root, againstDrawing) {
+    const map = new Map();
+    const taken = new Set([...root.querySelectorAll('[id]')].map((el) => el.id));
+    for (const s of root.querySelectorAll('symbol[id^="sc-sym-"]')) {
+      if (/^sc-sym-\d+$/.test(s.id) && !(againstDrawing && document.getElementById(s.id))) continue;
+      let n = 1;
+      while (taken.has(`sc-sym-${n}`) || (againstDrawing && document.getElementById(`sc-sym-${n}`)))
+        n++;
+      taken.add(`sc-sym-${n}`);
+      map.set(s.id, `sc-sym-${n}`);
+      s.id = `sc-sym-${n}`;
     }
+    renameRefs([root], map);
   }
 
   const INHERITED = [
@@ -6724,7 +6828,15 @@
     sanitize(root);
     inlineStyles(root);
     inheritRootPaint(root);
+    // Sprite sheets keep their symbols at the top level: they belong in defs.
+    const syms = [...root.children].filter((c) => c.localName === 'symbol');
+    if (syms.length) {
+      let d = [...root.children].find((c) => c.localName === 'defs');
+      if (!d) root.prepend((d = xml.createElementNS(NS, 'defs')));
+      d.append(...syms);
+    }
     dedupeIds(root, dedupe);
+    renumberSymbols(root, dedupe);
     const vb = (root.getAttribute('viewBox') || '').split(/[\s,]+/).map(Number);
     const num = (v) => (v && !String(v).endsWith('%') ? parseFloat(v) : NaN);
     let [minX, minY, w, h] =
@@ -6755,7 +6867,11 @@
 
   // Every family named by a text layer or one of its runs.
   const docFamilies = () =>
-    [...doc.querySelectorAll('text, tspan[font-family]')].map((el) =>
+    [
+      ...doc.querySelectorAll('text, tspan[font-family]'),
+      ...(iso ? iso.back.querySelectorAll('text, tspan[font-family]') : []),
+      ...defs.querySelectorAll(':scope > symbol text, :scope > symbol tspan[font-family]'),
+    ].map((el) =>
       el.localName === 'text' ? typeFrom(el).family : fontFromCss(el.getAttribute('font-family')),
     );
   const loadDocFonts = () => docFamilies().forEach(ensureFont);
@@ -6765,6 +6881,7 @@
   function openSvg(text, name, { keepSaved = false } = {}) {
     const s = parseSvg(text, { dedupe: false });
     tools[state.tool].leave?.();
+    dropIso();
     doc.replaceChildren();
     defs.replaceChildren(...s.defs);
     const shift = s.minX || s.minY ? new DOMMatrix().translate(-s.minX, -s.minY) : null;
@@ -6788,7 +6905,7 @@
 
   function placeSvg(text, name = 'Pasted SVG') {
     const s = parseSvg(text);
-    defs.append(...s.defs);
+    defs.append(...mergeSymbols(s.defs, s.nodes));
     if (s.clip) {
       // Our own clipboard: drop the pieces back where they were, nudged.
       for (const n of s.nodes) {
@@ -6909,6 +7026,10 @@
     // Guides ride along as inert metadata, so reopening the file restores them.
     if (!selection && state.guides.length) root.setAttribute('data-sc-guides', guidesAttr());
     const nl = () => document.createTextNode('\n  ');
+    isoWrite();
+    const layers = selection ? normalizeSel(state.sel) : [...(iso ? iso.back : doc).children];
+    // A copied selection only takes the symbols it uses along.
+    const unused = selection ? unusedSymbols(layers) : new Set();
     if (defs.children.length || fontCss) {
       const d = document.createElementNS(NS, 'defs');
       if (fontCss) {
@@ -6916,11 +7037,12 @@
         st.textContent = fontCss;
         d.append(st);
       }
-      for (const c of defs.childNodes) d.append(c.cloneNode(true));
+      for (const c of defs.childNodes) if (!unused.has(c)) d.append(c.cloneNode(true));
       root.append(nl(), d);
     }
-    for (const el of selection ? normalizeSel(state.sel) : [...doc.children]) {
+    for (const el of layers) {
       const c = el.cloneNode(true);
+      for (const n of [c, ...c.querySelectorAll('[data-sc-iso]')]) n.removeAttribute('data-sc-iso');
       // A nested layer copied on its own keeps where it sits and how it looks.
       if (selection && el.parentNode !== doc) {
         setM(c, fullM(el));
@@ -7320,8 +7442,12 @@
   // or null when cancelled.
   const askDlg = $('#sc-ask');
   let askDone = null;
-  function ask(title, { value = null, text = '', ok = 'OK' } = {}) {
+  // `alt` adds a third button; choosing it resolves to 'alt'.
+  function ask(title, { value = null, text = '', ok = 'OK', alt = '' } = {}) {
     askDone?.(null);
+    const altBtn = askDlg.querySelector('[data-ask="alt"]');
+    altBtn.textContent = alt;
+    altBtn.hidden = !alt;
     $('#sc-ask-title').textContent = title;
     askDlg.querySelector('.sc-ask-text').textContent = text;
     askDlg.querySelector('.sc-ask-text').hidden = !text;
@@ -7358,6 +7484,7 @@
   });
   askDlg.querySelector('[data-ask="ok"]').addEventListener('click', askOk);
   askDlg.querySelector('[data-ask="cancel"]').addEventListener('click', () => askDone?.(null));
+  askDlg.querySelector('[data-ask="alt"]').addEventListener('click', () => askDone?.('alt'));
 
   const otherPaint = () => (state.active === 'fill' ? 'stroke' : 'fill');
 
@@ -7674,14 +7801,6 @@
   function carryDefs(nodes, prefix) {
     const out = mk('defs');
     const map = new Map();
-    const refsIn = (el) => {
-      const ids = [];
-      for (const a of el.attributes) {
-        for (const m of a.value.matchAll(/url\(\s*["']?#([^"')]+)["']?\s*\)/g)) ids.push(m[1]);
-        if (a.localName === 'href' && a.value.startsWith('#')) ids.push(a.value.slice(1));
-      }
-      return ids;
-    };
     const queue = [...nodes];
     while (queue.length) {
       const n = queue.shift();
@@ -7713,6 +7832,495 @@
         }
       }
     return out;
+  }
+
+  // Ids an element points at: url(#…) in any attribute, and href="#…".
+  function refsIn(el) {
+    const ids = [];
+    for (const a of el.attributes) {
+      for (const m of a.value.matchAll(/url\(\s*["']?#([^"')]+)["']?\s*\)/g)) ids.push(m[1]);
+      if (a.localName === 'href' && a.value.startsWith('#')) ids.push(a.value.slice(1));
+    }
+    return ids;
+  }
+
+  // ---- symbols (Illustrator's Symbols panel) ---------------------------------------
+  // Object → Make Symbol turns the selection into a <symbol id="sc-sym-N"
+  // data-name="…" overflow="visible"> in defs, its content in document
+  // coordinates, and leaves one instance — a <use href="#sc-sym-N"> with no
+  // transform — in its place, so nothing moves. Instances are ordinary layers:
+  // their own transform, opacity, blend, effects and locks sit on the <use>.
+  // Paint set on an instance only reaches content that doesn't set its own.
+  //
+  // Edit Symbol works in place, as Illustrator's isolation mode does: the
+  // drawing's layers are set aside behind (dimmed, out of reach), the symbol's
+  // content is laid out as top-level layers where the instance was, and every
+  // change is written straight back into the <symbol>, so the other instances
+  // follow as you go. Done (or Esc) puts the drawing back. History always
+  // records the real drawing (snapshot() writes the symbol back first).
+  const SYM_DRAG = 'application/x-svgcraft-symbol';
+  const hrefOf = (u) => u.getAttribute('href') ?? u.getAttributeNS(XLINK, 'href');
+  const symList = () => [...defs.querySelectorAll(':scope > symbol')];
+  const symName = (s) => s.getAttribute('data-name') || s.id;
+  const symById = (id) => symList().find((s) => s.id === id) || null;
+
+  // The symbol a <use> instance draws, or null.
+  function symbolOf(el) {
+    if (el?.localName !== 'use') return null;
+    const m = /^#(.+)$/.exec(hrefOf(el) || '');
+    const s = m && document.getElementById(m[1]);
+    return s?.localName === 'symbol' && defs.contains(s) ? s : null;
+  }
+  // Where an instance draws its symbol's content: its transform, then x / y.
+  const useM = (u) =>
+    getM(u).translate(parseFloat(u.getAttribute('x')) || 0, parseFloat(u.getAttribute('y')) || 0);
+
+  // Every instance of sym: in the drawing and inside other symbols.
+  function allUses(sym) {
+    const roots = [doc, iso?.back, ...symList().filter((s) => s !== iso?.sym)].filter(Boolean);
+    return roots.flatMap((r) => [...r.querySelectorAll('use')]).filter((u) => symbolOf(u) === sym);
+  }
+
+  // Does symbol a draw symbol b (being it, or through instances inside it)?
+  function symUses(a, b, seen = new Set()) {
+    if (a === b) return true;
+    if (seen.has(a)) return false;
+    seen.add(a);
+    return [...a.querySelectorAll('use')].some((u) => {
+      const s = symbolOf(u);
+      return s && symUses(s, b, seen);
+    });
+  }
+
+  // Defs that symbols (and, while editing one, the layers set aside) point
+  // at. The per-shape syncing only sees #sc-doc; these must survive it.
+  function keptIds() {
+    const ids = new Set();
+    const queue = symList().filter((s) => s !== iso?.sym);
+    if (iso) queue.push(iso.back);
+    while (queue.length) {
+      const r = queue.shift();
+      for (const el of [r, ...r.querySelectorAll('*')])
+        for (const id of refsIn(el)) {
+          if (ids.has(id)) continue;
+          ids.add(id);
+          const d = document.getElementById(id);
+          if (d && defs.contains(d) && d.localName !== 'symbol') queue.push(d);
+        }
+    }
+    return ids;
+  }
+
+  // The symbols none of the layers use (directly or through other symbols).
+  function unusedSymbols(layers) {
+    const used = new Set();
+    const queue = [...layers];
+    while (queue.length) {
+      const r = queue.shift();
+      for (const u of [r, ...r.querySelectorAll('use')]) {
+        const s = symbolOf(u);
+        if (s && !used.has(s)) {
+          used.add(s);
+          queue.push(s);
+        }
+      }
+    }
+    return new Set(symList().filter((s) => !used.has(s)));
+  }
+
+  // Pasting copies of the drawing's own symbols reuses them instead of piling
+  // up duplicates: an incoming symbol with the same name and content (ids,
+  // which an import renames, aside) becomes the one already here.
+  const symKey = (s) =>
+    `${s.getAttribute('data-name') || ''}|${s.innerHTML
+      .replace(/\sid="[^"]*"/g, '')
+      .replace(/sc-[a-z]+-\d+(?:-\d+)*/g, '#')}`;
+  function mergeSymbols(incoming, nodes) {
+    const have = new Map(symList().map((s) => [symKey(s), s]));
+    const map = new Map();
+    const keep = [];
+    for (const d of incoming) {
+      const same = d.localName === 'symbol' && have.get(symKey(d));
+      if (same) map.set(d.id, same.id);
+      else keep.push(d);
+    }
+    renameRefs([...nodes, ...keep.filter((d) => d.nodeType === 1)], map);
+    return keep;
+  }
+
+  // Give copied content ids of its own, and copies (under fresh ids) of the
+  // defs it points at — gradients, patterns, filters, clips — so editing the
+  // copy can't change the original. Symbols stay shared: an instance inside
+  // stays an instance.
+  function freshIds(nodes) {
+    const map = new Map();
+    const taken = new Set();
+    const fresh = (id) => {
+      const base = /^(sc-[a-z]+)-\d+(?:-\d+)*$/.exec(id)?.[1] || id;
+      let n = base === id ? 2 : 1;
+      while (document.getElementById(`${base}-${n}`) || taken.has(`${base}-${n}`)) n++;
+      taken.add(`${base}-${n}`);
+      return `${base}-${n}`;
+    };
+    for (const n of nodes)
+      for (const el of [n, ...n.querySelectorAll('[id]')])
+        if (el.id) {
+          const nid = fresh(el.id);
+          map.set(el.id, nid);
+          el.id = nid;
+        }
+    const clones = [];
+    const queue = [...nodes];
+    while (queue.length) {
+      const n = queue.shift();
+      for (const el of [n, ...n.querySelectorAll('*')])
+        for (const id of refsIn(el)) {
+          if (map.has(id)) continue;
+          const src = document.getElementById(id);
+          if (!src || !defs.contains(src) || src.closest('symbol')) continue;
+          const c = src.cloneNode(true);
+          const nid = fresh(id);
+          map.set(id, nid);
+          c.id = nid;
+          defs.append(c);
+          clones.push(c);
+          queue.push(c);
+        }
+    }
+    renameRefs([...nodes, ...clones], map);
+  }
+
+  // The symbol the panel acts on: the one clicked there, else the selected
+  // instance's.
+  let symSel = null;
+  function panelSymbol() {
+    return symById(symSel) || state.sel.map(symbolOf).find(Boolean) || null;
+  }
+
+  // Object → Make Symbol…
+  async function makeSymbol() {
+    const els = normalizeSel(state.sel);
+    if (!els.length) return say('Select the artwork to turn into a symbol.');
+    if (refuseLocked(els, 'edit')) return;
+    const name = await ask('Make Symbol', {
+      value: `Symbol ${symList().length + 1}`,
+      text: 'The selection becomes a symbol in the Symbols panel, and an instance of it takes its place.',
+      ok: 'Make',
+    });
+    if (!name || !els.every((el) => doc.contains(el))) return;
+    const sym = mk(
+      'symbol',
+      { id: newDefId('sc-sym'), 'data-name': name.slice(0, 80), overflow: 'visible' },
+      defs,
+    );
+    for (const el of els) {
+      const c = el.cloneNode(true);
+      setM(c, fullM(el));
+      bakeInherited(el, c);
+      sym.append(c);
+    }
+    const u = mk('use', { href: `#${sym.id}`, 'data-name': symName(sym) });
+    els.at(-1).after(u);
+    setM(u, parentM(u).inverse());
+    for (const el of els) el.remove();
+    symSel = sym.id;
+    setSel([u]);
+    commit();
+    say(`Made the symbol “${symName(sym)}”. Place more instances from the Symbols panel.`);
+  }
+
+  const viewCentre = () => {
+    const r = stage.getBoundingClientRect();
+    return toDoc({ clientX: r.left + r.width / 2, clientY: r.top + r.height / 2 });
+  };
+
+  // A new instance, centred on `at` (the middle of the view by default).
+  function placeSymbol(sym = panelSymbol(), at = viewCentre()) {
+    if (!sym) return say('Click a symbol in the Symbols panel first.');
+    if (iso && symUses(sym, iso.sym)) return say('A symbol can’t hold an instance of itself.');
+    const u = mk('use', { href: `#${sym.id}`, 'data-name': symName(sym) }, doc);
+    const b = bboxDoc(u);
+    if (b) setM(u, new DOMMatrix().translate(at.x - (b.x + b.w / 2), at.y - (b.y + b.h / 2)));
+    if (state.tool !== 'select') setTool('select');
+    setSel([u]);
+    commit();
+    return u;
+  }
+
+  // Object → Break Link to Symbol: instances become ordinary groups.
+  function breakOne(u) {
+    const sym = symbolOf(u);
+    const g = mk('g');
+    for (const a of [...u.attributes])
+      if (
+        !['href', 'x', 'y', 'width', 'height', 'id', 'transform', 'data-sc-iso'].includes(
+          a.localName,
+        )
+      )
+        g.setAttributeNS(a.namespaceURI, a.name, a.value);
+    if (!g.hasAttribute('data-name')) g.setAttribute('data-name', symName(sym));
+    setM(g, useM(u));
+    const kids = [...sym.children].map((c) => c.cloneNode(true));
+    freshIds(kids);
+    g.append(...kids);
+    u.replaceWith(g);
+    return g;
+  }
+  function breakSymbolLink() {
+    const els = normalizeSel(state.sel).filter(symbolOf);
+    if (!els.length) return say('Select a symbol instance to break its link.');
+    if (refuseLocked(els, 'edit')) return;
+    const out = new Map(els.map((u) => [u, breakOne(u)]));
+    setSel(state.sel.map((el) => out.get(el) || el));
+    commit();
+    say(`Broke the link of ${els.length} instance${els.length === 1 ? '' : 's'}.`);
+  }
+
+  async function renameSymbol(sym = panelSymbol()) {
+    if (!sym) return say('Click a symbol in the Symbols panel first, then rename it.');
+    const old = symName(sym);
+    const name = (await ask('Rename symbol', { value: old, ok: 'Rename' }))?.slice(0, 80);
+    if (!name || name === old || !sym.isConnected) return;
+    sym.setAttribute('data-name', name);
+    // Instances still called after the symbol follow its new name.
+    for (const u of allUses(sym))
+      if (u.getAttribute('data-name') === old) u.setAttribute('data-name', name);
+    if (iso?.sym === sym) $('#sc-iso-name').textContent = name;
+    commit();
+  }
+
+  // Delete a symbol; its instances (if any) either become ordinary groups
+  // or go with it.
+  async function deleteSymbol(sym = panelSymbol()) {
+    if (!sym) return say('Click a symbol in the Symbols panel first, then delete it.');
+    const uses = allUses(sym).filter((u) => !sym.contains(u));
+    let how = 'delete';
+    if (uses.length) {
+      const n = uses.length;
+      const r = await ask(`Delete “${symName(sym)}”?`, {
+        text: `It has ${n} instance${n === 1 ? '' : 's'}. Break their links (they stay, as ordinary groups) or delete them too?`,
+        ok: 'Break Links',
+        alt: 'Delete Instances',
+      });
+      if (!r || !sym.isConnected) return;
+      how = r === 'alt' ? 'delete' : 'break';
+    }
+    exitIso();
+    const live = allUses(sym).filter((u) => !sym.contains(u));
+    if (
+      refuseLocked(
+        live.filter((u) => doc.contains(u)),
+        'edit',
+      )
+    )
+      return;
+    const out = new Map();
+    for (const u of live)
+      if (how === 'break') out.set(u, breakOne(u));
+      else u.remove();
+    const name = symName(sym);
+    sym.remove();
+    if (symSel === sym.id) symSel = null;
+    state.sel = state.sel.map((el) => out.get(el) || el).filter((el) => doc.contains(el));
+    commit();
+    say(
+      !live.length
+        ? `Deleted the symbol “${name}”.`
+        : how === 'break'
+          ? `Deleted “${name}”; its instances are groups now.`
+          : `Deleted “${name}” and its instances.`,
+    );
+  }
+
+  // Object → Edit Symbol (or the panel's button): the selected instance, else
+  // the panel's symbol at its first instance (placing one if there's none).
+  function editSymbol() {
+    const inst = state.sel.find(symbolOf);
+    if (inst) return enterIso(inst);
+    const sym = panelSymbol();
+    if (!sym) return say('Select an instance, or click a symbol in the Symbols panel, to edit it.');
+    if (iso) return say('Finish editing this symbol first: Done, or Esc.');
+    enterIso([...doc.querySelectorAll('use')].find((u) => symbolOf(u) === sym) || placeSymbol(sym));
+  }
+
+  function enterIso(inst, quiet = false) {
+    const sym = symbolOf(inst);
+    if (!sym || !doc.contains(inst)) return;
+    if (iso) return say('Finish editing this symbol first: Done, or Esc.');
+    if (!quiet) {
+      if (refuseLocked([inst], 'edit')) return;
+      tools[state.tool].leave?.();
+      if (state.tf) endTransform(true);
+    }
+    const M = parentM(inst).multiply(useM(inst));
+    const path = treePath(inst);
+    const back = mk('g', { id: 'sc-iso-back', 'aria-hidden': 'true' });
+    doc.before(back);
+    inst.setAttribute('data-sc-iso', '');
+    back.append(...doc.childNodes);
+    for (const c of sym.children) {
+      const k = c.cloneNode(true);
+      if (k instanceof SVGGraphicsElement) setM(k, M.multiply(getM(c)));
+      doc.append(k);
+    }
+    iso = { sym, M, back, inst, path };
+    state.sel = [];
+    $('#sc-iso-name').textContent = symName(sym);
+    $('#sc-iso').hidden = false;
+    drawSelection();
+    renderLayers();
+    if (!quiet) say(`Editing “${symName(sym)}”: every instance follows. Done or Esc finishes.`);
+  }
+
+  // Write what's being edited back into the symbol (in its own coordinates).
+  function isoWrite() {
+    if (!iso) return;
+    const inv = iso.M.inverse();
+    const kids = [...doc.children].map((c) => {
+      const k = c.cloneNode(true);
+      if (c instanceof SVGGraphicsElement) setM(k, inv.multiply(getM(c)));
+      return k;
+    });
+    if (iso.sym.innerHTML !== kids.map((k) => k.outerHTML).join(''))
+      iso.sym.replaceChildren(...kids);
+  }
+  let isoQueued = false;
+  new MutationObserver(() => {
+    if (!iso || isoQueued) return;
+    isoQueued = true;
+    queueMicrotask(() => {
+      isoQueued = false;
+      isoWrite();
+    });
+  }).observe(doc, { subtree: true, childList: true, attributes: true, characterData: true });
+
+  // The drawing's markup, as it is with the symbol editing put away.
+  function docHtml() {
+    if (!iso) return doc.innerHTML;
+    iso.inst.removeAttribute('data-sc-iso');
+    const html = iso.back.innerHTML;
+    iso.inst.setAttribute('data-sc-iso', '');
+    return html;
+  }
+
+  // Leave symbol editing, keeping the edits.
+  function exitIso() {
+    if (!iso) return;
+    tools[state.tool].leave?.();
+    if (state.tf) endTransform(true);
+    if (!iso) return;
+    isoWrite();
+    const { back, inst } = iso;
+    doc.replaceChildren(...back.childNodes);
+    back.remove();
+    inst.removeAttribute('data-sc-iso');
+    iso = null;
+    $('#sc-iso').hidden = true;
+    state.sel = [inst];
+    const s = snapshot();
+    const h = hist[hIdx];
+    if (!h || h.d !== s.d || h.f !== s.f) commit();
+    else afterChange();
+    setSel([inst]);
+  }
+  // Drop the editing without writing anything (the drawing is being replaced).
+  function dropIso() {
+    if (!iso) return;
+    iso.back.remove();
+    iso = null;
+    $('#sc-iso').hidden = true;
+  }
+
+  // ---- the Symbols panel ----
+  let symPanelKey = null;
+  function symBox(sym) {
+    const u = mk('use', { href: `#${sym.id}`, visibility: 'hidden' }, view);
+    const b = bboxDoc(u, new DOMMatrix());
+    u.remove();
+    return b;
+  }
+  function symTile(sym) {
+    const b = document.createElement('button');
+    b.className = 'sc-sym-tile' + (symSel === sym.id ? ' sel' : '');
+    b.dataset.id = sym.id;
+    b.draggable = true;
+    b.setAttribute('aria-label', symName(sym));
+    b.dataset.tip = `${symName(sym)} · double-click to place, or drag onto the canvas`;
+    const t = mk('svg', { class: 'sc-sym-thumb', 'aria-hidden': 'true' });
+    mk('use', { href: `#${sym.id}` }, t);
+    const name = document.createElement('span');
+    name.className = 'sc-sym-name';
+    name.textContent = symName(sym);
+    b.append(t, name);
+    b.addEventListener('click', () => {
+      symSel = sym.id;
+      for (const x of b.parentNode.children) x.classList.toggle('sel', x === b);
+    });
+    b.addEventListener('dblclick', (e) => {
+      if (e.target.closest('.sc-sym-name')) renameSymbol(sym);
+      else placeSymbol(sym);
+    });
+    b.addEventListener('dragstart', (e) => {
+      symSel = sym.id;
+      e.dataTransfer.setData(SYM_DRAG, sym.id);
+      e.dataTransfer.effectAllowed = 'copy';
+    });
+    return b;
+  }
+  function renderSymbols() {
+    const grid = $('#sc-symlib');
+    const list = symList();
+    if (symSel && !symById(symSel)) symSel = null;
+    const key = list.map((s) => `${s.id}\u0001${symName(s)}`).join('\u0002');
+    if (key !== symPanelKey) {
+      symPanelKey = key;
+      if (list.length) grid.replaceChildren(...list.map(symTile));
+      else {
+        const p = document.createElement('p');
+        p.className = 'sc-sym-empty';
+        p.textContent = 'No symbols yet. Select some artwork and choose Object → Make Symbol.';
+        grid.replaceChildren(p);
+      }
+    }
+    for (const tile of grid.querySelectorAll('.sc-sym-tile')) {
+      tile.classList.toggle('sel', tile.dataset.id === symSel);
+      const box = symBox(symById(tile.dataset.id));
+      const t = tile.querySelector('svg');
+      if (!box) t.removeAttribute('viewBox');
+      else {
+        const pad = Math.max(box.w, box.h) * 0.08 + 1;
+        t.setAttribute(
+          'viewBox',
+          [box.x - pad, box.y - pad, box.w + 2 * pad, box.h + 2 * pad].map(f).join(' '),
+        );
+      }
+    }
+  }
+  function wireSymbols() {
+    for (const b of document.querySelectorAll('[data-sym-act]'))
+      b.addEventListener('click', () =>
+        ({
+          make: makeSymbol,
+          place: () => placeSymbol(),
+          edit: editSymbol,
+          break: breakSymbolLink,
+          rename: () => renameSymbol(),
+          delete: () => deleteSymbol(),
+        })[b.dataset.symAct](),
+      );
+    stage.addEventListener('dragover', (e) => {
+      if (!e.dataTransfer?.types.includes(SYM_DRAG)) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'copy';
+    });
+    stage.addEventListener('drop', (e) => {
+      const sym = symById(e.dataTransfer?.getData(SYM_DRAG));
+      if (!sym) return;
+      e.preventDefault();
+      e.stopPropagation();
+      placeSymbol(sym, toDoc(e));
+    });
+    renderSymbols();
   }
 
   function swapPaint() {
@@ -7786,7 +8394,7 @@
   function abortGesture() {
     if (gesture?.tool) {
       gesture.tool.cancel?.();
-      if (hIdx >= 0) restore(hist[hIdx]);
+      if (hIdx >= 0) restoreInIso(hist[hIdx]);
     }
     gesture = null;
   }
@@ -7993,8 +8601,10 @@
     } else if (k === 'delete' || k === 'backspace') {
       e.preventDefault();
       cmds.delete();
-    } else if (k === 'escape') setSel([]);
-    else if (TOOL_KEYS[k]) setTool(TOOL_KEYS[k]);
+    } else if (k === 'escape') {
+      if (iso) exitIso();
+      else setSel([]);
+    } else if (TOOL_KEYS[k]) setTool(TOOL_KEYS[k]);
     else if (k === 'x') swapPaint();
     else if (k === ']') cmds.forward();
     else if (k === '[') cmds.backward();
@@ -8122,6 +8732,10 @@
   const actions = {
     ...cmds,
     definePattern,
+    makeSymbol,
+    editSymbol,
+    breakSymbolLink,
+    symbolDone: () => exitIso(),
     new: newDoc,
     closeDoc: () => closeDoc(curDoc),
     open: () => openPicker('open'),
@@ -8668,6 +9282,7 @@
   wireGradEditor();
   wirePatEditor();
   wireLibraries();
+  wireSymbols();
   wireLayerStyle();
   wireScrubbers();
   bindNumber('#sc-smooth', 'smoothing');
@@ -8719,5 +9334,15 @@
     nodesD,
     shapeNodes,
     tools,
+    makeSymbol,
+    placeSymbol,
+    editSymbol: (el) => (el ? enterIso(el) : editSymbol()),
+    exitIso,
+    breakSymbolLink,
+    renameSymbol: (id) => renameSymbol(symById(id)),
+    deleteSymbol: (id) => deleteSymbol(symById(id)),
+    get iso() {
+      return iso && { symbol: iso.sym.id, instance: iso.inst };
+    },
   };
 })();

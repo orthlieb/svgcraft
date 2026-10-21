@@ -378,6 +378,48 @@ Text and images are skipped, and you get a message saying so. The geometry
 comes from [paper.js](http://paperjs.org), which loads the first time you
 combine shapes.
 
+## Symbols
+
+A symbol is artwork you reuse: draw it once, place it as often as you like,
+and change every copy at once by editing the symbol. As in Illustrator:
+
+- **Object → Make Symbol…** asks for a name and turns the selection into a
+  symbol. The selection is replaced by one _instance_ of it, exactly where
+  it was, so nothing moves on screen. Effects, gradients and patterns the
+  artwork uses go with it.
+- **The Symbols panel** (next to Properties, Character and Paragraph) shows
+  the drawing's symbols. Click one, then **Place** to add an instance in
+  the middle of the view, or double-click it, or drag it onto the canvas
+  to drop one where you let go. Rename a symbol with the pen button or by
+  double-clicking its name; instances still called after it follow the
+  new name. Deleting a symbol that has instances asks whether to **Break
+  Links** (the instances stay, as ordinary groups) or **Delete Instances**
+  too.
+- **Instances are layers like any other.** Select, move, scale, rotate,
+  flip, align, duplicate, lock, hide, set their opacity, blend mode and
+  Layer Style. The Layers panel marks them with a clover and shows the
+  symbol's name. A colour you give an instance goes onto the instance, so
+  it only shows on the parts of the symbol that don't have a colour of
+  their own; to recolour the artwork itself, edit the symbol.
+- **Edit Symbol**: double-click an instance (or use Object → Edit Symbol,
+  or the panel's nib button). The rest of the drawing dims and steps back,
+  and the symbol's artwork appears in place of that instance, ready to
+  edit with every tool. Anything you draw goes into the symbol. Every
+  other instance follows as you work. Click **Done** in the bar at the top,
+  press Esc, or double-click an empty spot to finish. Each edit is a step
+  in the drawing's undo history; undoing while you edit keeps you editing.
+- **Object → Break Link to Symbol** turns the selected instances into
+  ordinary groups of the symbol's artwork, which no longer follow the
+  symbol. They get their own copies of any gradients or effects inside.
+
+Symbols are saved as real SVG `<symbol>` and `<use>` elements, so other
+viewers draw them too. They survive saving and reopening, importing into
+another drawing (where clashing ids are renamed and the instances follow)
+and copy and paste (pasting instances of a symbol the drawing already has
+reuses it). Define Pattern on an instance takes the symbol into the tile.
+Symbols in an imported file, including the top-level `<symbol>`s of icon
+sprite sheets, show up in the panel.
+
 ## Shortcuts
 
 | Key                   | Action                                    |
@@ -408,6 +450,7 @@ same editable drawing:
 - layer names, hidden layers, locks, blend modes and opacity
 - effects, stroke align, custom dashes and per-corner radii
 - gradients, patterns, styled text runs, guides and the document size
+- symbols and their instances
 
 Each setting is stored on its element, as a `data-*` attribute
 (`data-sc-fx`, `data-sc-lock`, `data-name`, …) or as CSS, next to real SVG
