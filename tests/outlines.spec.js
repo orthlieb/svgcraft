@@ -379,3 +379,82 @@ test.describe('Create Outlines', () => {
     await expect(msg(page)).toHaveText('Select one or more text layers to create outlines.');
   });
 });
+
+test('DIAG outlines geometry', async ({ page }) => {
+  await serveFonts(page);
+  await useFace(page);
+  await load(
+    page,
+    text('t', 40, 120, 'Hello, Outlines AV', 'letter-spacing="2" fill="#1d4ed8"'),
+    400,
+    200,
+  );
+  const stats = (m) => {
+    let n = 0,
+      x1 = 1e9,
+      x2 = -1,
+      y1 = 1e9,
+      y2 = -1;
+    for (let i = 0; i < m.length; i++)
+      if (m[i] === '1') {
+        n++;
+        const x = i % 800,
+          y = (i / 800) | 0;
+        x1 = Math.min(x1, x);
+        x2 = Math.max(x2, x);
+        y1 = Math.min(y1, y);
+        y2 = Math.max(y2, y);
+      }
+    return { n, x1, x2, y1, y2 };
+  };
+  const info = await page.evaluate(() => {
+    const t = document.getElementById('t');
+    const pos = [];
+    for (let i = 0; i < t.getNumberOfChars(); i++) {
+      const p = t.getStartPositionOfChar(i);
+      pos.push(Math.round(p.x * 10) / 10);
+    }
+    return {
+      fonts: [...document.fonts].map((f) => `${f.family}/${f.weight}/${f.status}`),
+      check: document.fonts.check("48px 'Lato'"),
+      pos,
+      w: t.getComputedTextLength(),
+      bb: (({ x, y, width, height }) => [x, y, width, height])(t.getBBox()),
+      ua: navigator.userAgent,
+    };
+  });
+  console.log('DIAG before-info', JSON.stringify(info));
+  const before = await mask(page);
+  const plain = await page.evaluate(async () => {
+    const img = new Image();
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(window.svgcraft.serialize());
+    await img.decode();
+    const c = document.createElement('canvas');
+    c.width = 800;
+    c.height = 400;
+    const ctx = c.getContext('2d');
+    ctx.drawImage(img, 0, 0, 800, 400);
+    const d = ctx.getImageData(0, 0, 800, 400).data;
+    let n = 0;
+    for (let i = 3; i < d.length; i += 4) if (d[i] > 127) n++;
+    return n;
+  });
+  await select(page, 't');
+  await menu(page, 'Type', 'createOutlines');
+  await expect(msg(page)).toHaveText('Created outlines.');
+  const after = await mask(page);
+  const ob = await page.evaluate(() => {
+    const b = document.querySelector('#sc-doc > g').getBBox();
+    return [b.x, b.y, b.width, b.height].map((v) => Math.round(v * 10) / 10);
+  });
+  console.log(
+    'DIAG masks',
+    JSON.stringify({
+      before: stats(before),
+      after: stats(after),
+      plainNoFontCssCount: plain,
+      iou: iou(before, after),
+      outlineBBox: ob,
+    }),
+  );
+});
