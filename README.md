@@ -233,6 +233,13 @@ The Layers panel works like Photoshop's:
   align, distribute, duplicate, copy, colours, the eraser and point editing
   all work on a layer inside a group, so you never have to ungroup first.
 
+## Tooltips
+
+Hover over any button for a tooltip. Tools also show a one-line description
+of what they do. Tooltips float above everything, panels and menus
+included, and fade after three seconds. Tabbing to a button shows its tip
+too, and on a touch screen a tap shows it briefly.
+
 ## Combine Shapes
 
 Object → Combine Shapes, or the four buttons in the Move tool's options
