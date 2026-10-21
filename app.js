@@ -1219,12 +1219,28 @@
     attributeFilter: [...SA_GEOM, 'data-sc-fx', 'transform', 'stroke-width', 'font-size', 'x', 'y'],
   });
 
-  // Blend mode (Photoshop's Layers-panel menu) is CSS mix-blend-mode on the layer.
-  const blendOf = (el) => el.style?.mixBlendMode || 'normal';
+  // Blend mode (Photoshop's Layers-panel menu) is CSS mix-blend-mode on the
+  // layer. Groups also have Photoshop's Pass Through, their default: nothing
+  // set, so their layers blend with what's below the group. A group set to
+  // Normal is isolated (CSS isolation), so its layers blend only with each
+  // other; any other mode isolates it anyway.
+  const isGroupLayer = (el) => el?.localName === 'g';
+  function blendOf(el) {
+    const m = el.style?.mixBlendMode;
+    if (m && m !== 'normal') return m;
+    if (!isGroupLayer(el)) return 'normal';
+    return el.style?.isolation === 'isolate' ? 'normal' : 'pass-through';
+  }
   function setBlend(el, mode) {
-    if (!mode || mode === 'normal') el.style.removeProperty('mix-blend-mode');
-    else el.style.mixBlendMode = mode;
+    el.style.removeProperty('mix-blend-mode');
+    el.style.removeProperty('isolation');
+    if (mode === 'normal' && isGroupLayer(el)) el.style.isolation = 'isolate';
+    else if (mode && mode !== 'normal' && mode !== 'pass-through') el.style.mixBlendMode = mode;
     if (!el.getAttribute('style')) el.removeAttribute('style');
+  }
+  // Pass Through is only offered for groups.
+  function showPassThrough(select, el) {
+    select.querySelector('[value="pass-through"]').hidden = !isGroupLayer(el);
   }
 
   function applyStyle(el, key) {
@@ -1370,8 +1386,15 @@
     const [x, y, w, h] = (el.getAttribute('data-rect') || '').split(' ').map(Number);
     return { x, y, w, h };
   }
+  // A path is a rounded rectangle only while data-rect holds a real x y w h
+  // (a hand-edited or damaged file may not).
   const isCornerShape = (el) =>
-    el && (el.localName === 'rect' || (el.localName === 'path' && el.hasAttribute('data-rect')));
+    el &&
+    (el.localName === 'rect' ||
+      (el.localName === 'path' &&
+        /^\s*(-?[\d.]+(e-?\d+)?\s+){3}-?[\d.]+(e-?\d+)?\s*$/i.test(
+          el.getAttribute('data-rect') || '',
+        )));
   function getRadii(el) {
     if (el.localName === 'rect') {
       const r = el.hasAttribute('rx')
@@ -2475,6 +2498,7 @@
   function syncLayerHead() {
     const el = state.sel[0];
     const blend = $('#sc-blend');
+    showPassThrough(blend, el);
     blend.value = el ? blendOf(el) : 'normal';
     const lock = el?.getAttribute('data-sc-lock') || null;
     for (const b of document.querySelectorAll('[data-lock]'))
@@ -6057,6 +6081,7 @@
       blend: blendOf(els[0]),
       opacity: Math.round((parseFloat(getComputedStyle(els[0]).opacity) || 0) * 100),
     };
+    showPassThrough(fxDlg.querySelector('[data-fx="blend"]'), els[0]);
     const first = FX_PAGES.find((k) => fxSess.fx[k].on);
     showFxPage(page || first || 'ds');
     fxDlg.hidden = false;

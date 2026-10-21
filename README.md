@@ -310,8 +310,14 @@ The Layers panel works like Photoshop's:
 - **Blend mode and Opacity** at the top of the panel, as in Photoshop:
   Normal, Darken, Multiply, Color Burn, Lighten, Screen, Color Dodge,
   Overlay, Soft Light, Hard Light, Difference, Exclusion, Hue, Saturation,
-  Color and Luminosity. They're saved as the layer's CSS `mix-blend-mode`,
-  which browsers apply to exported SVGs too.
+  Color and Luminosity, plus **Pass Through** for groups. Blend mode and
+  opacity belong to a layer, and a group is a layer: on a group they
+  apply to the group as a whole. As in Photoshop, a group starts out on
+  Pass Through, so its layers blend with whatever is below the group.
+  Setting the group to Normal isolates it, so its layers blend only with
+  each other; any other mode isolates it too. They're saved as the
+  layer's CSS (`mix-blend-mode`, `isolation`), which browsers apply to
+  exported SVGs too.
 - **Lock**: **Lock position** stops the layer moving, scaling, rotating,
   flipping, nudging and aligning. **Lock all** stops every change: paint,
   styles, blend mode, point and text edits, deleting and erasing. Locked
@@ -387,6 +393,29 @@ combine shapes.
 | X                     | Swap fill and stroke                      |
 | + − 0 1               | Zoom in / out · fit · 100%                |
 | Ctrl+S · Ctrl+O       | Save as SVG · open                        |
+
+## What the saved SVG keeps
+
+Save as SVG writes everything you set in Svgcraft into the file itself, so
+opening it again, or importing it into another drawing, gives back the
+same editable drawing:
+
+- layer names, hidden layers, locks, blend modes and opacity
+- effects, stroke align, custom dashes and per-corner radii
+- gradients, patterns, styled text runs, guides and the document size
+
+Each setting is stored on its element, as a `data-*` attribute
+(`data-sc-fx`, `data-sc-lock`, `data-name`, …) or as CSS, next to real SVG
+(`<filter>`, `<pattern>`, `<clipPath>`). Other viewers ignore the
+attributes but still draw the file correctly. Editors keep attributes with
+their element, which comments wouldn't survive. An optimiser told to strip
+`data-*` attributes keeps the look but loses the editable settings.
+
+Not saved in the file: undo history and the view (they stay with the
+browser's open tabs), and the Swatches / Gradients / Patterns libraries
+(Export Library saves those).
+
+`tests/roundtrip.spec.js` checks all of this.
 
 ## Development
 

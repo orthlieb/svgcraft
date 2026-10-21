@@ -261,6 +261,44 @@ test.describe('blend modes', () => {
   });
 });
 
+test.describe('Pass Through (groups)', () => {
+  // A cyan layer set to Multiply inside a group, over a yellow background.
+  const GROUPED =
+    '<rect width="400" height="300" fill="#ffff00"/>' +
+    '<g id="g"><rect id="a" x="100" y="100" width="100" height="100" fill="#00ffff" style="mix-blend-mode: multiply;"/></g>';
+
+  test('is offered for groups only, and is their default', async ({ page }) => {
+    await load(page, GROUPED, 400, 300);
+    await select(page, 'g');
+    await expect(page.locator('#sc-blend')).toHaveValue('pass-through');
+    await expect(page.locator('#sc-blend option[value="pass-through"]')).not.toHaveAttribute(
+      'hidden',
+      '',
+    );
+    await select(page, 'a');
+    await expect(page.locator('#sc-blend option[value="pass-through"]')).toHaveAttribute(
+      'hidden',
+      '',
+    );
+    await expect(page.locator('#sc-blend')).toHaveValue('multiply');
+  });
+
+  test('Pass Through lets layers blend below the group; Normal isolates it', async ({ page }) => {
+    await load(page, GROUPED, 400, 300);
+    // Pass Through: cyan × yellow = green.
+    let [[r, g, b]] = await pixels(page, [[150, 150]]);
+    expect([r, g, b]).toEqual([0, 255, 0]);
+    await select(page, 'g');
+    await page.selectOption('#sc-blend', 'normal');
+    expect(await attr(page, 'g', 'style')).toContain('isolation: isolate');
+    // Isolated: the multiply only meets the group's own (empty) backdrop.
+    [[r, g, b]] = await pixels(page, [[150, 150]]);
+    expect([r, g, b]).toEqual([0, 255, 255]);
+    await page.selectOption('#sc-blend', 'pass-through');
+    expect(await attr(page, 'g', 'style')).toBeNull();
+  });
+});
+
 test.describe('layer locks', () => {
   const box = (page, id) =>
     page.evaluate((id) => {
