@@ -105,7 +105,7 @@ test.describe('Create Outlines', () => {
     );
     const before = await mask(page);
     await select(page, 't');
-    await menu(page, 'Object', 'createOutlines');
+    await menu(page, 'Type', 'createOutlines');
     await expect(msg(page)).toHaveText('Created outlines.');
     expect(hits).toEqual(['lato@latest/latin-400-normal.woff']);
 
@@ -215,7 +215,7 @@ test.describe('Create Outlines', () => {
     await page.evaluate(() => new Promise((r) => setTimeout(r, 0)));
     const before = await mask(page);
     await select(page, 't', 'h');
-    await menu(page, 'Object', 'createOutlines');
+    await menu(page, 'Type', 'createOutlines');
     await expect(msg(page)).toHaveText('Created outlines for 2 text layers.');
     const out = await page.evaluate(() =>
       [...document.querySelectorAll('#sc-doc > g')].map((g) => ({
@@ -362,7 +362,7 @@ test.describe('Create Outlines', () => {
   test('needs a text layer', async ({ page }) => {
     await load(page, '<rect id="r" width="10" height="10"/>', 400, 200);
     await select(page, 'r');
-    await menu(page, 'Object', 'createOutlines');
+    await menu(page, 'Type', 'createOutlines');
     await expect(msg(page)).toHaveText('Select one or more text layers to create outlines.');
   });
 });

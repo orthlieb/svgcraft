@@ -74,7 +74,7 @@ const info = (page, id = 't') =>
 
 async function make(page) {
   await select(page, 't', 'arc');
-  await menu(page, 'Object', 'textOnPath');
+  await menu(page, 'Type', 'textOnPath');
   await tick(page);
 }
 
@@ -253,7 +253,7 @@ test('Character panel changes restyle the whole text and keep it on the path', a
 
 test('Release Text on Path gives back one line of point text at the start', async ({ page }) => {
   await make(page);
-  await menu(page, 'Object', 'releaseTextOnPath');
+  await menu(page, 'Type', 'releaseTextOnPath');
   await tick(page);
   const i = await info(page);
   expect(i).toMatchObject({ tp: false, link: null, lines: 1, text: 'HELLO CURVED WORLD' });
@@ -262,7 +262,7 @@ test('Release Text on Path gives back one line of point text at the start', asyn
   await expect(page.locator('#sc-defs path[data-sc-tp]')).toHaveCount(0);
   expect((await darkness(page)).inside).toBeGreaterThan(300);
   await select(page, 't');
-  await menu(page, 'Object', 'releaseTextOnPath');
+  await menu(page, 'Type', 'releaseTextOnPath');
   await expect(msg(page)).toHaveText('Select a text-on-path layer to release.');
 });
 
@@ -381,13 +381,13 @@ test('deleting the path keeps the text where it was', async ({ page }) => {
 
 test('refusals and locks', async ({ page }) => {
   await select(page, 't');
-  await menu(page, 'Object', 'textOnPath');
+  await menu(page, 'Type', 'textOnPath');
   await expect(msg(page)).toHaveText(/Select one text layer and one path or shape/);
   await select(page, 't', 'arc', 'bg');
-  await menu(page, 'Object', 'textOnPath');
+  await menu(page, 'Type', 'textOnPath');
   await expect(msg(page)).toHaveText(/Select one text layer and one path or shape/);
   await select(page, 'arc', 'bg');
-  await menu(page, 'Object', 'textOnPath');
+  await menu(page, 'Type', 'textOnPath');
   await expect(msg(page)).toHaveText(/Select one text layer and one path or shape/);
   expect((await info(page)).tp).toBe(false);
 
@@ -405,6 +405,6 @@ test('refusals and locks', async ({ page }) => {
   await page.press('#sc-tp-offset', 'Enter');
   await expect(msg(page)).toHaveText(/is locked/);
   expect((await info(page)).offset).toBe('0%');
-  await menu(page, 'Object', 'releaseTextOnPath');
+  await menu(page, 'Type', 'releaseTextOnPath');
   expect((await info(page)).tp).toBe(true);
 });

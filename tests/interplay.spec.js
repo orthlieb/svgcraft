@@ -73,7 +73,7 @@ test('a text on a path made into a symbol keeps following its path', async ({ pa
     300,
   );
   await select(page, 't', 'arc');
-  await menu(page, 'Object', 'textOnPath');
+  await menu(page, 'Type', 'textOnPath');
   await tick(page);
   const tp = await page.locator('#sc-defs path[data-sc-tp]').count();
   expect(tp).toBe(1);

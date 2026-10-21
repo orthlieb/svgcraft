@@ -5289,6 +5289,10 @@
     $('[data-tab="character"]').click();
     $('#sc-panel').classList.add('open');
   }
+  function showParagraphPanel() {
+    $('[data-tab="paragraph"]').click();
+    $('#sc-panel').classList.add('open');
+  }
 
   // Raster of the artboard for pixel sampling, rebuilt lazily after edits.
   let rasterJob = null;
@@ -10403,6 +10407,8 @@
     themeLight: () => setTheme('light'),
     toggleTheme: () => setTheme(isDark() ? 'light' : 'dark'),
     showCharacter: showCharacterPanel,
+    showParagraph: showParagraphPanel,
+    convertTextKind,
     combineUnite: () => combineShapes('unite'),
     combineSubtract: () => combineShapes('subtract'),
     combineIntersect: () => combineShapes('intersect'),

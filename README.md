@@ -23,7 +23,7 @@ slide in from the right (the sliders button).
 
 The layout follows Photoshop:
 
-- **Menu bar**: File, Edit, Image, Object, Select and View menus. Click to open, hover to
+- **Menu bar**: File, Edit, Image, Object, Type, Select and View menus. Click to open, hover to
   switch between them, and use the arrow keys to move around.
 - **Options bar**: settings for the current tool, such as stroke width and
   smoothing for the pencil, mode and size for the eraser, or the point
@@ -282,7 +282,7 @@ The Type tool (T) works like Photoshop's:
   `<tspan>` per line and a nested `<tspan>` per styled run, with the
   settings in standard attributes. The type
   details survive export and import, and other editors can read the file.
-- **Create Outlines.** Object → Create Outlines turns text into shapes
+- **Create Outlines.** Type → Create Outlines turns text into shapes
   (see below).
 - **Limits.** No Warp Text yet. Undo while
   typing covers the typing itself; character-style changes are undone as
@@ -292,7 +292,7 @@ The Type tool (T) works like Photoshop's:
 
 Illustrator's Type on a Path. Select one text layer and one path or shape
 (path, rectangle, ellipse, circle, polygon, polyline or line; Shift-click
-both), then choose **Object → Text on Path**, or **Put Text on Path** in
+both), then choose **Type → Text on Path**, or **Put Text on Path** in
 the Properties panel.
 
 - **One line along the path.** The text's lines are joined into one, with
@@ -316,7 +316,7 @@ the Properties panel.
   options-bar changes (font, size, tracking, colour, caps…) apply to the
   whole text and keep it on the path. Paragraph settings that need lines
   (box width, Convert to Paragraph Text) don't apply.
-- **Release.** **Object → Release Text on Path** (or the Properties button)
+- **Release.** **Type → Release Text on Path** (or the Properties button)
   turns it back into one line of point text, placed where it started on
   the path.
 - **If the path layer is deleted**, the text keeps the last shape it ran
@@ -451,7 +451,7 @@ still live when you open it again.
 
 ## Create Outlines
 
-Object → Create Outlines (Ctrl+Shift+O), Illustrator's Create Outlines and
+Type → Create Outlines (Ctrl+Shift+O), Illustrator's Create Outlines and
 Photoshop's Convert to Shape, turns the selected text layers (or the text
 inside selected groups) into filled paths that look exactly like the text
 did, so the drawing no longer needs the fonts and the letters can be
