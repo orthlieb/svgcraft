@@ -286,6 +286,49 @@ The Type tool (T) works like Photoshop's:
   typing covers the typing itself; character-style changes are undone as
   part of the finished edit.
 
+## Text on a path
+
+Illustrator's Type on a Path. Select one text layer and one path or shape
+(path, rectangle, ellipse, circle, polygon, polyline or line; Shift-click
+both), then choose **Object → Text on Path**, or **Put Text on Path** in
+the Properties panel.
+
+- **One line along the path.** The text's lines are joined into one, with
+  a space where each line break was. Its fonts, per-character styles, fill,
+  effects, blend mode, lock and name stay. The path layer stays where it is
+  and keeps its own paint, so give it no stroke, or hide it, if you only
+  want the text.
+- **Live.** Move, rotate, scale or point-edit the path layer, or the group
+  it's in, and the text re-flows along it straight away. The text follows
+  the path, so moving the text layer on its own leaves it on the path.
+- **Options.** With a text-on-path layer selected, the Properties panel
+  shows **Start** (where the text starts along the path, in percent),
+  **Align** (text starts at, is centred on, or ends at that point; picking
+  one also sets Start to 0, 50 or 100%) and **Flip**, which puts the text on
+  the other side of the path, running the other way. On a closed shape the
+  text starts where the shape does: an ellipse's or circle's right-hand
+  point, a rectangle's top-left corner.
+- **Editing.** Double-click the text with Move, or click it with the Type
+  tool, to change the words. It's edited as one straight line where it
+  starts on the path; Enter or clicking away finishes. Character panel and
+  options-bar changes (font, size, tracking, colour, caps…) apply to the
+  whole text and keep it on the path. Paragraph settings that need lines
+  (box width, Convert to Paragraph Text) don't apply.
+- **Release.** **Object → Release Text on Path** (or the Properties button)
+  turns it back into one line of point text, placed where it started on
+  the path.
+- **If the path layer is deleted**, the text keeps the last shape it ran
+  along and stays where it was, so nothing jumps or disappears. Release it
+  to make it ordinary text again.
+- **In the file.** The text is a standard `<text>` with a `<textPath>`
+  pointing at a copy of the path's shape in `<defs>` (SVG ignores the
+  referenced path's own transform, so the copy is kept in the text's
+  coordinates), plus `data-sc-textpath` naming the path layer's id. The
+  path layer gets an id if it had none. The link survives Save as SVG →
+  reopen, Import and paste (ids that clash are renamed and the link
+  follows), undo and Duplicate: duplicating the text with its path links
+  the copy to the copied path.
+
 ## Layers
 
 The Layers panel works like Photoshop's:
@@ -435,7 +478,8 @@ same editable drawing:
 - layer names, hidden layers, locks, blend modes and opacity
 - effects, stroke align, custom dashes and per-corner radii
 - clipping masks, still live and editable
-- gradients, patterns, styled text runs, guides and the document size
+- gradients, patterns, styled text runs, text on a path, guides and the
+  document size
 
 Each setting is stored on its element, as a `data-*` attribute
 (`data-sc-fx`, `data-sc-lock`, `data-name`, …) or as CSS, next to real SVG

@@ -220,6 +220,12 @@
                 </button>
               </div>
             </div>
+            <button role="menuitem" data-action="textOnPath">
+              <i data-icon="bezier-curve"></i><span>Text on Path</span>
+            </button>
+            <button role="menuitem" data-action="releaseTextOnPath">
+              <i></i><span>Release Text on Path</span>
+            </button>
             <hr />
             <span class="sc-menu-label">Align</span>
             <button role="menuitem" data-action="alignLeft">
@@ -2004,6 +2010,67 @@
               <p class="sc-hint">
                 Or drag the round handles inside the corners. Alt-drag moves one corner.
               </p>
+            </div>
+            <div class="sc-tp-props" id="sc-tp-props" hidden>
+              <span class="sc-subhead">Text on Path</span>
+              <button class="sc-tbtn sc-wide" id="sc-tp-make">Put Text on Path</button>
+              <div id="sc-tp-opts">
+                <div class="sc-prop-rows">
+                  <span class="sc-opt-label">Start</span
+                  ><label
+                    class="sc-field sc-field-bare"
+                    data-tip="Where the text starts along the path"
+                    ><input
+                      type="number"
+                      id="sc-tp-offset"
+                      min="0"
+                      max="100"
+                      step="1"
+                      aria-label="Start offset"
+                    /><span class="sc-unit">%</span></label
+                  >
+                  <span class="sc-opt-label">Align</span>
+                  <div class="sc-seg sc-seg-icons" role="radiogroup" aria-label="Align on path">
+                    <button
+                      data-tp-align="start"
+                      role="radio"
+                      aria-label="Start of the path"
+                      data-tip="Text starts at the path’s start"
+                    >
+                      <i data-icon="align-left"></i>
+                    </button>
+                    <button
+                      data-tp-align="middle"
+                      role="radio"
+                      aria-label="Centre of the path"
+                      data-tip="Text centred on the path"
+                    >
+                      <i data-icon="align-center"></i>
+                    </button>
+                    <button
+                      data-tp-align="end"
+                      role="radio"
+                      aria-label="End of the path"
+                      data-tip="Text ends at the path’s end"
+                    >
+                      <i data-icon="align-right"></i>
+                    </button>
+                  </div>
+                  <span class="sc-opt-label">Side</span>
+                  <button
+                    class="sc-tgl"
+                    id="sc-tp-flip"
+                    aria-pressed="false"
+                    data-tip="Flip the text to the other side of the path"
+                  >
+                    <i data-icon="up-down"></i> Flip
+                  </button>
+                </div>
+                <button class="sc-tbtn sc-wide" id="sc-tp-release">Release Text on Path</button>
+                <p class="sc-hint" id="sc-tp-unlinked" hidden>
+                  Its path layer is gone, so the text keeps the last shape it ran along.
+                </p>
+              </div>
             </div>
             <span class="sc-subhead">Document</span>
             <div class="sc-prop-grid">

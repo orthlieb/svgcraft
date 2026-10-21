@@ -2351,6 +2351,7 @@
   }
 
   function commit() {
+    syncTextPaths();
     syncStrokeAlign();
     syncEffects();
     syncClips();
@@ -2845,6 +2846,7 @@
   function drawSelection() {
     selLayer.replaceChildren();
     syncCornerUI();
+    syncTextPathUI();
     syncLayerHead();
     $('#sc-pos').dataset.sel = '';
     if (!state.sel.length || state.tool === 'node') return;
@@ -4022,6 +4024,17 @@
   }
 
   function rawRuns(el) {
+    // Text on a path: one line of runs inside the <textPath>.
+    const tp = tpOf(el);
+    if (tp) {
+      const t = typeFrom(el);
+      const runs = [];
+      for (const n of tp.childNodes) {
+        if (n.nodeType === 3) runs.push({ t: n.textContent, o: {} });
+        else if (n.localName === 'tspan') runs.push({ t: n.textContent, o: runFrom(n, t) });
+      }
+      return mergeRuns(runs);
+    }
     const lines = [...el.children].filter(
       (c) => c.localName === 'tspan' && c.hasAttribute('data-line'),
     );
@@ -4140,6 +4153,43 @@
     if (perRun || !layerDeco) el.removeAttribute('text-decoration');
     else el.setAttribute('text-decoration', layerDeco);
     el.setAttributeNS(XML_NS, 'xml:space', 'preserve');
+    // Characters grouped back into text nodes and run tspans.
+    const runNodes = (chars) => {
+      const out = [];
+      for (let k = 0; k < chars.length; ) {
+        let j = k;
+        while (j < chars.length && chars[j].o === chars[k].o) j++;
+        const text = chars
+          .slice(k, j)
+          .map((c) => c.ch)
+          .join('');
+        const o = chars[k].o;
+        if (!Object.keys(o).length && !perRun) out.push(document.createTextNode(text));
+        else {
+          const ts = mk('tspan', runAttrs(o, t));
+          if (perRun)
+            ts.setAttribute(
+              'text-decoration',
+              decoOf(o.underline ?? t.underline, o.strike ?? t.strike) || 'none',
+            );
+          ts.textContent = text;
+          out.push(ts);
+        }
+        k = j;
+      }
+      return out;
+    };
+    // Text on a path is one line: its runs go inside the <textPath>, and
+    // line breaks become spaces.
+    const tp = tpOf(el);
+    if (tp) {
+      const chars = [];
+      for (const r of runs)
+        for (const ch of r.t) chars.push({ ch: ch === '\n' ? ' ' : ch, o: r.o });
+      tp.replaceChildren(...runNodes(chars));
+      if (el.firstChild !== tp || el.childNodes.length > 1) el.replaceChildren(tp);
+      return;
+    }
     let y = y0;
     el.replaceChildren(
       ...lines.map(({ chars, soft }, i) => {
@@ -4147,27 +4197,7 @@
         if (i) y += t.leading || big * 1.2;
         const line = mk('tspan', { x: f(ax), y: f(y), 'data-line': '' });
         if (soft) line.setAttribute('data-soft', '');
-        for (let k = 0; k < chars.length; ) {
-          let j = k;
-          while (j < chars.length && chars[j].o === chars[k].o) j++;
-          const text = chars
-            .slice(k, j)
-            .map((c) => c.ch)
-            .join('');
-          const o = chars[k].o;
-          if (!Object.keys(o).length && !perRun) line.append(document.createTextNode(text));
-          else {
-            const ts = mk('tspan', runAttrs(o, t));
-            if (perRun)
-              ts.setAttribute(
-                'text-decoration',
-                decoOf(o.underline ?? t.underline, o.strike ?? t.strike) || 'none',
-              );
-            ts.textContent = text;
-            line.append(ts);
-          }
-          k = j;
-        }
+        line.append(...runNodes(chars));
         return line;
       }),
     );
@@ -4181,6 +4211,242 @@
       else out.push(...el.querySelectorAll('text'));
     }
     return out;
+  }
+
+  // ---- text on a path (Illustrator's Type on a Path) --------------------------
+  // <text data-sc-textpath="<path layer id>"><textPath href="#sc-tp-N"
+  // startOffset="…%">runs…</textPath></text>. SVG lays the text along the
+  // referenced path in the text's own coordinates and ignores that path's
+  // transform, so the textPath points at a generated copy of the path layer's
+  // geometry (sc-tp-N in defs, data-sc-tp), mapped into the text's space and
+  // kept in step by syncTextPaths(): moving, transforming or point-editing
+  // the path layer re-flows the text. If the path layer goes away, the text
+  // keeps the last copy and stays where it was. data-sc-flip on the text puts
+  // it on the other side of the path, by running the copy backwards (Chromium
+  // ignores textPath's side attribute).
+  const TP_SHAPES = new Set(['path', 'rect', 'circle', 'ellipse', 'polygon', 'polyline', 'line']);
+  const tpOf = (el) => (el?.localName === 'text' ? el.querySelector(':scope > textPath') : null);
+  const isTP = (el) => !!tpOf(el);
+  const tpRef = (tp) => /^#(sc-tp-\d+)$/.exec(tp.getAttribute('href') || '')?.[1];
+  // The generated path a textPath runs along (any id, as imports rename them).
+  const tpHost = (tp) => {
+    const h = tp.getAttribute('href') || tp.getAttributeNS(XLINK, 'href') || '';
+    const n = h.startsWith('#') ? document.getElementById(h.slice(1)) : null;
+    return n?.localName === 'path' ? n : null;
+  };
+  const tpOffset = (tp) => clamp(parseFloat(tp.getAttribute('startOffset')) || 0, 0, 100);
+  // The path layer a text-on-path is linked to, if it's still in the drawing.
+  function tpSource(el) {
+    const id = el.getAttribute('data-sc-textpath');
+    const src = id && document.getElementById(id);
+    return src && doc.contains(src) && TP_SHAPES.has(src.localName) && src !== el ? src : null;
+  }
+
+  // The path layer's geometry in the text's coordinates (backwards if flipped).
+  function tpGeometry(el, src) {
+    const M = fullM(el).inverse().multiply(fullM(src));
+    const T = (p) => {
+      const q = new DOMPoint(p.x, p.y).matrixTransform(M);
+      return { x: q.x, y: q.y };
+    };
+    let subs = shapeNodes(src).map((sp) => ({
+      closed: sp.closed,
+      nodes: sp.nodes.map((n) => ({ ...T(n), hin: n.hin && T(n.hin), hout: n.hout && T(n.hout) })),
+    }));
+    if (el.hasAttribute('data-sc-flip'))
+      subs = subs.reverse().map((sp) => {
+        const n = sp.nodes.map((nd) => ({ ...nd, hin: nd.hout, hout: nd.hin })).reverse();
+        // A closed path keeps its starting point.
+        if (sp.closed) n.unshift(n.pop());
+        return { closed: sp.closed, nodes: n };
+      });
+    return nodesD(subs);
+  }
+
+  function syncTextPaths() {
+    const owned = new Set();
+    for (const el of doc.querySelectorAll('text[data-sc-textpath]')) {
+      const tp = tpOf(el);
+      if (!tp) continue;
+      const old = tpHost(tp);
+      let id = tpRef(tp);
+      let host = id && old?.closest('#sc-defs') ? old : null;
+      if (!host || owned.has(id)) {
+        let n = 1;
+        while (document.getElementById(`sc-tp-${n}`) || owned.has(`sc-tp-${n}`)) n++;
+        id = `sc-tp-${n}`;
+        host = mk('path', { id, 'data-sc-tp': '' }, defs);
+        // Start from the copy it had (a deleted path layer's last shape).
+        if (old) host.setAttribute('d', old.getAttribute('d') || '');
+        tp.setAttribute('href', `#${id}`);
+      }
+      tp.removeAttributeNS(XLINK, 'href');
+      owned.add(id);
+      const src = tpSource(el);
+      if (src) {
+        const d = tpGeometry(el, src);
+        if (host.getAttribute('d') !== d) host.setAttribute('d', d);
+      }
+    }
+    for (const host of defs.querySelectorAll(':scope > path[data-sc-tp]'))
+      if (!owned.has(host.id)) host.remove();
+  }
+  let tpQueued = false;
+  new MutationObserver(() => {
+    if (tpQueued) return;
+    tpQueued = true;
+    queueMicrotask(() => {
+      tpQueued = false;
+      syncTextPaths();
+    });
+  }).observe(doc, {
+    subtree: true,
+    childList: true,
+    attributes: true,
+    attributeFilter: [
+      ...SA_GEOM,
+      'x1',
+      'y1',
+      'x2',
+      'y2',
+      'transform',
+      'id',
+      'data-sc-textpath',
+      'data-sc-flip',
+      'href',
+    ],
+  });
+
+  // Point and direction (degrees) at a fraction of a text-on-path's path.
+  function tpPointAt(el, frac) {
+    const host = tpHost(tpOf(el));
+    if (!host) return null;
+    let len;
+    try {
+      len = host.getTotalLength();
+    } catch {
+      return null;
+    }
+    const s = clamp(frac, 0, 1) * len;
+    const p = host.getPointAtLength(s);
+    const a = host.getPointAtLength(Math.max(0, Math.min(len, s - 0.5)));
+    const b = host.getPointAtLength(Math.max(0, Math.min(len, s + 0.5)));
+    return { x: p.x, y: p.y, deg: (Math.atan2(b.y - a.y, b.x - a.x) * 180) / Math.PI || 0 };
+  }
+
+  // Object → Text on Path: the selected text layer runs along the selected shape.
+  function textOnPath() {
+    const sel = normalizeSel(state.sel);
+    const texts = sel.filter((el) => el.localName === 'text');
+    const shapes = sel.filter((el) => TP_SHAPES.has(el.localName));
+    if (sel.length !== 2 || texts.length !== 1 || shapes.length !== 1)
+      return say('Select one text layer and one path or shape (Shift-click both) first.');
+    const [el] = texts;
+    const [src] = shapes;
+    if (refuseLocked([el], 'edit')) return;
+    if (typeEdit) finishTypeEdit(true);
+    if (!src.id) {
+      let n = 1;
+      while (document.getElementById(`textpath-${n}`)) n++;
+      src.id = `textpath-${n}`;
+    }
+    const runs = rawRuns(el);
+    let tp = tpOf(el);
+    if (!tp) {
+      const t = typeFrom(el);
+      tp = mk('textPath', {
+        href: '#',
+        startOffset: `${{ start: 0, middle: 50, end: 100 }[t.align]}%`,
+      });
+      el.replaceChildren(tp);
+      for (const a of ['x', 'y', 'data-box', 'data-leading']) el.removeAttribute(a);
+    }
+    el.setAttribute('data-sc-textpath', src.id);
+    layoutText(el, runs);
+    syncTextPaths();
+    state.sel = [el];
+    commit();
+    readTypeFromSelection();
+    say('Text on Path: move or edit the path and the text follows. Hide the path if you like.');
+  }
+
+  // Object → Release Text on Path: back to one line of point text where the
+  // text started on the path.
+  function releaseTextOnPath(els = normalizeSel(state.sel)) {
+    const targets = els.filter(isTP);
+    if (!targets.length) return say('Select a text-on-path layer to release.');
+    if (refuseLocked(targets, 'edit')) return;
+    if (typeEdit) finishTypeEdit(true);
+    for (const el of targets) {
+      const p = tpPointAt(el, tpOffset(tpOf(el)) / 100) || { x: 0, y: 0 };
+      const runs = rawRuns(el);
+      el.replaceChildren();
+      el.removeAttribute('data-sc-textpath');
+      el.removeAttribute('data-sc-flip');
+      el.setAttribute('x', f(p.x));
+      el.setAttribute('y', f(p.y));
+      layoutText(el, runs);
+    }
+    commit();
+    readTypeFromSelection();
+  }
+
+  // ---- text-on-path options (Properties panel)
+  const tpTarget = () => (state.sel.length === 1 && isTP(state.sel[0]) ? state.sel[0] : null);
+  const tpCanMake = () => {
+    const sel = state.sel;
+    return (
+      sel.length === 2 &&
+      sel.some((el) => el.localName === 'text') &&
+      sel.some((el) => TP_SHAPES.has(el.localName))
+    );
+  };
+  function syncTextPathUI() {
+    const el = tpTarget();
+    $('#sc-tp-props').hidden = !el && !tpCanMake();
+    $('#sc-tp-opts').hidden = !el;
+    $('#sc-tp-make').hidden = !!el;
+    if (!el) return;
+    const tp = tpOf(el);
+    const off = $('#sc-tp-offset');
+    if (document.activeElement !== off) off.value = f(tpOffset(tp));
+    const align = typeFrom(el).align;
+    for (const b of document.querySelectorAll('[data-tp-align]'))
+      b.setAttribute('aria-checked', b.dataset.tpAlign === align);
+    $('#sc-tp-flip').setAttribute('aria-pressed', el.hasAttribute('data-sc-flip'));
+    $('#sc-tp-unlinked').hidden = !!tpSource(el);
+  }
+  function tpChange(fn, final = true) {
+    const el = tpTarget();
+    if (!el || refuseLocked([el], 'edit')) return syncTextPathUI();
+    fn(el, tpOf(el));
+    if (final) commit();
+    else drawSelection();
+    readTypeFromSelection();
+  }
+  {
+    const off = $('#sc-tp-offset');
+    const setOff = (final) =>
+      tpChange(
+        (el, tp) => tp.setAttribute('startOffset', `${f(clamp(+off.value || 0, 0, 100))}%`),
+        final,
+      );
+    off.addEventListener('input', () => setOff(false));
+    off.addEventListener('change', () => setOff(true));
+    for (const b of document.querySelectorAll('[data-tp-align]'))
+      b.addEventListener('click', () =>
+        tpChange((el, tp) => {
+          const a = b.dataset.tpAlign;
+          if (a === 'start') el.removeAttribute('text-anchor');
+          else el.setAttribute('text-anchor', a);
+          tp.setAttribute('startOffset', `${{ start: 0, middle: 50, end: 100 }[a]}%`);
+        }),
+      );
+    $('#sc-tp-flip').addEventListener('click', () =>
+      tpChange((el) => el.toggleAttribute('data-sc-flip')),
+    );
+    $('#sc-tp-release').addEventListener('click', () => releaseTextOnPath());
+    $('#sc-tp-make').addEventListener('click', () => textOnPath());
   }
 
   // ---- on-canvas rich editor ------------------------------------------------
@@ -4332,6 +4598,22 @@
       const big = Math.max(t.size, ...firstLine.map((r) => r.o.size ?? t.size));
       const lead = t.leading || big * 1.2;
       const w = t.box || div.offsetWidth;
+      // Text on a path is edited as one straight line where it starts on
+      // the path, turned to follow it there.
+      const at = isTP(el) && tpPointAt(el, tpOffset(tpOf(el)) / 100);
+      if (at) {
+        const M = el
+          .getScreenCTM()
+          .translate(at.x, at.y)
+          .rotate(at.deg)
+          .translate(
+            -{ start: 0, middle: w / 2, end: w }[t.align],
+            -((lead - big) / 2 + big * 0.8),
+          );
+        const r = wrapEl.getBoundingClientRect();
+        div.style.transform = `matrix(${M.a},${M.b},${M.c},${M.d},${M.e - r.left},${M.f - r.top})`;
+        return;
+      }
       const x0 = parseFloat(el.getAttribute('x')) || 0;
       const y0 = parseFloat(el.getAttribute('y')) || 0;
       const bx = t.box ? x0 : x0 - { start: 0, middle: w / 2, end: w }[t.align];
@@ -4359,7 +4641,8 @@
     div.addEventListener('keydown', (e) => {
       e.stopPropagation();
       if (e.key === 'Escape') finishTypeEdit(false);
-      else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+      else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey || isTP(el))) {
+        // Text on a path is one line: Enter finishes it.
         e.preventDefault();
         finishTypeEdit(true);
       } else if (e.key === 'Enter') {
@@ -4370,7 +4653,8 @@
     div.addEventListener('paste', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      document.execCommand('insertText', false, e.clipboardData.getData('text/plain'));
+      const text = e.clipboardData.getData('text/plain');
+      document.execCommand('insertText', false, isTP(el) ? text.replace(/\s*\n\s*/g, ' ') : text);
     });
     // Clicks on the panels, options bar, font picker or paint chips keep the
     // edit open (they style the selected characters); anywhere else ends it.
@@ -4672,6 +4956,7 @@
   function convertTextKind() {
     const els = selectedTexts();
     if (!els.length) return say('Select a text layer first.');
+    if (els.some(isTP)) return say('Text on a path is always one line — release it first.');
     for (const el of els) {
       const t = typeFrom(el);
       const text = rawRuns(el);
@@ -6557,6 +6842,8 @@
   }
 
   const cmds = {
+    textOnPath: () => textOnPath(),
+    releaseTextOnPath: () => releaseTextOnPath(),
     layerStyle: () => openLayerStyle(),
     clearLayerStyle() {
       const els = normalizeSel(state.sel);
@@ -6577,13 +6864,29 @@
     },
     duplicate() {
       if (!state.sel.length) return;
+      const ids = new Map();
       const clones = inDocOrder(state.sel).map((el) => {
         const c = el.cloneNode(true);
-        for (const n of [c, ...c.querySelectorAll('[id]')]) n.removeAttribute('id');
+        for (const n of [c, ...c.querySelectorAll('[id]')]) {
+          if (n.id) ids.set(n.id, n);
+          n.removeAttribute('id');
+        }
         el.after(c);
         transformDoc(c, new DOMMatrix().translate(10, 10));
         return c;
       });
+      // Text on a path duplicated with its path follows the new path.
+      for (const c of clones)
+        for (const t of [c, ...c.querySelectorAll('text')]) {
+          const p = ids.get(t.getAttribute?.('data-sc-textpath'));
+          if (!p) continue;
+          if (!p.id) {
+            let n = 1;
+            while (document.getElementById(`textpath-${n}`)) n++;
+            p.id = `textpath-${n}`;
+          }
+          t.setAttribute('data-sc-textpath', p.id);
+        }
       state.sel = clones;
       commit();
       readStyle(clones[0]);
@@ -6839,6 +7142,8 @@
         for (const [o, nw] of map) {
           v = v.split(`url(#${o})`).join(`url(#${nw})`).split(`url("#${o}")`).join(`url(#${nw})`);
           if (v === `#${o}`) v = `#${nw}`;
+          // Text on a path names its path layer by id.
+          if (a.name === 'data-sc-textpath' && v === o) v = nw;
         }
         if (v !== a.value) el.setAttributeNS(a.namespaceURI, a.name, v);
       }
