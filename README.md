@@ -143,13 +143,24 @@ stroke="currentColor"` (common in icon sets) is pushed down so it survives.
     including ones that borrow stops from another gradient.
 - **Stroke options**, in the options bar of the drawing tools and in
   Properties:
+  - **Width** (thickness) in px.
+  - **Align**: Inside, Center or Outside, as in Photoshop, for closed
+    shapes (rectangles, ellipses, polygons and closed paths). SVG strokes
+    are always centred, so an aligned stroke is drawn twice as wide and the
+    unwanted half is hidden: clipped to the shape for Inside, and painted
+    under the fill for Outside (masked when there's no fill). The width
+    you set stays the visible width. Under a semi-transparent fill, the
+    hidden half of an Outside stroke shows through faintly. Opening a path
+    puts its stroke back to Center.
   - **Caps**: butt, round or square line ends.
   - **Joins**: miter, round or bevel corners.
   - **Dashes**: solid, dashed, dotted or long dash. Dash lengths are sized
     in multiples of the stroke width, as in Photoshop, so they keep their
     proportions when the width changes. They also allow for round and
     square caps, which extend each dash, so dotted lines come out as round
-    dots.
+    dots. **Custom** opens Photoshop's dash / gap fields in Properties: up
+    to three dash-and-gap pairs, in stroke widths. Imported dash patterns
+    show up there too.
 - **Rounded rectangles**:
   - Set a **Radius** on the Rectangle tool's options bar before drawing,
     or edit a selected rectangle's four corners in Properties. The link

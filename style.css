@@ -1344,6 +1344,39 @@ select[data-stroke-dash] {
   border-radius: 3px;
   background: var(--field);
 }
+.sc-dash-custom {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 4px;
+  margin-top: 8px;
+}
+.sc-dash-custom[hidden] {
+  display: none;
+}
+.sc-dash-f {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-size: 10px;
+  color: var(--text-dim);
+}
+.sc-dash-f input {
+  width: 100%;
+  min-width: 0;
+  padding-inline: 2px;
+  text-align: center;
+  appearance: textfield;
+}
+.sc-dash-f input::-webkit-inner-spin-button,
+.sc-dash-f input::-webkit-outer-spin-button {
+  appearance: none;
+  margin: 0;
+}
+.sc-dash-custom .sc-hint {
+  grid-column: 1 / -1;
+  margin: 2px 0 0;
+}
 .sc-prop-rows {
   display: grid;
   grid-template-columns: auto 1fr;

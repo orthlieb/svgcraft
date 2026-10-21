@@ -647,6 +647,62 @@
             aria-label="Stroke width"
           /><span class="sc-unit">px</span></label
         >
+        <div class="sc-seg sc-seg-glyph" role="radiogroup" aria-label="Stroke alignment">
+          <button
+            data-stroke-align="inside"
+            role="radio"
+            aria-label="Inside — the stroke stays within the shape"
+            data-tip="Inside — the stroke stays within the shape"
+          >
+            <svg class="sc-glyph" viewBox="0 0 24 16" aria-hidden="true">
+              <path fill-rule="evenodd" d="M6 3h12v10H6z M9 6v4h6V6z" />
+              <path
+                d="M6 3h12v10H6z"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1"
+                stroke-dasharray="2 1.5"
+                opacity=".6"
+              />
+            </svg>
+          </button>
+          <button
+            data-stroke-align="center"
+            role="radio"
+            aria-label="Center — the stroke straddles the outline"
+            data-tip="Center — the stroke straddles the outline"
+          >
+            <svg class="sc-glyph" viewBox="0 0 24 16" aria-hidden="true">
+              <path fill-rule="evenodd" d="M4.5 1.5h15v13h-15z M7.5 4.5v7h9v-7z" />
+              <path
+                d="M6 3h12v10H6z"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1"
+                stroke-dasharray="2 1.5"
+                opacity=".6"
+              />
+            </svg>
+          </button>
+          <button
+            data-stroke-align="outside"
+            role="radio"
+            aria-label="Outside — the stroke surrounds the shape"
+            data-tip="Outside — the stroke surrounds the shape"
+          >
+            <svg class="sc-glyph" viewBox="0 0 24 16" aria-hidden="true">
+              <path fill-rule="evenodd" d="M3 0h18v16H3z M6 3v10h12V3z" />
+              <path
+                d="M6 3h12v10H6z"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1"
+                stroke-dasharray="2 1.5"
+                opacity=".6"
+              />
+            </svg>
+          </button>
+        </div>
         <div class="sc-seg sc-seg-glyph" role="radiogroup" aria-label="Line caps">
           <button
             data-stroke-cap="butt"
@@ -698,7 +754,7 @@
           <option value="dash">Dashed</option>
           <option value="dot">Dotted</option>
           <option value="long">Long dash</option>
-          <option value="custom" hidden>Custom</option>
+          <option value="custom">Custom</option>
         </select>
       </div>
       <div class="sc-opt" data-for="rect">
@@ -1422,6 +1478,63 @@
                   aria-label="Stroke width"
                 /><span class="sc-unit">px</span></label
               >
+              <span class="sc-opt-label">Align</span>
+              <div class="sc-seg sc-seg-glyph" role="radiogroup" aria-label="Stroke alignment">
+                <button
+                  data-stroke-align="inside"
+                  role="radio"
+                  aria-label="Inside — the stroke stays within the shape"
+                  data-tip="Inside — the stroke stays within the shape"
+                >
+                  <svg class="sc-glyph" viewBox="0 0 24 16" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M6 3h12v10H6z M9 6v4h6V6z" />
+                    <path
+                      d="M6 3h12v10H6z"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1"
+                      stroke-dasharray="2 1.5"
+                      opacity=".6"
+                    />
+                  </svg>
+                </button>
+                <button
+                  data-stroke-align="center"
+                  role="radio"
+                  aria-label="Center — the stroke straddles the outline"
+                  data-tip="Center — the stroke straddles the outline"
+                >
+                  <svg class="sc-glyph" viewBox="0 0 24 16" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M4.5 1.5h15v13h-15z M7.5 4.5v7h9v-7z" />
+                    <path
+                      d="M6 3h12v10H6z"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1"
+                      stroke-dasharray="2 1.5"
+                      opacity=".6"
+                    />
+                  </svg>
+                </button>
+                <button
+                  data-stroke-align="outside"
+                  role="radio"
+                  aria-label="Outside — the stroke surrounds the shape"
+                  data-tip="Outside — the stroke surrounds the shape"
+                >
+                  <svg class="sc-glyph" viewBox="0 0 24 16" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M3 0h18v16H3z M6 3v10h12V3z" />
+                    <path
+                      d="M6 3h12v10H6z"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1"
+                      stroke-dasharray="2 1.5"
+                      opacity=".6"
+                    />
+                  </svg>
+                </button>
+              </div>
               <span class="sc-opt-label">Caps</span>
               <div class="sc-seg sc-seg-glyph" role="radiogroup" aria-label="Line caps">
                 <button
@@ -1529,8 +1642,43 @@
                 <option value="dash">Dashed</option>
                 <option value="dot">Dotted</option>
                 <option value="long">Long dash</option>
-                <option value="custom" hidden>Custom</option>
+                <option value="custom">Custom</option>
               </select>
+            </div>
+            <div class="sc-dash-custom" id="sc-dash-custom" hidden>
+              <label class="sc-dash-f"
+                ><input type="number" min="0" max="100" step="0.5" aria-label="Dash 1" /><span
+                  >Dash</span
+                ></label
+              >
+              <label class="sc-dash-f"
+                ><input type="number" min="0" max="100" step="0.5" aria-label="Gap 1" /><span
+                  >Gap</span
+                ></label
+              >
+              <label class="sc-dash-f"
+                ><input type="number" min="0" max="100" step="0.5" aria-label="Dash 2" /><span
+                  >Dash</span
+                ></label
+              >
+              <label class="sc-dash-f"
+                ><input type="number" min="0" max="100" step="0.5" aria-label="Gap 2" /><span
+                  >Gap</span
+                ></label
+              >
+              <label class="sc-dash-f"
+                ><input type="number" min="0" max="100" step="0.5" aria-label="Dash 3" /><span
+                  >Dash</span
+                ></label
+              >
+              <label class="sc-dash-f"
+                ><input type="number" min="0" max="100" step="0.5" aria-label="Gap 3" /><span
+                  >Gap</span
+                ></label
+              >
+              <p class="sc-hint">
+                In multiples of the stroke width. Leave a pair blank to repeat a shorter pattern.
+              </p>
             </div>
             <div class="sc-corners" id="sc-corner-props" hidden>
               <div class="sc-corners-head">

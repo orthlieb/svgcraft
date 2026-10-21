@@ -96,6 +96,8 @@
     stroke: '#1f2933',
     strokeA: 1,
     strokeWidth: 3,
+    dashPat: [4, 2], // Custom dashes: dash, gap, … in multiples of the stroke width
+    strokeAlign: 'center', // 'inside' | 'center' | 'outside', closed shapes only
     cap: 'round', // stroke-linecap for new strokes: butt | round | square
     join: 'round', // stroke-linejoin: miter | round | bevel
     dash: 'solid', // solid | dash | dot | long (sized from the stroke width)
@@ -577,9 +579,11 @@
       const b = bboxDoc(el, m);
       if (!b) continue;
       const cs = getComputedStyle(el);
+      // An inside stroke paints nothing beyond the shape.
       const pad =
-        cs.stroke && cs.stroke !== 'none'
-          ? ((parseFloat(cs.strokeWidth) || 0) / 2) * Math.sqrt(Math.abs(m.a * m.d - m.b * m.c))
+        cs.stroke && cs.stroke !== 'none' && alignOf(el) !== 'inside'
+          ? (strokeW(el) / (alignOf(el) === 'outside' ? 1 : 2)) *
+            Math.sqrt(Math.abs(m.a * m.d - m.b * m.c))
           : 0;
       const x1 = b.x - pad;
       const y1 = b.y - pad;
@@ -812,8 +816,13 @@
   // Dash patterns in multiples of the stroke width, as Photoshop sizes them.
   // Round and square caps add half a width to each end of a dash, so the
   // pattern is shortened to keep the look (and turns dots round).
+  // data-dash holds a preset name or, for Custom, the dash / gap lengths in
+  // stroke widths ("4 2 1 2"), as Photoshop's dash / gap fields do.
+  const customDash = (d) => (/^[\d.]/.test(d || '') ? d.split(/[\s,]+/).map(Number) : null);
   function dashArray(dash, w, cap) {
     w = Math.max(w || 1, 0.25);
+    const own = customDash(dash);
+    if (own) return own.map((n) => f(n * w)).join(' ');
     const capped = cap === 'round' || cap === 'square';
     const pat = {
       dash: capped ? [3, 3] : [4, 2],
@@ -827,9 +836,131 @@
   function refreshDash(t) {
     const d = t.getAttribute('data-dash');
     if (!d) return;
-    const cs = getComputedStyle(t);
-    t.setAttribute('stroke-dasharray', dashArray(d, parseFloat(cs.strokeWidth), cs.strokeLinecap));
+    t.setAttribute('stroke-dasharray', dashArray(d, strokeW(t), getComputedStyle(t).strokeLinecap));
   }
+
+  // ---- stroke alignment ---------------------------------------------------
+  // Photoshop's Align: Inside / Center / Outside. SVG strokes are always
+  // centred, so an aligned stroke is drawn twice as wide (stroke-width holds
+  // 2× the width you set) and half of it is hidden: an inside stroke is
+  // clipped to the shape; an outside one paints under the fill
+  // (paint-order), and with no fill a mask hides the inner half. The clip /
+  // mask lives in defs as sc-sa-N, holds a copy of the shape's geometry and
+  // is kept in step by syncStrokeAlign(). data-stroke-align records the
+  // choice. Only closed shapes can be aligned.
+  const alignOf = (t) => t.getAttribute?.('data-stroke-align') || 'center';
+  // The stroke width as set (half the drawn width when aligned).
+  const strokeW = (t) =>
+    (parseFloat(getComputedStyle(t).strokeWidth) || 0) / (alignOf(t) === 'center' ? 1 : 2);
+  function closedShape(t) {
+    if (['rect', 'circle', 'ellipse', 'polygon'].includes(t.localName)) return true;
+    if (t.localName !== 'path') return false;
+    const subs = (t.getAttribute('d') || '').split(/(?=[Mm])/).filter((x) => x.trim());
+    return subs.length > 0 && subs.every((x) => /[Zz]\s*$/.test(x));
+  }
+  function setStrokeAlign(t, align) {
+    if (!closedShape(t)) align = 'center';
+    const w = strokeW(t);
+    if (align === 'center') t.removeAttribute('data-stroke-align');
+    else t.setAttribute('data-stroke-align', align);
+    if (t.getAttribute('stroke-width') != null || align !== 'center')
+      t.setAttribute('stroke-width', f(align === 'center' ? w : 2 * w));
+    if (align === 'outside') t.setAttribute('paint-order', 'stroke');
+    else if (t.getAttribute('paint-order') === 'stroke') t.removeAttribute('paint-order');
+    refreshDash(t);
+  }
+
+  const SA_GEOM = ['d', 'x', 'y', 'width', 'height', 'rx', 'ry', 'cx', 'cy', 'r', 'points'];
+  const saRef = (t, k) => /^url\(#(sc-sa-\d+)\)$/.exec(t.getAttribute(k) || '')?.[1];
+  function syncStrokeAlign() {
+    const owned = new Set();
+    for (const t of doc.querySelectorAll('[data-stroke-align]')) {
+      // A shape that's been opened (or wasn't closed) goes back to centre.
+      if (!closedShape(t)) {
+        setStrokeAlign(t, 'center');
+        continue;
+      }
+      const align = alignOf(t);
+      const cs = getComputedStyle(t);
+      const filled = cs.fill !== 'none' && parseFloat(cs.fillOpacity) > 0;
+      const k = align === 'inside' ? 'clip-path' : align === 'outside' && !filled ? 'mask' : null;
+      for (const other of ['clip-path', 'mask'])
+        if (other !== k && saRef(t, other)) t.removeAttribute(other);
+      if (!k) continue;
+      const tag = k === 'clip-path' ? 'clipPath' : 'mask';
+      let id = saRef(t, k);
+      let host = id && defs.querySelector(`#${id}`);
+      if (!host || host.localName !== tag || owned.has(id)) {
+        let n = 1;
+        while (defs.querySelector(`#sc-sa-${n}`) || owned.has(`sc-sa-${n}`)) n++;
+        id = `sc-sa-${n}`;
+        host = mk(tag, { id, 'data-sc-sa': '' }, defs);
+        t.setAttribute(k, `url(#${id})`);
+      }
+      owned.add(id);
+      // Rebuild the geometry copy only when it has changed.
+      const geo = mk(t.localName);
+      for (const a of SA_GEOM) if (t.hasAttribute(a)) geo.setAttribute(a, t.getAttribute(a));
+      if (cs.fillRule === 'evenodd')
+        geo.setAttribute(tag === 'mask' ? 'fill-rule' : 'clip-rule', 'evenodd');
+      const kids = [geo];
+      if (tag === 'clipPath') host.setAttribute('clipPathUnits', 'userSpaceOnUse');
+      else {
+        let b;
+        try {
+          b = t.getBBox();
+        } catch {
+          b = { x: 0, y: 0, width: 0, height: 0 };
+        }
+        const pad = strokeW(t) * 2 + 2;
+        const area = {
+          x: f(b.x - pad),
+          y: f(b.y - pad),
+          width: f(b.width + 2 * pad),
+          height: f(b.height + 2 * pad),
+        };
+        for (const [a, v] of Object.entries({ maskUnits: 'userSpaceOnUse', ...area }))
+          host.setAttribute(a, v);
+        const bg = mk('rect');
+        for (const [a, v] of Object.entries(area)) bg.setAttribute(a, v);
+        bg.setAttribute('fill', '#fff');
+        geo.setAttribute('fill', '#000');
+        kids.unshift(bg);
+      }
+      const html = kids.map((c) => c.outerHTML).join('');
+      if (host.innerHTML !== html) host.replaceChildren(...kids);
+    }
+    // Drop references and defs nothing aligned uses any more.
+    for (const t of doc.querySelectorAll('[clip-path], [mask]'))
+      for (const k of ['clip-path', 'mask']) {
+        const id = saRef(t, k);
+        if (id && !owned.has(id)) t.removeAttribute(k);
+      }
+    for (const host of defs.querySelectorAll('[data-sc-sa]'))
+      if (!owned.has(host.id)) host.remove();
+  }
+  let saQueued = false;
+  new MutationObserver(() => {
+    if (saQueued) return;
+    saQueued = true;
+    queueMicrotask(() => {
+      saQueued = false;
+      syncStrokeAlign();
+    });
+  }).observe(doc, {
+    subtree: true,
+    childList: true,
+    attributes: true,
+    attributeFilter: [
+      ...SA_GEOM,
+      'data-stroke-align',
+      'fill',
+      'fill-opacity',
+      'fill-rule',
+      'style',
+      'stroke-width',
+    ],
+  });
 
   function applyStyle(el, key) {
     if (key === 'opacity') {
@@ -850,8 +981,11 @@
           t.setAttribute(key, state[key + 'On'] ? state[key] : 'none');
         setPaintAttr(t, `${key}-opacity`, f(state[key + 'A']), 1);
       } else if (key === 'width') {
-        setPaintAttr(t, 'stroke-width', f(state.strokeWidth));
+        const k = alignOf(t) === 'center' ? 1 : 2;
+        setPaintAttr(t, 'stroke-width', f(state.strokeWidth * k));
         refreshDash(t);
+      } else if (key === 'align') {
+        if (t.localName !== 'g') setStrokeAlign(t, state.strokeAlign);
       } else if (key === 'cap') {
         setPaintAttr(t, 'stroke-linecap', state.cap, 'butt');
         refreshDash(t);
@@ -864,6 +998,9 @@
           t.removeAttribute('stroke-dasharray');
         } else if (state.dash !== 'custom') {
           t.setAttribute('data-dash', state.dash);
+          refreshDash(t);
+        } else if (state.dashPat.some((n) => n > 0)) {
+          t.setAttribute('data-dash', state.dashPat.map(f).join(' '));
           refreshDash(t);
         }
       }
@@ -887,12 +1024,18 @@
       state.strokeA = parseFloat(cs.strokeOpacity) * colorAlpha(stroke);
       state.strokeGrad = gradFor(shape, 'stroke');
       state.gradStop = 0;
-      state.strokeWidth = parseFloat(cs.strokeWidth) || 0;
+      state.strokeWidth = strokeW(shape);
+      state.strokeAlign = alignOf(shape);
       state.cap = cs.strokeLinecap || 'butt';
       state.join = cs.strokeLinejoin || 'miter';
-      state.dash =
-        shape.getAttribute('data-dash') ||
-        (cs.strokeDasharray && cs.strokeDasharray !== 'none' ? 'custom' : 'solid');
+      const dd = shape.getAttribute('data-dash');
+      const raw = cs.strokeDasharray && cs.strokeDasharray !== 'none' ? cs.strokeDasharray : null;
+      state.dash = customDash(dd) || (!dd && raw) ? 'custom' : dd || 'solid';
+      if (customDash(dd)) state.dashPat = customDash(dd);
+      else if (!dd && raw)
+        state.dashPat = raw
+          .split(/[\s,]+/)
+          .map((v) => Math.round((parseFloat(v) / Math.max(state.strokeWidth, 0.25)) * 100) / 100);
     }
     syncStyleUI();
   }
@@ -919,13 +1062,22 @@
         if (state.cap !== 'butt') a['stroke-linecap'] = state.cap;
         if (state.join !== 'miter') a['stroke-linejoin'] = state.join;
         if (state.strokeA < 1) a['stroke-opacity'] = f(state.strokeA);
+        if (kind === 'shape' && state.strokeAlign !== 'center') {
+          a['data-stroke-align'] = state.strokeAlign;
+          a['stroke-width'] = f(state.strokeWidth * 2);
+          if (state.strokeAlign === 'outside') a['paint-order'] = 'stroke';
+        }
       }
     }
-    if (a.stroke && a.stroke !== 'none' && ['dash', 'dot', 'long'].includes(state.dash)) {
-      a['data-dash'] = state.dash;
+    const dashKey =
+      state.dash === 'custom' && state.dashPat.some((n) => n > 0)
+        ? state.dashPat.map(f).join(' ')
+        : ['dash', 'dot', 'long'].includes(state.dash) && state.dash;
+    if (a.stroke && a.stroke !== 'none' && dashKey) {
+      a['data-dash'] = dashKey;
       a['stroke-dasharray'] = dashArray(
-        state.dash,
-        parseFloat(a['stroke-width']),
+        dashKey,
+        state.strokeWidth || 1,
         a['stroke-linecap'] || 'butt',
       );
     }
@@ -1467,6 +1619,7 @@
   }
 
   function commit() {
+    syncStrokeAlign();
     pruneGradients();
     hist.splice(hIdx + 1);
     hist.push(snapshot());
@@ -5849,10 +6002,17 @@
       b.setAttribute('aria-checked', b.dataset.strokeCap === state.cap);
     for (const b of document.querySelectorAll('[data-stroke-join]'))
       b.setAttribute('aria-checked', b.dataset.strokeJoin === state.join);
+    for (const b of document.querySelectorAll('[data-stroke-align]'))
+      b.setAttribute('aria-checked', b.dataset.strokeAlign === state.strokeAlign);
     for (const sel of document.querySelectorAll('select[data-stroke-dash]')) {
-      sel.querySelector('[value="custom"]').hidden = state.dash !== 'custom';
       sel.value = state.dash;
     }
+    $('#sc-dash-custom').hidden = state.dash !== 'custom';
+    $('#sc-dash-custom')
+      .querySelectorAll('input')
+      .forEach((inp, i) => {
+        if (document.activeElement !== inp) inp.value = state.dashPat[i] ?? '';
+      });
     renderGradEditor();
     for (const b of document.querySelectorAll('[data-gtype]'))
       b.setAttribute('aria-checked', b.dataset.gtype === (activeGrad()?.type || state.gradType));
@@ -5879,6 +6039,14 @@
     const targets = state.tool === 'node' && tools.node.el ? [tools.node.el] : state.sel;
     if (!targets.length) return;
     for (const el of targets) applyStyle(el, key);
+    if (key === 'align' && state.strokeAlign !== 'center') {
+      const shapes = targets.flatMap(paintTargets).filter((t) => t.localName !== 'g');
+      if (!shapes.some(closedShape)) {
+        state.strokeAlign = 'center';
+        syncStyleUI();
+        say('Only closed shapes can align their stroke inside or outside.');
+      }
+    }
     if (final) commit();
     else drawSelection();
   }
@@ -6675,6 +6843,11 @@
       state.cap = b.dataset.strokeCap;
       styleChanged('cap', true);
     });
+  for (const b of document.querySelectorAll('button[data-stroke-align]'))
+    b.addEventListener('click', () => {
+      state.strokeAlign = b.dataset.strokeAlign;
+      styleChanged('align', true);
+    });
   for (const b of document.querySelectorAll('[data-stroke-join]'))
     b.addEventListener('click', () => {
       state.join = b.dataset.strokeJoin;
@@ -6683,6 +6856,21 @@
   for (const sel of document.querySelectorAll('select[data-stroke-dash]'))
     sel.addEventListener('change', () => {
       state.dash = sel.value;
+      styleChanged('dash', true);
+      // Custom's dash / gap fields live in the Properties panel.
+      if (state.dash === 'custom') $('[data-tab="props"]').click();
+    });
+  for (const inp of $('#sc-dash-custom').querySelectorAll('input'))
+    inp.addEventListener('change', () => {
+      const vals = [...$('#sc-dash-custom').querySelectorAll('input')].map((x) =>
+        x.value === '' ? null : Math.max(0, +x.value || 0),
+      );
+      // Blank fields end the pattern, as in Photoshop.
+      const end = vals.indexOf(null);
+      const pat = end < 0 ? vals : vals.slice(0, end);
+      if (!pat.some((n) => n > 0)) return syncStyleUI();
+      state.dashPat = pat.length % 2 ? [...pat, pat.length === 1 ? pat[0] : 0] : pat;
+      state.dash = 'custom';
       styleChanged('dash', true);
     });
 
@@ -6942,6 +7130,7 @@
     redo,
     cmds,
     commit,
+    readStyle,
     parsePathD,
     nodesD,
     shapeNodes,
