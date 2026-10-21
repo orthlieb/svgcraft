@@ -18,6 +18,10 @@ export const test = base.extend({
         errors.push(`console: ${m.text()}`);
     });
     // Each test gets a fresh browser context, so storage starts empty.
+    // Web fonts load from Google on CI but not offline, and a font arriving
+    // mid-test re-wraps paragraph text. Block them so every run lays text out
+    // with the same fallback fonts; tests check what the app writes instead.
+    await page.route(/fonts\.(googleapis|gstatic)\.com/, (route) => route.abort());
     await page.goto(APP_URL);
     await page.waitForFunction(() => !!window.svgcraft);
     await use(page);

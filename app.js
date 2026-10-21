@@ -2729,8 +2729,9 @@
     link.href = googleUrl([ft]);
     link.onload = () =>
       document.fonts.load(`16px '${ft.name}'`).then(() => {
+        // Re-wrap paragraphs that use it, as the layer's font or in a run.
         for (const el of doc.querySelectorAll('text[data-box]'))
-          if (typeFrom(el).family === ft.name) layoutText(el);
+          if (typeFrom(el).family === ft.name || el.innerHTML.includes(ft.name)) layoutText(el);
         drawSelection();
       });
     document.head.append(link);
