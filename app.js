@@ -9000,10 +9000,12 @@
       e.preventDefault();
       return;
     }
-    // Ctrl+7 / Ctrl+Alt+7, by key position: Alt can change the character typed.
-    if (mod && e.code === 'Digit7') {
+    // Ctrl+Alt+G / Ctrl+Alt+Shift+G (Photoshop's Create Clipping Mask), by
+    // key position: Alt can change the character typed. Not Illustrator's
+    // Ctrl+7: browsers keep Ctrl+1–8 for switching tabs.
+    if (mod && e.altKey && e.code === 'KeyG') {
       e.preventDefault();
-      if (e.altKey) releaseClip();
+      if (e.shiftKey) releaseClip();
       else makeClip();
       return;
     }

@@ -116,12 +116,14 @@ test('Make clips the art below to the topmost shape, which stays as a hidden cli
   );
 });
 
-test('Ctrl+7 makes, Ctrl+Alt+7 releases; the Layers panel button makes too', async ({ page }) => {
+test('Ctrl+Alt+G makes, Ctrl+Alt+Shift+G releases; the Layers panel button makes too', async ({
+  page,
+}) => {
   await select(page, 'art', 'c');
-  await page.keyboard.press('Control+7');
+  await page.keyboard.press('Control+Alt+KeyG');
   await tick(page);
   expect((await clipState(page)).clipper).toBe('c');
-  await page.keyboard.press('Control+Alt+7');
+  await page.keyboard.press('Control+Alt+Shift+KeyG');
   await tick(page);
   expect((await clipState(page)).group).toBe(false);
 

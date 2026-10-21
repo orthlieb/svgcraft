@@ -425,7 +425,7 @@ combine shapes.
 
 ## Clipping masks
 
-Object → Clipping Mask → Make (Ctrl+7), or the scissors button at the bottom
+Object → Clipping Mask → Make (Ctrl+Alt+G), or the scissors button at the bottom
 of the Layers panel, clips the selected layers to the topmost of them, as
 Illustrator does. The topmost selected layer is the clipping path, and it
 has to be a single shape or a text layer; anything else (a group, an
@@ -442,7 +442,7 @@ art stays put. Moving the whole group moves both together. Drop another
 layer into the group to clip it too. Deleting the clipping path, or
 dragging it out of the group, ends the clip.
 
-Object → Clipping Mask → Release (Ctrl+Alt+7), with the group or any layer
+Object → Clipping Mask → Release (Ctrl+Alt+Shift+G), with the group or any layer
 in it selected, turns the clip off: the clipping path shows again with its
 own fill and stroke, and the layers stay grouped. Duplicated clipping
 groups clip on their own. Locked layers can't be clipped, and a locked
@@ -504,7 +504,7 @@ point-edited:
 | Shift+F7              | Select inverse                            |
 | Alt+T · Alt+Shift+T   | Free Transform · Transform Again          |
 | Ctrl+G · Ctrl+Shift+G | Group · ungroup                           |
-| Ctrl+7 · Ctrl+Alt+7   | Make / release clipping mask              |
+| Ctrl+Alt+G (+ Shift)  | Make / release clipping mask              |
 | Ctrl+Shift+O          | Create Outlines                           |
 | ] [ · Ctrl+] Ctrl+[   | Forward / backward · to front / to back   |
 | Arrows (Shift = 10)   | Nudge                                     |
