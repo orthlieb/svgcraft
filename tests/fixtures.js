@@ -17,13 +17,7 @@ export const test = base.extend({
       if (m.type() === 'error' && !/fonts\.g(oogleapis|static)\.com|net::ERR_/.test(m.text()))
         errors.push(`console: ${m.text()}`);
     });
-    // Each test starts from a clean slate, not a previous autosave.
-    await page.addInitScript(() => {
-      if (!sessionStorage.getItem('sc-test-init')) {
-        localStorage.clear();
-        sessionStorage.setItem('sc-test-init', '1');
-      }
-    });
+    // Each test gets a fresh browser context, so storage starts empty.
     await page.goto(APP_URL);
     await page.waitForFunction(() => !!window.svgcraft);
     await use(page);

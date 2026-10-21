@@ -309,6 +309,26 @@ combine shapes.
 | + − 0 1               | Zoom in / out · fit · 100%                |
 | Ctrl+S · Ctrl+O       | Export SVG · open                         |
 
+## Development
+
+The app has no dependencies and no build step: open `index.html`, or serve the
+folder. `package.json` is only for the dev tools.
+
+```sh
+npm install
+npx playwright install chromium   # once
+npm test                          # Playwright tests (Chromium)
+npm run lint                      # ESLint
+npm run format:check              # Prettier (npm run format to fix)
+```
+
+The tests in `tests/` drive the real app in Chromium, opening `index.html`
+straight from disk. Each feature has its own spec, and they check exact
+geometry, attributes and rendered pixels. Any page error or console error
+fails a test. GitHub Actions (`.github/workflows/ci.yml`) runs format, lint
+and the tests on every push, and uploads the Playwright report when
+something fails.
+
 ## How it works
 
 - The drawing lives in `<g id="sc-doc">` (plus `<defs id="sc-defs">`) in
