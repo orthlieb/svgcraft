@@ -568,40 +568,210 @@
 
   const isShown = (el) => !el.closest('[display="none"]');
 
-  // Like unionBox, but the area that actually gets painted: hidden layers are
-  // left out and strokes count, so cropping to it doesn't shave them.
+  // Like unionBox, but the area that actually gets painted, in document
+  // coordinates: hidden layers are left out, and strokes count as drawn —
+  // their width and position (centre / inside / outside), mitre tips at sharp
+  // corners, round joins, square and round caps — as do effects (drop
+  // shadow, outer glow, blur). Cropping, Define Pattern and Copy as SVG use it
+  // so nothing gets shaved off.
   function paintBox(els) {
-    const leaves = [];
-    for (const el of els)
-      if (el.localName === 'g') leaves.push(...leafLayers().filter((l) => el.contains(l)));
-      else leaves.push(el);
     let box = null;
-    for (const el of leaves) {
-      if (!isShown(el)) continue;
-      const m = fullM(el);
-      const b = bboxDoc(el, m);
-      if (!b) continue;
-      const cs = getComputedStyle(el);
-      // An inside stroke paints nothing beyond the shape.
-      const pad =
-        cs.stroke && cs.stroke !== 'none' && alignOf(el) !== 'inside'
-          ? (strokeW(el) / (alignOf(el) === 'outside' ? 1 : 2)) *
-            Math.sqrt(Math.abs(m.a * m.d - m.b * m.c))
-          : 0;
-      const x1 = b.x - pad;
-      const y1 = b.y - pad;
-      const x2 = b.x + b.w + pad;
-      const y2 = b.y + b.h + pad;
-      if (!box) box = { x1, y1, x2, y2 };
-      else
-        box = {
-          x1: Math.min(box.x1, x1),
-          y1: Math.min(box.y1, y1),
-          x2: Math.max(box.x2, x2),
-          y2: Math.max(box.y2, y2),
-        };
-    }
+    const grow = (b) => {
+      if (!b) return;
+      box = box
+        ? {
+            x1: Math.min(box.x1, b.x1),
+            y1: Math.min(box.y1, b.y1),
+            x2: Math.max(box.x2, b.x2),
+            y2: Math.max(box.y2, b.y2),
+          }
+        : { ...b };
+    };
+    for (const el of els) grow(layerPaintBox(el));
     return box && { x: box.x1, y: box.y1, w: box.x2 - box.x1, h: box.y2 - box.y1 };
+  }
+
+  function layerPaintBox(el) {
+    if (!isShown(el)) return null;
+    let b = null;
+    if (el.localName === 'g') {
+      for (const c of el.children) {
+        if (!selectable(c)) continue;
+        const cb = layerPaintBox(c);
+        if (cb)
+          b = b
+            ? {
+                x1: Math.min(b.x1, cb.x1),
+                y1: Math.min(b.y1, cb.y1),
+                x2: Math.max(b.x2, cb.x2),
+                y2: Math.max(b.y2, cb.y2),
+              }
+            : cb;
+      }
+    } else b = outlineBox(el);
+    return b && withEffects(el, b);
+  }
+
+  // The stroke's reach either side of the outline (local units).
+  function strokeReach(el) {
+    const cs = getComputedStyle(el);
+    if (!cs.stroke || cs.stroke === 'none' || cs.strokeOpacity === '0') return 0;
+    const w = strokeW(el);
+    const a = alignOf(el);
+    return a === 'inside' ? 0 : a === 'outside' ? w : w / 2;
+  }
+
+  // Bounds of one shape as painted: its outline, offset by the stroke along
+  // the normal at many points of every segment (in its own coordinates, so a
+  // non-uniform scale is honoured), plus joins and caps.
+  function outlineBox(el) {
+    const M = fullM(el);
+    const pts = [];
+    const add = (x, y) => pts.push(new DOMPoint(x, y).matrixTransform(M));
+    const half = strokeReach(el);
+    if (!EDITABLE.has(el.localName) || !half) {
+      let b;
+      try {
+        b = el.getBBox();
+      } catch {
+        return null;
+      }
+      if (!b || (!b.width && !b.height && !el.childNodes.length && !half)) return null;
+      for (const [x, y] of [
+        [b.x - half, b.y - half],
+        [b.x + b.width + half, b.y - half],
+        [b.x - half, b.y + b.height + half],
+        [b.x + b.width + half, b.y + b.height + half],
+      ])
+        add(x, y);
+    } else {
+      const cs = getComputedStyle(el);
+      const join = cs.strokeLinejoin;
+      const cap = cs.strokeLinecap;
+      const limit = parseFloat(cs.strokeMiterlimit) || 4;
+      const unit = (x, y) => {
+        const l = Math.hypot(x, y);
+        return l > 1e-9 ? [x / l, y / l] : null;
+      };
+      const circle = (p) => {
+        add(p.x - half, p.y);
+        add(p.x + half, p.y);
+        add(p.x, p.y - half);
+        add(p.x, p.y + half);
+      };
+      for (const sp of shapeNodes(el)) {
+        const n = sp.nodes;
+        if (!n.length) continue;
+        if (n.length === 1) {
+          if (cap !== 'butt') circle(n[0]);
+          continue;
+        }
+        const segs = [];
+        for (let i = 1; i < n.length; i++) segs.push([n[i - 1], n[i]]);
+        if (sp.closed) segs.push([n.at(-1), n[0]]);
+        // Start and end directions of each segment, for joins and caps.
+        const dirs = [];
+        for (const [a, b] of segs) {
+          const p0 = a;
+          const p1 = a.hout || a;
+          const p2 = b.hin || b;
+          const p3 = b;
+          const at = (t) => {
+            const u = 1 - t;
+            return {
+              x: u * u * u * p0.x + 3 * u * u * t * p1.x + 3 * u * t * t * p2.x + t * t * t * p3.x,
+              y: u * u * u * p0.y + 3 * u * u * t * p1.y + 3 * u * t * t * p2.y + t * t * t * p3.y,
+            };
+          };
+          const tan = (t) => {
+            const u = 1 - t;
+            return unit(
+              3 * u * u * (p1.x - p0.x) + 6 * u * t * (p2.x - p1.x) + 3 * t * t * (p3.x - p2.x),
+              3 * u * u * (p1.y - p0.y) + 6 * u * t * (p2.y - p1.y) + 3 * t * t * (p3.y - p2.y),
+            );
+          };
+          const chord = unit(p3.x - p0.x, p3.y - p0.y);
+          const curved = a.hout || b.hin;
+          const steps = curved ? 24 : 1;
+          for (let k = 0; k <= steps; k++) {
+            const t = k / steps;
+            const p = at(t);
+            const d = (curved && tan(t)) || chord;
+            add(p.x, p.y);
+            if (d) {
+              add(p.x - d[1] * half, p.y + d[0] * half);
+              add(p.x + d[1] * half, p.y - d[0] * half);
+            }
+          }
+          dirs.push([(curved && tan(0)) || chord, (curved && tan(1)) || chord]);
+        }
+        // Joins between consecutive segments.
+        const joins = sp.closed ? segs.length : segs.length - 1;
+        for (let i = 0; i < joins; i++) {
+          const vin = dirs[i][1];
+          const vout = dirs[(i + 1) % segs.length][0];
+          const v = segs[i][1];
+          if (!vin || !vout) continue;
+          if (join === 'round') circle(v);
+          else if (join === 'miter' || join === 'miter-clip' || join === 'arcs') {
+            // Angle between the two directions; the tip sits on the outer
+            // bisector, half / sin(θ/2) from the vertex, unless the mitre
+            // limit turns it into a bevel.
+            const cos = clamp(-(vin[0] * vout[0] + vin[1] * vout[1]), -1, 1);
+            const theta = Math.acos(cos);
+            const sinHalf = Math.sin(theta / 2);
+            if (sinHalf > 1e-6 && 1 / sinHalf <= limit) {
+              const bis = unit(vout[0] - vin[0], vout[1] - vin[1]);
+              if (bis) add(v.x - bis[0] * (half / sinHalf), v.y - bis[1] * (half / sinHalf));
+            }
+          }
+        }
+        // Caps on the ends of an open path.
+        if (!sp.closed && cap !== 'butt') {
+          const ends = [
+            [n[0], dirs[0][0], -1],
+            [n.at(-1), dirs.at(-1)[1], 1],
+          ];
+          for (const [p, d, sgn] of ends) {
+            if (cap === 'round' || !d) circle(p);
+            else {
+              const ex = p.x + d[0] * half * sgn;
+              const ey = p.y + d[1] * half * sgn;
+              add(ex - d[1] * half, ey + d[0] * half);
+              add(ex + d[1] * half, ey - d[0] * half);
+            }
+          }
+        }
+      }
+    }
+    if (!pts.length) return null;
+    const xs = pts.map((q) => q.x);
+    const ys = pts.map((q) => q.y);
+    return { x1: Math.min(...xs), y1: Math.min(...ys), x2: Math.max(...xs), y2: Math.max(...ys) };
+  }
+
+  // Grow a layer's painted box by its effects (document pixels).
+  function withEffects(el, b) {
+    if (!el.hasAttribute('data-sc-fx')) return b;
+    const fx = readFx(el);
+    let out = { ...b };
+    const pad = (r, by) => ({ x1: r.x1 - by, y1: r.y1 - by, x2: r.x2 + by, y2: r.y2 + by });
+    const union = (p, q) => ({
+      x1: Math.min(p.x1, q.x1),
+      y1: Math.min(p.y1, q.y1),
+      x2: Math.max(p.x2, q.x2),
+      y2: Math.max(p.y2, q.y2),
+    });
+    if (fx.bl.on) out = pad(out, fx.bl.r * 2);
+    if (fx.og.on) out = union(out, pad(out, fx.og.s));
+    if (fx.ds.on) {
+      const t = (fx.ds.a * Math.PI) / 180;
+      const dx = -Math.cos(t) * fx.ds.d;
+      const dy = Math.sin(t) * fx.ds.d;
+      const sh = { x1: b.x1 + dx, y1: b.y1 + dy, x2: b.x2 + dx, y2: b.y2 + dy };
+      out = union(out, pad(sh, fx.ds.s));
+    }
+    return out;
   }
 
   function unionBox(els) {
@@ -6729,7 +6899,8 @@
     const root = document.createElementNS(NS, 'svg');
     let box = { x: 0, y: 0, w: state.w, h: state.h };
     if (selection) {
-      box = selBox() || box;
+      // As painted, so strokes and effects aren't cut off at the edges.
+      box = paintBox(normalizeSel(state.sel)) || selBox() || box;
       root.setAttribute('data-svgcraft', 'clip');
     }
     root.setAttribute('width', f(box.w));
@@ -8532,6 +8703,7 @@
   // Exposed for the smoke test and for poking at from the console.
   window.svgcraft = {
     ready,
+    paintBox,
     docs,
     state,
     serialize,

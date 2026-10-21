@@ -70,8 +70,13 @@ The layout follows Photoshop:
 stroke="currentColor"` (common in icon sets) is pushed down so it survives.
 - **Crop** (Image menu): **Crop to Selection** and **Crop to Drawing** fit
   the artboard tightly around the selected layers, or around everything
-  visible, rounded out to whole pixels. Strokes count, so they aren't
-  shaved off, and hidden layers don't. The drawing and the guides shift so
+  visible, rounded out to whole pixels. The box is what's actually
+  painted, so nothing is shaved off: stroke width and position (Center,
+  Inside, Outside), mitre tips at sharp corners (up to the mitre limit),
+  square and round caps, round joins, and effects (drop shadow, outer
+  glow, blur) all count, including on rotated and scaled layers. Hidden
+  layers don't count. Define Pattern and Copy as SVG frame the selection
+  the same way. The drawing and the guides shift so
   the artboard still starts at 0, 0, and nothing moves on screen. Anything
   left outside the artboard is kept, but it isn't exported.
 - **Select menu**: **All** (Ctrl+A), **Deselect** (Esc) and **Inverse**
