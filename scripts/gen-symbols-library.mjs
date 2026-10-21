@@ -17,7 +17,21 @@ const CREDIT = `Font Awesome Free ${VERSION} — CC BY 4.0`;
 const SET = [
   [
     'Arrows',
-    ['arrow-right', 'arrow-left', 'arrow-up', 'arrow-down', ['arrows-rotate', 'Refresh'], 'share'],
+    [
+      'arrow-right',
+      'arrow-left',
+      'arrow-up',
+      'arrow-down',
+      ['arrows-rotate', 'Refresh'],
+      'share',
+      'chevron-right',
+      'chevron-left',
+      'chevron-up',
+      'chevron-down',
+      ['arrow-rotate-left', 'Undo'],
+      'expand',
+      'compress',
+    ],
   ],
   ['Shapes', ['star', 'heart', 'circle', 'square', 'play', ['location-pin', 'Map pin'], 'bolt']],
   [
@@ -39,6 +53,9 @@ const SET = [
       'download',
       'upload',
       'link',
+      'filter',
+      'sliders',
+      'bookmark',
     ],
   ],
   ['Communication', ['envelope', 'phone', 'comment', 'paper-plane']],
@@ -57,9 +74,14 @@ const SET = [
       'lightbulb',
       'flag',
       'tag',
+      'briefcase',
+      'key',
     ],
   ],
   ['Nature', ['leaf', 'tree', 'paw', 'fire']],
+  ['Charts', ['chart-bar', 'chart-pie', 'chart-line']],
+  ['Faces', ['face-smile', 'face-grin', 'face-laugh', 'face-meh', 'face-frown']],
+  ['Places', ['globe', 'location-crosshairs', 'map', 'compass']],
 ];
 
 const pkg = process.argv[2];

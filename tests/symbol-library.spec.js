@@ -76,10 +76,10 @@ test.beforeEach(async ({ page }) => {
 });
 
 test.describe('the built-in set', () => {
-  test('loads about fifty credited icons across categories', async ({ page }) => {
+  test('loads about eighty credited icons across categories', async ({ page }) => {
     const n = await builtinCount(page);
-    expect(n).toBeGreaterThanOrEqual(45);
-    expect(n).toBeLessThanOrEqual(60);
+    expect(n).toBeGreaterThanOrEqual(75);
+    expect(n).toBeLessThanOrEqual(90);
     await openLibrary(page);
     await expect(tiles(page)).toHaveCount(n);
     const cats = await page.locator('#sc-libsym-cat option').allTextContents();
@@ -93,6 +93,9 @@ test.describe('the built-in set', () => {
       'People',
       'Objects',
       'Nature',
+      'Charts',
+      'Faces',
+      'Places',
     ]);
     const all = await page.evaluate(() => window.SC_SYMBOLS);
     for (const x of all) {

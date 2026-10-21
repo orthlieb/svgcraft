@@ -555,9 +555,9 @@ and travels in the same Export / Import Library file.
   delete it with the bin button or Alt-click. **Reset** puts the built-in
   icons back (and only touches the symbols).
 
-The library starts with a built-in set of 56 icons from Font Awesome Free
-6.7.2 in eight categories: Arrows, Shapes, Interface, Communication,
-Weather, People, Objects and Nature. They're placed 64 px tall and in the
+The library starts with a built-in set of 80 icons from Font Awesome Free
+6.7.2 in eleven categories: Arrows, Shapes, Interface, Communication,
+Weather, People, Objects, Nature, Charts, Faces and Places. They're placed 64 px tall and in the
 current fill colour. The icons don't set a colour of their own, so the
 instance's fill paints them: select an instance and pick a colour in the
 Color or Swatches panel to recolour it. Each icon's `<symbol>` carries its
