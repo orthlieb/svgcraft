@@ -13,7 +13,8 @@ export default [
     languageOptions: { globals: globals.node },
   },
   {
-    files: ['tests/**/*.js', '*.config.js'],
+    // These run code in the page through Playwright, too.
+    files: ['tests/**/*.js', '*.config.js', 'scripts/gen-about-screens.mjs'],
     languageOptions: { globals: { ...globals.node, ...globals.browser } },
   },
 ];

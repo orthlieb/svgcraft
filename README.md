@@ -16,14 +16,14 @@ and what comes next.
 
 Svgcraft edits on tablets and larger screens. A phone (narrower than
 768 px, or a phone held sideways) gets a **preview** instead: open SVGs,
-switch between tabs, pan and pinch-zoom, and Fit. The editing tools,
+switch between tabs, pan and pinch-zoom, Fit, and About. The editing tools,
 menus and panels are hidden, and nothing on a phone changes a drawing.
 On tablets in portrait, the toolbar moves to the bottom and the panels
 slide in from the right (the sliders button).
 
 The layout follows Photoshop:
 
-- **Menu bar**: File, Edit, Image, Object, Type, Select and View menus. Click to open, hover to
+- **Menu bar**: File, Edit, Image, Object, Type, Select, View and Help menus. Click to open, hover to
   switch between them, and use the arrow keys to move around.
 - **Options bar**: settings for the current tool, such as stroke width and
   smoothing for the pencil, mode and size for the eraser, or the point
@@ -715,6 +715,14 @@ geometry, attributes and rendered pixels. Any page error or console error
 fails a test. GitHub Actions (`.github/workflows/ci.yml`) runs format, lint
 and the tests on every push, and uploads the Playwright report when
 something fails.
+
+**The About page.** `about.html` (Help → About Svgcraft, Feature List or
+Keyboard Shortcuts, which open it in its own tab) is a static page with a
+feature overview, the shortcuts and the credits. Its screenshots in
+`about/` are taken from the real app by `node scripts/gen-about-screens.mjs`,
+which opens `about/demo.svg` and shows a different part of the editor in
+each shot; run it again when the UI changes. Keep the page's feature list
+and shortcut table in step with this README.
 
 ## How it works
 

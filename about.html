@@ -1,0 +1,754 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>About Svgcraft</title>
+    <meta
+      name="description"
+      content="Svgcraft is a Photoshop-style SVG editor that runs in your browser: layers, layer styles, gradients, patterns, type, symbols and clean SVG out."
+    />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <meta name="theme-color" content="#001e36" />
+    <!-- Same theme choice as the editor (View → Theme), applied before first paint. -->
+    <script>
+      try {
+        const t = localStorage.getItem('svgcraft.theme');
+        if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t;
+      } catch {
+        /* storage blocked — follow the OS theme */
+      }
+    </script>
+    <style>
+      :root {
+        --bg: #f5f5f5;
+        --card: #ffffff;
+        --text: #2c2c2c;
+        --text-dim: #5f5f5f;
+        --line: #dadada;
+        --accent: #1473e6;
+        --accent-fg: #ffffff;
+        --hero: #001e36;
+        --hero-text: #e8f1fb;
+        --shadow: rgba(0, 0, 0, 0.12);
+        --kbd: #ececec;
+        color-scheme: light;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme='light']) {
+          --bg: #1b1b1b;
+          --card: #262626;
+          --text: #dcdcdc;
+          --text-dim: #9a9a9a;
+          --line: #363636;
+          --accent: #2680eb;
+          --hero: #001e36;
+          --hero-text: #e8f1fb;
+          --shadow: rgba(0, 0, 0, 0.5);
+          --kbd: #333333;
+          color-scheme: dark;
+        }
+      }
+      :root[data-theme='dark'] {
+        --bg: #1b1b1b;
+        --card: #262626;
+        --text: #dcdcdc;
+        --text-dim: #9a9a9a;
+        --line: #363636;
+        --accent: #2680eb;
+        --hero: #001e36;
+        --hero-text: #e8f1fb;
+        --shadow: rgba(0, 0, 0, 0.5);
+        --kbd: #333333;
+        color-scheme: dark;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font:
+          16px/1.6 system-ui,
+          -apple-system,
+          'Segoe UI',
+          Roboto,
+          sans-serif;
+      }
+      a {
+        color: var(--accent);
+      }
+      .wrap {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 0 16px;
+      }
+      /* ---- top bar and hero ---- */
+      .hero {
+        background: var(--hero);
+        color: var(--hero-text);
+        padding-bottom: 48px;
+      }
+      .topbar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 0;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: inherit;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 18px;
+      }
+      .topbar nav {
+        margin-left: auto;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px 18px;
+        font-size: 15px;
+      }
+      .topbar nav a {
+        color: inherit;
+        opacity: 0.85;
+        text-decoration: none;
+      }
+      .topbar nav a:hover {
+        opacity: 1;
+        text-decoration: underline;
+      }
+      .hero h1 {
+        font-size: clamp(30px, 5vw, 48px);
+        line-height: 1.15;
+        margin: 36px 0 12px;
+        text-wrap: balance;
+      }
+      .hero p.lede {
+        font-size: clamp(17px, 2.2vw, 20px);
+        max-width: 720px;
+        margin: 0 0 24px;
+        opacity: 0.9;
+      }
+      .cta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 36px;
+      }
+      .btn {
+        display: inline-block;
+        padding: 10px 20px;
+        border-radius: 999px;
+        font-weight: 600;
+        text-decoration: none;
+        border: 1px solid transparent;
+      }
+      .btn.primary {
+        background: #2680eb;
+        color: #ffffff;
+      }
+      .btn.ghost {
+        border-color: rgba(232, 241, 251, 0.4);
+        color: var(--hero-text);
+      }
+      .btn:hover {
+        filter: brightness(1.1);
+      }
+      .shot {
+        display: block;
+        margin: 0;
+      }
+      .shot img {
+        display: block;
+        width: 100%;
+        height: auto;
+        border-radius: 10px;
+        border: 1px solid var(--line);
+        box-shadow: 0 12px 36px var(--shadow);
+      }
+      .hero .shot img {
+        border-color: rgba(255, 255, 255, 0.12);
+        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5);
+      }
+      .shot figcaption {
+        margin-top: 10px;
+        font-size: 14px;
+        color: var(--text-dim);
+      }
+      .hero .shot figcaption {
+        color: inherit;
+        opacity: 0.75;
+      }
+      /* ---- highlights ---- */
+      section {
+        padding: 56px 0 8px;
+      }
+      h2 {
+        font-size: 28px;
+        margin: 0 0 8px;
+      }
+      h3 {
+        font-size: 20px;
+        margin: 0 0 8px;
+      }
+      .intro {
+        color: var(--text-dim);
+        max-width: 720px;
+        margin: 0 0 28px;
+      }
+      .pillars {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: 16px;
+      }
+      .pillar {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 18px 20px;
+      }
+      .pillar p {
+        margin: 0;
+        color: var(--text-dim);
+        font-size: 15px;
+      }
+      /* ---- feature rows: screenshot beside its list ---- */
+      .feature {
+        display: grid;
+        grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+        gap: 32px;
+        align-items: center;
+        padding: 28px 0;
+        border-top: 1px solid var(--line);
+      }
+      .feature:nth-of-type(even) .shot {
+        order: 2;
+      }
+      .feature ul,
+      .grid ul {
+        margin: 0;
+        padding-left: 20px;
+      }
+      .feature li,
+      .grid li {
+        margin: 4px 0;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 16px;
+      }
+      .grid > div {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 18px 20px;
+      }
+      .grid li {
+        font-size: 15px;
+      }
+      /* ---- shortcuts ---- */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        overflow: hidden;
+        font-size: 15px;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 8px 14px;
+        border-bottom: 1px solid var(--line);
+        vertical-align: top;
+      }
+      tr:last-child td {
+        border-bottom: 0;
+      }
+      th {
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--text-dim);
+      }
+      kbd {
+        display: inline-block;
+        padding: 0 6px;
+        margin: 1px 0;
+        border: 1px solid var(--line);
+        border-bottom-width: 2px;
+        border-radius: 4px;
+        background: var(--kbd);
+        font:
+          13px/1.6 ui-monospace,
+          SFMono-Regular,
+          Menlo,
+          monospace;
+        white-space: nowrap;
+      }
+      footer {
+        margin-top: 56px;
+        padding: 28px 0 40px;
+        border-top: 1px solid var(--line);
+        color: var(--text-dim);
+        font-size: 14px;
+      }
+      footer p {
+        margin: 6px 0;
+      }
+      @media (max-width: 760px) {
+        .feature {
+          grid-template-columns: minmax(0, 1fr);
+          gap: 16px;
+        }
+        .feature:nth-of-type(even) .shot {
+          order: 0;
+        }
+        .topbar nav {
+          display: none;
+        }
+        th,
+        td {
+          padding: 8px 10px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="hero">
+      <div class="wrap">
+        <div class="topbar">
+          <a class="brand" href="index.html">
+            <img src="favicon.svg" alt="" width="28" height="28" />
+            Svgcraft
+          </a>
+          <nav aria-label="On this page">
+            <a href="#features">Features</a>
+            <a href="#shortcuts">Shortcuts</a>
+            <a href="#credits">Credits</a>
+            <a href="https://github.com/orthlieb/svgcraft">GitHub</a>
+          </nav>
+        </div>
+        <h1>A Photoshop-style SVG editor that runs in your browser</h1>
+        <p class="lede">
+          Layers, layer styles, blend modes, gradients, patterns, rich type, symbols and clipping
+          masks, with clean, standard SVG out. Nothing to install and no account: your drawings stay
+          in your browser.
+        </p>
+        <div class="cta">
+          <a class="btn primary" href="index.html">Open the editor</a>
+          <a class="btn ghost" href="#features">See what it does</a>
+        </div>
+        <figure class="shot">
+          <img
+            src="about/workspace.png"
+            width="1440"
+            height="900"
+            alt="The Svgcraft workspace: menu bar, options bar, toolbar on the left, a sunset illustration on the canvas with the sun selected, and the Color and Properties panels on the right."
+          />
+          <figcaption>
+            The workspace: toolbar, options bar, document tabs, rulers and docked panels, laid out
+            the way Photoshop users expect.
+          </figcaption>
+        </figure>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <section aria-labelledby="why">
+        <h2 id="why">Why Svgcraft</h2>
+        <p class="intro">
+          Most SVG editors are either desktop suites or diagram tools. Svgcraft is a lightweight
+          editor for illustrations, icons and UI art, with the controls and shortcuts of the tools
+          designers already know.
+        </p>
+        <div class="pillars">
+          <div class="pillar">
+            <h3>Familiar</h3>
+            <p>
+              Photoshop's tools, menus, panels and shortcuts: Free Transform, Layer Style, blend
+              modes, Pass Through groups and live corners.
+            </p>
+          </div>
+          <div class="pillar">
+            <h3>Real SVG</h3>
+            <p>
+              Everything you make is plain SVG that other editors and browsers read. Svgcraft's own
+              settings travel inside the file, so it opens again fully editable.
+            </p>
+          </div>
+          <div class="pillar">
+            <h3>Private</h3>
+            <p>
+              It's four static files with no server. Open drawings and libraries are kept in your
+              browser, not uploaded anywhere.
+            </p>
+          </div>
+          <div class="pillar">
+            <h3>Light or dark</h3>
+            <p>
+              Follows your system theme, or pick Dark or Light from View → Theme. On a phone it
+              becomes a simple viewer.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="features">
+        <h2 id="features">Features</h2>
+        <p class="intro">The highlights, with a screenshot of each. The full list follows.</p>
+
+        <div class="feature">
+          <figure class="shot">
+            <img
+              src="about/points.png"
+              width="1440"
+              height="900"
+              loading="lazy"
+              alt="Edit Points on the far hills: anchor points along the curve, one picked with its two Bézier handles showing."
+            />
+          </figure>
+          <div>
+            <h3>Draw and edit paths</h3>
+            <ul>
+              <li>
+                <strong>Pen</strong> for corners and smooth curves, <strong>Pencil</strong> for
+                freehand lines with smoothing.
+              </li>
+              <li>Rectangles with editable rounded corners, ellipses, lines and polygons.</li>
+              <li>
+                <strong>Edit Points</strong> on any path or shape: drag points and handles, add,
+                delete, switch corner and smooth.
+              </li>
+              <li><strong>Eraser</strong> that deletes objects or cuts stroked lines.</li>
+              <li>
+                <strong>Combine Shapes</strong>: Unite, Subtract Front, Intersect and Exclude.
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="feature">
+          <figure class="shot">
+            <img
+              src="about/gradients.png"
+              width="1440"
+              height="900"
+              loading="lazy"
+              alt="The sky selected with the Gradient tool: handles on the canvas and the gradient editor in the Color panel with three colour stops."
+            />
+          </figure>
+          <div>
+            <h3>Colour, gradients and patterns</h3>
+            <ul>
+              <li>Separate fill and stroke, each with its own colour and alpha.</li>
+              <li>
+                Linear and radial <strong>gradients</strong> with a stop editor and an on-canvas
+                Gradient tool.
+              </li>
+              <li>
+                Pattern fills, and <strong>Define Pattern</strong> to turn any selection into a
+                tile.
+              </li>
+              <li>
+                Swatches, Gradients and Patterns libraries kept in your browser, with export and
+                import.
+              </li>
+              <li>Eyedropper that copies a style or samples the exact on-screen colour.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="feature">
+          <figure class="shot">
+            <img
+              src="about/layer-style.png"
+              width="1440"
+              height="900"
+              loading="lazy"
+              alt="The Layer Style dialog open on Outer Glow, with colour, opacity, spread and size, and the sun glowing on the canvas behind it."
+            />
+          </figure>
+          <div>
+            <h3>Layers and Layer Style</h3>
+            <ul>
+              <li>
+                A Layers panel with groups as folders, drag to reorder, rename, show and hide.
+              </li>
+              <li>
+                <strong>Layer Style</strong>: drop shadow, inner shadow, outer and inner glow,
+                colour overlay and Gaussian blur, with a live preview.
+              </li>
+              <li>All 16 Photoshop <strong>blend modes</strong>, plus Pass Through for groups.</li>
+              <li>Lock position or lock everything, per layer or per group.</li>
+              <li><strong>Clipping masks</strong>: clip layers to the shape below them.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="feature">
+          <figure class="shot">
+            <img
+              src="about/symbols.png"
+              width="1440"
+              height="900"
+              loading="lazy"
+              alt="The Symbols panel's Library view: a grid of icons such as arrows, refresh, share and chevrons, with a category menu and search."
+            />
+          </figure>
+          <div>
+            <h3>Type and symbols</h3>
+            <ul>
+              <li>
+                Point and paragraph <strong>text</strong>, edited right on the canvas, with
+                Character and Paragraph panels.
+              </li>
+              <li>Per-character styling, Google Fonts and your installed fonts.</li>
+              <li>
+                <strong>Text on a path</strong> and <strong>Create Outlines</strong> to turn text
+                into shapes.
+              </li>
+              <li>
+                <strong>Symbols</strong>: reusable artwork with instances that update together.
+              </li>
+              <li>A Symbols library of 80 built-in icons, plus your own.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="feature">
+          <figure class="shot">
+            <img
+              src="about/source.png"
+              width="1440"
+              height="900"
+              loading="lazy"
+              alt="The SVG Source window over the canvas, with syntax-coloured markup and the selected title layer's lines highlighted."
+            />
+          </figure>
+          <div>
+            <h3>Clean SVG in and out</h3>
+            <ul>
+              <li>
+                <strong>SVG Source</strong> view that highlights the selected layer's markup, with
+                find, copy and download.
+              </li>
+              <li>Open, import, drag and drop or paste SVG and images. Imports are sanitised.</li>
+              <li>Export SVG, or PNG at 1×, 2× and 4×.</li>
+              <li>
+                <strong>File Info</strong> for title, author, copyright and other metadata, stored
+                the standard way.
+              </li>
+              <li>Effects, locks, blend modes and dashes all survive a save and reopen.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="feature">
+          <figure class="shot">
+            <img
+              src="about/light.png"
+              width="1440"
+              height="900"
+              loading="lazy"
+              alt="The same workspace in the light theme."
+            />
+          </figure>
+          <div>
+            <h3>A comfortable workspace</h3>
+            <ul>
+              <li>
+                <strong>Document tabs</strong>, each with its own undo history and view, restored
+                when you come back.
+              </li>
+              <li>A <code>*</code> on a tab when the drawing has unsaved changes.</li>
+              <li>Zoom tool, rulers, guides, grid and snap.</li>
+              <li>Tooltips on every tool, and dark and light themes.</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3 style="margin-top: 40px">Everything else</h3>
+        <div class="grid">
+          <div>
+            <h3>Transform and arrange</h3>
+            <ul>
+              <li>Free Transform with exact position, size, angle and skew.</li>
+              <li>Transform → Scale, Rotate, Skew, Flip, Rotate 90° / 180°.</li>
+              <li>Transform Again, and Again with Copy for repeats.</li>
+              <li>Align and distribute, to the selection or the artboard.</li>
+              <li>Group, ungroup, z-order, duplicate, nudge.</li>
+            </ul>
+          </div>
+          <div>
+            <h3>Strokes</h3>
+            <ul>
+              <li>Width, caps and joins.</li>
+              <li>Align inside, centre or outside, as in Photoshop.</li>
+              <li>Solid, dashed, dotted, long dash or custom dash patterns.</li>
+            </ul>
+          </div>
+          <div>
+            <h3>Selecting and cropping</h3>
+            <ul>
+              <li>Select All, Deselect and Inverse.</li>
+              <li>Marquee selection, auto-select by group or layer.</li>
+              <li>Crop to Selection and Crop to Drawing, counting strokes and effects.</li>
+              <li>Document size in pixels.</li>
+            </ul>
+          </div>
+          <div>
+            <h3>Safe to experiment</h3>
+            <ul>
+              <li>Undo and redo for every change.</li>
+              <li>Drawings saved in your browser as you work.</li>
+              <li>Unsaved changes are flagged before a tab closes.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="shortcuts">
+        <h2 id="shortcuts">Keyboard shortcuts</h2>
+        <p class="intro">
+          On a Mac, use <kbd>⌘</kbd> where it says <kbd>Ctrl</kbd>. Browsers keep a few keys for
+          themselves (such as <kbd>Ctrl</kbd>+<kbd>T</kbd>), so some Photoshop shortcuts use
+          <kbd>Alt</kbd> instead.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Keys</th>
+              <th scope="col">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><kbd>V</kbd> <kbd>A</kbd></td>
+              <td>Move · Edit Points</td>
+            </tr>
+            <tr>
+              <td><kbd>P</kbd> <kbd>B</kbd> <kbd>E</kbd> <kbd>I</kbd></td>
+              <td>Pencil · Pen · Eraser · Eyedropper</td>
+            </tr>
+            <tr>
+              <td><kbd>R</kbd> <kbd>O</kbd> <kbd>L</kbd> <kbd>T</kbd> <kbd>H</kbd> <kbd>Z</kbd></td>
+              <td>Rectangle · Ellipse · Line · Type · Hand · Zoom</td>
+            </tr>
+            <tr>
+              <td><kbd>G</kbd></td>
+              <td>Gradient tool</td>
+            </tr>
+            <tr>
+              <td><kbd>Space</kbd> (hold)</td>
+              <td>Pan</td>
+            </tr>
+            <tr>
+              <td><kbd>Ctrl</kbd>+<kbd>Z</kbd> · <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd></td>
+              <td>Undo · Redo</td>
+            </tr>
+            <tr>
+              <td><kbd>Ctrl</kbd>+<kbd>C</kbd> <kbd>X</kbd> <kbd>V</kbd></td>
+              <td>Copy · Cut · Paste (as SVG)</td>
+            </tr>
+            <tr>
+              <td><kbd>Ctrl</kbd>+<kbd>D</kbd> · <kbd>Ctrl</kbd>+<kbd>A</kbd></td>
+              <td>Duplicate · Select All</td>
+            </tr>
+            <tr>
+              <td><kbd>Shift</kbd>+<kbd>F7</kbd></td>
+              <td>Select Inverse</td>
+            </tr>
+            <tr>
+              <td><kbd>Alt</kbd>+<kbd>T</kbd> · <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>T</kbd></td>
+              <td>Free Transform · Transform Again</td>
+            </tr>
+            <tr>
+              <td><kbd>Ctrl</kbd>+<kbd>G</kbd> · <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>G</kbd></td>
+              <td>Group · Ungroup</td>
+            </tr>
+            <tr>
+              <td><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>G</kbd> (+ <kbd>Shift</kbd>)</td>
+              <td>Make · Release Clipping Mask</td>
+            </tr>
+            <tr>
+              <td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>O</kbd></td>
+              <td>Create Outlines</td>
+            </tr>
+            <tr>
+              <td>
+                <kbd>]</kbd> <kbd>[</kbd> · <kbd>Ctrl</kbd>+<kbd>]</kbd> <kbd>Ctrl</kbd>+<kbd
+                  >[</kbd
+                >
+              </td>
+              <td>Forward · Backward · To Front · To Back</td>
+            </tr>
+            <tr>
+              <td>Arrows (<kbd>Shift</kbd> = 10 px)</td>
+              <td>Nudge</td>
+            </tr>
+            <tr>
+              <td><kbd>Del</kbd> / <kbd>Backspace</kbd></td>
+              <td>Delete</td>
+            </tr>
+            <tr>
+              <td><kbd>X</kbd></td>
+              <td>Swap fill and stroke</td>
+            </tr>
+            <tr>
+              <td><kbd>+</kbd> <kbd>−</kbd> <kbd>0</kbd> <kbd>1</kbd></td>
+              <td>Zoom In · Zoom Out · Fit · 100%</td>
+            </tr>
+            <tr>
+              <td><kbd>Ctrl</kbd>+<kbd>S</kbd> · <kbd>Ctrl</kbd>+<kbd>O</kbd></td>
+              <td>Save as SVG · Open</td>
+            </tr>
+            <tr>
+              <td><kbd>Ctrl</kbd>+<kbd>U</kbd></td>
+              <td>Show / hide the SVG source</td>
+            </tr>
+            <tr>
+              <td><kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>Ctrl</kbd>+<kbd>I</kbd></td>
+              <td>File Info</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+
+    <footer>
+      <div class="wrap" id="credits">
+        <p>
+          Svgcraft is open source under the MIT licence:
+          <a href="https://github.com/orthlieb/svgcraft">github.com/orthlieb/svgcraft</a>. The
+          README there documents every feature in detail.
+        </p>
+        <p>
+          Icons and the built-in symbols are from
+          <a href="https://fontawesome.com">Font Awesome Free</a> 6.7.2 by Fonticons, Inc.,
+          <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. Shape booleans use
+          <a href="http://paperjs.org">paper.js</a> and Create Outlines uses
+          <a href="https://opentype.js.org">opentype.js</a>, both MIT. Web fonts come from Google
+          Fonts and Fontsource.
+        </p>
+        <p><a href="index.html">← Back to the editor</a></p>
+      </div>
+    </footer>
+  </body>
+</html>

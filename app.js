@@ -7530,6 +7530,11 @@
       });
   }
 
+  // Help menu: the About page opens in its own tab, so the drawings stay put.
+  function openAbout(hash) {
+    window.open('about.html' + hash, 'svgcraft-about', 'noopener');
+  }
+
   const cmds = {
     textOnPath: () => textOnPath(),
     releaseTextOnPath: () => releaseTextOnPath(),
@@ -11037,6 +11042,9 @@
     themeSystem: () => setTheme('system'),
     themeDark: () => setTheme('dark'),
     themeLight: () => setTheme('light'),
+    about: () => openAbout(''),
+    aboutFeatures: () => openAbout('#features'),
+    aboutShortcuts: () => openAbout('#shortcuts'),
     toggleTheme: () => setTheme(isDark() ? 'light' : 'dark'),
     showCharacter: showCharacterPanel,
     showParagraph: showParagraphPanel,

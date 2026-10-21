@@ -374,6 +374,22 @@
             </button>
           </div>
         </div>
+        <div class="sc-menu">
+          <button class="sc-menu-btn" role="menuitem" aria-haspopup="menu" aria-expanded="false">
+            Help
+          </button>
+          <div class="sc-menu-list" role="menu" hidden>
+            <button role="menuitem" data-action="about">
+              <i data-icon="circle-info"></i><span>About Svgcraft</span>
+            </button>
+            <button role="menuitem" data-action="aboutFeatures">
+              <i data-icon="list"></i><span>Feature List</span>
+            </button>
+            <button role="menuitem" data-action="aboutShortcuts">
+              <i data-icon="keyboard"></i><span>Keyboard Shortcuts</span>
+            </button>
+          </div>
+        </div>
       </nav>
       <div class="sc-menubar-end">
         <!-- Phone preview: just open and fit (editing needs a bigger screen). -->
@@ -390,6 +406,9 @@
           data-tip="Fit the drawing to the screen"
         >
           <i data-icon="expand"></i> Fit
+        </button>
+        <button class="sc-tbtn sc-preview-only" data-action="about" data-tip="About Svgcraft">
+          <i data-icon="circle-info"></i> About
         </button>
         <button
           class="sc-ibtn"
