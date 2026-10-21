@@ -55,6 +55,10 @@
               <i></i><span>Export PNG @4×</span>
             </button>
             <hr />
+            <button role="menuitem" data-action="fileInfo">
+              <i data-icon="circle-info"></i><span>File Info…</span><kbd>Alt+Shift+Ctrl+I</kbd>
+            </button>
+            <hr />
             <button role="menuitem" data-action="copySvg">
               <i data-icon="copy"></i><span>Copy as SVG markup</span>
             </button>
@@ -2452,6 +2456,81 @@
       <div class="sc-dialog-foot">
         <button class="sc-tbtn" data-ng="cancel">Cancel</button>
         <button class="sc-tbtn sc-primary-btn" data-ng="ok">OK</button>
+      </div>
+    </div>
+
+    <!-- File → File Info… (document title, author, licence: saved as SVG <title>,
+         <desc> and RDF <metadata>). -->
+    <div
+      class="sc-dialog sc-info-dialog"
+      id="sc-fileinfo"
+      role="dialog"
+      aria-modal="false"
+      aria-labelledby="sc-info-title"
+      hidden
+    >
+      <div class="sc-dialog-title" id="sc-info-title">File Info</div>
+      <div class="sc-dialog-body sc-info-body">
+        <label class="sc-info-field"
+          ><span>Title</span><input type="text" data-meta="title" autocomplete="off"
+        /></label>
+        <label class="sc-info-field"
+          ><span>Author</span><input type="text" data-meta="creator" autocomplete="off"
+        /></label>
+        <label class="sc-info-field"
+          ><span>Description</span><textarea data-meta="description" rows="3"></textarea>
+        </label>
+        <label class="sc-info-field"
+          ><span>Keywords</span
+          ><input type="text" data-meta="keywords" placeholder="Comma separated" autocomplete="off"
+        /></label>
+        <label class="sc-info-field"
+          ><span>Date</span
+          ><input type="text" data-meta="date" placeholder="YYYY-MM-DD" autocomplete="off"
+        /></label>
+        <label class="sc-info-field"
+          ><span>Copyright Status</span
+          ><select data-meta="marked">
+            <option value="">Unknown</option>
+            <option value="true">Copyrighted</option>
+            <option value="false">Public Domain</option>
+          </select></label
+        >
+        <label class="sc-info-field"
+          ><span>Copyright Notice</span
+          ><input type="text" data-meta="rights" placeholder="© 2026 Your Name" autocomplete="off"
+        /></label>
+        <label class="sc-info-field"
+          ><span>Licence</span
+          ><select data-meta="license">
+            <option value="">None</option>
+            <option value="cc-by">CC BY 4.0</option>
+            <option value="cc-by-sa">CC BY-SA 4.0</option>
+            <option value="cc-by-nd">CC BY-ND 4.0</option>
+            <option value="cc-by-nc">CC BY-NC 4.0</option>
+            <option value="cc-by-nc-sa">CC BY-NC-SA 4.0</option>
+            <option value="cc0">CC0 1.0 (public domain dedication)</option>
+            <option value="arr">All rights reserved</option>
+            <option value="custom">Custom URL…</option>
+          </select></label
+        >
+        <label class="sc-info-field sc-info-licurl" hidden
+          ><span>Licence URL</span
+          ><input type="url" data-meta="licenseUrl" placeholder="https://…" autocomplete="off"
+        /></label>
+        <label class="sc-info-field"
+          ><span>Source / Info URL</span
+          ><input type="url" data-meta="source" placeholder="https://…" autocomplete="off"
+        /></label>
+        <label class="sc-info-field"
+          ><span>Language</span
+          ><input type="text" data-meta="language" placeholder="e.g. en, fr-CA" autocomplete="off"
+        /></label>
+        <p class="sc-info-err" role="alert" hidden></p>
+      </div>
+      <div class="sc-dialog-foot">
+        <button class="sc-tbtn" data-info="cancel">Cancel</button>
+        <button class="sc-tbtn sc-primary-btn" data-info="ok">OK</button>
       </div>
     </div>
 
