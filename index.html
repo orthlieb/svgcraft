@@ -792,9 +792,28 @@
         </div>
         <span class="sc-opt-note" id="sc-eyedrop-note"></span>
       </div>
-      <div class="sc-opt" data-for="hand">
+      <div class="sc-opt" data-for="zoom">
+        <div class="sc-seg" role="radiogroup" aria-label="Zoom direction">
+          <button data-zoomdir="in" role="radio" aria-label="Zoom in" data-tip="Zoom in">
+            <i data-icon="magnifying-glass-plus"></i>
+          </button>
+          <button
+            data-zoomdir="out"
+            role="radio"
+            aria-label="Zoom out"
+            data-tip="Zoom out (or hold Alt)"
+          >
+            <i data-icon="magnifying-glass-minus"></i>
+          </button>
+        </div>
+        <label class="sc-check" data-tip="Drag left or right to zoom; off, drag a box to zoom into"
+          ><input type="checkbox" id="sc-scrubby" checked /> Scrubby Zoom</label
+        >
+      </div>
+      <div class="sc-opt" data-for="hand zoom">
         <button class="sc-tbtn" data-action="zoom100">100%</button>
         <button class="sc-tbtn" data-action="fit">Fit Screen</button>
+        <button class="sc-tbtn" data-action="fillScreen">Fill Screen</button>
       </div>
     </div>
 
@@ -899,6 +918,14 @@
           data-tip-desc="Drag to scroll around the canvas."
         >
           <i data-icon="hand"></i>
+        </button>
+        <button
+          data-tool="zoom"
+          aria-label="Zoom"
+          data-tip="Zoom · Z"
+          data-tip-desc="Click to zoom in, Alt-click to zoom out. Drag left or right to zoom smoothly. Double-click for 100%."
+        >
+          <i data-icon="magnifying-glass"></i>
         </button>
         <!-- Fill / stroke chips, Photoshop foreground / background style. -->
         <div class="sc-chips" aria-label="Fill and stroke">

@@ -56,6 +56,8 @@
   const state = {
     tool: 'select',
     zoom: 1,
+    zoomOut: false, // Zoom tool steps out instead of in
+    scrubby: true, // Zoom tool drags zoom smoothly instead of drawing a box
     panX: 0,
     panY: 0,
     w: 800,
@@ -1524,6 +1526,27 @@
     state.panX = (r.width - state.w * state.zoom) / 2;
     state.panY = (r.height - state.h * state.zoom) / 2;
     applyView();
+  }
+
+  // Fill Screen: the artboard covers the whole stage, centred.
+  function fillScreen() {
+    const r = stage.getBoundingClientRect();
+    state.zoom = clamp(Math.max(r.width / state.w, r.height / state.h), 0.02, 64);
+    state.panX = (r.width - state.w * state.zoom) / 2;
+    state.panY = (r.height - state.h * state.zoom) / 2;
+    applyView();
+  }
+
+  // Photoshop's zoom presets, as fractions: the Zoom tool's clicks step
+  // through these.
+  const ZOOM_STEPS = [
+    0.02, 0.03, 0.04, 0.05, 0.0625, 0.0833, 0.125, 0.1667, 0.25, 0.3333, 0.5, 0.6667, 1, 2, 3, 4, 5,
+    6, 7, 8, 12, 16, 24, 32, 48, 64,
+  ];
+  function zoomStep(z, out) {
+    return out
+      ? (ZOOM_STEPS.findLast((v) => v < z / 1.001) ?? ZOOM_STEPS[0])
+      : (ZOOM_STEPS.find((v) => v > z * 1.001) ?? ZOOM_STEPS.at(-1));
   }
 
   function setSize(w, h) {
@@ -3779,6 +3802,72 @@
     cursor: 'grab',
   };
 
+  // Zoom (Z), as in Photoshop: click steps in, Alt-click (or the options
+  // bar's Zoom Out) steps out. Scrubby Zoom: drag right to zoom in and left
+  // to zoom out about where you pressed. Without it, drag a box to fill the
+  // window with that area.
+  tools.zoom = {
+    hint: 'Click to zoom in · Alt-click to zoom out · drag left / right to zoom',
+    get cursor() {
+      return state.zoomOut !== altDown ? 'zoom-out' : 'zoom-in';
+    },
+    down(e) {
+      const r = stage.getBoundingClientRect();
+      this.g = {
+        sx: e.clientX,
+        x: e.clientX - r.left,
+        y: e.clientY - r.top,
+        p0: toDoc(e),
+        z: state.zoom,
+        out: state.zoomOut !== e.altKey,
+        moved: false,
+      };
+    },
+    move(e, p) {
+      const g = this.g;
+      if (!g) return;
+      if (!g.moved && Math.abs(e.clientX - g.sx) < 3 && dist(g.p0, p) * state.zoom < 3) return;
+      g.moved = true;
+      if (state.scrubby) {
+        zoomAt(g.z * Math.exp((e.clientX - g.sx) * 0.01), g.x, g.y);
+        return;
+      }
+      guides.replaceChildren();
+      mk(
+        'rect',
+        {
+          x: Math.min(g.p0.x, p.x),
+          y: Math.min(g.p0.y, p.y),
+          width: Math.abs(p.x - g.p0.x),
+          height: Math.abs(p.y - g.p0.y),
+          class: 'sc-ov sc-ov-dash',
+        },
+        guides,
+      );
+    },
+    up(e, p) {
+      const g = this.g;
+      this.g = null;
+      guides.replaceChildren();
+      if (!g) return;
+      if (!g.moved) return zoomAt(zoomStep(state.zoom, g.out), g.x, g.y);
+      if (state.scrubby) return;
+      const w = Math.abs(p.x - g.p0.x);
+      const h = Math.abs(p.y - g.p0.y);
+      if (g.out || w * state.zoom < 4 || h * state.zoom < 4)
+        return zoomAt(zoomStep(state.zoom, g.out), g.x, g.y);
+      const r = stage.getBoundingClientRect();
+      state.zoom = clamp(Math.min(r.width / w, r.height / h), 0.02, 64);
+      state.panX = r.width / 2 - (Math.min(g.p0.x, p.x) + w / 2) * state.zoom;
+      state.panY = r.height / 2 - (Math.min(g.p0.y, p.y) + h / 2) * state.zoom;
+      applyView();
+    },
+    leave() {
+      this.g = null;
+      guides.replaceChildren();
+    },
+  };
+
   tools.eraser = {
     hint: 'Rub to erase · Object deletes whatever you touch, Cut splits strokes',
     cursor: 'none',
@@ -5605,6 +5694,7 @@
     eyedropper: ['eye-dropper', 'Eyedropper'],
     gradient: ['sc-gradient', 'Gradient'],
     hand: ['hand', 'Hand'],
+    zoom: ['magnifying-glass', 'Zoom'],
   };
 
   // Options bar: the transform session's fields while one is open,
@@ -5634,7 +5724,7 @@
     const changed = name !== state.tool;
     if (changed) {
       tools[state.tool].leave?.();
-      if (!['select', 'hand', 'eyedropper', 'gradient'].includes(name)) state.sel = [];
+      if (!['select', 'hand', 'zoom', 'eyedropper', 'gradient'].includes(name)) state.sel = [];
     }
     state.tool = name;
     stage.dataset.tool = name;
@@ -5866,6 +5956,7 @@
   let gesture = null;
   let pinch = null;
   let spaceDown = false;
+  let altDown = false; // flips the Zoom tool's direction while held
   const pointers = new Map();
 
   function abortGesture() {
@@ -5999,6 +6090,7 @@
     i: 'eyedropper',
     g: 'gradient',
     h: 'hand',
+    z: 'zoom',
   };
 
   window.addEventListener('keydown', (e) => {
@@ -6222,6 +6314,7 @@
     zoomIn: () => zoomAt(state.zoom * 1.25),
     zoomOut: () => zoomAt(state.zoom / 1.25),
     fit,
+    fillScreen,
     zoom100: () => zoomAt(1),
     toggleGrid: () => setGridOn(!state.grid),
     toggleSnap: () => setSnapOn(!state.snap),
@@ -6550,6 +6643,35 @@
     });
     b.setAttribute('aria-checked', b.dataset.eyedrop === state.eyedropMode);
   }
+  function syncZoomOpts() {
+    for (const b of document.querySelectorAll('[data-zoomdir]'))
+      b.setAttribute('aria-checked', (b.dataset.zoomdir === 'out') === state.zoomOut);
+    $('#sc-scrubby').checked = state.scrubby;
+    if (state.tool === 'zoom') stage.style.cursor = tools.zoom.cursor;
+  }
+  for (const b of document.querySelectorAll('[data-zoomdir]'))
+    b.addEventListener('click', () => {
+      state.zoomOut = b.dataset.zoomdir === 'out';
+      syncZoomOpts();
+    });
+  $('#sc-scrubby').addEventListener('change', (e) => {
+    state.scrubby = e.target.checked;
+    syncZoomOpts();
+  });
+  // Double-clicking the Zoom tool goes to 100%, as in Photoshop.
+  $('[data-tool="zoom"]').addEventListener('dblclick', () => zoomAt(1));
+  // Holding Alt flips the Zoom tool's cursor between in and out.
+  for (const type of ['keydown', 'keyup'])
+    window.addEventListener(type, (e) => {
+      if (e.key !== 'Alt' || altDown === (type === 'keydown')) return;
+      altDown = type === 'keydown';
+      if (state.tool === 'zoom' && !gesture?.pan) stage.style.cursor = tools.zoom.cursor;
+    });
+  window.addEventListener('blur', () => {
+    altDown = false;
+    if (state.tool === 'zoom') stage.style.cursor = tools.zoom.cursor;
+  });
+  syncZoomOpts();
   document.querySelector('[data-eraser="object"]').setAttribute('aria-checked', 'true');
   document.querySelector('[data-eraser="cut"]').setAttribute('aria-checked', 'false');
 

@@ -106,6 +106,12 @@ stroke="currentColor"` (common in icon sets) is pushed down so it survives.
   Alt-drag a handle to break one. Works on paths with any command (arcs
   included) and on rectangles, ellipses, circles, lines, polylines and
   polygons. A basic shape turns into a `<path>` only once you change it.
+- **Zoom** (Z), as in Photoshop: click to zoom in one step (50%, 66.7%,
+  100%, 200%, 300% …), and Alt-click or the options bar's Zoom Out button to
+  step out. With **Scrubby Zoom** on, drag right to zoom in and left to zoom
+  out, centred where you pressed. With it off, drag a box to fill the window
+  with that area. 100%, Fit Screen and Fill Screen are in the options bar,
+  and double-clicking the tool goes to 100%.
 - **Eraser**: **Object** mode deletes anything you rub. **Cut** mode splits
   stroked lines and paths where you rub and leaves filled shapes alone.
 - **Gradients**, for fill and stroke:
@@ -262,23 +268,23 @@ combine shapes.
 
 ## Shortcuts
 
-| Key                   | Action                                  |
-| --------------------- | --------------------------------------- |
-| V A                   | Select · Edit points                    |
-| P B E I               | Pencil · Pen · Eraser · Eyedropper      |
-| R O L T H             | Rect · Ellipse · Line · Text · Pan      |
-| Space (hold)          | Pan                                     |
-| Ctrl+Z / Ctrl+Shift+Z | Undo / redo (Ctrl+Y redoes too)         |
-| Ctrl+C / X / V        | Copy / cut / paste (as SVG)             |
-| Ctrl+D · Ctrl+A       | Duplicate · select all                  |
-| Alt+T · Alt+Shift+T   | Free Transform · Transform Again        |
-| Ctrl+G · Ctrl+Shift+G | Group · ungroup                         |
-| ] [ · Ctrl+] Ctrl+[   | Forward / backward · to front / to back |
-| Arrows (Shift = 10)   | Nudge                                   |
-| Del / Backspace       | Delete                                  |
-| X                     | Swap fill and stroke                    |
-| + − 0 1               | Zoom in / out · fit · 100%              |
-| Ctrl+S · Ctrl+O       | Export SVG · open                       |
+| Key                   | Action                                    |
+| --------------------- | ----------------------------------------- |
+| V A                   | Select · Edit points                      |
+| P B E I               | Pencil · Pen · Eraser · Eyedropper        |
+| R O L T H Z           | Rect · Ellipse · Line · Text · Pan · Zoom |
+| Space (hold)          | Pan                                       |
+| Ctrl+Z / Ctrl+Shift+Z | Undo / redo (Ctrl+Y redoes too)           |
+| Ctrl+C / X / V        | Copy / cut / paste (as SVG)               |
+| Ctrl+D · Ctrl+A       | Duplicate · select all                    |
+| Alt+T · Alt+Shift+T   | Free Transform · Transform Again          |
+| Ctrl+G · Ctrl+Shift+G | Group · ungroup                           |
+| ] [ · Ctrl+] Ctrl+[   | Forward / backward · to front / to back   |
+| Arrows (Shift = 10)   | Nudge                                     |
+| Del / Backspace       | Delete                                    |
+| X                     | Swap fill and stroke                      |
+| + − 0 1               | Zoom in / out · fit · 100%                |
+| Ctrl+S · Ctrl+O       | Export SVG · open                         |
 
 ## How it works
 
