@@ -220,12 +220,12 @@ stroke="currentColor"` (common in icon sets) is pushed down so it survives.
     it to the other one. Double-click renames it, Alt-click deletes it,
     and the bar's buttons do the same for the selected tile. **Reset**
     brings back the built-in set for that panel.
-  - **Export** saves all three libraries to `svgcraft-library.json`, and
-    **Import** adds a library file's contents, skipping anything you
-    already have. Browser storage belongs to one browser on one machine
+  - **Export** saves all the libraries (with the Symbols library, see
+    Symbols) to `svgcraft-library.json`, and **Import** adds a library
+    file's contents, skipping anything you already have. Browser storage belongs to one browser on one machine
     and is lost if you clear the site's data, so export to keep a copy.
-    Pattern tiles from a library file are sanitised like imported
-    drawings.
+    Pattern tiles and symbols from a library file are sanitised like
+    imported drawings.
 - **Colours**: fill and stroke, each with an on/off switch, a colour
   picker, a hex field and the Swatches panel. Press X to swap fill and stroke.
   Shift-click a swatch to apply it to the other target.
@@ -532,6 +532,42 @@ reuses it). Define Pattern on an instance takes the symbol into the tile.
 Symbols in an imported file, including the top-level `<symbol>`s of icon
 sprite sheets, show up in the panel.
 
+### The Symbols library
+
+The Symbols panel has two views: **This drawing** (the drawing's own
+symbols, above) and **Library**, symbols you keep across drawings. The
+library lives in this browser with the swatches, gradients and patterns,
+and travels in the same Export / Import Library file.
+
+- **Find one** with the category menu and the search box, which matches
+  names and categories.
+- **Place** it with the clone button, by double-clicking it, or by dragging
+  it onto the canvas. Placing adds the symbol to the drawing's own symbols
+  (reusing it if the drawing already has the same artwork, so placing an
+  icon ten times gives one symbol and ten instances) and puts an instance in
+  the middle of the view, or where you drop it. From then on it's an
+  ordinary symbol: edit it, break its link, rename it.
+- **Save to Library** (the book button under This drawing, or the library's
+  - button) copies the drawing's selected symbol, or the selected
+    instance's, into the library, at the size it is. Saved symbols go in the
+    _Saved_ category.
+- Rename an entry by double-clicking its name or with the pen button, and
+  delete it with the bin button or Alt-click. **Reset** puts the built-in
+  icons back (and only touches the symbols).
+
+The library starts with a built-in set of 56 icons from Font Awesome Free
+6.7.2 in eight categories: Arrows, Shapes, Interface, Communication,
+Weather, People, Objects and Nature. They're placed 64 px tall and in the
+current fill colour. The icons don't set a colour of their own, so the
+instance's fill paints them: select an instance and pick a colour in the
+Color or Swatches panel to recolour it. Each icon's `<symbol>` carries its
+credit (`data-credit="Font Awesome Free 6.7.2 — CC BY 4.0"`), so the
+attribution stays in any drawing that uses it.
+
+Library files are checked on the way in like any imported drawing: scripts,
+event handlers, `javascript:` links and style sheets are taken out of
+imported symbols, and entries that don't make sense are skipped.
+
 ## Shortcuts
 
 | Key                   | Action                                    |
@@ -606,8 +642,9 @@ their element, which comments wouldn't survive. An optimiser told to strip
 `data-*` attributes keeps the look but loses the editable settings.
 
 Not saved in the file: undo history and the view (they stay with the
-browser's open tabs), and the Swatches / Gradients / Patterns libraries
-(Export Library saves those).
+browser's open tabs), and the Swatches / Gradients / Patterns / Symbols
+libraries (Export Library saves those). Placed library symbols are in the
+file, like any other symbol.
 
 `tests/roundtrip.spec.js` checks all of this.
 
@@ -654,6 +691,13 @@ Fonticons, Inc., licensed [CC BY 4.0](https://creativecommons.org/licenses/by/4.
 `data-icon="name"` gets its snippet at startup, so nothing loads from a CDN.
 To add an icon, copy its SVG from fontawesome.com into `icons.js`. The
 Combine Shapes glyphs and the gradient glyph are custom.
+
+The Symbols library's built-in icons are also Font Awesome Free 6.7.2
+icons, CC BY 4.0 (attribution: Fonticons, Inc., https://fontawesome.com).
+They live in `symbols-library.js`, generated from the Font Awesome Free
+package by `scripts/gen-symbols-library.mjs` (which lists the icons and
+their categories). Placing one puts the credit on its `<symbol>` in the
+drawing. No brand icons are included.
 
 Boolean geometry uses [paper.js](http://paperjs.org) 0.12.18 (MIT) and
 Create Outlines reads fonts with [opentype.js](https://opentype.js.org)

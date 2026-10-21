@@ -8947,10 +8947,12 @@
     }
   }
 
-  // ---- libraries: swatches, gradients, patterns -----------------------------------
+  // ---- libraries: swatches, gradients, patterns, symbols --------------------------
   // Kept in this browser's localStorage. The built-ins seed it, and like
   // Photoshop's presets they can be renamed, deleted and restored. Export /
-  // Import Library carries the lot between browsers as a JSON file.
+  // Import Library carries the lot between browsers as a JSON file. Library
+  // symbols are { id, name, category, w, h, svg, credit?, size? }: svg is the
+  // content in a 0 0 w h box, size the height it's placed at (64 if unset).
   const LIB_KEY = 'svgcraft.library.v1';
   const uid = () => Math.random().toString(36).slice(2, 10);
   function defaultLibrary(kind) {
@@ -8966,6 +8968,8 @@
         h,
         svg,
       })),
+      // The built-in icon set (symbols-library.js).
+      symbols: (window.SC_SYMBOLS || []).map((x) => ({ ...x })),
     };
     return kind ? all[kind] : all;
   }
@@ -8990,11 +8994,13 @@
   }
 
   // Keep only well-formed entries. `fresh` gives everything new ids (imports).
+  // A stored library from before symbols existed gets the built-in set.
   function cleanLibrary(raw, fresh = false) {
-    const out = { swatches: [], gradients: [], patterns: [] };
+    const out = { swatches: [], gradients: [], patterns: [], symbols: [] };
     if (!raw || typeof raw !== 'object') return out;
     const list = (v) => (Array.isArray(v) ? v.filter((x) => x && typeof x === 'object') : []);
-    const id = (v) => (!fresh && typeof v === 'string' && /^[a-z0-9]{1,16}$/.test(v) ? v : uid());
+    const id = (v) =>
+      !fresh && typeof v === 'string' && /^[a-z0-9][a-z0-9-]{0,31}$/.test(v) ? v : uid();
     const name = (v, d) => String(v ?? '').slice(0, 80) || d;
     const color = (v) =>
       typeof v === 'string' && /^#[0-9a-f]{6}$/i.test(v) ? v.toLowerCase() : null;
@@ -9024,6 +9030,34 @@
       if (w && h && svg)
         out.patterns.push({ id: id(x.id), name: name(x.name, 'Pattern'), w, h, svg });
     }
+    if (!fresh && !Array.isArray(raw.symbols)) out.symbols = defaultLibrary('symbols');
+    // Plain text: control characters become spaces.
+    const text = (v, n) =>
+      typeof v === 'string'
+        ? [...v]
+            .map((c) => (c < ' ' || c === '\x7f' ? ' ' : c))
+            .join('')
+            .trim()
+            .slice(0, n)
+        : '';
+    for (const x of list(raw.symbols)) {
+      const w = num(x.w, 0.5, 4096, 0);
+      const h = num(x.h, 0.5, 4096, 0);
+      const svg = typeof x.svg === 'string' && x.svg.length < 2e6 ? cleanTile(x.svg) : '';
+      if (!w || !h || !svg) continue;
+      const item = {
+        id: id(x.id),
+        name: name(text(x.name, 80), 'Symbol'),
+        category: text(x.category, 40) || 'Other',
+        w,
+        h,
+        svg,
+      };
+      const credit = text(x.credit, 200);
+      if (credit) item.credit = credit;
+      if (x.size != null) item.size = num(x.size, 1, 4096, 64);
+      out.symbols.push(item);
+    }
     return out;
   }
 
@@ -9037,7 +9071,7 @@
     return defaultLibrary();
   }
   const lib = loadLibrary();
-  const libSel = { swatches: null, gradients: null, patterns: null };
+  const libSel = { swatches: null, gradients: null, patterns: null, symbols: null };
 
   function saveLibrary() {
     try {
@@ -9189,6 +9223,7 @@
       ),
     );
     renderPatEditor();
+    renderSymLib();
   }
   function renderPatTiles(force = false) {
     const ink = state[state.active];
@@ -9201,7 +9236,12 @@
     );
   }
 
-  const LIB_NOUN = { swatches: 'swatch', gradients: 'gradient', patterns: 'pattern' };
+  const LIB_NOUN = {
+    swatches: 'swatch',
+    gradients: 'gradient',
+    patterns: 'pattern',
+    symbols: 'symbol',
+  };
   const libItem = (kind, id) => lib[kind].find((x) => x.id === id);
 
   async function renameLibItem(kind, id = libSel[kind]) {
@@ -9222,6 +9262,7 @@
   }
   async function addLibItem(kind) {
     if (kind === 'patterns') return definePattern();
+    if (kind === 'symbols') return saveSymbolToLib();
     const k = state.active;
     let item;
     if (kind === 'swatches') {
@@ -9263,6 +9304,7 @@
       swatches: strip(lib.swatches),
       gradients: strip(lib.gradients),
       patterns: strip(lib.patterns),
+      symbols: strip(lib.symbols),
     };
     download(
       new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }),
@@ -9282,9 +9324,10 @@
       swatches: (x) => `${x.c}/${f(x.a)}`,
       gradients: (x) => JSON.stringify([x.type, x.angle, x.stops]),
       patterns: (x) => `${f(x.w)}x${f(x.h)}:${x.svg}`,
+      symbols: (x) => `${f(x.w)}x${f(x.h)}:${x.svg}`,
     };
     const counts = [];
-    for (const kind of ['swatches', 'gradients', 'patterns']) {
+    for (const kind of ['swatches', 'gradients', 'patterns', 'symbols']) {
       const have = new Set(lib[kind].map(key[kind]));
       const fresh = add[kind].filter((x) => !have.has(key[kind](x)));
       lib[kind].push(...fresh);
@@ -9307,6 +9350,7 @@
             export: exportLibrary,
             import: () => $('#sc-lib-file').click(),
             reset: () => resetLib(kind),
+            place: () => placeLibSymbol(),
           })[b.dataset.libAct]();
         });
     $('#sc-lib-file').addEventListener('change', (e) => {
@@ -9651,11 +9695,12 @@
     return toDoc({ clientX: r.left + r.width / 2, clientY: r.top + r.height / 2 });
   };
 
-  // A new instance, centred on `at` (the middle of the view by default).
-  function placeSymbol(sym = panelSymbol(), at = viewCentre()) {
+  // A new instance, centred on `at` (the middle of the view by default);
+  // `attrs` go on the instance.
+  function placeSymbol(sym = panelSymbol(), at = viewCentre(), attrs = {}) {
     if (!sym) return say('Click a symbol in the Symbols panel first.');
     if (iso && symUses(sym, iso.sym)) return say('A symbol can’t hold an instance of itself.');
-    const u = mk('use', { href: `#${sym.id}`, 'data-name': symName(sym) }, doc);
+    const u = mk('use', { href: `#${sym.id}`, 'data-name': symName(sym), ...attrs }, doc);
     const b = bboxDoc(u);
     if (b) setM(u, new DOMMatrix().translate(at.x - (b.x + b.w / 2), at.y - (b.y + b.h / 2)));
     if (state.tool !== 'select') setTool('select');
@@ -9923,21 +9968,245 @@
           break: breakSymbolLink,
           rename: () => renameSymbol(),
           delete: () => deleteSymbol(),
+          save: () => saveSymbolToLib(),
         })[b.dataset.symAct](),
       );
     stage.addEventListener('dragover', (e) => {
-      if (!e.dataTransfer?.types.includes(SYM_DRAG)) return;
+      const types = e.dataTransfer?.types || [];
+      if (!types.includes(SYM_DRAG) && !types.includes(LIBSYM_DRAG)) return;
       e.preventDefault();
       e.dataTransfer.dropEffect = 'copy';
     });
     stage.addEventListener('drop', (e) => {
-      const sym = symById(e.dataTransfer?.getData(SYM_DRAG));
-      if (!sym) return;
+      const item = e.dataTransfer?.types.includes(LIBSYM_DRAG)
+        ? libItem('symbols', e.dataTransfer.getData(LIBSYM_DRAG))
+        : null;
+      const sym = !item && symById(e.dataTransfer?.getData(SYM_DRAG));
+      if (!item && !sym) return;
       e.preventDefault();
       e.stopPropagation();
-      placeSymbol(sym, toDoc(e));
+      if (item) placeLibSymbol(item, toDoc(e));
+      else placeSymbol(sym, toDoc(e));
+    });
+    // This drawing / Library.
+    for (const b of document.querySelectorAll('[data-symview]'))
+      b.addEventListener('click', () => setSymView(b.dataset.symview));
+    $('#sc-libsym-cat').addEventListener('change', (e) => {
+      symFilter.cat = e.target.value;
+      renderSymLib();
+    });
+    $('#sc-libsym-q').addEventListener('input', (e) => {
+      symFilter.q = e.target.value;
+      renderSymLib();
     });
     renderSymbols();
+  }
+
+  // ---- the Symbols library ----
+  // Symbols kept across drawings, in the library store with the swatches,
+  // gradients and patterns. Placing one adds it to the drawing as an ordinary
+  // symbol (or reuses the identical one already there) and places an
+  // instance. The built-in icons set no colour of their own, so they draw in
+  // the instance's fill; their credit rides along on the <symbol> as
+  // data-credit.
+  const LIBSYM_DRAG = 'application/x-svgcraft-library-symbol';
+  const symFilter = { cat: '', q: '' };
+  let symView = 'doc';
+
+  // A short, stable fingerprint (FNV-1a), for ids that come out the same
+  // every time the same library symbol is placed.
+  function hashStr(str) {
+    let h = 0x811c9dc5;
+    for (let i = 0; i < str.length; i++) h = Math.imul(h ^ str.charCodeAt(i), 0x01000193);
+    return (h >>> 0).toString(36);
+  }
+
+  // The drawing's symbol for a library entry: the one already there with the
+  // same content, else a new one in defs (with any defs the entry carries).
+  function libSymbolFor(item) {
+    const d = new DOMParser().parseFromString(
+      `<svg xmlns="${NS}" xmlns:xlink="${XLINK}">${item.svg}</svg>`,
+      'image/svg+xml',
+    );
+    if (d.querySelector('parsererror')) return null;
+    sanitize(d.documentElement);
+    const sym = mk('symbol');
+    const carried = [];
+    for (const n of d.documentElement.children) {
+      const el = document.importNode(n, true);
+      if (el.localName === 'defs') carried.push(...el.children);
+      else sym.append(el);
+    }
+    // Ids get a prefix of the entry's own, so they can't clash with the
+    // drawing's and the same entry always makes the same markup.
+    const pre = `sl${hashStr(`${f(item.w)}x${f(item.h)}:${item.svg}`)}-`;
+    const map = new Map();
+    for (const r of [...carried, sym])
+      for (const el of [r, ...r.querySelectorAll('[id]')])
+        if (el.id && el !== sym) {
+          map.set(el.id, pre + el.id);
+          el.id = pre + el.id;
+        }
+    renameRefs([...carried, sym], map);
+    const s = (item.size || 64) / item.h;
+    for (const c of sym.children)
+      if (c instanceof SVGGraphicsElement) setM(c, new DOMMatrix().scale(s).multiply(getM(c)));
+    const same = symList().find((x) => x.innerHTML === sym.innerHTML);
+    if (same) return same;
+    // A changed copy of an earlier placement: its own ids for its content.
+    for (const el of sym.querySelectorAll('[id]'))
+      if (document.getElementById(el.id)) {
+        let n = 2;
+        while (document.getElementById(`${el.id}-${n}`)) n++;
+        el.id = `${el.id}-${n}`;
+      }
+    for (const c of carried) if (!c.id || !document.getElementById(c.id)) defs.append(c);
+    sym.id = newDefId('sc-sym');
+    sym.setAttribute('data-name', item.name);
+    sym.setAttribute('overflow', 'visible');
+    if (item.credit) sym.setAttribute('data-credit', item.credit);
+    defs.append(sym);
+    return sym;
+  }
+
+  // Place a library symbol: an instance centred on `at`, in the fill colour.
+  function placeLibSymbol(item = libItem('symbols', libSel.symbols), at = viewCentre()) {
+    if (!item) return say('Click a symbol in the library first.');
+    const sym = libSymbolFor(item);
+    if (!sym) return say(`Couldn’t read the library symbol “${item.name}”.`);
+    const paint =
+      state.fillOn && !state.fillGrad && !state.fillPat
+        ? { fill: state.fill, 'fill-opacity': state.fillA < 1 ? f(state.fillA) : null }
+        : {};
+    symSel = sym.id;
+    return placeSymbol(sym, at, paint);
+  }
+
+  // Save to Library: the panel's symbol (or the selected instance's), as it
+  // looks, in a box the size of what it paints.
+  async function saveSymbolToLib(sym = panelSymbol()) {
+    if (!sym) return say('Click a symbol in This drawing (or select an instance) to save it.');
+    const probe = mk('use', { href: `#${sym.id}` }, doc);
+    const box = paintBox([probe]);
+    probe.remove();
+    if (!box || box.w < 0.5 || box.h < 0.5) return say('That symbol has nothing visible to save.');
+    const x = Math.floor(box.x);
+    const y = Math.floor(box.y);
+    const w = Math.ceil(box.x + box.w) - x;
+    const h = Math.ceil(box.y + box.h) - y;
+    if (w > 4096 || h > 4096)
+      return say('That symbol is too big for the library (4096 px at most).');
+    const T = new DOMMatrix().translate(-x, -y);
+    const parts = [...sym.children].map((c) => {
+      const k = c.cloneNode(true);
+      if (c instanceof SVGGraphicsElement) setM(k, T.multiply(getM(c)));
+      return k;
+    });
+    const carried = carryDefs(parts, `s${uid()}-`);
+    const name = await ask('Save to Library', {
+      value: symName(sym),
+      text: 'The symbol joins your Symbols library, ready to place in any drawing.',
+      ok: 'Save',
+    });
+    if (!name) return;
+    const ser = (n) => new XMLSerializer().serializeToString(n).replaceAll(` xmlns="${NS}"`, '');
+    const item = {
+      id: uid(),
+      name: name.slice(0, 80),
+      category: 'Saved',
+      w,
+      h,
+      svg: (carried.childNodes.length ? ser(carried) : '') + parts.map(ser).join(''),
+      size: h,
+    };
+    const credit = sym.getAttribute('data-credit');
+    if (credit) item.credit = credit.slice(0, 200);
+    lib.symbols.push(item);
+    libSel.symbols = item.id;
+    symFilter.cat = '';
+    symFilter.q = '';
+    $('#sc-libsym-q').value = '';
+    saveLibrary();
+    setSymView('lib');
+    say(`Saved “${item.name}” to the library.`);
+  }
+
+  function setSymView(v) {
+    symView = v === 'lib' ? 'lib' : 'doc';
+    for (const b of document.querySelectorAll('[data-symview]'))
+      b.setAttribute('aria-checked', b.dataset.symview === symView);
+    for (const p of document.querySelectorAll('[data-symview-pane]'))
+      p.hidden = p.dataset.symviewPane !== symView;
+  }
+
+  // A library tile's picture: the content on white, uncoloured parts in ink.
+  function libSymCss(item) {
+    const svg =
+      `<svg xmlns="${NS}" xmlns:xlink="${XLINK}" viewBox="0 0 ${f(item.w)} ${f(item.h)}" ` +
+      `fill="#1f2328" color="#1f2328">${item.svg}</svg>`;
+    return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+  }
+  const libSymCssCache = new Map();
+  function libSymTile(item) {
+    const b = document.createElement('button');
+    b.className = 'sc-sym-tile' + (libSel.symbols === item.id ? ' sel' : '');
+    b.dataset.id = item.id;
+    b.draggable = true;
+    b.setAttribute('aria-label', item.name);
+    b.dataset.tip = `${item.name} · ${item.category} · double-click to place, or drag onto the canvas`;
+    const t = document.createElement('span');
+    t.className = 'sc-sym-thumb sc-libsym-thumb';
+    const key = `${f(item.w)}x${f(item.h)}:${item.svg}`;
+    if (!libSymCssCache.has(key)) libSymCssCache.set(key, libSymCss(item));
+    t.style.setProperty('--tile', libSymCssCache.get(key));
+    const name = document.createElement('span');
+    name.className = 'sc-sym-name';
+    name.textContent = item.name;
+    b.append(t, name);
+    b.addEventListener('click', (e) => {
+      if (e.altKey) return removeLibItem('symbols', item.id);
+      libSel.symbols = item.id;
+      for (const x of b.parentNode.children) x.classList.toggle('sel', x === b);
+    });
+    b.addEventListener('dblclick', (e) => {
+      if (e.target.closest('.sc-sym-name')) renameLibItem('symbols', item.id);
+      else placeLibSymbol(item);
+    });
+    b.addEventListener('dragstart', (e) => {
+      libSel.symbols = item.id;
+      e.dataTransfer.setData(LIBSYM_DRAG, item.id);
+      e.dataTransfer.effectAllowed = 'copy';
+    });
+    return b;
+  }
+  function renderSymLib() {
+    const cats = [...new Set(lib.symbols.map((x) => x.category))];
+    if (symFilter.cat && !cats.includes(symFilter.cat)) symFilter.cat = '';
+    const pick = $('#sc-libsym-cat');
+    pick.replaceChildren(
+      Object.assign(document.createElement('option'), { value: '', textContent: 'All' }),
+      ...cats.map((c) =>
+        Object.assign(document.createElement('option'), { value: c, textContent: c }),
+      ),
+    );
+    pick.value = symFilter.cat;
+    if (libSel.symbols && !libItem('symbols', libSel.symbols)) libSel.symbols = null;
+    const q = symFilter.q.trim().toLowerCase();
+    const shown = lib.symbols.filter(
+      (x) =>
+        (!symFilter.cat || x.category === symFilter.cat) &&
+        (!q || `${x.name} ${x.category}`.toLowerCase().includes(q)),
+    );
+    const grid = $('#sc-libsyms');
+    if (shown.length) grid.replaceChildren(...shown.map(libSymTile));
+    else {
+      const p = document.createElement('p');
+      p.className = 'sc-sym-empty';
+      p.textContent = lib.symbols.length
+        ? 'No library symbols match.'
+        : 'The library is empty. Save a symbol to it, or Reset for the built-in icons.';
+      grid.replaceChildren(p);
+    }
   }
 
   function swapPaint() {

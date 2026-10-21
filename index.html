@@ -1473,7 +1473,7 @@
                 class="sc-ibtn"
                 data-lib-act="export"
                 aria-label="Export library"
-                data-tip="Export the whole library (swatches, gradients, patterns) as a file"
+                data-tip="Export the whole library (swatches, gradients, patterns, symbols) as a file"
               >
                 <i data-icon="file-export"></i>
               </button>
@@ -1530,7 +1530,7 @@
                 class="sc-ibtn"
                 data-lib-act="export"
                 aria-label="Export library"
-                data-tip="Export the whole library (swatches, gradients, patterns) as a file"
+                data-tip="Export the whole library (swatches, gradients, patterns, symbols) as a file"
               >
                 <i data-icon="file-export"></i>
               </button>
@@ -1585,7 +1585,7 @@
                 class="sc-ibtn"
                 data-lib-act="export"
                 aria-label="Export library"
-                data-tip="Export the whole library (swatches, gradients, patterns) as a file"
+                data-tip="Export the whole library (swatches, gradients, patterns, symbols) as a file"
               >
                 <i data-icon="file-export"></i>
               </button>
@@ -1621,62 +1621,152 @@
             <button role="tab" aria-selected="false" data-tab="symbols">Symbols</button>
           </div>
           <div class="sc-pbody" data-pane="symbols" hidden>
-            <div class="sc-sym-grid" id="sc-symlib" aria-label="Symbols"></div>
-            <div class="sc-lib-bar">
-              <button
-                class="sc-ibtn"
-                data-sym-act="make"
-                aria-label="Make a symbol from the selection"
-                data-tip="Make a symbol from the selection · Object → Make Symbol"
-              >
-                <i data-icon="plus"></i>
-              </button>
-              <button
-                class="sc-ibtn"
-                data-sym-act="place"
-                aria-label="Place an instance"
-                data-tip="Place an instance in the middle of the view (or double-click the symbol, or drag it onto the canvas)"
-              >
-                <i data-icon="clone"></i>
-              </button>
-              <button
-                class="sc-ibtn"
-                data-sym-act="edit"
-                aria-label="Edit symbol"
-                data-tip="Edit the symbol: every instance follows"
-              >
-                <i data-icon="pen-nib"></i>
-              </button>
-              <button
-                class="sc-ibtn"
-                data-sym-act="break"
-                aria-label="Break link to symbol"
-                data-tip="Break the selected instances' link: they become ordinary groups"
-              >
-                <i data-icon="link-slash"></i>
-              </button>
-              <span class="sc-lib-gap"></span>
-              <button
-                class="sc-ibtn"
-                data-sym-act="rename"
-                aria-label="Rename the symbol"
-                data-tip="Rename the symbol (or double-click its name)"
-              >
-                <i data-icon="pen"></i>
-              </button>
-              <button
-                class="sc-ibtn"
-                data-sym-act="delete"
-                aria-label="Delete the symbol"
-                data-tip="Delete the symbol"
-              >
-                <i data-icon="trash-can"></i>
-              </button>
+            <div class="sc-seg sc-symview" role="radiogroup" aria-label="Symbols to show">
+              <button role="radio" aria-checked="true" data-symview="doc">This drawing</button>
+              <button role="radio" aria-checked="false" data-symview="lib">Library</button>
             </div>
-            <p class="sc-hint">
-              Object → Make Symbol turns the selection into a symbol. Its instances all follow when
-              you edit it: double-click one, or use Edit Symbol.
-            </p>
+            <div data-symview-pane="doc">
+              <div class="sc-sym-grid" id="sc-symlib" aria-label="Symbols"></div>
+              <div class="sc-lib-bar">
+                <button
+                  class="sc-ibtn"
+                  data-sym-act="make"
+                  aria-label="Make a symbol from the selection"
+                  data-tip="Make a symbol from the selection · Object → Make Symbol"
+                >
+                  <i data-icon="plus"></i>
+                </button>
+                <button
+                  class="sc-ibtn"
+                  data-sym-act="place"
+                  aria-label="Place an instance"
+                  data-tip="Place an instance in the middle of the view (or double-click the symbol, or drag it onto the canvas)"
+                >
+                  <i data-icon="clone"></i>
+                </button>
+                <button
+                  class="sc-ibtn"
+                  data-sym-act="edit"
+                  aria-label="Edit symbol"
+                  data-tip="Edit the symbol: every instance follows"
+                >
+                  <i data-icon="pen-nib"></i>
+                </button>
+                <button
+                  class="sc-ibtn"
+                  data-sym-act="break"
+                  aria-label="Break link to symbol"
+                  data-tip="Break the selected instances' link: they become ordinary groups"
+                >
+                  <i data-icon="link-slash"></i>
+                </button>
+                <span class="sc-lib-gap"></span>
+                <button
+                  class="sc-ibtn"
+                  data-sym-act="rename"
+                  aria-label="Rename the symbol"
+                  data-tip="Rename the symbol (or double-click its name)"
+                >
+                  <i data-icon="pen"></i>
+                </button>
+                <button
+                  class="sc-ibtn"
+                  data-sym-act="save"
+                  aria-label="Save to Library"
+                  data-tip="Save the symbol to your Symbols library, to use in any drawing"
+                >
+                  <i data-icon="book-bookmark"></i>
+                </button>
+                <button
+                  class="sc-ibtn"
+                  data-sym-act="delete"
+                  aria-label="Delete the symbol"
+                  data-tip="Delete the symbol"
+                >
+                  <i data-icon="trash-can"></i>
+                </button>
+              </div>
+              <p class="sc-hint">
+                Object → Make Symbol turns the selection into a symbol. Its instances all follow
+                when you edit it: double-click one, or use Edit Symbol.
+              </p>
+            </div>
+            <div data-symview-pane="lib" hidden>
+              <div class="sc-libsym-filter">
+                <select id="sc-libsym-cat" aria-label="Category"></select>
+                <input
+                  id="sc-libsym-q"
+                  type="search"
+                  placeholder="Search"
+                  aria-label="Search the library"
+                  spellcheck="false"
+                />
+              </div>
+              <div class="sc-sym-grid" id="sc-libsyms" aria-label="Library symbols"></div>
+              <div class="sc-lib-bar" data-lib="symbols">
+                <button
+                  class="sc-ibtn"
+                  data-lib-act="add"
+                  aria-label="Save to Library"
+                  data-tip="Save the drawing's selected symbol (or the selected instance's) to the library"
+                >
+                  <i data-icon="plus"></i>
+                </button>
+                <button
+                  class="sc-ibtn"
+                  data-lib-act="place"
+                  aria-label="Place in the drawing"
+                  data-tip="Place in the middle of the view (or double-click it, or drag it onto the canvas)"
+                >
+                  <i data-icon="clone"></i>
+                </button>
+                <button
+                  class="sc-ibtn"
+                  data-lib-act="rename"
+                  aria-label="Rename the selected item"
+                  data-tip="Rename the selected item (or double-click its name)"
+                >
+                  <i data-icon="pen"></i>
+                </button>
+                <button
+                  class="sc-ibtn"
+                  data-lib-act="delete"
+                  aria-label="Delete the selected item"
+                  data-tip="Delete the selected item (or Alt-click it)"
+                >
+                  <i data-icon="trash-can"></i>
+                </button>
+                <span class="sc-lib-gap"></span>
+                <button
+                  class="sc-ibtn"
+                  data-lib-act="export"
+                  aria-label="Export library"
+                  data-tip="Export the whole library (swatches, gradients, patterns, symbols) as a file"
+                >
+                  <i data-icon="file-export"></i>
+                </button>
+                <button
+                  class="sc-ibtn"
+                  data-lib-act="import"
+                  aria-label="Import library"
+                  data-tip="Import a library file and add its contents"
+                >
+                  <i data-icon="file-import"></i>
+                </button>
+                <button
+                  class="sc-ibtn"
+                  data-lib-act="reset"
+                  aria-label="Reset to defaults"
+                  data-tip="Reset the library's symbols to the built-in icons"
+                >
+                  <i data-icon="rotate-left"></i>
+                </button>
+              </div>
+              <p class="sc-hint">
+                Symbols kept across drawings. Placing one adds it to this drawing's symbols. The
+                built-in icons (Font Awesome Free, CC BY 4.0) take the instance's fill colour.
+              </p>
+            </div>
           </div>
           <div class="sc-pbody sc-char" data-pane="character" hidden>
             <button
@@ -2774,6 +2864,7 @@
     </footer>
 
     <script src="icons.js"></script>
+    <script src="symbols-library.js"></script>
     <script src="app.js"></script>
   </body>
 </html>
