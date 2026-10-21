@@ -157,6 +157,16 @@
               <i data-icon="object-ungroup"></i><span>Ungroup</span><kbd>Ctrl+Shift+G</kbd>
             </button>
             <hr />
+            <button role="menuitem" data-action="makeSymbol">
+              <i data-icon="clover"></i><span>Make Symbol…</span>
+            </button>
+            <button role="menuitem" data-action="editSymbol">
+              <i data-icon="pen"></i><span>Edit Symbol</span>
+            </button>
+            <button role="menuitem" data-action="breakSymbolLink">
+              <i data-icon="link-slash"></i><span>Break Link to Symbol</span>
+            </button>
+            <hr />
             <button role="menuitem" data-action="layerStyle">
               <i data-icon="sc-fx"></i><span>Layer Style…</span>
             </button>
@@ -1150,6 +1160,12 @@
               <g id="sc-smart"></g>
             </g>
           </svg>
+          <div class="sc-iso-bar" id="sc-iso" hidden>
+            <i data-icon="clover"></i><span>Editing symbol <b id="sc-iso-name"></b></span>
+            <button class="sc-tbtn sc-primary-btn" data-action="symbolDone" data-tip="Done · Esc">
+              Done
+            </button>
+          </div>
           <div class="sc-drop" id="sc-drop">Drop an SVG or image to import</div>
         </div>
       </div>
@@ -1598,6 +1614,65 @@
             <button role="tab" aria-selected="true" data-tab="props">Properties</button>
             <button role="tab" aria-selected="false" data-tab="character">Character</button>
             <button role="tab" aria-selected="false" data-tab="paragraph">Paragraph</button>
+            <button role="tab" aria-selected="false" data-tab="symbols">Symbols</button>
+          </div>
+          <div class="sc-pbody" data-pane="symbols" hidden>
+            <div class="sc-sym-grid" id="sc-symlib" aria-label="Symbols"></div>
+            <div class="sc-lib-bar">
+              <button
+                class="sc-ibtn"
+                data-sym-act="make"
+                aria-label="Make a symbol from the selection"
+                data-tip="Make a symbol from the selection · Object → Make Symbol"
+              >
+                <i data-icon="plus"></i>
+              </button>
+              <button
+                class="sc-ibtn"
+                data-sym-act="place"
+                aria-label="Place an instance"
+                data-tip="Place an instance in the middle of the view (or double-click the symbol, or drag it onto the canvas)"
+              >
+                <i data-icon="clone"></i>
+              </button>
+              <button
+                class="sc-ibtn"
+                data-sym-act="edit"
+                aria-label="Edit symbol"
+                data-tip="Edit the symbol: every instance follows"
+              >
+                <i data-icon="pen-nib"></i>
+              </button>
+              <button
+                class="sc-ibtn"
+                data-sym-act="break"
+                aria-label="Break link to symbol"
+                data-tip="Break the selected instances' link: they become ordinary groups"
+              >
+                <i data-icon="link-slash"></i>
+              </button>
+              <span class="sc-lib-gap"></span>
+              <button
+                class="sc-ibtn"
+                data-sym-act="rename"
+                aria-label="Rename the symbol"
+                data-tip="Rename the symbol (or double-click its name)"
+              >
+                <i data-icon="pen"></i>
+              </button>
+              <button
+                class="sc-ibtn"
+                data-sym-act="delete"
+                aria-label="Delete the symbol"
+                data-tip="Delete the symbol"
+              >
+                <i data-icon="trash-can"></i>
+              </button>
+            </div>
+            <p class="sc-hint">
+              Object → Make Symbol turns the selection into a symbol. Its instances all follow when
+              you edit it: double-click one, or use Edit Symbol.
+            </p>
           </div>
           <div class="sc-pbody sc-char" data-pane="character" hidden>
             <button
@@ -2588,6 +2663,7 @@
       </div>
       <div class="sc-dialog-foot">
         <button class="sc-tbtn" data-ask="cancel">Cancel</button>
+        <button class="sc-tbtn" data-ask="alt" hidden></button>
         <button class="sc-tbtn sc-primary-btn" data-ask="ok">OK</button>
       </div>
     </div>
