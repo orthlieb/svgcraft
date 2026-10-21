@@ -49,23 +49,36 @@ const msg = (page) => page.locator('#sc-msg');
 const docHtml = (page) => page.evaluate(() => document.getElementById('sc-doc').innerHTML);
 
 // Rasterise the saved SVG (with the font embedded, so text draws in it) and
-// return its opaque-pixel mask.
+// return its opaque-pixel mask. A web font inside an SVG image can still be
+// loading when the image first decodes (it then draws in a fallback font), so
+// draw it again until two passes agree.
 const mask = (page, family = 'Lato') =>
   page.evaluate(async (css) => {
-    const img = new Image();
-    img.src =
+    const src =
       'data:image/svg+xml;charset=utf-8,' +
       encodeURIComponent(window.svgcraft.serialize({ fontCss: css }));
-    await img.decode();
-    const c = document.createElement('canvas');
-    c.width = 800;
-    c.height = 400;
-    const ctx = c.getContext('2d');
-    ctx.drawImage(img, 0, 0, 800, 400);
-    const d = ctx.getImageData(0, 0, 800, 400).data;
-    const out = [];
-    for (let i = 3; i < d.length; i += 4) out.push(d[i] > 127 ? 1 : 0);
-    return out.join('');
+    const once = async () => {
+      const img = new Image();
+      img.src = src;
+      await img.decode();
+      const c = document.createElement('canvas');
+      c.width = 800;
+      c.height = 400;
+      const ctx = c.getContext('2d');
+      ctx.drawImage(img, 0, 0, 800, 400);
+      const d = ctx.getImageData(0, 0, 800, 400).data;
+      const out = [];
+      for (let i = 3; i < d.length; i += 4) out.push(d[i] > 127 ? 1 : 0);
+      return out.join('');
+    };
+    let prev = await once();
+    for (let i = 0; i < 20; i++) {
+      await new Promise((r) => setTimeout(r, 100));
+      const next = await once();
+      if (next === prev) return next;
+      prev = next;
+    }
+    return prev;
   }, faceCss(family));
 
 function iou(a, b) {
