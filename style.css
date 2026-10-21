@@ -1635,6 +1635,25 @@ select[data-stroke-dash] {
   padding-top: 8px;
   border-top: 1px solid var(--line-soft);
 }
+.sc-tp-props {
+  margin: 12px 0;
+  padding-top: 8px;
+  border-top: 1px solid var(--line-soft);
+}
+.sc-tp-props [hidden] {
+  display: none;
+}
+.sc-tp-props .sc-prop-rows {
+  margin: 0 0 8px;
+}
+.sc-tp-props .sc-tgl {
+  justify-self: start;
+  padding: 0 10px;
+  font-weight: 400;
+}
+.sc-tp-props input[type='number'] {
+  width: 64px;
+}
 .sc-corners-head {
   display: flex;
   align-items: center;
