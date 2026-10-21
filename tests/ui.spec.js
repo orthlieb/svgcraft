@@ -14,6 +14,7 @@ const activeText = (page) => page.evaluate(() => document.activeElement.textCont
 async function reload(page) {
   await page.reload();
   await page.waitForFunction(() => !!window.svgcraft);
+  await page.evaluate(() => window.svgcraft.ready);
 }
 
 test.describe('theme', () => {
@@ -88,7 +89,7 @@ test('the zoom field sets the zoom and the document title', async ({ page }) => 
   await page.fill('#sc-zoom-input', '200');
   await page.keyboard.press('Enter');
   expect(await page.evaluate(() => window.svgcraft.state.zoom)).toBe(2);
-  await expect(page.locator('#sc-doc-title')).toHaveText('drawing.svg @ 200% (SVG)');
+  await expect(page.locator('#sc-doc-title')).toHaveText('Untitled-1.svg @ 200% (SVG)');
 });
 
 test('View → Show Grid updates state, checkbox and menu checkmark', async ({ page }) => {

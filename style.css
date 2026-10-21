@@ -578,24 +578,70 @@ kbd {
 .sc-doctabs {
   display: flex;
   align-items: flex-end;
+  gap: 2px;
   height: 28px;
   padding-left: 4px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
   background: var(--shell);
   border-bottom: 1px solid var(--line);
 }
 .sc-doctab {
+  display: flex;
+  flex: 0 1 auto;
+  align-items: center;
+  gap: 6px;
+  min-width: 60px;
+  max-width: 280px;
   height: 27px;
-  max-width: 100%;
-  padding: 0 14px;
+  padding: 0 4px 0 12px;
   border: 1px solid var(--line);
   border-bottom: 0;
   border-radius: 4px 4px 0 0;
-  background: var(--panel);
+  background: var(--shell);
+  color: var(--text-dim);
   line-height: 26px;
+  margin-bottom: -1px;
+  cursor: default;
+}
+.sc-doctab[aria-selected='true'] {
+  background: var(--panel);
+  color: var(--text);
+}
+.sc-doctab-name {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  margin-bottom: -1px;
+}
+.sc-doctab-x,
+.sc-doctab-new {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--text-dim);
+}
+.sc-doctab-x svg,
+.sc-doctab-new svg {
+  width: 10px;
+  height: 10px;
+  fill: currentColor;
+}
+.sc-doctab-x:hover,
+.sc-doctab-new:hover {
+  background: var(--hover, rgba(127, 127, 127, 0.2));
+  color: var(--text);
+}
+.sc-doctab-new {
+  align-self: center;
+  margin-left: 2px;
 }
 .sc-stage-wrap {
   position: relative;

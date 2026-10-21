@@ -34,9 +34,12 @@
             <button role="menuitem" data-action="place">
               <i data-icon="file-import"></i><span>Import…</span>
             </button>
+            <button role="menuitem" data-action="closeDoc">
+              <i data-icon="xmark"></i><span>Close</span>
+            </button>
             <hr />
             <button role="menuitem" data-action="exportSvg">
-              <i data-icon="file-export"></i><span>Export SVG</span><kbd>Ctrl+S</kbd>
+              <i data-icon="file-export"></i><span>Save as SVG</span><kbd>Ctrl+S</kbd>
             </button>
             <button role="menuitem" data-action="exportPng1">
               <i data-icon="image"></i><span>Export PNG @1×</span>
@@ -1044,11 +1047,7 @@
 
       <!-- ── Document window ────────────────────────────────────────────── -->
       <div class="sc-workspace">
-        <div class="sc-doctabs" role="tablist">
-          <div class="sc-doctab" role="tab" aria-selected="true">
-            <span id="sc-doc-title">drawing.svg @ 100%</span>
-          </div>
-        </div>
+        <div class="sc-doctabs" id="sc-doctabs" role="tablist" aria-label="Open documents"></div>
         <div class="sc-stage-wrap" id="sc-stage-wrap">
           <div class="sc-ruler-corner" aria-hidden="true"></div>
           <canvas

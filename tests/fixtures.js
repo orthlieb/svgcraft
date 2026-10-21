@@ -24,6 +24,8 @@ export const test = base.extend({
     await page.route(/fonts\.(googleapis|gstatic)\.com/, (route) => route.abort());
     await page.goto(APP_URL);
     await page.waitForFunction(() => !!window.svgcraft);
+    // Drawings kept in the browser are read back asynchronously.
+    await page.evaluate(() => window.svgcraft.ready);
     await use(page);
     expect(errors, 'page errors').toEqual([]);
   },

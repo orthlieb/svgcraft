@@ -25,7 +25,8 @@ The layout follows Photoshop:
 - **Toolbar**: the tools, with the fill and stroke chips at the bottom.
   Click a chip to make it the active paint, and click it again to pick a
   colour. Below the chips are swap (X) and "none".
-- **Document tab** above the canvas, showing the file name and zoom.
+- **Document tabs** above the canvas, one per open drawing, showing the
+  file name and zoom (see Documents below).
 - **Docked panels**: Color / Swatches / Gradients / Patterns, Properties
   (stroke width, document size, grid and snap) and Layers (see below).
 - **Auto-Select** on the Move tool's options bar: **Group** makes a canvas
@@ -71,6 +72,21 @@ stroke="currentColor"` (common in icon sets) is pushed down so it survives.
   every visible layer that wasn't selected. If the selection includes a
   shape inside a group, Inverse works with individual shapes. Otherwise it
   works with top-level layers.
+- **Documents**: every open drawing gets a tab, as in Photoshop.
+  - **File → New** (or + in the tab bar) adds an Untitled tab. **Open**
+    puts a file in a tab of its own, reusing an untouched Untitled tab.
+    **Close** (the tab's ✕, a middle-click, or File → Close) asks first
+    if the drawing has unsaved changes.
+  - Each tab keeps its own drawing, undo history and zoom.
+  - A `*` after the name means the drawing differs from the version last
+    opened or saved. **Save as SVG** (Ctrl+S) downloads it and clears the
+    `*`. Undoing back to the saved version clears it too. PNG export
+    doesn't count as saving.
+  - All open drawings are kept in this browser (IndexedDB) as they
+    change, so a reload or a later visit brings back the same tabs, the
+    same `*` marks and the same view. The browser's copy is per browser
+    and per machine; Save as SVG to keep a file. A drawing autosaved by an
+    older version of Svgcraft is brought over as a tab.
 - **Export**: SVG download (Ctrl+S), PNG at 1× / 2× / 4× with a
   transparent background, and Copy, which puts the drawing (or the
   selection) on the clipboard as SVG markup.
@@ -207,8 +223,7 @@ stroke="currentColor"` (common in icon sets) is pushed down so it survives.
   marquee / move; resize and rotate handles (Shift keeps the ratio, Alt
   scales from the centre); flip; group / ungroup; z-order; duplicate; a
   layers list with show / hide; grid and snap; document size; zoom / pan
-  (wheel, Ctrl+wheel, pinch, Space-drag); undo / redo; and autosave to
-  `localStorage`.
+  (wheel, Ctrl+wheel, pinch, Space-drag); and undo / redo.
 
 ## Type
 
@@ -335,7 +350,7 @@ combine shapes.
 | Del / Backspace       | Delete                                    |
 | X                     | Swap fill and stroke                      |
 | + − 0 1               | Zoom in / out · fit · 100%                |
-| Ctrl+S · Ctrl+O       | Export SVG · open                         |
+| Ctrl+S · Ctrl+O       | Save as SVG · open                        |
 
 ## Development
 

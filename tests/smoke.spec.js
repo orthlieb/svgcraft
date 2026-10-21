@@ -44,6 +44,7 @@ function expectPathD(d, want) {
 async function reload(page) {
   await page.reload();
   await page.waitForFunction(() => !!window.svgcraft);
+  await page.evaluate(() => window.svgcraft.ready);
 }
 
 // Pen clicks are spaced out so they don't count as a double-click.
@@ -327,12 +328,19 @@ test('the drawing is autosaved and restored on reload', async ({ page }) => {
     [500, 380],
   ]);
   expect(await count(page)).toBe(3);
+  // Open drawings are kept in IndexedDB (database "svgcraft", key "docs").
   await expect
     .poll(() =>
       page.evaluate(
         () =>
-          JSON.parse(localStorage.getItem('svgcraft.v1') || 'null')?.svg ===
-          window.svgcraft.serialize(),
+          new Promise((resolve) => {
+            const r = indexedDB.open('svgcraft', 1);
+            r.onsuccess = () => {
+              const q = r.result.transaction('kv').objectStore('kv').get('docs');
+              q.onsuccess = () => resolve(q.result?.docs?.[0]?.svg === window.svgcraft.serialize());
+            };
+            r.onerror = () => resolve(false);
+          }),
       ),
     )
     .toBe(true);
