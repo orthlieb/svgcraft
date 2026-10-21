@@ -7009,8 +7009,9 @@
       y = r.bottom + gap;
       if (y + t.height > vh - 4) y = r.top - gap - t.height;
     }
-    tip.style.left = `${Math.round(Math.max(4, Math.min(x, vw - t.width - 4)))}px`;
-    tip.style.top = `${Math.round(Math.max(4, Math.min(y, vh - t.height - 4)))}px`;
+    // Whole pixels, rounded towards the inside so the far edge stays in view.
+    tip.style.left = `${Math.max(4, Math.min(Math.round(x), Math.floor(vw - t.width - 4)))}px`;
+    tip.style.top = `${Math.max(4, Math.min(Math.round(y), Math.floor(vh - t.height - 4)))}px`;
   }
 
   function showTip(el, life = TIP_LIFE) {
