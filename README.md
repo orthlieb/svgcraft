@@ -16,7 +16,7 @@ and what comes next.
 
 The layout follows Photoshop:
 
-- **Menu bar**: File, Edit, Object and View menus. Click to open, hover to
+- **Menu bar**: File, Edit, Image, Object, Select and View menus. Click to open, hover to
   switch between them, and use the arrow keys to move around.
 - **Options bar**: settings for the current tool, such as stroke width and
   smoothing for the pencil, mode and size for the eraser, or the point
@@ -60,6 +60,17 @@ The layout follows Photoshop:
   `javascript:` links are stripped, and `<style>` rules are inlined so they
   can't restyle the editor. Root-level paint like `fill="none"
 stroke="currentColor"` (common in icon sets) is pushed down so it survives.
+- **Crop** (Image menu): **Crop to Selection** and **Crop to Drawing** fit
+  the artboard tightly around the selected layers, or around everything
+  visible, rounded out to whole pixels. Strokes count, so they aren't
+  shaved off, and hidden layers don't. The drawing and the guides shift so
+  the artboard still starts at 0, 0, and nothing moves on screen. Anything
+  left outside the artboard is kept, but it isn't exported.
+- **Select menu**: **All** (Ctrl+A), **Deselect** (Esc) and **Inverse**
+  (Shift+F7, or Ctrl+Shift+I where the browser allows it), which selects
+  every visible layer that wasn't selected. If the selection includes a
+  shape inside a group, Inverse works with individual shapes. Otherwise it
+  works with top-level layers.
 - **Export**: SVG download (Ctrl+S), PNG at 1× / 2× / 4× with a
   transparent background, and Copy, which puts the drawing (or the
   selection) on the clipboard as SVG markup.
@@ -277,6 +288,7 @@ combine shapes.
 | Ctrl+Z / Ctrl+Shift+Z | Undo / redo (Ctrl+Y redoes too)           |
 | Ctrl+C / X / V        | Copy / cut / paste (as SVG)               |
 | Ctrl+D · Ctrl+A       | Duplicate · select all                    |
+| Shift+F7              | Select inverse                            |
 | Alt+T · Alt+Shift+T   | Free Transform · Transform Again          |
 | Ctrl+G · Ctrl+Shift+G | Group · ungroup                           |
 | ] [ · Ctrl+] Ctrl+[   | Forward / backward · to front / to back   |

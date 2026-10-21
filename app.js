@@ -561,6 +561,42 @@
     return { x, y, w: Math.max(...xs) - x, h: Math.max(...ys) - y };
   }
 
+  const isShown = (el) => !el.closest('[display="none"]');
+
+  // Like unionBox, but the area that actually gets painted: hidden layers are
+  // left out and strokes count, so cropping to it doesn't shave them.
+  function paintBox(els) {
+    const leaves = [];
+    for (const el of els)
+      if (el.localName === 'g') leaves.push(...leafLayers().filter((l) => el.contains(l)));
+      else leaves.push(el);
+    let box = null;
+    for (const el of leaves) {
+      if (!isShown(el)) continue;
+      const m = fullM(el);
+      const b = bboxDoc(el, m);
+      if (!b) continue;
+      const cs = getComputedStyle(el);
+      const pad =
+        cs.stroke && cs.stroke !== 'none'
+          ? ((parseFloat(cs.strokeWidth) || 0) / 2) * Math.sqrt(Math.abs(m.a * m.d - m.b * m.c))
+          : 0;
+      const x1 = b.x - pad;
+      const y1 = b.y - pad;
+      const x2 = b.x + b.w + pad;
+      const y2 = b.y + b.h + pad;
+      if (!box) box = { x1, y1, x2, y2 };
+      else
+        box = {
+          x1: Math.min(box.x1, x1),
+          y1: Math.min(box.y1, y1),
+          x2: Math.max(box.x2, x2),
+          y2: Math.max(box.y2, y2),
+        };
+    }
+    return box && { x: box.x1, y: box.y1, w: box.x2 - box.x1, h: box.y2 - box.y1 };
+  }
+
   function unionBox(els) {
     let box = null;
     for (const el of els) {
@@ -1559,6 +1595,32 @@
     $('#sc-w').value = f(state.w);
     $('#sc-h').value = f(state.h);
     updateTitle();
+  }
+
+  // Image → Crop: make the artboard exactly box (rounded out to whole
+  // pixels). The artboard always starts at 0,0, so everything, guides
+  // included, shifts by the box's corner; the view shifts with it so nothing
+  // jumps on screen. Anything left outside is kept but not exported.
+  function cropTo(box, what) {
+    if (!box || box.w <= 0 || box.h <= 0) return say(`There’s nothing visible to crop to.`);
+    const x = Math.floor(box.x);
+    const y = Math.floor(box.y);
+    const w = Math.ceil(box.x + box.w) - x;
+    const h = Math.ceil(box.y + box.h) - y;
+    if (x === 0 && y === 0 && w === state.w && h === state.h)
+      return say(`The artboard already fits ${what}.`);
+    if (x || y) {
+      const T = new DOMMatrix().translate(-x, -y);
+      for (const el of doc.children) if (el instanceof SVGGraphicsElement) transformDoc(el, T);
+      for (const g of state.guides) g.pos -= g.axis === 'x' ? x : y;
+    }
+    setSize(w, h);
+    state.panX += x * state.zoom;
+    state.panY += y * state.zoom;
+    renderGuides();
+    applyView();
+    commit();
+    say(`Cropped to ${what}: ${w} × ${h} px.`);
   }
 
   // Document tab ("name.svg @ 100%") and the status-bar zoom / size readouts.
@@ -5131,6 +5193,25 @@
     selectAll() {
       setSel(items().filter((el) => el.getAttribute('display') !== 'none'));
     },
+    // Select → Inverse: every visible layer that isn't selected, at the depth
+    // the selection is at (top-level layers, or individual shapes when any
+    // selected layer sits inside a group).
+    invertSelection() {
+      const sel = state.sel;
+      const pool = sel.some((el) => el.parentNode !== doc) ? leafLayers() : items();
+      setSel(
+        pool.filter(
+          (el) => isShown(el) && !sel.some((s) => s === el || s.contains(el) || el.contains(s)),
+        ),
+      );
+    },
+    cropToSelection() {
+      if (!state.sel.length) return say('Select something to crop to.');
+      cropTo(paintBox(state.sel), 'the selection');
+    },
+    cropToDrawing() {
+      cropTo(paintBox(items()), 'the drawing');
+    },
     front() {
       inDocOrder(state.sel).forEach((el) => el.parentNode.append(el));
       commit();
@@ -6136,6 +6217,7 @@
         o: () => openPicker('open'),
         d: cmds.duplicate,
         a: cmds.selectAll,
+        ...(e.shiftKey && { i: cmds.invertSelection }),
         g: () => (e.shiftKey ? cmds.ungroup() : cmds.group()),
         ']': cmds.front,
         '[': cmds.back,
@@ -6147,6 +6229,12 @@
       return;
     }
     if (e.altKey) return;
+    // Photoshop's other Select → Inverse key; Chrome keeps Ctrl+Shift+I.
+    if (k === 'f7' && e.shiftKey) {
+      e.preventDefault();
+      cmds.invertSelection();
+      return;
+    }
     const arrows = { arrowleft: [-1, 0], arrowright: [1, 0], arrowup: [0, -1], arrowdown: [0, 1] };
     if (arrows[k]) {
       e.preventDefault();

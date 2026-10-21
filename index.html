@@ -116,15 +116,21 @@
               </div>
             </div>
             <hr />
-            <button role="menuitem" data-action="selectAll">
-              <i></i><span>Select All</span><kbd>Ctrl+A</kbd>
-            </button>
-            <button role="menuitem" data-action="deselect">
-              <i></i><span>Deselect</span><kbd>Esc</kbd>
-            </button>
-            <hr />
             <button role="menuitem" data-action="swapPaint">
               <i data-icon="right-left"></i><span>Swap Fill and Stroke</span><kbd>X</kbd>
+            </button>
+          </div>
+        </div>
+        <div class="sc-menu">
+          <button class="sc-menu-btn" role="menuitem" aria-haspopup="menu" aria-expanded="false">
+            Image
+          </button>
+          <div class="sc-menu-list" role="menu" hidden>
+            <button role="menuitem" data-action="cropToSelection">
+              <i data-icon="crop-simple"></i><span>Crop to Selection</span>
+            </button>
+            <button role="menuitem" data-action="cropToDrawing">
+              <i data-icon="crop"></i><span>Crop to Drawing</span>
             </button>
           </div>
         </div>
@@ -205,6 +211,22 @@
             </button>
             <button role="menuitem" data-action="flipV">
               <i data-icon="up-down"></i><span>Flip Vertical</span>
+            </button>
+          </div>
+        </div>
+        <div class="sc-menu">
+          <button class="sc-menu-btn" role="menuitem" aria-haspopup="menu" aria-expanded="false">
+            Select
+          </button>
+          <div class="sc-menu-list" role="menu" hidden>
+            <button role="menuitem" data-action="selectAll">
+              <i></i><span>All</span><kbd>Ctrl+A</kbd>
+            </button>
+            <button role="menuitem" data-action="deselect">
+              <i></i><span>Deselect</span><kbd>Esc</kbd>
+            </button>
+            <button role="menuitem" data-action="invertSelection">
+              <i></i><span>Inverse</span><kbd>Shift+F7</kbd>
             </button>
           </div>
         </div>
