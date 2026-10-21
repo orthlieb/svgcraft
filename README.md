@@ -261,7 +261,7 @@ combine shapes.
 | P B E I               | Pencil · Pen · Eraser · Eyedropper      |
 | R O L T H             | Rect · Ellipse · Line · Text · Pan      |
 | Space (hold)          | Pan                                     |
-| Ctrl+Z / Ctrl+Shift+Z | Undo / redo                             |
+| Ctrl+Z / Ctrl+Shift+Z | Undo / redo (Ctrl+Y redoes too)         |
 | Ctrl+C / X / V        | Copy / cut / paste (as SVG)             |
 | Ctrl+D · Ctrl+A       | Duplicate · select all                  |
 | Alt+T · Alt+Shift+T   | Free Transform · Transform Again        |
