@@ -1149,7 +1149,9 @@ kbd {
 }
 
 /* ---- narrow screens ---------------------------------------------------- */
-@media (max-width: 760px) {
+/* Tablets (and phones, under the preview rules above): bottom toolbar and
+   a slide-in panel drawer. */
+@media (max-width: 1023px) {
   .sc-menus {
     overflow-x: auto;
     scrollbar-width: none;
@@ -1163,9 +1165,6 @@ kbd {
   }
   .sc-panel-toggle {
     display: inline-grid;
-  }
-  .sc-opt-tool {
-    min-width: 0;
   }
   .sc-opt-note {
     display: none;
@@ -1215,6 +1214,63 @@ kbd {
     display: none;
   }
 }
+/* ---- phone preview ---------------------------------------------------------
+   Below tablet size there isn't room to edit, so the editor turns into a
+   viewer: open, switch tabs, pan / pinch-zoom, fit. app.js toggles
+   .sc-preview on <html> from the same media query. */
+.sc-preview-only {
+  display: none;
+}
+.sc-preview .sc-preview-only {
+  display: inline-flex;
+}
+.sc-preview .sc-menus,
+.sc-preview .sc-options,
+.sc-preview .sc-tools,
+.sc-preview .sc-panel,
+.sc-preview .sc-panel-toggle,
+.sc-preview #sc-undo,
+.sc-preview #sc-redo,
+.sc-preview .sc-export,
+.sc-preview .sc-doctab-new,
+.sc-preview .sc-ruler-corner,
+.sc-preview .sc-ruler,
+.sc-preview #sc-hint,
+.sc-preview .sc-docsize,
+.sc-preview .sc-pos {
+  display: none !important;
+}
+/* Menubar, (no options bar), canvas, status bar. */
+.sc-preview body {
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+.sc-preview .sc-main {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+}
+.sc-preview .sc-workspace {
+  grid-row: 1;
+}
+.sc-preview .sc-stage-wrap {
+  grid-template-columns: 0 minmax(0, 1fr);
+  grid-template-rows: 0 minmax(0, 1fr);
+}
+.sc-preview .sc-menubar-end {
+  gap: 6px;
+  margin-left: auto;
+}
+.sc-preview .sc-preview-only.sc-tbtn {
+  align-items: center;
+  gap: 6px;
+}
+.sc-preview-note {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-dim);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .sc-panel {
     transition: none;

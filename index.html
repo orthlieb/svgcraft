@@ -296,6 +296,21 @@
         </div>
       </nav>
       <div class="sc-menubar-end">
+        <!-- Phone preview: just open and fit (editing needs a bigger screen). -->
+        <button
+          class="sc-tbtn sc-preview-only"
+          data-action="open"
+          data-tip="Open an SVG to preview"
+        >
+          <i data-icon="folder-open"></i> Open
+        </button>
+        <button
+          class="sc-tbtn sc-preview-only"
+          data-action="fit"
+          data-tip="Fit the drawing to the screen"
+        >
+          <i data-icon="expand"></i> Fit
+        </button>
         <button
           class="sc-ibtn"
           data-action="undo"
@@ -2134,6 +2149,9 @@
       >
       <span id="sc-docsize" class="sc-docsize">800 × 600 px</span>
       <span id="sc-hint"></span>
+      <span class="sc-preview-note sc-preview-only"
+        >Preview only. Editing needs a tablet or a larger screen.</span
+      >
       <span id="sc-msg" class="sc-msg" role="status"></span>
       <span id="sc-pos" class="sc-pos"></span>
     </footer>

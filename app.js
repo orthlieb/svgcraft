@@ -41,6 +41,7 @@
   const $ = (s) => document.querySelector(s);
   const icon = (name) => window.SC_ICONS?.[name] || '';
   const THEME_KEY = 'svgcraft.theme';
+  let previewMode = false; // phone-sized screen: view only (see syncPreview)
 
   // Fill every data-icon="name" placeholder with its Font Awesome snippet.
   function hydrateIcons(root = document) {
@@ -6354,6 +6355,8 @@
 
   function setTool(name) {
     if (!tools[name]) return;
+    // A phone only previews: the Hand tool (pan) is all there is.
+    if (previewMode && name !== 'hand') name = 'hand';
     if (state.tf && name !== 'select') endTransform(true);
     const prev = state.sel;
     const changed = name !== state.tool;
@@ -7228,6 +7231,13 @@
   };
 
   window.addEventListener('keydown', (e) => {
+    // Previewing on a phone: only viewing keys (zoom, fit, open).
+    if (
+      previewMode &&
+      !/^[-+=_01]$/.test(e.key) &&
+      !((e.ctrlKey || e.metaKey) && /^o$/i.test(e.key))
+    )
+      return;
     if (openMenu && e.key === 'Escape') {
       closeMenus();
       return;
@@ -7328,6 +7338,7 @@
     cmds.delete();
   });
   document.addEventListener('paste', (e) => {
+    if (previewMode) return;
     if (e.target.matches?.('input, textarea') || e.target.isContentEditable) return;
     const file = [...(e.clipboardData?.files || [])][0];
     if (file) {
@@ -7365,7 +7376,7 @@
     e.preventDefault();
     dragDepth = 0;
     drop.classList.remove('on');
-    for (const file of e.dataTransfer?.files || []) importFile(file, 'auto');
+    for (const file of e.dataTransfer?.files || []) importFile(file, previewMode ? 'open' : 'auto');
   });
 
   // Files -------------------------------------------------------------
@@ -7977,6 +7988,25 @@
   syncStyleUI();
   setGrid();
   setTool('select');
+  // Phones preview, tablets and up edit. Below tablet size the editor
+  // becomes a viewer (see .sc-preview in style.css): open, tabs, pan and
+  // pinch-zoom, fit.
+  const previewQuery = matchMedia('(max-width: 767px), (max-height: 500px) and (pointer: coarse)');
+  function syncPreview() {
+    const on = previewQuery.matches;
+    if (on === previewMode) return;
+    previewMode = on;
+    document.documentElement.classList.toggle('sc-preview', on);
+    if (on) {
+      if (state.tf) endTransform(true);
+      state.sel = [];
+    }
+    setTool(on ? 'hand' : 'select');
+    requestAnimationFrame(() => fit());
+  }
+  previewQuery.addEventListener('change', syncPreview);
+  syncPreview();
+
   // Start on a blank Untitled-1 at once; the drawings kept in this browser
   // replace it as soon as they're read back.
   newDoc();

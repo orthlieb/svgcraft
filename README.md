@@ -14,6 +14,13 @@ and what comes next.
 
 ## Workspace
 
+Svgcraft edits on tablets and larger screens. A phone (narrower than
+768 px, or a phone held sideways) gets a **preview** instead: open SVGs,
+switch between tabs, pan and pinch-zoom, and Fit. The editing tools,
+menus and panels are hidden, and nothing on a phone changes a drawing.
+On tablets in portrait, the toolbar moves to the bottom and the panels
+slide in from the right (the sliders button).
+
 The layout follows Photoshop:
 
 - **Menu bar**: File, Edit, Image, Object, Select and View menus. Click to open, hover to
