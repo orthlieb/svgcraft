@@ -415,6 +415,10 @@ kbd {
   border-radius: 3px;
   background: var(--panel);
 }
+/* Its display would otherwise beat the hidden attribute. */
+.sc-tbtn[hidden] {
+  display: none;
+}
 .sc-tbtn:hover {
   background: var(--hover);
 }
@@ -1903,6 +1907,13 @@ select[data-stroke-dash] {
 .sc-ask-text {
   margin: 0;
   color: var(--text-dim);
+}
+/* Room for three buttons on one line (Keep both / Replace mine / Skip them). */
+#sc-ask:has([data-ask='alt']:not([hidden])) {
+  width: min(340px, calc(100vw - 32px));
+}
+#sc-ask .sc-tbtn {
+  white-space: nowrap;
 }
 .sc-ask-input {
   width: 100%;

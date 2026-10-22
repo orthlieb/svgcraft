@@ -313,3 +313,98 @@ test.describe('import', () => {
     await expect(msg(page)).toContainText('isn’t a library');
   });
 });
+
+test.describe('a new definition under a name you already use', () => {
+  const MINE = {
+    swatches: [
+      { id: 'sky', name: 'Sky', c: '#38bdf8', a: 1 },
+      { id: 'sea', name: 'Sea', c: '#0e7490', a: 1 },
+    ],
+    gradients: [{ id: 'sunset', ...GRADIENTS[0] }],
+  };
+  // Sky and Sunset are new definitions under names in use; "Ocean" is the
+  // same colour as Sea (skipped quietly); Night is new.
+  const INCOMING = {
+    swatches: [
+      { name: 'sky', c: '#000080', a: 1 },
+      { name: 'Ocean', c: '#0e7490', a: 1 },
+      { name: 'Night', c: '#111111', a: 1 },
+    ],
+    gradients: [{ ...GRADIENTS[0], angle: 0 }],
+  };
+  const importIncoming = (page) =>
+    importFile(page, 'theirs.json', Buffer.from(JSON.stringify(INCOMING)));
+  const dialog = (page) => page.locator('#sc-ask');
+  const lib = async (page) => {
+    const l = await stored(page);
+    return {
+      swatches: l.swatches.map((x) => [x.name, x.c]),
+      gradients: l.gradients.map((x) => [x.name, x.angle]),
+    };
+  };
+
+  test.beforeEach(({ page }) => setLib(page, MINE));
+
+  test('asks once, and Keep both renames the imported ones', async ({ page }) => {
+    await importIncoming(page);
+    await expect(dialog(page)).toBeVisible();
+    await expect(page.locator('#sc-ask-title')).toHaveText('Name clash');
+    await expect(dialog(page).locator('.sc-ask-text')).toContainText(
+      '2 imported items have the same name as ones you have but a different definition: “sky”, “Sunset”.',
+    );
+    await expect(dialog(page).locator('[data-ask="ok"]')).toHaveText('Keep both');
+    await expect(dialog(page).locator('[data-ask="alt"]')).toHaveText('Replace mine');
+    await expect(dialog(page).locator('[data-ask="cancel"]')).toHaveText('Skip them');
+    await expect(dialog(page).locator('[data-ask="ok"]')).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(msg(page)).toHaveText('Imported 2 swatches, 1 gradient.');
+    expect(await lib(page)).toEqual({
+      swatches: [
+        ['Sky', '#38bdf8'],
+        ['Sea', '#0e7490'],
+        ['sky 2', '#000080'],
+        ['Night', '#111111'],
+      ],
+      gradients: [
+        ['Sunset', 90],
+        ['Sunset 2', 0],
+      ],
+    });
+  });
+
+  test('Replace mine keeps your names and places', async ({ page }) => {
+    await importIncoming(page);
+    await dialog(page).locator('[data-ask="alt"]').click();
+    await expect(msg(page)).toHaveText('Imported 1 swatch. Replaced 1 swatch, 1 gradient.');
+    expect(await lib(page)).toEqual({
+      swatches: [
+        ['Sky', '#000080'],
+        ['Sea', '#0e7490'],
+        ['Night', '#111111'],
+      ],
+      gradients: [['Sunset', 0]],
+    });
+    expect((await stored(page)).swatches[0].id).toBe('sky');
+  });
+
+  test('Skip them (or Esc) imports only the rest', async ({ page }) => {
+    await importIncoming(page);
+    await page.keyboard.press('Escape');
+    await expect(msg(page)).toHaveText('Imported 1 swatch. Skipped 2 with a name you already use.');
+    expect(await lib(page)).toEqual({
+      swatches: [
+        ['Sky', '#38bdf8'],
+        ['Sea', '#0e7490'],
+        ['Night', '#111111'],
+      ],
+      gradients: [['Sunset', 90]],
+    });
+    // The dialog's buttons are back to normal for the next prompt.
+    await importIncoming(page);
+    await dialog(page).locator('[data-ask="cancel"]').click();
+    await page.click('[data-tab="swatches"]');
+    await page.click('[data-lib="swatches"] [data-lib-act="reset"]');
+    await expect(dialog(page).locator('[data-ask="cancel"]')).toHaveText('Cancel');
+    await expect(dialog(page).locator('[data-ask="alt"]')).toBeHidden();
+  });
+});

@@ -234,7 +234,12 @@ stroke="currentColor"` (common in icon sets) is pushed down so it survives.
       its credit, for `<use href="symbols.svg#id"/>`.
     - `README.txt`: what each file is. Kinds with nothing in them are left
       out.
-  - **Import** adds a file's contents, skipping anything you already have.
+  - **Import** adds a file's contents, skipping anything you already have
+    (the same colour, gradient, tile or symbol, whatever its name). If
+    something new has the name of one of yours, SVGCraft asks once for the
+    whole import: **Keep both** (the default; the imported one becomes
+    "Sky 2"), **Replace mine** (yours keeps its name and place and takes the
+    new definition) or **Skip them**.
     It reads the exported zip (from its `svgcraft-library.json`), a zip of
     palettes, gradients and SVGs without one (deflated or not, in folders or
     not), a JSON library, a GIMP palette (including GIMP 3's alpha), a GIMP

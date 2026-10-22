@@ -9452,8 +9452,10 @@
   const askDlg = $('#sc-ask');
   let askDone = null;
   // `alt` adds a third button; choosing it resolves to 'alt'.
-  function ask(title, { value = null, text = '', ok = 'OK', alt = '' } = {}) {
+  // `cancel` relabels the Cancel button.
+  function ask(title, { value = null, text = '', ok = 'OK', alt = '', cancel = 'Cancel' } = {}) {
     askDone?.(null);
+    askDlg.querySelector('[data-ask="cancel"]').textContent = cancel;
     const altBtn = askDlg.querySelector('[data-ask="alt"]');
     altBtn.textContent = alt;
     altBtn.hidden = !alt;
@@ -9671,23 +9673,89 @@
       );
     }
     const add = cleanLibrary(raw, true);
-    // Skip what's already there (same colour, same stops, same tile).
+    // Skip what's already there (same colour, same stops, same tile, whatever
+    // its name). A new definition under a name already in use asks first.
     const key = {
       swatches: (x) => `${x.c}/${f(x.a)}`,
       gradients: (x) => JSON.stringify([x.type, x.angle, x.stops]),
       patterns: (x) => `${f(x.w)}x${f(x.h)}:${x.svg}`,
       symbols: (x) => `${f(x.w)}x${f(x.h)}:${x.svg}`,
     };
-    const counts = [];
-    for (const kind of ['swatches', 'gradients', 'patterns', 'symbols']) {
+    const KINDS = ['swatches', 'gradients', 'patterns', 'symbols'];
+    const nameKey = (x) => x.name.trim().toLowerCase();
+    const fresh = {};
+    const clashes = [];
+    for (const kind of KINDS) {
       const have = new Set(lib[kind].map(key[kind]));
-      const fresh = add[kind].filter((x) => !have.has(key[kind](x)));
-      lib[kind].push(...fresh);
-      if (fresh.length)
-        counts.push(`${fresh.length} ${fresh.length === 1 ? LIB_NOUN[kind] : kind}`);
+      const names = new Set(lib[kind].map(nameKey));
+      fresh[kind] = add[kind].filter((x) => {
+        const k = key[kind](x);
+        if (have.has(k)) return false;
+        have.add(k);
+        if (names.has(nameKey(x))) clashes.push([kind, x]);
+        return true;
+      });
+    }
+    let choice = 'keep';
+    if (clashes.length) {
+      const n = clashes.length;
+      const shown = clashes.slice(0, 3).map(([, x]) => `“${x.name}”`);
+      const answer = await ask('Name clash', {
+        text:
+          `${n === 1 ? '1 imported item has' : `${n} imported items have`} the same name as ` +
+          `${n === 1 ? 'one' : 'ones'} you have but a different definition: ` +
+          `${shown.join(', ')}${n > 3 ? ` and ${n - 3} more` : ''}. Keep both (the imported ` +
+          `${n === 1 ? 'one is' : 'ones are'} renamed), replace yours, or skip ` +
+          `${n === 1 ? 'it' : 'them'}?`,
+        ok: 'Keep both',
+        alt: 'Replace mine',
+        cancel: 'Skip them',
+      });
+      choice = answer === 'alt' ? 'replace' : answer ? 'keep' : 'skip';
+    }
+    const clashing = new Set(clashes.map(([, x]) => x));
+    const tally = { added: [], replaced: [], skipped: 0 };
+    const count = (list, kind, n) => n && list.push(`${n} ${n === 1 ? LIB_NOUN[kind] : kind}`);
+    for (const kind of KINDS) {
+      let added = 0;
+      let replaced = 0;
+      const taken = new Set(lib[kind].map(nameKey));
+      const done = new Set();
+      for (const x of fresh[kind]) {
+        if (clashing.has(x) && choice === 'skip') {
+          tally.skipped++;
+          continue;
+        }
+        if (clashing.has(x) && choice === 'replace') {
+          // Yours keeps its place, id and name; it takes the new definition.
+          const i = lib[kind].findIndex((y) => nameKey(y) === nameKey(x) && !done.has(y));
+          if (i >= 0) {
+            const mine = lib[kind][i];
+            lib[kind][i] = { ...x, id: mine.id, name: mine.name };
+            done.add(lib[kind][i]);
+            replaced++;
+            continue;
+          }
+        }
+        if (taken.has(nameKey(x))) {
+          const base = x.name.replace(/ \d+$/, '');
+          let n = 2;
+          while (taken.has(`${base} ${n}`.toLowerCase())) n++;
+          x.name = `${base} ${n}`.slice(0, 80);
+        }
+        taken.add(nameKey(x));
+        lib[kind].push(x);
+        added++;
+      }
+      count(tally.added, kind, added);
+      count(tally.replaced, kind, replaced);
     }
     saveLibrary();
-    say(counts.length ? `Imported ${counts.join(', ')}.` : 'Nothing new in that library.');
+    const parts = [];
+    if (tally.added.length) parts.push(`Imported ${tally.added.join(', ')}.`);
+    if (tally.replaced.length) parts.push(`Replaced ${tally.replaced.join(', ')}.`);
+    if (tally.skipped) parts.push(`Skipped ${tally.skipped} with a name you already use.`);
+    say(parts.join(' ') || 'Nothing new in that library.');
   }
 
   // ---- library exchange: formats other apps read -------------------------------
