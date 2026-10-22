@@ -342,7 +342,9 @@ test.describe('managing the library', () => {
     await openLibrary(page);
     const [dl] = await Promise.all([
       page.waitForEvent('download'),
-      page.click('[data-lib="symbols"] [data-lib-act="export"]'),
+      page
+        .click('[data-lib="symbols"] [data-lib-act="export"]')
+        .then(() => page.click('.sc-popmenu [role="menuitem"]:has-text("Svgcraft library")')),
     ]);
     const json = JSON.parse(fs.readFileSync(await dl.path(), 'utf8'));
     const n = await builtinCount(page);

@@ -220,12 +220,31 @@ stroke="currentColor"` (common in icon sets) is pushed down so it survives.
     it to the other one. Double-click renames it, Alt-click deletes it,
     and the bar's buttons do the same for the selected tile. **Reset**
     brings back the built-in set for that panel.
-  - **Export** saves all the libraries (with the Symbols library, see
-    Symbols) to `svgcraft-library.json`, and **Import** adds a library
-    file's contents, skipping anything you already have. Browser storage belongs to one browser on one machine
-    and is lost if you clear the site's data, so export to keep a copy.
-    Pattern tiles and symbols from a library file are sanitised like
-    imported drawings.
+  - **Export** opens a menu. **Svgcraft library** saves all the libraries
+    (with the Symbols library, see Symbols) to `svgcraft-library.json`.
+    The other entries save that panel in a format other apps read:
+    - Swatches: **Adobe Swatch Exchange** (`.ase`, for Photoshop,
+      Illustrator, InDesign and Affinity), **GIMP / Inkscape palette**
+      (`.gpl`, also Krita) and **CSS variables** (`--name: #hex`). ASE has
+      no alpha, so translucent swatches go out opaque.
+    - Gradients: **SVG gradients**, a file of `<linearGradient>` and
+      `<radialGradient>` defs that also draws a labelled sample of each,
+      and **CSS gradients** (`--name: linear-gradient(…)`).
+    - Patterns: **SVG patterns**, `<pattern>` defs with a sample of each.
+      The tiles draw in `currentColor`, set on each `<pattern>`.
+    - Symbols: an **SVG sprite**, one `<symbol id="…">` per symbol (with its
+      credit) for `<use href="sprite.svg#id"/>`, plus a labelled sheet of
+      them. Choose your own symbols only, or all of them with the built-in
+      icons.
+  - **Import** adds a file's contents, skipping anything you already have.
+    It reads a Svgcraft library, an ASE palette (RGB, CMYK, Gray and Lab
+    colours become RGB), a GIMP palette (including GIMP 3's alpha), a GIMP
+    gradient (`.ggr`), or any SVG, taking its gradients (shared stops
+    included), patterns and symbols. Symbols from an SVG go in a category
+    named after the file.
+  - Browser storage belongs to one browser on one machine and is lost if
+    you clear the site's data, so export to keep a copy. Pattern tiles and
+    symbols from a file are sanitised like imported drawings.
 - **Colours**: fill and stroke, each with an on/off switch, a colour
   picker, a hex field and the Swatches panel. Press X to swap fill and stroke.
   Shift-click a swatch to apply it to the other target.

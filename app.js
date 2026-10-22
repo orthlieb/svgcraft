@@ -9676,12 +9676,17 @@
       'svgcraft-library.json',
     );
   }
+  // Import takes a library file, or a palette, gradient or SVG from another
+  // app (see readForeignLibrary), and adds whatever it holds.
   async function importLibrary(file) {
     let raw;
     try {
-      raw = JSON.parse(await file.text());
+      raw = await readForeignLibrary(file);
+      if (!raw) raw = JSON.parse(await file.text());
     } catch {
-      return say('That file isn’t a library: it isn’t valid JSON.');
+      return say(
+        'That file isn’t a library, palette (.ase, .gpl), GIMP gradient (.ggr) or SVG Svgcraft can read.',
+      );
     }
     const add = cleanLibrary(raw, true);
     // Skip what's already there (same colour, same stops, same tile).
@@ -9703,6 +9708,522 @@
     say(counts.length ? `Imported ${counts.join(', ')}.` : 'Nothing new in that library.');
   }
 
+  // ---- library exchange: formats other apps read -------------------------------
+  // Each panel's Export button offers the Svgcraft library (everything, JSON)
+  // plus that panel's standard formats:
+  //   swatches  → Adobe Swatch Exchange (.ase), GIMP palette (.gpl), CSS variables
+  //   gradients → SVG <linearGradient>/<radialGradient> defs, CSS gradients
+  //   patterns  → SVG <pattern> defs
+  //   symbols   → an SVG sprite of <symbol>s, for <use href="file.svg#id">
+  // The SVG files also draw a labelled sample of each item, so they make
+  // sense when opened. Import reads all of these back, plus GIMP gradients.
+  const xmlEsc = (v) =>
+    String(v).replace(
+      /[<>&"]/g,
+      (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' })[c],
+    );
+  // Unique, id- and CSS-safe names: "Sky blue" → "sky-blue", "sky-blue-2" …
+  function slugger(prefix) {
+    const used = new Set();
+    return (name) => {
+      let base =
+        String(name)
+          .toLowerCase()
+          .normalize('NFKD')
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '')
+          .slice(0, 40) || prefix;
+      if (!/^[a-z]/.test(base)) base = `${prefix}-${base}`;
+      let s = base;
+      for (let n = 2; used.has(s); n++) s = `${base}-${n}`;
+      used.add(s);
+      return s;
+    };
+  }
+  const rgbOf = (c) => {
+    const n = parseInt(c.slice(1), 16);
+    return [n >> 16, (n >> 8) & 255, n & 255];
+  };
+  const libCss = (c, a) => (a < 1 ? cssColor(c, f(a)) : c);
+  const cssGradient = (g) => {
+    const stops = g.stops.map((s) => `${libCss(s.c, s.a)} ${f(s.o * 100)}%`).join(', ');
+    return g.type === 'radial'
+      ? `radial-gradient(circle, ${stops})`
+      : `linear-gradient(${f(90 - g.angle)}deg, ${stops})`;
+  };
+  const stopMarkup = (g) =>
+    g.stops
+      .map(
+        (s) =>
+          `<stop offset="${f(s.o)}" stop-color="${s.c}"` +
+          (s.a < 1 ? ` stop-opacity="${f(s.a)}"` : '') +
+          '/>',
+      )
+      .join('');
+  // A gradient in its box's own coordinates: Photoshop angles run
+  // anticlockwise from 3 o'clock.
+  function gradDefMarkup(g, id) {
+    const attrs = `id="${id}" data-name="${xmlEsc(g.name)}"`;
+    if (g.type === 'radial')
+      return `<radialGradient ${attrs} cx="0.5" cy="0.5" r="0.5">${stopMarkup(g)}</radialGradient>`;
+    const t = (g.angle * Math.PI) / 180;
+    const dx = Math.cos(t) / 2;
+    const dy = -Math.sin(t) / 2;
+    return (
+      `<linearGradient ${attrs} x1="${f(0.5 - dx)}" y1="${f(0.5 - dy)}" ` +
+      `x2="${f(0.5 + dx)}" y2="${f(0.5 + dy)}">${stopMarkup(g)}</linearGradient>`
+    );
+  }
+
+  // A sheet of labelled samples: `cell(item, x, y, id)` draws one at x, y.
+  function sampleSheet(title, items, prefix, { w, h, defs, cell, extra = '' }) {
+    const slug = slugger(prefix);
+    const ids = items.map((x) => slug(x.name));
+    const cols = Math.min(items.length, 6);
+    const rows = Math.ceil(items.length / cols);
+    const cw = w + 24;
+    const ch = h + 44;
+    const out = [
+      `<svg xmlns="${NS}" viewBox="0 0 ${cols * cw + 24} ${rows * ch + 24}" ` +
+        `font-family="system-ui, sans-serif" font-size="12">`,
+      `<title>${xmlEsc(title)}</title>`,
+      extra,
+      `<defs>`,
+      ...items.map((x, i) => '  ' + defs(x, ids[i])),
+      `</defs>`,
+    ];
+    items.forEach((x, i) => {
+      const cx = 24 + (i % cols) * cw;
+      const cy = 24 + Math.floor(i / cols) * ch;
+      out.push(
+        cell(x, cx, cy, ids[i]) +
+          `<text x="${cx + w / 2}" y="${cy + h + 18}" text-anchor="middle" fill="#333333">${xmlEsc(x.name)}</text>`,
+      );
+    });
+    out.push('</svg>');
+    return out.join('\n') + '\n';
+  }
+
+  // Adobe Swatch Exchange: big-endian blocks of named RGB colours. ASE has
+  // no alpha, so translucent swatches go out opaque.
+  function aseBytes(swatches) {
+    const blocks = swatches.map((x) => {
+      const name = x.name.slice(0, 80);
+      const len = 2 + (name.length + 1) * 2 + 4 + 12 + 2;
+      const b = new DataView(new ArrayBuffer(6 + len));
+      let p = 0;
+      b.setUint16(p, 0x0001);
+      b.setUint32((p += 2), len);
+      b.setUint16((p += 4), name.length + 1);
+      p += 2;
+      for (let k = 0; k < name.length; k++) {
+        b.setUint16(p, name.charCodeAt(k));
+        p += 2;
+      }
+      p += 2; // NUL
+      for (const ch of 'RGB ') b.setUint8(p++, ch.charCodeAt(0));
+      for (const v of rgbOf(x.c)) {
+        b.setFloat32(p, v / 255);
+        p += 4;
+      }
+      b.setUint16(p, 2); // normal (not global or spot)
+      return new Uint8Array(b.buffer);
+    });
+    const head = new DataView(new ArrayBuffer(12));
+    [0x41, 0x53, 0x45, 0x46].forEach((c, i) => head.setUint8(i, c)); // ASEF
+    head.setUint16(4, 1);
+    head.setUint16(6, 0);
+    head.setUint32(8, blocks.length);
+    return new Blob([head.buffer, ...blocks], { type: 'application/octet-stream' });
+  }
+  function readAse(buf) {
+    const b = new DataView(buf);
+    const out = [];
+    let p = 12;
+    for (let i = 0, n = b.getUint32(8); i < n && p + 6 <= b.byteLength; i++) {
+      const type = b.getUint16(p);
+      const len = b.getUint32(p + 2);
+      const end = p + 6 + len;
+      if (type === 0x0001) {
+        let q = p + 6;
+        const chars = b.getUint16(q);
+        q += 2;
+        let name = '';
+        for (let k = 0; k < chars - 1; k++) name += String.fromCharCode(b.getUint16(q + k * 2));
+        q += chars * 2;
+        const model = String.fromCharCode(...new Uint8Array(buf, q, 4));
+        q += 4;
+        const v = (k) => b.getFloat32(q + k * 4);
+        let rgb = null;
+        if (model === 'RGB ') rgb = [v(0), v(1), v(2)].map((x) => x * 255);
+        else if (model === 'CMYK') rgb = [v(0), v(1), v(2)].map((x) => 255 * (1 - x) * (1 - v(3)));
+        else if (model === 'Gray') rgb = [v(0) * 255, v(0) * 255, v(0) * 255];
+        else if (model === 'LAB ') rgb = labToRgb(v(0) <= 1 ? v(0) * 100 : v(0), v(1), v(2));
+        if (rgb) out.push({ name: name.trim(), c: rgbHex(rgb), a: 1 });
+      }
+      p = end;
+    }
+    return out;
+  }
+  const rgbHex = (rgb) =>
+    '#' + rgb.map((x) => clamp(Math.round(x), 0, 255).toString(16).padStart(2, '0')).join('');
+  // CIE L*a*b* (D50, as Adobe stores it) to sRGB.
+  function labToRgb(L, a, bb) {
+    const fy = (L + 16) / 116;
+    const inv = (t) => (t ** 3 > 0.008856 ? t ** 3 : (t - 16 / 116) / 7.787);
+    const [X, Y, Z] = [0.9642 * inv(fy + a / 500), inv(fy), 0.8249 * inv(fy - bb / 200)];
+    const lin = [
+      3.1338561 * X - 1.6168667 * Y - 0.4906146 * Z,
+      -0.9787684 * X + 1.9161415 * Y + 0.033454 * Z,
+      0.0719453 * X - 0.2289914 * Y + 1.4052427 * Z,
+    ];
+    return lin.map(
+      (c) => 255 * (c <= 0.0031308 ? 12.92 * c : 1.055 * Math.max(c, 0) ** (1 / 2.4) - 0.055),
+    );
+  }
+
+  // GIMP palette: "R G B Name" lines (GIMP 3 adds an alpha column).
+  function gplText(swatches) {
+    const lines = ['GIMP Palette', 'Name: Svgcraft', 'Columns: 8', '#'];
+    for (const x of swatches)
+      lines.push(
+        rgbOf(x.c)
+          .map((v) => String(v).padStart(3))
+          .join(' ') +
+          '\t' +
+          x.name,
+      );
+    return lines.join('\n') + '\n';
+  }
+  function readGpl(text) {
+    const rgba = /^Channels:\s*RGBA/im.test(text);
+    const out = [];
+    for (const line of text.split(/\r?\n/).slice(1)) {
+      const m = rgba
+        ? line.match(/^\s*(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s*(.*)$/)
+        : line.match(/^\s*(\d+)\s+(\d+)\s+(\d+)\s*(.*)$/);
+      if (!m) continue;
+      const c = rgbHex([+m[1], +m[2], +m[3]]);
+      const a = rgba ? f(clamp(+m[4] / 255, 0, 1)) : 1;
+      out.push({ name: (rgba ? m[5] : m[4]).trim() || c, c, a });
+    }
+    return out;
+  }
+
+  // GIMP gradient: segments with a colour at each end. Off-centre midpoints
+  // and curved blends get an extra stop at the midpoint.
+  function readGgr(text) {
+    const lines = text.split(/\r?\n/);
+    const name = (lines.find((l) => l.startsWith('Name:')) || 'Name: Gradient').slice(5).trim();
+    const stops = [];
+    const push = (o, r, g, b, a) => {
+      const st = { o: clamp(o, 0, 1), c: rgbHex([r * 255, g * 255, b * 255]), a: clamp(a, 0, 1) };
+      const last = stops[stops.length - 1];
+      if (!last || last.o !== st.o || last.c !== st.c || last.a !== st.a) stops.push(st);
+    };
+    for (const line of lines) {
+      const v = line.trim().split(/\s+/).map(Number);
+      if (v.length < 13 || v.some((x) => !isFinite(x))) continue;
+      const [l, m, r, r0, g0, b0, a0, r1, g1, b1, a1, blend] = v;
+      push(l, r0, g0, b0, a0);
+      if (Math.abs(m - (l + r) / 2) > 1e-3 || blend !== 0)
+        push(m, (r0 + r1) / 2, (g0 + g1) / 2, (b0 + b1) / 2, (a0 + a1) / 2);
+      push(r, r1, g1, b1, a1);
+    }
+    return stops.length >= 2 ? [{ name, type: 'linear', angle: 0, stops }] : [];
+  }
+
+  // Any SVG: its gradients, patterns and symbols. Colours in other notations
+  // (names, rgb(), hsl()) are read through a canvas.
+  const colorCtx = document.createElement('canvas').getContext('2d');
+  function anyHex(c) {
+    if (!c) return null;
+    colorCtx.fillStyle = '#000000';
+    colorCtx.fillStyle = c.trim();
+    return hex(colorCtx.fillStyle);
+  }
+  function readSvgLibrary(text, fileName) {
+    const d = new DOMParser().parseFromString(text, 'image/svg+xml');
+    if (d.querySelector('parsererror') || d.documentElement.localName !== 'svg') return null;
+    const byId = (id) => d.querySelector(`[id="${CSS.escape(id)}"]`);
+    const hrefOf = (n) =>
+      (n.getAttribute('href') || n.getAttributeNS(XLINK, 'href') || '').replace(/^#/, '');
+    const label = (n, d) =>
+      n.getAttribute('data-name') ||
+      n.getAttribute('inkscape:label') ||
+      n.querySelector(':scope > title')?.textContent ||
+      n.id ||
+      d;
+    const out = { gradients: [], patterns: [], symbols: [] };
+    for (const g of d.querySelectorAll('linearGradient, radialGradient')) {
+      let src = g;
+      for (let i = 0; i < 6 && src && !src.querySelector(':scope > stop'); i++)
+        src = byId(hrefOf(src));
+      if (!src) continue;
+      const stops = [...src.querySelectorAll(':scope > stop')].map((s) => {
+        const style = (k) =>
+          s.getAttribute(k) ??
+          (s.getAttribute('style') || '').match(new RegExp(`${k}\\s*:\\s*([^;]+)`))?.[1];
+        const off = style('offset') || '0';
+        const col = style('stop-color') || '#000';
+        const op = parseFloat(style('stop-opacity') ?? 1);
+        return {
+          o: off.trim().endsWith('%') ? parseFloat(off) / 100 : parseFloat(off) || 0,
+          c: anyHex(col),
+          a: (isFinite(op) ? op : 1) * colorAlpha(col),
+        };
+      });
+      if (stops.length < 2) continue;
+      let angle = 0;
+      if (g.localName === 'linearGradient') {
+        const v = (k, dflt) => parseFloat(g.getAttribute(k) ?? dflt) || 0;
+        angle = Math.round(
+          (Math.atan2(-(v('y2', 0) - v('y1', 0)), v('x2', 1) - v('x1', 0)) * 180) / Math.PI,
+        );
+      }
+      out.gradients.push({
+        name: label(g, 'Gradient'),
+        type: g.localName === 'radialGradient' ? 'radial' : 'linear',
+        angle,
+        stops,
+      });
+    }
+    const inner = (n) => [...n.childNodes].map((c) => new XMLSerializer().serializeToString(c));
+    for (const p of d.querySelectorAll('pattern')) {
+      if (p.getAttribute('patternContentUnits') === 'objectBoundingBox') continue;
+      const vb = (p.getAttribute('viewBox') || '').split(/[\s,]+/).map(Number);
+      const hasVb = vb.length === 4 && vb.every(isFinite) && vb[2] > 0 && vb[3] > 0;
+      const w = hasVb ? vb[2] : parseFloat(p.getAttribute('width'));
+      const h = hasVb ? vb[3] : parseFloat(p.getAttribute('height'));
+      let body = inner(p).join('');
+      if (!(w >= 0.5 && h >= 0.5) || !body.trim()) continue;
+      if (hasVb && (vb[0] || vb[1]))
+        body = `<g transform="translate(${-vb[0]} ${-vb[1]})">${body}</g>`;
+      // currentColor inside the tile is the paint's colour; a fixed colour
+      // on the <pattern> itself is dropped.
+      out.patterns.push({ name: label(p, 'Pattern'), w, h, svg: body });
+    }
+    const category = fileName.replace(/\.svg$/i, '').slice(0, 40) || 'Imported';
+    for (const s of d.querySelectorAll('symbol')) {
+      const vb = (s.getAttribute('viewBox') || '').split(/[\s,]+/).map(Number);
+      if (!(vb.length === 4 && vb.every(isFinite) && vb[2] > 0 && vb[3] > 0)) continue;
+      let body = inner(s)
+        .filter((m) => !/^<title[\s>]/.test(m))
+        .join('');
+      if (!body.trim()) continue;
+      if (vb[0] || vb[1]) body = `<g transform="translate(${-vb[0]} ${-vb[1]})">${body}</g>`;
+      const item = { name: label(s, 'Symbol'), category, w: vb[2], h: vb[3], svg: body };
+      if (s.getAttribute('data-category')) item.category = s.getAttribute('data-category');
+      if (s.getAttribute('data-credit')) item.credit = s.getAttribute('data-credit');
+      out.symbols.push(item);
+    }
+    return out;
+  }
+
+  // A library-shaped object from a foreign file, or null for a JSON library.
+  async function readForeignLibrary(file) {
+    const buf = await file.arrayBuffer();
+    const head = new TextDecoder().decode(buf.slice(0, 512)).replace(/^\uFEFF/, '');
+    if (head.startsWith('ASEF')) return { swatches: readAse(buf) };
+    if (/^\s*GIMP Palette/.test(head)) return { swatches: readGpl(new TextDecoder().decode(buf)) };
+    if (/^\s*GIMP Gradient/.test(head))
+      return { gradients: readGgr(new TextDecoder().decode(buf)) };
+    if (/^\s*</.test(head)) {
+      const r = readSvgLibrary(new TextDecoder().decode(buf), file.name || '');
+      if (!r) throw new Error('not SVG');
+      return r;
+    }
+    return null;
+  }
+
+  const EXPORTS = {
+    swatches: [
+      ['Adobe Swatch Exchange', '.ase', () => aseBytes(lib.swatches)],
+      [
+        'GIMP / Inkscape palette',
+        '.gpl',
+        () => new Blob([gplText(lib.swatches)], { type: 'text/plain' }),
+      ],
+      [
+        'CSS variables',
+        '.css',
+        () => {
+          const slug = slugger('swatch');
+          const lines = lib.swatches.map((x) => `  --${slug(x.name)}: ${libCss(x.c, x.a)};`);
+          return new Blob([`/* Svgcraft swatches */\n:root {\n${lines.join('\n')}\n}\n`], {
+            type: 'text/css',
+          });
+        },
+      ],
+    ],
+    gradients: [
+      [
+        'SVG gradients',
+        '.svg',
+        () =>
+          new Blob(
+            [
+              sampleSheet('Svgcraft gradients', lib.gradients, 'gradient', {
+                w: 160,
+                h: 100,
+                defs: gradDefMarkup,
+                cell: (x, cx, cy, id) =>
+                  `<rect x="${cx}" y="${cy}" width="160" height="100" rx="6" fill="url(#${id})"/>`,
+              }),
+            ],
+            { type: 'image/svg+xml' },
+          ),
+      ],
+      [
+        'CSS gradients',
+        '.css',
+        () => {
+          const slug = slugger('gradient');
+          const lines = lib.gradients.map((g) => `  --${slug(g.name)}: ${cssGradient(g)};`);
+          return new Blob([`/* Svgcraft gradients */\n:root {\n${lines.join('\n')}\n}\n`], {
+            type: 'text/css',
+          });
+        },
+      ],
+    ],
+    patterns: [
+      [
+        'SVG patterns',
+        '.svg',
+        () =>
+          new Blob(
+            [
+              sampleSheet('Svgcraft patterns', lib.patterns, 'pattern', {
+                w: 120,
+                h: 120,
+                // The tiles draw in currentColor; the <pattern>'s colour sets it.
+                defs: (p, id) =>
+                  `<pattern id="${id}" data-name="${xmlEsc(p.name)}" patternUnits="userSpaceOnUse" ` +
+                  `width="${f(p.w)}" height="${f(p.h)}" color="#1f2937">${p.svg}</pattern>`,
+                cell: (x, cx, cy, id) =>
+                  `<rect x="${cx}" y="${cy}" width="120" height="120" fill="url(#${id})" ` +
+                  `stroke="#cccccc"/>`,
+              }),
+            ],
+            { type: 'image/svg+xml' },
+          ),
+      ],
+    ],
+    symbols: [
+      ['SVG sprite, my symbols', '.svg', () => spriteBlob(true)],
+      ['SVG sprite, all symbols', '.svg', () => spriteBlob(false)],
+    ],
+  };
+  // Saved symbols are the ones without the built-in set's credit.
+  const isBuiltinSymbol = (x) => (window.SC_SYMBOLS || []).some((b) => b.svg === x.svg);
+  function spriteBlob(mineOnly) {
+    const items = mineOnly ? lib.symbols.filter((x) => !isBuiltinSymbol(x)) : lib.symbols;
+    if (!items.length) return null;
+    const credits = [...new Set(items.map((x) => x.credit).filter(Boolean))];
+    return new Blob(
+      [
+        sampleSheet('Svgcraft symbols', items, 'symbol', {
+          w: 120, // room for the name under each 64 px icon
+          h: 64,
+          extra: credits.length
+            ? `<desc>Credits: ${xmlEsc(credits.join('; '))}. Use one with &lt;use href="file.svg#id"/&gt;.</desc>`
+            : `<desc>Use one with &lt;use href="file.svg#id"/&gt;.</desc>`,
+          defs: (x, id) =>
+            `<symbol id="${id}" viewBox="0 0 ${f(x.w)} ${f(x.h)}" data-name="${xmlEsc(x.name)}" ` +
+            `data-category="${xmlEsc(x.category)}"` +
+            (x.credit ? ` data-credit="${xmlEsc(x.credit)}"` : '') +
+            `>${x.svg}</symbol>`,
+          cell: (x, cx, cy, id) =>
+            `<use href="#${id}" x="${cx + 28}" y="${cy}" width="64" height="64" fill="#1f2937"/>`,
+        }),
+      ],
+      { type: 'image/svg+xml' },
+    );
+  }
+
+  function exportLibraryAs(kind, [label, ext, make]) {
+    const blob = lib[kind].length ? make() : null;
+    if (!blob)
+      return say(
+        kind === 'symbols' && label.includes('my')
+          ? 'No saved symbols to export yet: the library only has the built-in icons.'
+          : `No ${kind} to export.`,
+      );
+    download(blob, `svgcraft-${kind}${ext}`);
+    say(`Exported ${label} (svgcraft-${kind}${ext}).`);
+  }
+
+  // A small menu under a button, styled like the menu bar's.
+  let popMenuOpen = null;
+  function popMenu(anchor, items) {
+    const again = popMenuOpen?.anchor === anchor;
+    popMenuOpen?.close();
+    if (again) return;
+    const m = document.createElement('div');
+    m.className = 'sc-menu-list sc-popmenu';
+    m.setAttribute('role', 'menu');
+    for (const it of items) {
+      if (it === '-') {
+        m.append(document.createElement('hr'));
+        continue;
+      }
+      const b = document.createElement('button');
+      b.setAttribute('role', 'menuitem');
+      b.append(
+        document.createElement('i'),
+        Object.assign(document.createElement('span'), { textContent: it.label }),
+      );
+      if (it.hint) b.append(Object.assign(document.createElement('kbd'), { textContent: it.hint }));
+      b.addEventListener('click', () => {
+        close();
+        it.run();
+      });
+      m.append(b);
+    }
+    document.body.append(m);
+    const r = anchor.getBoundingClientRect();
+    const mr = m.getBoundingClientRect();
+    m.style.left = `${Math.max(4, Math.min(r.left, innerWidth - mr.width - 4))}px`;
+    m.style.top = `${r.bottom + 2 + mr.height > innerHeight ? Math.max(4, r.top - mr.height - 2) : r.bottom + 2}px`;
+    const away = (e) => {
+      if (!m.contains(e.target) && !anchor.contains(e.target)) close();
+    };
+    m.addEventListener('keydown', (e) => {
+      e.stopPropagation();
+      const bs = [...m.querySelectorAll('button')];
+      const i = bs.indexOf(document.activeElement);
+      if (e.key === 'Escape' || e.key === 'Tab') {
+        e.preventDefault();
+        close();
+        anchor.focus();
+      } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        bs[(i + (e.key === 'ArrowDown' ? 1 : bs.length - 1)) % bs.length].focus();
+      }
+    });
+    function close() {
+      m.remove();
+      document.removeEventListener('pointerdown', away, true);
+      anchor.setAttribute('aria-expanded', 'false');
+      popMenuOpen = null;
+    }
+    document.addEventListener('pointerdown', away, true);
+    anchor.setAttribute('aria-expanded', 'true');
+    m.querySelector('button').focus();
+    popMenuOpen = { anchor, close };
+  }
+  function exportMenu(kind, anchor) {
+    popMenu(anchor, [
+      { label: 'Svgcraft library (everything)', hint: '.json', run: exportLibrary },
+      '-',
+      ...EXPORTS[kind].map((x) => ({
+        label: x[0],
+        hint: x[1],
+        run: () => exportLibraryAs(kind, x),
+      })),
+    ]);
+  }
+
   function wireLibraries() {
     for (const bar of document.querySelectorAll('[data-lib]'))
       for (const b of bar.querySelectorAll('[data-lib-act]'))
@@ -9712,7 +10233,7 @@
             add: () => addLibItem(kind),
             rename: () => renameLibItem(kind),
             delete: () => removeLibItem(kind),
-            export: exportLibrary,
+            export: () => exportMenu(kind, b),
             import: () => $('#sc-lib-file').click(),
             reset: () => resetLib(kind),
             place: () => placeLibSymbol(),

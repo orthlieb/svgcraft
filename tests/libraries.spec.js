@@ -337,7 +337,9 @@ test.describe('export / import library', () => {
     await page.click('[data-tab="patterns"]');
     const [dl] = await Promise.all([
       page.waitForEvent('download'),
-      page.click('[data-lib="patterns"] [data-lib-act="export"]'),
+      page
+        .click('[data-lib="patterns"] [data-lib-act="export"]')
+        .then(() => page.click('.sc-popmenu [role="menuitem"]:has-text("Svgcraft library")')),
     ]);
     expect(dl.suggestedFilename()).toBe('svgcraft-library.json');
     const json = JSON.parse(fs.readFileSync(await dl.path(), 'utf8'));
@@ -386,6 +388,6 @@ test.describe('export / import library', () => {
       mimeType: 'application/json',
       buffer: Buffer.from('not json'),
     });
-    await expect(page.locator('#sc-msg')).toContainText('isn’t valid JSON');
+    await expect(page.locator('#sc-msg')).toContainText('isn’t a library');
   });
 });
