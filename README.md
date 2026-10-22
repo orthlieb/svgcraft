@@ -1,4 +1,4 @@
-# Svgcraft
+# SVGCraft
 
 A small in-browser SVG editor with no dependencies and no build step. It's
 four static files (`index.html`, `style.css`, `app.js`, `icons.js`): open `index.html`
@@ -14,7 +14,7 @@ and what comes next.
 
 ## Workspace
 
-Svgcraft edits on tablets and larger screens. A phone (narrower than
+SVGCraft edits on tablets and larger screens. A phone (narrower than
 768 px, or a phone held sideways) gets a **preview** instead: open SVGs,
 switch between tabs, pan and pinch-zoom, Fit, and About. The editing tools,
 menus and panels are hidden, and nothing on a phone changes a drawing.
@@ -98,7 +98,7 @@ stroke="currentColor"` (common in icon sets) is pushed down so it survives.
     change, so a reload or a later visit brings back the same tabs, the
     same `*` marks and the same view. The browser's copy is per browser
     and per machine; Save as SVG to keep a file. A drawing autosaved by an
-    older version of Svgcraft is brought over as a tab.
+    older version of SVGCraft is brought over as a tab.
 - **Export**: SVG download (Ctrl+S), PNG at 1× / 2× / 4× with a
   transparent background, and Copy, which puts the drawing (or the
   selection) on the clipboard as SVG markup.
@@ -220,7 +220,7 @@ stroke="currentColor"` (common in icon sets) is pushed down so it survives.
     it to the other one. Double-click renames it, Alt-click deletes it,
     and the bar's buttons do the same for the selected tile. **Reset**
     brings back the built-in set for that panel.
-  - **Export** opens a menu. **Svgcraft library** saves all the libraries
+  - **Export** opens a menu. **SVGCraft library** saves all the libraries
     (with the Symbols library, see Symbols) to `svgcraft-library.json`.
     The other entries save that panel in a format other apps read:
     - Swatches: **Adobe Swatch Exchange** (`.ase`, for Photoshop,
@@ -237,7 +237,7 @@ stroke="currentColor"` (common in icon sets) is pushed down so it survives.
       them. Choose your own symbols only, or all of them with the built-in
       icons.
   - **Import** adds a file's contents, skipping anything you already have.
-    It reads a Svgcraft library, an ASE palette (RGB, CMYK, Gray and Lab
+    It reads a SVGCraft library, an ASE palette (RGB, CMYK, Gray and Lab
     colours become RGB), a GIMP palette (including GIMP 3's alpha), a GIMP
     gradient (`.ggr`), or any SVG, taking its gradients (shared stops
     included), patterns and symbols. Symbols from an SVG go in a category
@@ -686,7 +686,7 @@ window by its title bar and resize it from its corner.
 
 ## What the saved SVG keeps
 
-Save as SVG writes everything you set in Svgcraft into the file itself, so
+Save as SVG writes everything you set in SVGCraft into the file itself, so
 opening it again, or importing it into another drawing, gives back the
 same editable drawing:
 
@@ -735,7 +735,7 @@ fails a test. GitHub Actions (`.github/workflows/ci.yml`) runs format, lint
 and the tests on every push, and uploads the Playwright report when
 something fails.
 
-**The About page.** `about.html` (Help → About Svgcraft, Feature List or
+**The About page.** `about.html` (Help → About SVGCraft, Feature List or
 Keyboard Shortcuts, which open it in its own tab) is a static page with a
 feature overview, the shortcuts and the credits. Its screenshots in
 `about/` are taken from the real app by `node scripts/gen-about-screens.mjs`,

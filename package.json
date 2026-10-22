@@ -1,7 +1,7 @@
 {
   "name": "svgcraft",
   "private": true,
-  "description": "Dev tooling for Svgcraft. The app itself has no dependencies and no build step.",
+  "description": "Dev tooling for SVGCraft. The app itself has no dependencies and no build step.",
   "license": "MIT",
   "type": "module",
   "scripts": {

@@ -1,4 +1,4 @@
-/* Svgcraft — Photoshop-style workspace.
+/* SVGCraft — Photoshop-style workspace.
    Layout: menu bar / options bar / [toolbar | document window | docked panels] / status bar.
    Light values sit on :root; dark values redefine the same tokens (OS dark mode
    unless the user picked Light, or an explicit Dark choice). */

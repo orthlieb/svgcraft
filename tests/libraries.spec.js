@@ -339,7 +339,7 @@ test.describe('export / import library', () => {
       page.waitForEvent('download'),
       page
         .click('[data-lib="patterns"] [data-lib-act="export"]')
-        .then(() => page.click('.sc-popmenu [role="menuitem"]:has-text("Svgcraft library")')),
+        .then(() => page.click('.sc-popmenu [role="menuitem"]:has-text("SVGCraft library")')),
     ]);
     expect(dl.suggestedFilename()).toBe('svgcraft-library.json');
     const json = JSON.parse(fs.readFileSync(await dl.path(), 'utf8'));

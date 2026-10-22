@@ -66,7 +66,7 @@ test('starts with one clean Untitled-1 tab', async ({ page }) => {
 test('a change adds a *, and undoing back to the saved version removes it', async ({ page }) => {
   await drawRect(page);
   await expect(page.locator('#sc-doc-title')).toHaveText(/^Untitled-1\.svg\* @/);
-  expect(await page.title()).toBe('Untitled-1.svg* · Svgcraft');
+  expect(await page.title()).toBe('Untitled-1.svg* · SVGCraft');
   await page.keyboard.press('Control+z');
   await expect(page.locator('#sc-doc-title')).toHaveText(/^Untitled-1\.svg @/);
   await page.keyboard.press('Control+y');

@@ -1,4 +1,4 @@
-// Svgcraft icon registry — Font Awesome Free 6.7.2 SVG snippets.
+// SVGCraft icon registry — Font Awesome Free 6.7.2 SVG snippets.
 //
 // Icons by Fonticons, Inc. (https://fontawesome.com), licensed CC BY 4.0
 // (https://creativecommons.org/licenses/by/4.0/). Each entry is the

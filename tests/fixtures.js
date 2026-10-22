@@ -1,4 +1,4 @@
-// Shared fixtures: every test gets `page` with Svgcraft loaded from disk and
+// Shared fixtures: every test gets `page` with SVGCraft loaded from disk and
 // fails if the page logs an uncaught error or a console error.
 import { test as base, expect } from '@playwright/test';
 import { pathToFileURL } from 'node:url';

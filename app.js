@@ -1,4 +1,4 @@
-// Svgcraft — a small, dependency-free in-browser SVG editor.
+// SVGCraft — a small, dependency-free in-browser SVG editor.
 //
 // The drawing lives in <g id="sc-doc"> (plus <defs id="sc-defs">) inside the
 // stage SVG, in document units. #sc-view carries the zoom/pan transform, so
@@ -2051,7 +2051,7 @@
   }
 
   // The pattern model behind an element's fill or stroke, or null. Only
-  // Svgcraft's own patterns read back; imported ones are left as they are.
+  // SVGCraft's own patterns read back; imported ones are left as they are.
   function patFor(el, attr) {
     const p = document.getElementById(urlId(getComputedStyle(el)[attr]));
     if (!p || p.localName !== 'pattern' || !p.hasAttribute('data-sc-pat')) return null;
@@ -2891,7 +2891,7 @@
     const t = $('#sc-doc-title');
     if (t)
       t.textContent = `${state.fileName}.svg${curDoc && dirty(curDoc) ? '*' : ''} @ ${pct}% (SVG)`;
-    document.title = `${state.fileName}.svg${curDoc && dirty(curDoc) ? '*' : ''} · Svgcraft`;
+    document.title = `${state.fileName}.svg${curDoc && dirty(curDoc) ? '*' : ''} · SVGCraft`;
     const z = $('#sc-zoom-input');
     if (document.activeElement !== z) z.value = pct;
     $('#sc-docsize').textContent = `${f(state.w)} × ${f(state.h)} px`;
@@ -7856,7 +7856,7 @@
       }
   }
 
-  // Svgcraft's own symbols come back as sc-sym-N, numbered after the ones
+  // SVGCraft's own symbols come back as sc-sym-N, numbered after the ones
   // already in the drawing (unless it's being replaced).
   function renumberSymbols(root, againstDrawing) {
     const map = new Map();
@@ -9685,7 +9685,7 @@
       if (!raw) raw = JSON.parse(await file.text());
     } catch {
       return say(
-        'That file isn’t a library, palette (.ase, .gpl), GIMP gradient (.ggr) or SVG Svgcraft can read.',
+        'That file isn’t a library, palette (.ase, .gpl), GIMP gradient (.ggr) or SVG SVGCraft can read.',
       );
     }
     const add = cleanLibrary(raw, true);
@@ -9709,7 +9709,7 @@
   }
 
   // ---- library exchange: formats other apps read -------------------------------
-  // Each panel's Export button offers the Svgcraft library (everything, JSON)
+  // Each panel's Export button offers the SVGCraft library (everything, JSON)
   // plus that panel's standard formats:
   //   swatches  → Adobe Swatch Exchange (.ase), GIMP palette (.gpl), CSS variables
   //   gradients → SVG <linearGradient>/<radialGradient> defs, CSS gradients
@@ -9884,7 +9884,7 @@
 
   // GIMP palette: "R G B Name" lines (GIMP 3 adds an alpha column).
   function gplText(swatches) {
-    const lines = ['GIMP Palette', 'Name: Svgcraft', 'Columns: 8', '#'];
+    const lines = ['GIMP Palette', 'Name: SVGCraft', 'Columns: 8', '#'];
     for (const x of swatches)
       lines.push(
         rgbOf(x.c)
@@ -10050,7 +10050,7 @@
         () => {
           const slug = slugger('swatch');
           const lines = lib.swatches.map((x) => `  --${slug(x.name)}: ${libCss(x.c, x.a)};`);
-          return new Blob([`/* Svgcraft swatches */\n:root {\n${lines.join('\n')}\n}\n`], {
+          return new Blob([`/* SVGCraft swatches */\n:root {\n${lines.join('\n')}\n}\n`], {
             type: 'text/css',
           });
         },
@@ -10063,7 +10063,7 @@
         () =>
           new Blob(
             [
-              sampleSheet('Svgcraft gradients', lib.gradients, 'gradient', {
+              sampleSheet('SVGCraft gradients', lib.gradients, 'gradient', {
                 w: 160,
                 h: 100,
                 defs: gradDefMarkup,
@@ -10080,7 +10080,7 @@
         () => {
           const slug = slugger('gradient');
           const lines = lib.gradients.map((g) => `  --${slug(g.name)}: ${cssGradient(g)};`);
-          return new Blob([`/* Svgcraft gradients */\n:root {\n${lines.join('\n')}\n}\n`], {
+          return new Blob([`/* SVGCraft gradients */\n:root {\n${lines.join('\n')}\n}\n`], {
             type: 'text/css',
           });
         },
@@ -10093,7 +10093,7 @@
         () =>
           new Blob(
             [
-              sampleSheet('Svgcraft patterns', lib.patterns, 'pattern', {
+              sampleSheet('SVGCraft patterns', lib.patterns, 'pattern', {
                 w: 120,
                 h: 120,
                 // The tiles draw in currentColor; the <pattern>'s colour sets it.
@@ -10122,7 +10122,7 @@
     const credits = [...new Set(items.map((x) => x.credit).filter(Boolean))];
     return new Blob(
       [
-        sampleSheet('Svgcraft symbols', items, 'symbol', {
+        sampleSheet('SVGCraft symbols', items, 'symbol', {
           w: 120, // room for the name under each 64 px icon
           h: 64,
           extra: credits.length
@@ -10214,7 +10214,7 @@
   }
   function exportMenu(kind, anchor) {
     popMenu(anchor, [
-      { label: 'Svgcraft library (everything)', hint: '.json', run: exportLibrary },
+      { label: 'SVGCraft library (everything)', hint: '.json', run: exportLibrary },
       '-',
       ...EXPORTS[kind].map((x) => ({
         label: x[0],
@@ -10358,7 +10358,7 @@
     }
     for (const n of [...nodes, out])
       for (const el of [n, ...n.querySelectorAll('*')]) {
-        // Copies aren't Svgcraft's per-shape paints any more: keep them out of
+        // Copies aren't SVGCraft's per-shape paints any more: keep them out of
         // the pruning and syncing that would otherwise remove them.
         for (const k of [
           'data-sc-grad',

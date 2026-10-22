@@ -1,6 +1,6 @@
-# Svgcraft — editor census & feature ranking
+# SVGCraft — editor census & feature ranking
 
-Before building Svgcraft we surveyed the SVG / vector editors people actually
+Before building SVGCraft we surveyed the SVG / vector editors people actually
 use, to decide which features count as "table stakes" and which can wait.
 
 **Method.** For each editor we noted whether it has a feature natively
@@ -11,7 +11,7 @@ shouldn't be quoted as a spec sheet. Then we ranked features by three things:
 
 1. **Prevalence**: how many of the 13 editors ship it. A feature that every
    editor has is one users will look for in the first minute.
-2. **Brief**: whether the Svgcraft brief asks for it by name (import, export,
+2. **Brief**: whether the SVGCraft brief asks for it by name (import, export,
    pencil, pen, eraser, colours, transparency). A named feature is required
    no matter how common it is.
 3. **Fit**: how much it's worth to a lightweight, single-page, in-browser
@@ -84,7 +84,7 @@ The census turned up two things worth calling out:
 - **Erasers are rare in vector editors.** Only Inkscape and Illustrator ship a
   true path-cutting eraser. The whiteboards (Excalidraw, tldraw) ship an
   _object_ eraser that deletes whatever you touch. The brief asks for an
-  eraser, so Svgcraft offers both: **Object** (delete what you touch) and
+  eraser, so SVGCraft offers both: **Object** (delete what you touch) and
   **Cut** (split strokes where you rub, like Inkscape's "cut" mode).
 - **Transparency means three separate controls.** The full editors give
   you fill alpha, stroke alpha _and_ object opacity, plus a checkerboard
@@ -98,7 +98,7 @@ Ordered by importance. **Tier 0** is the minimum viable editor: every
 feature in it is either in the brief or universal (13/13). **Tier 1** is
 near-universal and cheap. **Tier 2** is common but costly, so it goes on the
 roadmap. **Tier 3** is niche or out of scope for a single-page tool.
-✅ = shipped in this first version of Svgcraft.
+✅ = shipped in this first version of SVGCraft.
 
 ### Tier 0 — must have
 

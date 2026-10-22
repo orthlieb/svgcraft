@@ -118,7 +118,7 @@ test('the Export button opens a menu of formats, and Esc closes it', async ({ pa
   await btn.click();
   const items = page.locator('.sc-popmenu [role="menuitem"]');
   await expect(items).toHaveText([
-    /Svgcraft library.*\.json/,
+    /SVGCraft library.*\.json/,
     /Adobe Swatch Exchange.*\.ase/,
     /GIMP \/ Inkscape palette.*\.gpl/,
     /CSS variables.*\.css/,
@@ -140,11 +140,11 @@ test('the Export button opens a menu of formats, and Esc closes it', async ({ pa
 
   await openPanel(page, 'gradients');
   await page.click('[data-lib="gradients"] [data-lib-act="export"]');
-  await expect(items).toHaveText([/Svgcraft library/, /SVG gradients/, /CSS gradients/]);
+  await expect(items).toHaveText([/SVGCraft library/, /SVG gradients/, /CSS gradients/]);
   await page.keyboard.press('Escape');
   await openPanel(page, 'symbols');
   await page.click('[data-lib="symbols"] [data-lib-act="export"]');
-  await expect(items).toHaveText([/Svgcraft library/, /my symbols/, /all symbols/]);
+  await expect(items).toHaveText([/SVGCraft library/, /my symbols/, /all symbols/]);
 });
 
 test.describe('swatches', () => {
@@ -200,7 +200,7 @@ test.describe('swatches', () => {
     expect(name).toBe('svgcraft-swatches.gpl');
     expect(text.split('\n').slice(0, 4)).toEqual([
       'GIMP Palette',
-      'Name: Svgcraft',
+      'Name: SVGCraft',
       'Columns: 8',
       '#',
     ]);

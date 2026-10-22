@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import { test, expect } from './fixtures.js';
 
-// Everything Svgcraft lets you set travels inside the saved SVG (as data-*
+// Everything SVGCraft lets you set travels inside the saved SVG (as data-*
 // attributes, CSS and real SVG defs), so Save as SVG → Open, or → Import into
 // another drawing, gives back the same editable drawing.
 

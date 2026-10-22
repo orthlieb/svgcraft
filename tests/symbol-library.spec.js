@@ -344,7 +344,7 @@ test.describe('managing the library', () => {
       page.waitForEvent('download'),
       page
         .click('[data-lib="symbols"] [data-lib-act="export"]')
-        .then(() => page.click('.sc-popmenu [role="menuitem"]:has-text("Svgcraft library")')),
+        .then(() => page.click('.sc-popmenu [role="menuitem"]:has-text("SVGCraft library")')),
     ]);
     const json = JSON.parse(fs.readFileSync(await dl.path(), 'utf8'));
     const n = await builtinCount(page);
