@@ -525,31 +525,42 @@ point-edited:
 Tools for drawing icons (see also the pixel grid and Snap to Pixel, under
 Features):
 
-- **File → New Icon…** makes a square artboard. Pick a size (16 to 2048,
-  or type one) and a margin: the margins become ordinary guides on all four
-  sides, plus centre guides if you like, so they move, lock, snap and save
-  like any other guide. The margin follows the size (a twelfth of it) until
-  you type your own. An untouched Untitled tab gives way to the icon.
-- **Templates** from the platforms' guidelines set the size, margins and
-  keylines, and say what the guides mean:
-  - Material system icon: 24 px with 2 px padding and keylines.
+- **File → New Icon…** makes a square artboard. Type a size or pick a
+  common one (16 to 2048) from the size box's list, and a margin: the
+  margins become ordinary guides on all four sides, plus centre guides if
+  you like, so they move, lock, snap and save like any other guide. The
+  margin follows the size (a twelfth of it) until you type your own. An
+  untouched Untitled tab gives way to the icon.
+- **Templates** from the platforms' guidelines set the size and margins,
+  say what the guides mean, and set the icon preview's mask:
+  - Material system icon: 24 px with 2 px padding.
   - Favicon: 32 px.
   - Android adaptive launcher icon: 108 dp at 4× (432 px), with guides
     around the 72 dp area launchers show and the 66 dp safe zone inside it.
-  - Google Play icon: 512 px, full bleed.
+    Preview: circle mask, adaptive crop.
+  - Google Play icon: 512 px, full bleed. Preview: rounded mask.
   - iOS app icon: 1024 px, full bleed (iOS rounds the corners itself).
+    Preview: iOS mask.
   - macOS app icon: 1024 px with guides around the 824 px body.
-- **View → Icon Keylines** draws Material's keyline shapes (circle, square,
-  portrait and landscape rectangles, diagonals and centre lines) in the live
-  area: inside the guides nearest each edge, so moving a margin guide moves
-  them. Without guides the margin is a twelfth of the artboard. Keylines
-  aren't part of the drawing.
+- **View → Icon Keylines** draws Material's keyline shapes in the live
+  area: a circle, a square, upright and wide rectangles, the diagonals and
+  centre lines. Sizing an icon's main shape to the keyline that matches it
+  makes round, square, tall and wide icons look equally big side by side.
+  The live area is inside the guides nearest each edge, so moving a margin
+  guide moves the keylines (without guides it's a twelfth in from each
+  edge). Keylines aren't part of the drawing.
 - **View → Icon Preview** (Ctrl+Alt+P) opens a floating window with the
   drawing at 16, 24, 32, 48, 64 and 128 px, drawn by the browser just as a
-  web page would draw the SVG. Show it on a light, dark or transparent
-  (checkerboard) background, or all three: it starts on the app's theme
-  and remembers your choice. It updates as you work, and clicking a size
-  shows the canvas at that size.
+  web page would draw the SVG. It updates as you work, and clicking a size
+  shows the canvas at that size. Its options are remembered:
+  - **Background**: light, dark or transparent (checkerboard), or all
+    three. It starts on the app's theme.
+  - **Mask**: how platforms crop app icons: **iOS** (a rounded square, as
+    iOS and macOS draw app icons), **Circle** and **Squircle** (Android
+    launchers), **Rounded** (Google Play and Android, corners rounded by a
+    fifth), or none.
+  - **Adaptive crop** shows only the middle 72 dp of a 108 dp Android
+    adaptive icon, the part launchers show (and mask).
 
 ## Symbols
 

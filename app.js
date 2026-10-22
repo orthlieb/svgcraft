@@ -3013,13 +3013,73 @@
   }
   for (const b of ipWin.querySelectorAll('[data-ip-bg]'))
     b.addEventListener('click', () => setIconPreviewBg(b.dataset.ipBg));
+
+  // Masks: how platforms crop an app icon. iOS's continuous-corner square is
+  // close to a 22.37% radius; the squircle is a superellipse (n = 4); Google
+  // Play rounds by a fifth. Adaptive crop shows the middle 72 of 108 dp, the
+  // part an Android launcher shows (and masks).
+  const squircle = (() => {
+    const pts = [];
+    for (let i = 0; i < 64; i++) {
+      const t = (i / 64) * 2 * Math.PI;
+      const c = Math.cos(t);
+      const sn = Math.sin(t);
+      pts.push(
+        `${f(50 + 50 * Math.sign(c) * Math.abs(c) ** 0.5)} ${f(50 + 50 * Math.sign(sn) * Math.abs(sn) ** 0.5)}`,
+      );
+    }
+    return `<path d="M${pts.join('L')}Z"/>`;
+  })();
+  const IP_MASKS = {
+    none: '',
+    ios: '<rect width="100" height="100" rx="22.37"/>',
+    circle: '<circle cx="50" cy="50" r="50"/>',
+    squircle,
+    rounded: '<rect width="100" height="100" rx="20"/>',
+  };
+  const maskUrl = (shape) =>
+    `url("data:image/svg+xml,${encodeURIComponent(
+      `<svg xmlns="${NS}" viewBox="0 0 100 100" preserveAspectRatio="none">${shape}</svg>`,
+    )}")`;
+  const IP_MASK_KEY = 'svgcraft.iconPreviewMask';
+  function iconPreviewMask() {
+    try {
+      const [m, crop] = (localStorage.getItem(IP_MASK_KEY) || '').split(' ');
+      if (m in IP_MASKS) return [m, crop === 'crop'];
+    } catch {
+      /* storage blocked */
+    }
+    return ['none', false];
+  }
+  function setIconPreviewMask(mask, crop, save = true) {
+    if (save)
+      try {
+        localStorage.setItem(IP_MASK_KEY, `${mask}${crop ? ' crop' : ''}`);
+      } catch {
+        /* storage blocked: just for this visit */
+      }
+    for (const b of ipWin.querySelectorAll('[data-ip-mask]'))
+      b.setAttribute('aria-checked', b.dataset.ipMask === mask);
+    $('#sc-ip-crop').checked = crop;
+    ipWin.classList.toggle('sc-ip-cropped', crop);
+    ipWin.style.setProperty('--ip-mask', IP_MASKS[mask] ? maskUrl(IP_MASKS[mask]) : 'none');
+    if (save) renderIconPreview();
+  }
+  for (const b of ipWin.querySelectorAll('[data-ip-mask]'))
+    b.addEventListener('click', () =>
+      setIconPreviewMask(b.dataset.ipMask, $('#sc-ip-crop').checked),
+    );
+  $('#sc-ip-crop').addEventListener('change', (e) =>
+    setIconPreviewMask(iconPreviewMask()[0], e.target.checked),
+  );
   function renderIconPreview() {
     if (!iconPrev.open) return;
     buildIconPreview();
     setIconPreviewBg(iconPreviewBg(), false);
+    setIconPreviewMask(...iconPreviewMask(), false);
     const old = iconPrev.url;
     iconPrev.url = URL.createObjectURL(new Blob([serialize()], { type: 'image/svg+xml' }));
-    const big = Math.max(state.w, state.h);
+    const big = Math.max(state.w, state.h) / ($('#sc-ip-crop').checked ? 1.5 : 1);
     for (const img of ipWin.querySelectorAll('.sc-ip-box img')) {
       const size = +img.closest('.sc-ip-tile').dataset.size;
       img.width = Math.max(1, Math.round((size * state.w) / big));
@@ -3070,41 +3130,41 @@
   });
 
   // File → New Icon…: a square artboard with its margins (and, optionally,
-  // centre lines) as ordinary guides, ready for keylines and the icon preview. Templates follow the platforms' icon guidelines;
-  // `extra` adds more guides, inset that far from every edge.
+  // centre lines) as ordinary guides. Templates follow the platforms' icon
+  // guidelines: `extra` adds more guides, inset that far from every edge,
+  // and `mask` / `crop` set up the icon preview the way the platform shows it.
   const ICON_TEMPLATES = {
     material: {
       size: 24,
       margin: 2,
-      keylines: true,
       note: 'Material Design system icon: a 20 px live area inside 2 px of padding, with keylines.',
     },
     favicon: {
       size: 32,
       margin: 1,
-      keylines: false,
       note: 'Browser tab icon. Keep it bold: browsers also show it at 16 px.',
     },
     adaptive: {
+      mask: 'circle',
+      crop: true,
       size: 432,
       margin: 84,
       extra: [72],
-      keylines: true,
       note:
         'Android adaptive launcher icon, 108 dp at 4×. Launchers show the middle 72 dp ' +
         '(guides 72 px in) and mask it to their own shape; keep the logo inside the 66 dp ' +
         'safe zone (guides 84 px in).',
     },
     play: {
+      mask: 'rounded',
       size: 512,
       margin: 0,
-      keylines: true,
       note: 'Google Play store icon: full bleed and square. Google Play rounds the corners itself.',
     },
     ios: {
+      mask: 'ios',
       size: 1024,
       margin: 0,
-      keylines: false,
       note:
         'iOS app icon: full bleed, square and opaque. iOS rounds the corners itself, so ' +
         'don’t draw them.',
@@ -3112,7 +3172,6 @@
     macos: {
       size: 1024,
       margin: 100,
-      keylines: false,
       note:
         'macOS app icon: an 824 px rounded body (corner radius about 185 px) inside the ' +
         'margin guides, leaving room for its shadow.',
@@ -3131,8 +3190,6 @@
       $('#sc-ni-note').hidden = true;
       if (!niMarginSet) niMarginEl.value = niAutoMargin(s);
     }
-    for (const b of niDlg.querySelectorAll('[data-ni-size]'))
-      b.classList.toggle('on', +b.dataset.niSize === s);
   }
   function setNewIconTemplate(key) {
     const t = ICON_TEMPLATES[key];
@@ -3144,7 +3201,6 @@
     setNewIconSize(t.size, true);
     niMarginEl.value = t.margin;
     niMarginSet = true;
-    $('#sc-ni-keylines').checked = t.keylines;
     note.textContent = t.note;
     note.hidden = false;
   }
@@ -3171,7 +3227,6 @@
       for (const axis of ['x', 'y']) guides.push({ axis, pos: s / 2 });
     let name = `icon-${s}`;
     for (let n = 2; docs.some((d) => d.name === name); n++) name = `icon-${s}-${n}`;
-    state.keylines = $('#sc-ni-keylines').checked;
     state.guidesOn = true;
     syncViewMenu();
     saveView();
@@ -3184,11 +3239,14 @@
       saveDocs();
     }
     drawPixelGrid();
-    if ($('#sc-ni-preview').checked) openIconPreview();
+    if ($('#sc-ni-preview').checked) {
+      // A template shows the icon as its platform will mask it.
+      const t = ICON_TEMPLATES[niTemplate.value];
+      if (t) setIconPreviewMask(t.mask || 'none', !!t.crop);
+      openIconPreview();
+    }
     say(`New ${s} × ${s} icon${m > 0 ? `, ${m} px margins as guides` : ''}.`);
   }
-  for (const b of niDlg.querySelectorAll('[data-ni-size]'))
-    b.addEventListener('click', () => setNewIconSize(+b.dataset.niSize));
   niSize.addEventListener('input', () => setNewIconSize(+niSize.value));
   niMarginEl.addEventListener('input', () => (niMarginSet = true));
   niTemplate.addEventListener('change', () => {
@@ -3197,7 +3255,7 @@
   });
   niDlg.addEventListener('keydown', (e) => {
     e.stopPropagation();
-    if (e.key === 'Enter' && !e.target.closest('[data-ni-size], [data-ni="cancel"], select')) {
+    if (e.key === 'Enter' && !e.target.closest('[data-ni="cancel"], select')) {
       e.preventDefault();
       closeNewIcon(true);
     } else if (e.key === 'Escape') closeNewIcon(false);

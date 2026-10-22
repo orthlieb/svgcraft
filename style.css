@@ -2426,19 +2426,6 @@ select[data-stroke-dash] {
 .sc-newicon {
   width: min(340px, calc(100vw - 32px));
 }
-.sc-ni-sizes {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-.sc-ni-sizes .sc-tbtn {
-  min-width: 40px;
-  justify-content: center;
-}
-.sc-ni-sizes .sc-tbtn.on {
-  border-color: var(--accent);
-  background: var(--row-sel);
-}
 
 /* ---- View → Icon Preview ----------------------------------------------------- */
 .sc-iconprev {
@@ -2448,6 +2435,10 @@ select[data-stroke-dash] {
   min-height: 0;
 }
 .sc-ip-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
   padding: 8px 8px 0;
 }
 .sc-ip-bar .sc-seg button + button {
@@ -2511,6 +2502,19 @@ select[data-stroke-dash] {
 .sc-ip-box {
   display: grid;
   place-items: center;
+  position: relative;
+  overflow: hidden;
+  /* The mask a platform crops app icons to (set from app.js). */
+  -webkit-mask: var(--ip-mask, none) center / 100% 100% no-repeat;
+  mask: var(--ip-mask, none) center / 100% 100% no-repeat;
+}
+/* Adaptive crop: the image is drawn 1.5× bigger and centred, so the box
+   shows its middle 72 of 108 dp. */
+.sc-ip-cropped .sc-ip-box img {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
 }
 .sc-ip-box img {
   display: block;

@@ -2525,23 +2525,29 @@
           </select></label
         >
         <p class="sc-hint sc-ni-note" id="sc-ni-note" hidden></p>
-        <div class="sc-ni-sizes" role="group" aria-label="Size presets">
-          <button class="sc-tbtn" data-ni-size="16">16</button>
-          <button class="sc-tbtn" data-ni-size="24">24</button>
-          <button class="sc-tbtn" data-ni-size="32">32</button>
-          <button class="sc-tbtn" data-ni-size="48">48</button>
-          <button class="sc-tbtn" data-ni-size="64">64</button>
-          <button class="sc-tbtn" data-ni-size="128">128</button>
-          <button class="sc-tbtn" data-ni-size="256">256</button>
-          <button class="sc-tbtn" data-ni-size="512">512</button>
-          <button class="sc-tbtn" data-ni-size="1024">1024</button>
-          <button class="sc-tbtn" data-ni-size="2048">2048</button>
-        </div>
+        <datalist id="sc-ni-sizes">
+          <option value="16"></option>
+          <option value="24"></option>
+          <option value="32"></option>
+          <option value="48"></option>
+          <option value="64"></option>
+          <option value="128"></option>
+          <option value="256"></option>
+          <option value="512"></option>
+          <option value="1024"></option>
+          <option value="2048"></option>
+        </datalist>
         <label class="sc-field"
-          >Size <input type="number" id="sc-ni-size" min="8" max="2048" step="1" /><span
-            class="sc-unit"
-            >px</span
-          ></label
+          >Size
+          <input
+            type="number"
+            id="sc-ni-size"
+            min="8"
+            max="2048"
+            step="1"
+            list="sc-ni-sizes"
+            data-tip="Type a size, or pick a common one"
+          /><span class="sc-unit">px</span></label
         >
         <label class="sc-field"
           >Margin <input type="number" id="sc-ni-margin" min="0" step="1" /><span class="sc-unit"
@@ -2550,9 +2556,6 @@
         >
         <label class="sc-check"
           ><input type="checkbox" id="sc-ni-centre" checked /> Centre guides</label
-        >
-        <label class="sc-check"
-          ><input type="checkbox" id="sc-ni-keylines" checked /> Show keylines</label
         >
         <label class="sc-check"
           ><input type="checkbox" id="sc-ni-preview" checked /> Open the icon preview</label
@@ -2589,6 +2592,48 @@
           <button role="radio" aria-checked="false" data-ip-bg="checker">Transparent</button>
           <button role="radio" aria-checked="false" data-ip-bg="all">All</button>
         </div>
+        <div class="sc-seg" role="radiogroup" aria-label="Mask">
+          <button role="radio" aria-checked="false" data-ip-mask="none" data-tip="No mask">
+            None
+          </button>
+          <button
+            role="radio"
+            aria-checked="false"
+            data-ip-mask="ios"
+            data-tip="iOS and macOS: a rounded square"
+          >
+            iOS
+          </button>
+          <button
+            role="radio"
+            aria-checked="false"
+            data-ip-mask="circle"
+            data-tip="Android launchers: a circle"
+          >
+            Circle
+          </button>
+          <button
+            role="radio"
+            aria-checked="false"
+            data-ip-mask="squircle"
+            data-tip="Android launchers: a squircle"
+          >
+            Squircle
+          </button>
+          <button
+            role="radio"
+            aria-checked="false"
+            data-ip-mask="rounded"
+            data-tip="Google Play and Android launchers: corners rounded by a fifth of the size"
+          >
+            Rounded
+          </button>
+        </div>
+        <label
+          class="sc-check"
+          data-tip="Android adaptive icons: launchers show only the middle 72 dp of the 108 dp canvas"
+          ><input type="checkbox" id="sc-ip-crop" /> Adaptive crop</label
+        >
       </div>
       <div class="sc-ip-body" id="sc-ip-body"></div>
       <p class="sc-hint sc-ip-hint">Click a size to see it on the canvas at that size.</p>

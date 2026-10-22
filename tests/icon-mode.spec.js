@@ -17,6 +17,12 @@ async function newIcon(page, setup) {
   await expect(dialog(page)).toBeHidden();
 }
 
+// Type a size into the New Icon dialog, as picking from its list does.
+async function setSize(page, v) {
+  await page.fill('#sc-ni-size', String(v));
+  await page.dispatchEvent('#sc-ni-size', 'input');
+}
+
 // Drag with the current tool between two document points.
 async function drag(page, [x0, y0], [x1, y1]) {
   const a = await toScreen(page, x0, y0);
@@ -35,10 +41,14 @@ test.describe('New Icon', () => {
     expect(await state(page, 'fileName')).toBe('icon-24');
     // The untouched Untitled-1 tab made way for it.
     await expect(page.locator('.sc-doctab')).toHaveCount(1);
-    expect(await state(page, 'keylines')).toBe(true);
     await expect(page.locator('#sc-iconprev')).toBeVisible();
-    // The pixel grid is a general option: New Icon leaves it alone.
+    // Keylines and the pixel grid are View options: New Icon leaves them alone.
+    expect(await state(page, 'keylines')).toBe(false);
     expect(await state(page, 'pixelGrid')).toBe(false);
+    // Common sizes are suggested in the size box's list.
+    expect(await page.$$eval('#sc-ni-sizes option', (os) => os.map((o) => +o.value))).toEqual([
+      16, 24, 32, 48, 64, 128, 256, 512, 1024, 2048,
+    ]);
     // The guides are saved with the drawing, and a second icon gets its own tab.
     expect(await page.evaluate(() => window.svgcraft.serialize())).toContain(
       'data-sc-guides="x:2 x:22 y:2 y:22 x:12 y:12"',
@@ -50,14 +60,14 @@ test.describe('New Icon', () => {
 
   test('sizes up to 2048, the margin follows the size until it’s edited', async ({ page }) => {
     await newIcon(page, async () => {
-      await dialog(page).locator('[data-ni-size="2048"]').click();
+      await setSize(page, 2048);
       await expect(page.locator('#sc-ni-margin')).toHaveValue('171');
-      await dialog(page).locator('[data-ni-size="1024"]').click();
+      await setSize(page, 1024);
       await expect(page.locator('#sc-ni-size')).toHaveValue('1024');
       await expect(page.locator('#sc-ni-margin')).toHaveValue('85');
       await page.fill('#sc-ni-margin', '64');
       await page.dispatchEvent('#sc-ni-margin', 'input');
-      await dialog(page).locator('[data-ni-size="512"]').click();
+      await setSize(page, 512);
       await expect(page.locator('#sc-ni-margin')).toHaveValue('64');
       await page.uncheck('#sc-ni-centre');
       await page.uncheck('#sc-ni-preview');
@@ -87,6 +97,7 @@ test.describe('New Icon', () => {
       'y360',
     ]);
     // The keylines sit in the safe zone, the innermost guides.
+    await menu(page, 'View', 'toggleKeylines');
     expect(
       await page.evaluate(() => +document.querySelector('#sc-keylines circle').getAttribute('r')),
     ).toBe(132);
@@ -98,7 +109,6 @@ test.describe('New Icon', () => {
     });
     expect(await state(page, 'w')).toBe(1024);
     expect(await guides(page)).toEqual([]);
-    expect(await state(page, 'keylines')).toBe(false);
 
     await newIcon(page, async () => {
       await page.selectOption('#sc-ni-template', 'macos');
@@ -109,7 +119,7 @@ test.describe('New Icon', () => {
     // Picking a size afterwards goes back to Custom.
     await menu(page, 'File', 'newIcon');
     await page.selectOption('#sc-ni-template', 'material');
-    await dialog(page).locator('[data-ni-size="48"]').click();
+    await setSize(page, 48);
     await expect(page.locator('#sc-ni-template')).toHaveValue('');
     await expect(page.locator('#sc-ni-note')).toBeHidden();
     await page.keyboard.press('Escape');
@@ -144,10 +154,11 @@ test.describe('pixel grid and keylines', () => {
 
   test('keylines follow the margin guides', async ({ page }) => {
     await newIcon(page, async () => {
-      await dialog(page).locator('[data-ni-size="32"]').click();
+      await setSize(page, 32);
       await page.fill('#sc-ni-margin', '4');
       await page.dispatchEvent('#sc-ni-margin', 'input');
     });
+    await menu(page, 'View', 'toggleKeylines');
     const keylines = () =>
       page.evaluate(() => ({
         r: +document.querySelector('#sc-keylines circle').getAttribute('r'),
@@ -278,6 +289,69 @@ test.describe('Icon Preview', () => {
     await win(page).locator('[data-ip-bg="dark"]').focus();
     await page.keyboard.press('Escape');
     await expect(win(page)).toBeHidden();
+  });
+});
+
+test.describe('Icon Preview masks', () => {
+  const win = (page) => page.locator('#sc-iconprev');
+  const box = (page, size = 64) =>
+    win(page).locator(`.sc-ip-row:not([hidden]) [data-size="${size}"] .sc-ip-box`);
+  const mask = (page) => box(page).evaluate((b) => getComputedStyle(b).maskImage);
+
+  test('a mask per platform, and the adaptive crop, remembered', async ({ page }) => {
+    await load(page, '<rect width="108" height="108" fill="#0b6e4f"/>', 108, 108);
+    await menu(page, 'View', 'toggleIconPreview');
+    await expect(win(page).locator('[data-ip-mask="none"]')).toHaveAttribute(
+      'aria-checked',
+      'true',
+    );
+    expect(await mask(page)).toBe('none');
+    for (const [m, shape] of [
+      ['ios', 'rx%3D%2222.37%22'],
+      ['circle', '%3Ccircle'],
+      ['squircle', '%3Cpath'],
+      ['rounded', 'rx%3D%2220%22'],
+    ]) {
+      await win(page).locator(`[data-ip-mask="${m}"]`).click();
+      await expect(win(page).locator(`[data-ip-mask="${m}"]`)).toHaveAttribute(
+        'aria-checked',
+        'true',
+      );
+      expect(await mask(page)).toContain(shape);
+    }
+    // Adaptive crop: drawn 1.5× and centred, so the box shows the middle 72 of 108.
+    await page.check('#sc-ip-crop');
+    const img = box(page).locator('img');
+    await expect(img).toHaveJSProperty('width', 96);
+    const [b, i] = await Promise.all([box(page).boundingBox(), img.boundingBox()]);
+    expect(i.x - b.x).toBeCloseTo(-16, 0);
+    expect(i.y - b.y).toBeCloseTo(-16, 0);
+    await page.reload();
+    await page.waitForFunction(() => !!window.svgcraft);
+    await menu(page, 'View', 'toggleIconPreview');
+    await expect(win(page).locator('[data-ip-mask="rounded"]')).toHaveAttribute(
+      'aria-checked',
+      'true',
+    );
+    await expect(page.locator('#sc-ip-crop')).toBeChecked();
+    await page.uncheck('#sc-ip-crop');
+    await expect(img).toHaveJSProperty('width', 64);
+  });
+
+  test('templates set the mask their platform uses', async ({ page }) => {
+    for (const [t, m, crop] of [
+      ['ios', 'ios', false],
+      ['adaptive', 'circle', true],
+      ['play', 'rounded', false],
+    ]) {
+      await newIcon(page, () => page.selectOption('#sc-ni-template', t));
+      await expect(win(page).locator(`[data-ip-mask="${m}"]`)).toHaveAttribute(
+        'aria-checked',
+        'true',
+      );
+      if (crop) await expect(page.locator('#sc-ip-crop')).toBeChecked();
+      else await expect(page.locator('#sc-ip-crop')).not.toBeChecked();
+    }
   });
 });
 
