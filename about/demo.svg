@@ -1,40 +1,66 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 560">
-  <title>Sunset over the hills</title>
+  <title>SVGCraft palette</title>
   <defs>
-    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#1e1b4b"/>
-      <stop offset="0.55" stop-color="#9d174d"/>
-      <stop offset="1" stop-color="#fb923c"/>
+    <radialGradient id="backdrop" cx="0.5" cy="0.42" r="0.75">
+      <stop offset="0" stop-color="#14507f"/>
+      <stop offset="1" stop-color="#001e36"/>
+    </radialGradient>
+    <linearGradient id="wood" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f6dcae"/>
+      <stop offset="1" stop-color="#d9a965"/>
     </linearGradient>
-    <linearGradient id="sun" x1="0" y1="0" x2="0" y2="1">
+    <radialGradient id="paint-red" cx="0.38" cy="0.35" r="0.7">
+      <stop offset="0" stop-color="#fca5a5"/>
+      <stop offset="1" stop-color="#dc2626"/>
+    </radialGradient>
+    <radialGradient id="paint-yellow" cx="0.38" cy="0.35" r="0.7">
       <stop offset="0" stop-color="#fef08a"/>
-      <stop offset="1" stop-color="#f97316"/>
+      <stop offset="1" stop-color="#eab308"/>
+    </radialGradient>
+    <radialGradient id="paint-green" cx="0.38" cy="0.35" r="0.7">
+      <stop offset="0" stop-color="#86efac"/>
+      <stop offset="1" stop-color="#16a34a"/>
+    </radialGradient>
+    <radialGradient id="paint-blue" cx="0.38" cy="0.35" r="0.7">
+      <stop offset="0" stop-color="#93d5ff"/>
+      <stop offset="1" stop-color="#1d8fe0"/>
+    </radialGradient>
+    <radialGradient id="paint-purple" cx="0.38" cy="0.35" r="0.7">
+      <stop offset="0" stop-color="#d8b4fe"/>
+      <stop offset="1" stop-color="#9333ea"/>
+    </radialGradient>
+    <linearGradient id="handle" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#7c2d12"/>
+      <stop offset="0.5" stop-color="#c2410c"/>
+      <stop offset="1" stop-color="#7c2d12"/>
     </linearGradient>
-    <linearGradient id="hillFar" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#7c3aed"/>
-      <stop offset="1" stop-color="#3b0764"/>
+    <linearGradient id="ferrule" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#94a3b8"/>
+      <stop offset="0.45" stop-color="#f1f5f9"/>
+      <stop offset="1" stop-color="#64748b"/>
     </linearGradient>
-    <linearGradient id="hillNear" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#312e81"/>
-      <stop offset="1" stop-color="#0f172a"/>
-    </linearGradient>
-    <path id="arc" d="M130 260 A340 340 0 0 1 670 260" fill="none"/>
+    <path id="arc" d="M150 540 Q400 470 650 540" fill="none"/>
   </defs>
-  <rect id="skyBg" data-name="Sky" width="800" height="560" fill="url(#sky)"/>
-  <g id="stars" data-name="Stars" fill="#ffffff" opacity="0.8">
-    <circle cx="90" cy="70" r="2"/><circle cx="160" cy="130" r="1.5"/><circle cx="260" cy="50" r="2.5"/>
-    <circle cx="540" cy="80" r="2"/><circle cx="640" cy="40" r="1.5"/><circle cx="720" cy="120" r="2.5"/>
-    <circle cx="420" cy="30" r="1.5"/><circle cx="350" cy="110" r="1"/><circle cx="600" cy="150" r="1"/>
+  <rect id="backdrop-rect" data-name="Backdrop" width="800" height="560" fill="url(#backdrop)"/>
+  <g id="palette" data-name="Palette" transform="translate(160 6) scale(7.5)"
+    data-sc-fx='{"ds":{"c":"#000000","o":60,"a":120,"d":14,"sp":0,"s":18}}'>
+    <path id="board" data-name="Board" fill="url(#wood)" stroke="#b98b4e" stroke-width="0.6" fill-rule="evenodd"
+      d="M32 8C17.6 8 7 17.8 7 30.5 7 43.6 17.4 56 31 56c4.4 0 6.6-2.5 6.6-5.4 0-2.3-1.7-3.6-1.7-5.8 0-2.7 2.2-4.6 5.1-4.6h7C52.9 40.2 57 35.4 57 29 57 17.3 45.9 8 32 8zM27 44a4.2 4.2 0 1 1 0-.01z"/>
+    <circle data-name="Red paint" cx="16.5" cy="32" r="4.6" fill="url(#paint-red)"/>
+    <circle data-name="Yellow paint" cx="21.5" cy="20.5" r="4.6" fill="url(#paint-yellow)"/>
+    <circle data-name="Green paint" cx="33" cy="15.5" r="4.6" fill="url(#paint-green)"/>
+    <circle data-name="Blue paint" cx="44.5" cy="18.5" r="4.6" fill="url(#paint-blue)"/>
+    <circle data-name="Purple paint" cx="50" cy="29" r="4.6" fill="url(#paint-purple)"/>
   </g>
-  <circle id="sunDisc" data-name="Sun" cx="400" cy="330" r="120" fill="url(#sun)"
-    data-sc-fx='{"og":{"c":"#fde68a","o":75,"sp":10,"s":40}}'/>
-  <path id="far" data-name="Far hills" fill="url(#hillFar)"
-    d="M0 380 C120 300 220 330 320 360 C420 390 520 300 640 320 C720 335 760 360 800 350 V560 H0 Z"/>
-  <path id="near" data-name="Near hills" fill="url(#hillNear)"
-    d="M0 450 C140 400 260 420 380 460 C500 500 620 410 800 430 V560 H0 Z"/>
-  <text id="title" data-name="Title" font-family="Georgia, serif" font-size="58" font-weight="700"
-    letter-spacing="8" fill="#fff7ed" text-anchor="middle"
-    data-sc-fx='{"ds":{"c":"#1e1b4b","o":60,"a":120,"d":4,"sp":0,"s":6}}'><textPath href="#arc" startOffset="50%">SVGCRAFT</textPath></text>
-  <rect id="frame" data-name="Frame" x="24" y="24" width="752" height="512" rx="18" fill="none"
-    stroke="#fff7ed" stroke-opacity="0.7" stroke-width="3" stroke-dasharray="12 9" data-dash="4 3"/>
+  <g id="brush" data-name="Brush" transform="translate(660 250) rotate(28)">
+    <rect data-name="Handle" x="-9" y="0" width="18" height="210" rx="9" fill="url(#handle)"/>
+    <rect data-name="Ferrule" x="-12" y="-46" width="24" height="50" rx="3" fill="url(#ferrule)"/>
+    <path data-name="Bristles" d="M-12 -46C-14 -80 -6 -108 0 -122 6 -108 14 -80 12 -46Z" fill="#3f2a1d"/>
+    <path data-name="Paint" d="M-7 -96C-5 -106 -2 -114 0 -122 2 -114 5 -106 7 -96 3 -92 -3 -92 -7 -96Z" fill="url(#paint-blue)"/>
+  </g>
+  <text id="title" data-name="Title" font-family="Georgia, serif" font-size="52" font-weight="700"
+    letter-spacing="4" fill="#ffffff" text-anchor="middle"
+    data-sc-fx='{"og":{"c":"#31a8ff","o":70,"sp":0,"s":14}}'><textPath href="#arc" startOffset="50%">SVGCraft</textPath></text>
+  <rect id="frame" data-name="Frame" x="20" y="20" width="760" height="520" rx="18" fill="none"
+    stroke="#ffffff" stroke-opacity="0.35" stroke-width="3" stroke-dasharray="12 9" data-dash="4 3"/>
 </svg>

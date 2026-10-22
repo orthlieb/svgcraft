@@ -27,7 +27,7 @@ async function editor(theme = 'dark') {
   await page.goto(pathToFileURL(path.join(root, 'index.html')).href);
   await page.waitForFunction(() => !!window.svgcraft);
   await page.evaluate(() => window.svgcraft.ready);
-  await page.evaluate((t) => window.svgcraft.openSvg(t, 'sunset.svg'), demo);
+  await page.evaluate((t) => window.svgcraft.openSvg(t, 'palette.svg'), demo);
   return page;
 }
 
@@ -45,6 +45,23 @@ async function clickDoc(page, x, y, tool = 'select') {
   await page.mouse.click(p.x, p.y);
 }
 
+// Drag between two document points.
+async function dragDoc(page, from, to) {
+  const at = (p) =>
+    page.evaluate(([x, y]) => {
+      const q = new DOMPoint(x, y).matrixTransform(
+        document.getElementById('sc-doc').getScreenCTM(),
+      );
+      return { x: q.x, y: q.y };
+    }, p);
+  const a = await at(from);
+  const b = await at(to);
+  await page.mouse.move(a.x, a.y);
+  await page.mouse.down();
+  await page.mouse.move(b.x, b.y, { steps: 8 });
+  await page.mouse.up();
+}
+
 async function shot(page, name) {
   await page.mouse.move(0, 0);
   await page.waitForTimeout(300);
@@ -52,31 +69,33 @@ async function shot(page, name) {
   console.log(`wrote about/${name}.png`);
 }
 
-// 1. The workspace, with the sun selected.
+// 1. The workspace, with the palette selected.
 let page = await editor();
-await clickDoc(page, 400, 300);
+await clickDoc(page, 400, 200);
 await shot(page, 'workspace');
 
-// 2. Layer Style on the sun's outer glow.
+// 2. Layer Style on the palette's drop shadow.
 await page.click('.sc-menu-btn:text-is("Object")');
 await page.click('.sc-menu-list:not([hidden]) [data-action="layerStyle"]');
-await page.click('#sc-fx [data-fx-page="og"] button');
+await page.click('#sc-fx [data-fx-page="ds"] button');
 await shot(page, 'layer-style');
 await page.keyboard.press('Escape');
 
-// 3. The gradient editor and the Gradient tool, on the sky.
-await clickDoc(page, 700, 200);
+// 3. The gradient editor and the Gradient tool, on the radial backdrop.
+await clickDoc(page, 70, 90);
 await page.keyboard.press('g');
+// Lay it again from the centre out, so its handles show on the canvas.
+await dragDoc(page, [400, 235], [740, 470]);
 await page.click('[data-tab="color"]');
 await shot(page, 'gradients');
 
-// 4. Editing points on the far hills, with one point picked.
-await clickDoc(page, 60, 400, 'node');
-await clickDoc(page, 320, 360, 'node');
+// 4. Editing points on the palette board, with one point picked.
+await clickDoc(page, 460, 230, 'node');
+await clickDoc(page, 587.5, 223.5, 'node');
 await shot(page, 'points');
 
 // 5. The Symbols library.
-await clickDoc(page, 400, 300);
+await clickDoc(page, 400, 200);
 await page.click('[data-tab="symbols"]');
 await page.click('[data-symview="lib"]');
 await shot(page, 'symbols');
@@ -88,7 +107,7 @@ await page.close();
 
 // 7. The light theme.
 page = await editor('light');
-await clickDoc(page, 400, 300);
+await clickDoc(page, 400, 200);
 await shot(page, 'light');
 
 await browser.close();
