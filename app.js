@@ -9659,33 +9659,15 @@
     libSel[kind] = null;
     saveLibrary();
   }
-  function exportLibrary() {
-    const strip = (xs) =>
-      xs.map((x) => Object.fromEntries(Object.entries(x).filter(([k]) => k !== 'id')));
-    const data = {
-      app: 'svgcraft',
-      kind: 'library',
-      version: 1,
-      swatches: strip(lib.swatches),
-      gradients: strip(lib.gradients),
-      patterns: strip(lib.patterns),
-      symbols: strip(lib.symbols),
-    };
-    download(
-      new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }),
-      'svgcraft-library.json',
-    );
-  }
-  // Import takes a library file, or a palette, gradient or SVG from another
-  // app (see readForeignLibrary), and adds whatever it holds.
+  // Import takes an SVGCraft library (zip or JSON), or a palette, gradient
+  // or SVG from another app (see readLibraryFile), and adds what it holds.
   async function importLibrary(file) {
     let raw;
     try {
-      raw = await readForeignLibrary(file);
-      if (!raw) raw = JSON.parse(await file.text());
+      raw = await readLibraryFile(file.name || '', await file.arrayBuffer());
     } catch {
       return say(
-        'That file isn’t a library, palette (.ase, .gpl), GIMP gradient (.ggr) or SVG SVGCraft can read.',
+        'That file isn’t a library, GIMP palette (.gpl) or gradient (.ggr), or SVG SVGCraft can read.',
       );
     }
     const add = cleanLibrary(raw, true);
@@ -9709,14 +9691,14 @@
   }
 
   // ---- library exchange: formats other apps read -------------------------------
-  // Each panel's Export button offers the SVGCraft library (everything, JSON)
-  // plus that panel's standard formats:
-  //   swatches  → Adobe Swatch Exchange (.ase), GIMP palette (.gpl), CSS variables
+  // Export writes one zip: the SVGCraft library (JSON, everything) plus
+  //   swatches  → GIMP palette (.gpl), CSS variables
   //   gradients → SVG <linearGradient>/<radialGradient> defs, CSS gradients
   //   patterns  → SVG <pattern> defs
-  //   symbols   → an SVG sprite of <symbol>s, for <use href="file.svg#id">
+  //   symbols   → an SVG sprite of <symbol>s, for <use href="symbols.svg#id">
   // The SVG files also draw a labelled sample of each item, so they make
-  // sense when opened. Import reads all of these back, plus GIMP gradients.
+  // sense when opened. Import reads the zip, or any of these on their own,
+  // plus GIMP gradients.
   const xmlEsc = (v) =>
     String(v).replace(
       /[<>&"]/g,
@@ -9804,84 +9786,8 @@
     return out.join('\n') + '\n';
   }
 
-  // Adobe Swatch Exchange: big-endian blocks of named RGB colours. ASE has
-  // no alpha, so translucent swatches go out opaque.
-  function aseBytes(swatches) {
-    const blocks = swatches.map((x) => {
-      const name = x.name.slice(0, 80);
-      const len = 2 + (name.length + 1) * 2 + 4 + 12 + 2;
-      const b = new DataView(new ArrayBuffer(6 + len));
-      let p = 0;
-      b.setUint16(p, 0x0001);
-      b.setUint32((p += 2), len);
-      b.setUint16((p += 4), name.length + 1);
-      p += 2;
-      for (let k = 0; k < name.length; k++) {
-        b.setUint16(p, name.charCodeAt(k));
-        p += 2;
-      }
-      p += 2; // NUL
-      for (const ch of 'RGB ') b.setUint8(p++, ch.charCodeAt(0));
-      for (const v of rgbOf(x.c)) {
-        b.setFloat32(p, v / 255);
-        p += 4;
-      }
-      b.setUint16(p, 2); // normal (not global or spot)
-      return new Uint8Array(b.buffer);
-    });
-    const head = new DataView(new ArrayBuffer(12));
-    [0x41, 0x53, 0x45, 0x46].forEach((c, i) => head.setUint8(i, c)); // ASEF
-    head.setUint16(4, 1);
-    head.setUint16(6, 0);
-    head.setUint32(8, blocks.length);
-    return new Blob([head.buffer, ...blocks], { type: 'application/octet-stream' });
-  }
-  function readAse(buf) {
-    const b = new DataView(buf);
-    const out = [];
-    let p = 12;
-    for (let i = 0, n = b.getUint32(8); i < n && p + 6 <= b.byteLength; i++) {
-      const type = b.getUint16(p);
-      const len = b.getUint32(p + 2);
-      const end = p + 6 + len;
-      if (type === 0x0001) {
-        let q = p + 6;
-        const chars = b.getUint16(q);
-        q += 2;
-        let name = '';
-        for (let k = 0; k < chars - 1; k++) name += String.fromCharCode(b.getUint16(q + k * 2));
-        q += chars * 2;
-        const model = String.fromCharCode(...new Uint8Array(buf, q, 4));
-        q += 4;
-        const v = (k) => b.getFloat32(q + k * 4);
-        let rgb = null;
-        if (model === 'RGB ') rgb = [v(0), v(1), v(2)].map((x) => x * 255);
-        else if (model === 'CMYK') rgb = [v(0), v(1), v(2)].map((x) => 255 * (1 - x) * (1 - v(3)));
-        else if (model === 'Gray') rgb = [v(0) * 255, v(0) * 255, v(0) * 255];
-        else if (model === 'LAB ') rgb = labToRgb(v(0) <= 1 ? v(0) * 100 : v(0), v(1), v(2));
-        if (rgb) out.push({ name: name.trim(), c: rgbHex(rgb), a: 1 });
-      }
-      p = end;
-    }
-    return out;
-  }
   const rgbHex = (rgb) =>
     '#' + rgb.map((x) => clamp(Math.round(x), 0, 255).toString(16).padStart(2, '0')).join('');
-  // CIE L*a*b* (D50, as Adobe stores it) to sRGB.
-  function labToRgb(L, a, bb) {
-    const fy = (L + 16) / 116;
-    const inv = (t) => (t ** 3 > 0.008856 ? t ** 3 : (t - 16 / 116) / 7.787);
-    const [X, Y, Z] = [0.9642 * inv(fy + a / 500), inv(fy), 0.8249 * inv(fy - bb / 200)];
-    const lin = [
-      3.1338561 * X - 1.6168667 * Y - 0.4906146 * Z,
-      -0.9787684 * X + 1.9161415 * Y + 0.033454 * Z,
-      0.0719453 * X - 0.2289914 * Y + 1.4052427 * Z,
-    ];
-    return lin.map(
-      (c) => 255 * (c <= 0.0031308 ? 12.92 * c : 1.055 * Math.max(c, 0) ** (1 / 2.4) - 0.055),
-    );
-  }
-
   // GIMP palette: "R G B Name" lines (GIMP 3 adds an alpha column).
   function gplText(swatches) {
     const lines = ['GIMP Palette', 'Name: SVGCraft', 'Columns: 8', '#'];
@@ -10020,208 +9926,235 @@
     return out;
   }
 
-  // A library-shaped object from a foreign file, or null for a JSON library.
-  async function readForeignLibrary(file) {
-    const buf = await file.arrayBuffer();
+  // Symbols as an SVG sprite: one <symbol id> each, for <use href="symbols.svg#id">.
+  function spriteSvg(items) {
+    const credits = [...new Set(items.map((x) => x.credit).filter(Boolean))];
+    return sampleSheet('SVGCraft symbols', items, 'symbol', {
+      w: 120, // room for the name under each 64 px icon
+      h: 64,
+      extra: credits.length
+        ? `<desc>Credits: ${xmlEsc(credits.join('; '))}. Use one with &lt;use href="symbols.svg#id"/&gt;.</desc>`
+        : `<desc>Use one with &lt;use href="symbols.svg#id"/&gt;.</desc>`,
+      defs: (x, id) =>
+        `<symbol id="${id}" viewBox="0 0 ${f(x.w)} ${f(x.h)}" data-name="${xmlEsc(x.name)}" ` +
+        `data-category="${xmlEsc(x.category)}"` +
+        (x.credit ? ` data-credit="${xmlEsc(x.credit)}"` : '') +
+        `>${x.svg}</symbol>`,
+      cell: (x, cx, cy, id) =>
+        `<use href="#${id}" x="${cx + 28}" y="${cy}" width="64" height="64" fill="#1f2937"/>`,
+    });
+  }
+  const cssVars = (title, items, prefix, value) => {
+    const slug = slugger(prefix);
+    const lines = items.map((x) => `  --${slug(x.name)}: ${value(x)};`);
+    return `/* SVGCraft ${title} */\n:root {\n${lines.join('\n')}\n}\n`;
+  };
+
+  // ---- zip: stored (uncompressed) entries out; stored or deflated in ----------
+  const CRC_TABLE = Array.from({ length: 256 }, (_, n) => {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    return c >>> 0;
+  });
+  function crc32(bytes) {
+    let c = 0xffffffff;
+    for (const b of bytes) c = CRC_TABLE[(c ^ b) & 255] ^ (c >>> 8);
+    return (c ^ 0xffffffff) >>> 0;
+  }
+  function zipBlob(files) {
+    const enc = new TextEncoder();
+    const now = new Date();
+    const time = (now.getHours() << 11) | (now.getMinutes() << 5) | (now.getSeconds() >> 1);
+    const date = ((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate();
+    const parts = [];
+    const central = [];
+    let offset = 0;
+    for (const [name, text] of files) {
+      const data = enc.encode(text);
+      const fname = enc.encode(name);
+      const crc = crc32(data);
+      // The fields local and central headers share, from "version needed" on.
+      const common = (v, p) => {
+        v.setUint16(p, 20, true);
+        v.setUint16(p + 2, 0x0800, true); // UTF-8 names
+        v.setUint16(p + 4, 0, true); // stored
+        v.setUint16(p + 6, time, true);
+        v.setUint16(p + 8, date, true);
+        v.setUint32(p + 10, crc, true);
+        v.setUint32(p + 14, data.length, true);
+        v.setUint32(p + 18, data.length, true);
+        v.setUint16(p + 22, fname.length, true);
+      };
+      const local = new DataView(new ArrayBuffer(30));
+      local.setUint32(0, 0x04034b50, true);
+      common(local, 4);
+      parts.push(local.buffer, fname, data);
+      const cen = new DataView(new ArrayBuffer(46));
+      cen.setUint32(0, 0x02014b50, true);
+      cen.setUint16(4, 20, true);
+      common(cen, 6);
+      cen.setUint32(42, offset, true);
+      central.push(cen.buffer, fname);
+      offset += 30 + fname.length + data.length;
+    }
+    const size = central.reduce((n, b) => n + b.byteLength, 0);
+    const end = new DataView(new ArrayBuffer(22));
+    end.setUint32(0, 0x06054b50, true);
+    end.setUint16(8, files.length, true);
+    end.setUint16(10, files.length, true);
+    end.setUint32(12, size, true);
+    end.setUint32(16, offset, true);
+    return new Blob([...parts, ...central, end.buffer], { type: 'application/zip' });
+  }
+  // [name, bytes] for each file in a zip. Unsupported or oversized entries
+  // are skipped.
+  async function unzip(buf) {
+    const v = new DataView(buf);
+    let e = buf.byteLength - 22;
+    while (e >= 0 && v.getUint32(e, true) !== 0x06054b50) e--;
+    if (e < 0) throw new Error('not a zip');
+    const out = [];
+    let total = 0;
+    let p = v.getUint32(e + 16, true);
+    for (let i = 0, n = Math.min(v.getUint16(e + 10, true), 2000); i < n; i++) {
+      if (v.getUint32(p, true) !== 0x02014b50) break;
+      const method = v.getUint16(p + 10, true);
+      const csize = v.getUint32(p + 20, true);
+      const usize = v.getUint32(p + 24, true);
+      const nlen = v.getUint16(p + 28, true);
+      const skip = nlen + v.getUint16(p + 30, true) + v.getUint16(p + 32, true);
+      const name = new TextDecoder().decode(new Uint8Array(buf, p + 46, nlen));
+      const at = v.getUint32(p + 42, true);
+      p += 46 + skip;
+      if (name.endsWith('/') || /(^|\/)__MACOSX\//.test(name) || (total += usize) > 64e6) continue;
+      const start = at + 30 + v.getUint16(at + 26, true) + v.getUint16(at + 28, true);
+      const raw = new Uint8Array(buf, start, csize);
+      if (method === 0) out.push([name, raw]);
+      else if (method === 8)
+        out.push([
+          name,
+          new Uint8Array(
+            await new Response(
+              new Blob([raw]).stream().pipeThrough(new DecompressionStream('deflate-raw')),
+            ).arrayBuffer(),
+          ),
+        ]);
+    }
+    return out;
+  }
+
+  // Export: one zip with the SVGCraft library (everything, for importing
+  // here) and each kind in formats other apps read.
+  function exportLibrary() {
+    const strip = (xs) =>
+      xs.map((x) => Object.fromEntries(Object.entries(x).filter(([k]) => k !== 'id')));
+    const data = {
+      app: 'svgcraft',
+      kind: 'library',
+      version: 1,
+      swatches: strip(lib.swatches),
+      gradients: strip(lib.gradients),
+      patterns: strip(lib.patterns),
+      symbols: strip(lib.symbols),
+    };
+    const files = [['svgcraft-library.json', JSON.stringify(data, null, 2) + '\n']];
+    const readme = [
+      'SVGCraft library export',
+      '',
+      'svgcraft-library.json  Everything, for SVGCraft (Import this zip or this file).',
+    ];
+    if (lib.swatches.length) {
+      files.push(['swatches.gpl', gplText(lib.swatches)]);
+      files.push([
+        'swatches.css',
+        cssVars('swatches', lib.swatches, 'swatch', (x) => libCss(x.c, x.a)),
+      ]);
+      readme.push(
+        'swatches.gpl           Palette for GIMP, Inkscape and Krita.',
+        'swatches.css           Swatches as CSS custom properties.',
+      );
+    }
+    if (lib.gradients.length) {
+      files.push([
+        'gradients.svg',
+        sampleSheet('SVGCraft gradients', lib.gradients, 'gradient', {
+          w: 160,
+          h: 100,
+          defs: gradDefMarkup,
+          cell: (x, cx, cy, id) =>
+            `<rect x="${cx}" y="${cy}" width="160" height="100" rx="6" fill="url(#${id})"/>`,
+        }),
+      ]);
+      files.push(['gradients.css', cssVars('gradients', lib.gradients, 'gradient', cssGradient)]);
+      readme.push(
+        'gradients.svg          SVG gradients (Inkscape, Illustrator, browsers), with samples.',
+        'gradients.css          Gradients as CSS custom properties.',
+      );
+    }
+    if (lib.patterns.length) {
+      files.push([
+        'patterns.svg',
+        sampleSheet('SVGCraft patterns', lib.patterns, 'pattern', {
+          w: 120,
+          h: 120,
+          // The tiles draw in currentColor; the <pattern>'s colour sets it.
+          defs: (p, id) =>
+            `<pattern id="${id}" data-name="${xmlEsc(p.name)}" patternUnits="userSpaceOnUse" ` +
+            `width="${f(p.w)}" height="${f(p.h)}" color="#1f2937">${p.svg}</pattern>`,
+          cell: (x, cx, cy, id) =>
+            `<rect x="${cx}" y="${cy}" width="120" height="120" fill="url(#${id})" stroke="#cccccc"/>`,
+        }),
+      ]);
+      readme.push('patterns.svg           SVG patterns, with samples. They draw in currentColor.');
+    }
+    if (lib.symbols.length) {
+      files.push(['symbols.svg', spriteSvg(lib.symbols)]);
+      readme.push(
+        'symbols.svg            SVG sprite: <use href="symbols.svg#id"/> draws one.',
+        '                       Built-in icons: Font Awesome Free 6.7.2, CC BY 4.0.',
+      );
+    }
+    files.push(['README.txt', readme.join('\n') + '\n']);
+    download(zipBlob(files), 'svgcraft-library.zip');
+    say('Exported the library as svgcraft-library.zip.');
+  }
+
+  // A library-shaped object from a file: an SVGCraft zip or JSON library, a
+  // GIMP palette or gradient, or any SVG. Throws if it's none of those.
+  async function readLibraryFile(name, buf) {
     const head = new TextDecoder().decode(buf.slice(0, 512)).replace(/^\uFEFF/, '');
-    if (head.startsWith('ASEF')) return { swatches: readAse(buf) };
-    if (/^\s*GIMP Palette/.test(head)) return { swatches: readGpl(new TextDecoder().decode(buf)) };
-    if (/^\s*GIMP Gradient/.test(head))
-      return { gradients: readGgr(new TextDecoder().decode(buf)) };
+    const text = () => new TextDecoder().decode(buf);
+    if (head.startsWith('PK\x03\x04') || head.startsWith('PK\x05\x06')) return readZipLibrary(buf);
+    if (/^\s*GIMP Palette/.test(head)) return { swatches: readGpl(text()) };
+    if (/^\s*GIMP Gradient/.test(head)) return { gradients: readGgr(text()) };
     if (/^\s*</.test(head)) {
-      const r = readSvgLibrary(new TextDecoder().decode(buf), file.name || '');
+      const r = readSvgLibrary(text(), name);
       if (!r) throw new Error('not SVG');
       return r;
     }
-    return null;
+    return JSON.parse(text());
   }
-
-  const EXPORTS = {
-    swatches: [
-      ['Adobe Swatch Exchange', '.ase', () => aseBytes(lib.swatches)],
-      [
-        'GIMP / Inkscape palette',
-        '.gpl',
-        () => new Blob([gplText(lib.swatches)], { type: 'text/plain' }),
-      ],
-      [
-        'CSS variables',
-        '.css',
-        () => {
-          const slug = slugger('swatch');
-          const lines = lib.swatches.map((x) => `  --${slug(x.name)}: ${libCss(x.c, x.a)};`);
-          return new Blob([`/* SVGCraft swatches */\n:root {\n${lines.join('\n')}\n}\n`], {
-            type: 'text/css',
-          });
-        },
-      ],
-    ],
-    gradients: [
-      [
-        'SVG gradients',
-        '.svg',
-        () =>
-          new Blob(
-            [
-              sampleSheet('SVGCraft gradients', lib.gradients, 'gradient', {
-                w: 160,
-                h: 100,
-                defs: gradDefMarkup,
-                cell: (x, cx, cy, id) =>
-                  `<rect x="${cx}" y="${cy}" width="160" height="100" rx="6" fill="url(#${id})"/>`,
-              }),
-            ],
-            { type: 'image/svg+xml' },
-          ),
-      ],
-      [
-        'CSS gradients',
-        '.css',
-        () => {
-          const slug = slugger('gradient');
-          const lines = lib.gradients.map((g) => `  --${slug(g.name)}: ${cssGradient(g)};`);
-          return new Blob([`/* SVGCraft gradients */\n:root {\n${lines.join('\n')}\n}\n`], {
-            type: 'text/css',
-          });
-        },
-      ],
-    ],
-    patterns: [
-      [
-        'SVG patterns',
-        '.svg',
-        () =>
-          new Blob(
-            [
-              sampleSheet('SVGCraft patterns', lib.patterns, 'pattern', {
-                w: 120,
-                h: 120,
-                // The tiles draw in currentColor; the <pattern>'s colour sets it.
-                defs: (p, id) =>
-                  `<pattern id="${id}" data-name="${xmlEsc(p.name)}" patternUnits="userSpaceOnUse" ` +
-                  `width="${f(p.w)}" height="${f(p.h)}" color="#1f2937">${p.svg}</pattern>`,
-                cell: (x, cx, cy, id) =>
-                  `<rect x="${cx}" y="${cy}" width="120" height="120" fill="url(#${id})" ` +
-                  `stroke="#cccccc"/>`,
-              }),
-            ],
-            { type: 'image/svg+xml' },
-          ),
-      ],
-    ],
-    symbols: [
-      ['SVG sprite, my symbols', '.svg', () => spriteBlob(true)],
-      ['SVG sprite, all symbols', '.svg', () => spriteBlob(false)],
-    ],
-  };
-  // Saved symbols are the ones without the built-in set's credit.
-  const isBuiltinSymbol = (x) => (window.SC_SYMBOLS || []).some((b) => b.svg === x.svg);
-  function spriteBlob(mineOnly) {
-    const items = mineOnly ? lib.symbols.filter((x) => !isBuiltinSymbol(x)) : lib.symbols;
-    if (!items.length) return null;
-    const credits = [...new Set(items.map((x) => x.credit).filter(Boolean))];
-    return new Blob(
-      [
-        sampleSheet('SVGCraft symbols', items, 'symbol', {
-          w: 120, // room for the name under each 64 px icon
-          h: 64,
-          extra: credits.length
-            ? `<desc>Credits: ${xmlEsc(credits.join('; '))}. Use one with &lt;use href="file.svg#id"/&gt;.</desc>`
-            : `<desc>Use one with &lt;use href="file.svg#id"/&gt;.</desc>`,
-          defs: (x, id) =>
-            `<symbol id="${id}" viewBox="0 0 ${f(x.w)} ${f(x.h)}" data-name="${xmlEsc(x.name)}" ` +
-            `data-category="${xmlEsc(x.category)}"` +
-            (x.credit ? ` data-credit="${xmlEsc(x.credit)}"` : '') +
-            `>${x.svg}</symbol>`,
-          cell: (x, cx, cy, id) =>
-            `<use href="#${id}" x="${cx + 28}" y="${cy}" width="64" height="64" fill="#1f2937"/>`,
-        }),
-      ],
-      { type: 'image/svg+xml' },
-    );
-  }
-
-  function exportLibraryAs(kind, [label, ext, make]) {
-    const blob = lib[kind].length ? make() : null;
-    if (!blob)
-      return say(
-        kind === 'symbols' && label.includes('my')
-          ? 'No saved symbols to export yet: the library only has the built-in icons.'
-          : `No ${kind} to export.`,
-      );
-    download(blob, `svgcraft-${kind}${ext}`);
-    say(`Exported ${label} (svgcraft-${kind}${ext}).`);
-  }
-
-  // A small menu under a button, styled like the menu bar's.
-  let popMenuOpen = null;
-  function popMenu(anchor, items) {
-    const again = popMenuOpen?.anchor === anchor;
-    popMenuOpen?.close();
-    if (again) return;
-    const m = document.createElement('div');
-    m.className = 'sc-menu-list sc-popmenu';
-    m.setAttribute('role', 'menu');
-    for (const it of items) {
-      if (it === '-') {
-        m.append(document.createElement('hr'));
-        continue;
+  // A zip's svgcraft-library.json holds everything; without one, the
+  // palettes, gradients and SVGs in it are read and added together.
+  async function readZipLibrary(buf) {
+    const entries = await unzip(buf);
+    const bytes = (b) => b.slice().buffer;
+    const main = entries.find(([n]) => /(^|\/)svgcraft-library\.json$/i.test(n));
+    if (main) return JSON.parse(new TextDecoder().decode(main[1]));
+    const all = { swatches: [], gradients: [], patterns: [], symbols: [] };
+    let found = false;
+    for (const [n, b] of entries) {
+      if (!/\.(json|gpl|ggr|svg)$/i.test(n)) continue;
+      try {
+        const r = await readLibraryFile(n.split('/').pop(), bytes(b));
+        for (const k of Object.keys(all)) if (Array.isArray(r?.[k])) all[k].push(...r[k]);
+        found = true;
+      } catch {
+        /* not one of ours: skip it */
       }
-      const b = document.createElement('button');
-      b.setAttribute('role', 'menuitem');
-      b.append(
-        document.createElement('i'),
-        Object.assign(document.createElement('span'), { textContent: it.label }),
-      );
-      if (it.hint) b.append(Object.assign(document.createElement('kbd'), { textContent: it.hint }));
-      b.addEventListener('click', () => {
-        close();
-        it.run();
-      });
-      m.append(b);
     }
-    document.body.append(m);
-    const r = anchor.getBoundingClientRect();
-    const mr = m.getBoundingClientRect();
-    m.style.left = `${Math.max(4, Math.min(r.left, innerWidth - mr.width - 4))}px`;
-    m.style.top = `${r.bottom + 2 + mr.height > innerHeight ? Math.max(4, r.top - mr.height - 2) : r.bottom + 2}px`;
-    const away = (e) => {
-      if (!m.contains(e.target) && !anchor.contains(e.target)) close();
-    };
-    m.addEventListener('keydown', (e) => {
-      e.stopPropagation();
-      const bs = [...m.querySelectorAll('button')];
-      const i = bs.indexOf(document.activeElement);
-      if (e.key === 'Escape' || e.key === 'Tab') {
-        e.preventDefault();
-        close();
-        anchor.focus();
-      } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-        e.preventDefault();
-        bs[(i + (e.key === 'ArrowDown' ? 1 : bs.length - 1)) % bs.length].focus();
-      }
-    });
-    function close() {
-      m.remove();
-      document.removeEventListener('pointerdown', away, true);
-      anchor.setAttribute('aria-expanded', 'false');
-      popMenuOpen = null;
-    }
-    document.addEventListener('pointerdown', away, true);
-    anchor.setAttribute('aria-expanded', 'true');
-    m.querySelector('button').focus();
-    popMenuOpen = { anchor, close };
-  }
-  function exportMenu(kind, anchor) {
-    popMenu(anchor, [
-      { label: 'SVGCraft library (everything)', hint: '.json', run: exportLibrary },
-      '-',
-      ...EXPORTS[kind].map((x) => ({
-        label: x[0],
-        hint: x[1],
-        run: () => exportLibraryAs(kind, x),
-      })),
-    ]);
+    if (!found) throw new Error('nothing to import');
+    return all;
   }
 
   function wireLibraries() {
@@ -10233,7 +10166,7 @@
             add: () => addLibItem(kind),
             rename: () => renameLibItem(kind),
             delete: () => removeLibItem(kind),
-            export: () => exportMenu(kind, b),
+            export: exportLibrary,
             import: () => $('#sc-lib-file').click(),
             reset: () => resetLib(kind),
             place: () => placeLibSymbol(),

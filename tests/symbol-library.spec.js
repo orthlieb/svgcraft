@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import { readZip } from './zip.js';
 import { test, expect, load, select, menu, toScreen } from './fixtures.js';
 
 // The Symbols library: the built-in icon set, search and categories,
@@ -342,11 +343,9 @@ test.describe('managing the library', () => {
     await openLibrary(page);
     const [dl] = await Promise.all([
       page.waitForEvent('download'),
-      page
-        .click('[data-lib="symbols"] [data-lib-act="export"]')
-        .then(() => page.click('.sc-popmenu [role="menuitem"]:has-text("SVGCraft library")')),
+      page.click('[data-lib="symbols"] [data-lib-act="export"]'),
     ]);
-    const json = JSON.parse(fs.readFileSync(await dl.path(), 'utf8'));
+    const json = JSON.parse(readZip(fs.readFileSync(await dl.path()))['svgcraft-library.json']);
     const n = await builtinCount(page);
     expect(json.symbols).toHaveLength(n);
     expect(json.symbols[0]).not.toHaveProperty('id');

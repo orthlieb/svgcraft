@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import { readZip } from './zip.js';
 import { test, expect, load, select, menu } from './fixtures.js';
 
 // Swatches, Gradients and Patterns panels, the pattern paint, Define Pattern,
@@ -333,16 +334,14 @@ test.describe('Define Pattern', () => {
 });
 
 test.describe('export / import library', () => {
-  test('exports everything as JSON without ids', async ({ page }) => {
+  test('exports everything in a zip, without ids', async ({ page }) => {
     await page.click('[data-tab="patterns"]');
     const [dl] = await Promise.all([
       page.waitForEvent('download'),
-      page
-        .click('[data-lib="patterns"] [data-lib-act="export"]')
-        .then(() => page.click('.sc-popmenu [role="menuitem"]:has-text("SVGCraft library")')),
+      page.click('[data-lib="patterns"] [data-lib-act="export"]'),
     ]);
-    expect(dl.suggestedFilename()).toBe('svgcraft-library.json');
-    const json = JSON.parse(fs.readFileSync(await dl.path(), 'utf8'));
+    expect(dl.suggestedFilename()).toBe('svgcraft-library.zip');
+    const json = JSON.parse(readZip(fs.readFileSync(await dl.path()))['svgcraft-library.json']);
     expect(json).toMatchObject({ app: 'svgcraft', kind: 'library', version: 1 });
     expect(json.patterns).toHaveLength(9);
     expect(json.swatches[0]).not.toHaveProperty('id');
