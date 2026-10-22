@@ -549,10 +549,14 @@ Features):
   The live area is inside the guides nearest each edge, so moving a margin
   guide moves the keylines (without guides it's a twelfth in from each
   edge). Keylines aren't part of the drawing.
-- **View → Icon Preview** (Ctrl+Alt+P) opens a floating window with the
-  drawing at 16, 24, 32, 48, 64 and 128 px, drawn by the browser just as a
-  web page would draw the SVG. It updates as you work, and clicking a size
-  shows the canvas at that size. Its options are remembered:
+- **View → Icon Preview** (Ctrl+Alt+P) shows the drawing at 16, 24, 32,
+  48, 64 and 128 px in a pane docked beside the canvas: drag the divider
+  (or focus it and use the arrow keys) to resize it. The button in its title
+  bar floats it as a window of its own and docks it back. The previews are
+  drawn by the browser just as a web page would draw the SVG. They update
+  as you work, and clicking a size
+  shows the canvas at that size. Its options (and whether it's docked, and
+  how wide) are remembered:
   - **Background**: light, dark or transparent (checkerboard), or all
     three. It starts on the app's theme.
   - **Mask**: how platforms crop app icons: **iOS** (a rounded square, as

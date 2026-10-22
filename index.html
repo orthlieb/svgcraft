@@ -1177,59 +1177,78 @@
       <!-- ── Document window ────────────────────────────────────────────── -->
       <div class="sc-workspace">
         <div class="sc-doctabs" id="sc-doctabs" role="tablist" aria-label="Open documents"></div>
-        <div class="sc-stage-wrap" id="sc-stage-wrap">
-          <div class="sc-ruler-corner" aria-hidden="true"></div>
-          <canvas
-            class="sc-ruler sc-ruler-h"
-            id="sc-ruler-h"
-            aria-label="Horizontal ruler — drag down to make a guide"
-          ></canvas>
-          <canvas
-            class="sc-ruler sc-ruler-v"
-            id="sc-ruler-v"
-            aria-label="Vertical ruler — drag right to make a guide"
-          ></canvas>
-          <svg id="sc-stage" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <pattern id="sc-checker" patternUnits="userSpaceOnUse" width="16" height="16">
-                <rect width="16" height="16" class="sc-check-a" />
-                <rect width="8" height="8" class="sc-check-b" />
-                <rect x="8" y="8" width="8" height="8" class="sc-check-b" />
-              </pattern>
-              <pattern id="sc-gridpat" patternUnits="userSpaceOnUse" width="20" height="20">
-                <path id="sc-gridline" d="M20 0H0V20" fill="none" class="sc-gridline" />
-              </pattern>
-            </defs>
-            <g id="sc-view">
-              <rect id="sc-board-bg" x="0" y="0" width="800" height="600" fill="url(#sc-checker)" />
-              <rect
-                id="sc-grid-rect"
-                x="0"
-                y="0"
-                width="800"
-                height="600"
-                fill="url(#sc-gridpat)"
-                display="none"
-              />
-              <defs id="sc-defs"></defs>
-              <g id="sc-doc"></g>
-              <rect id="sc-board-frame" x="0" y="0" width="800" height="600" fill="none" />
-              <path id="sc-pixgrid" class="sc-pixgrid" />
-              <g id="sc-keylines"></g>
-              <g id="sc-guidelines"></g>
-              <g id="sc-selection"></g>
-              <g id="sc-nodes"></g>
-              <g id="sc-guides"></g>
-              <g id="sc-smart"></g>
-            </g>
-          </svg>
-          <div class="sc-iso-bar" id="sc-iso" hidden>
-            <i data-icon="clover"></i><span>Editing symbol <b id="sc-iso-name"></b></span>
-            <button class="sc-tbtn sc-primary-btn" data-action="symbolDone" data-tip="Done · Esc">
-              Done
-            </button>
+        <!-- The canvas, and the Icon Preview when it's docked beside it. -->
+        <div class="sc-split" id="sc-split">
+          <div class="sc-stage-wrap" id="sc-stage-wrap">
+            <div class="sc-ruler-corner" aria-hidden="true"></div>
+            <canvas
+              class="sc-ruler sc-ruler-h"
+              id="sc-ruler-h"
+              aria-label="Horizontal ruler — drag down to make a guide"
+            ></canvas>
+            <canvas
+              class="sc-ruler sc-ruler-v"
+              id="sc-ruler-v"
+              aria-label="Vertical ruler — drag right to make a guide"
+            ></canvas>
+            <svg id="sc-stage" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <pattern id="sc-checker" patternUnits="userSpaceOnUse" width="16" height="16">
+                  <rect width="16" height="16" class="sc-check-a" />
+                  <rect width="8" height="8" class="sc-check-b" />
+                  <rect x="8" y="8" width="8" height="8" class="sc-check-b" />
+                </pattern>
+                <pattern id="sc-gridpat" patternUnits="userSpaceOnUse" width="20" height="20">
+                  <path id="sc-gridline" d="M20 0H0V20" fill="none" class="sc-gridline" />
+                </pattern>
+              </defs>
+              <g id="sc-view">
+                <rect
+                  id="sc-board-bg"
+                  x="0"
+                  y="0"
+                  width="800"
+                  height="600"
+                  fill="url(#sc-checker)"
+                />
+                <rect
+                  id="sc-grid-rect"
+                  x="0"
+                  y="0"
+                  width="800"
+                  height="600"
+                  fill="url(#sc-gridpat)"
+                  display="none"
+                />
+                <defs id="sc-defs"></defs>
+                <g id="sc-doc"></g>
+                <rect id="sc-board-frame" x="0" y="0" width="800" height="600" fill="none" />
+                <path id="sc-pixgrid" class="sc-pixgrid" />
+                <g id="sc-keylines"></g>
+                <g id="sc-guidelines"></g>
+                <g id="sc-selection"></g>
+                <g id="sc-nodes"></g>
+                <g id="sc-guides"></g>
+                <g id="sc-smart"></g>
+              </g>
+            </svg>
+            <div class="sc-iso-bar" id="sc-iso" hidden>
+              <i data-icon="clover"></i><span>Editing symbol <b id="sc-iso-name"></b></span>
+              <button class="sc-tbtn sc-primary-btn" data-action="symbolDone" data-tip="Done · Esc">
+                Done
+              </button>
+            </div>
+            <div class="sc-drop" id="sc-drop">Drop an SVG or image to import</div>
           </div>
-          <div class="sc-drop" id="sc-drop">Drop an SVG or image to import</div>
+          <div
+            class="sc-splitter"
+            id="sc-ip-splitter"
+            role="separator"
+            aria-orientation="vertical"
+            aria-label="Resize the icon preview"
+            tabindex="0"
+            hidden
+          ></div>
         </div>
       </div>
 
@@ -2581,6 +2600,9 @@
         <span class="sc-src-grip" aria-hidden="true">⠿</span>
         <i data-icon="images"></i>
         <span class="sc-src-name" id="sc-ip-title">Icon Preview</span>
+        <button class="sc-src-x" id="sc-ip-dock" aria-label="Float" data-tip="Float">
+          <i data-icon="up-right-from-square"></i>
+        </button>
         <button class="sc-src-x" id="sc-ip-close" aria-label="Close" data-tip="Close (Esc)">
           <i data-icon="xmark"></i>
         </button>

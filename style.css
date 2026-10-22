@@ -2523,3 +2523,55 @@ select[data-stroke-dash] {
   margin: 0;
   padding: 0 8px 8px;
 }
+
+/* Docked, the Icon Preview is a split pane to the right of the canvas. */
+.sc-split {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+.sc-splitter {
+  flex: none;
+  width: 5px;
+  margin: 0 -2px;
+  z-index: 2;
+  cursor: col-resize;
+  background: linear-gradient(var(--line), var(--line)) center / 1px 100% no-repeat;
+  touch-action: none;
+}
+.sc-splitter[hidden] {
+  display: none;
+}
+.sc-splitter:hover,
+.sc-splitter:focus-visible,
+.sc-splitter.dragging {
+  background: var(--accent);
+  outline: none;
+}
+.sc-iconprev[data-docked] {
+  position: static;
+  flex: none;
+  height: auto;
+  max-width: none;
+  max-height: none;
+  min-width: 0;
+  resize: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.sc-iconprev[data-docked][hidden] {
+  display: none;
+}
+.sc-iconprev[data-docked] .sc-ip-body {
+  flex: 1;
+  min-height: 0;
+}
+.sc-iconprev[data-docked] .sc-src-grip {
+  display: none;
+}
+.sc-preview .sc-iconprev,
+.sc-preview .sc-splitter {
+  display: none !important;
+}

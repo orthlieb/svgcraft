@@ -292,6 +292,48 @@ test.describe('Icon Preview', () => {
   });
 });
 
+test('Icon Preview docks beside the canvas as a split pane, or floats', async ({ page }) => {
+  const win = page.locator('#sc-iconprev');
+  const splitter = page.locator('#sc-ip-splitter');
+  const stageW = () => page.locator('#sc-stage').evaluate((s) => s.clientWidth);
+  const full = await stageW();
+  await menu(page, 'View', 'toggleIconPreview');
+  // Docked by default: inside the workspace, beside the canvas, which narrows.
+  expect(await win.evaluate((w) => w.parentNode.id)).toBe('sc-split');
+  await expect(splitter).toBeVisible();
+  const paneW = await win.evaluate((w) => w.offsetWidth);
+  expect(paneW).toBe(300);
+  expect(full - (await stageW())).toBeGreaterThanOrEqual(paneW);
+  // Drag the divider left to widen the pane; the arrow keys work too.
+  const sb = await splitter.boundingBox();
+  await page.mouse.move(sb.x + 2, sb.y + 200);
+  await page.mouse.down();
+  await page.mouse.move(sb.x - 98, sb.y + 200, { steps: 4 });
+  await page.mouse.up();
+  expect(await win.evaluate((w) => w.offsetWidth)).toBe(400);
+  await splitter.focus();
+  await page.keyboard.press('ArrowRight');
+  expect(await win.evaluate((w) => w.offsetWidth)).toBe(390);
+  // Float it: a window of its own; the canvas gets its width back.
+  await page.click('#sc-ip-dock');
+  expect(await win.evaluate((w) => w.parentNode === document.body)).toBe(true);
+  expect(await win.evaluate((w) => getComputedStyle(w).position)).toBe('fixed');
+  await expect(splitter).toBeHidden();
+  expect(await stageW()).toBe(full);
+  await expect(page.locator('#sc-ip-dock')).toHaveAttribute('aria-label', 'Dock beside the canvas');
+  // Remembered: it opens floating after a reload, and docks back at its width.
+  await page.reload();
+  await page.waitForFunction(() => !!window.svgcraft);
+  await menu(page, 'View', 'toggleIconPreview');
+  expect(await win.evaluate((w) => w.parentNode === document.body)).toBe(true);
+  await page.click('#sc-ip-dock');
+  expect(await win.evaluate((w) => [w.parentNode.id, w.offsetWidth])).toEqual(['sc-split', 390]);
+  // Closing the pane gives the canvas its room back.
+  await page.click('#sc-ip-close');
+  await expect(splitter).toBeHidden();
+  expect(await stageW()).toBe(full);
+});
+
 test.describe('Icon Preview masks', () => {
   const win = (page) => page.locator('#sc-iconprev');
   const box = (page, size = 64) =>

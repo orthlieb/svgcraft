@@ -2922,7 +2922,7 @@
   }
   function dragWindow(win, bar) {
     bar.addEventListener('pointerdown', (e) => {
-      if (e.button !== 0 || e.target.closest('button')) return;
+      if (e.button !== 0 || e.target.closest('button') || win.dataset.docked) return;
       e.preventDefault();
       const r = win.getBoundingClientRect();
       const dx = e.clientX - r.left;
@@ -2942,7 +2942,7 @@
       bar.addEventListener('pointerup', up);
       bar.addEventListener('pointercancel', up);
     });
-    window.addEventListener('resize', () => !win.hidden && winClamp(win));
+    window.addEventListener('resize', () => !win.hidden && !win.dataset.docked && winClamp(win));
   }
 
   // View → Icon Preview: the drawing at icon sizes on a light, dark or
@@ -3101,14 +3101,58 @@
     state.panY = (r.height - state.h * state.zoom) / 2;
     applyView();
   }
+  // Docked (the default), the preview is a split pane beside the canvas,
+  // resized by dragging the divider; floating, a window of its own. Both
+  // choices and the pane's width are remembered.
+  const IP_DOCK_KEY = 'svgcraft.iconPreviewDock';
+  const ipSplitter = $('#sc-ip-splitter');
+  const ipStore = (k, v) => {
+    try {
+      if (v === undefined) return localStorage.getItem(k);
+      localStorage.setItem(k, v);
+    } catch {
+      /* storage blocked: just for this visit */
+    }
+    return null;
+  };
+  function ipDockWidth(w) {
+    const max = Math.max(220, $('#sc-split').clientWidth * 0.6);
+    return Math.round(clamp(w, 200, max));
+  }
+  function setIconPreviewDocked(docked, save = true) {
+    if (save) ipStore(IP_DOCK_KEY, docked ? 'dock' : 'float');
+    const btn = $('#sc-ip-dock');
+    const label = docked ? 'Float' : 'Dock beside the canvas';
+    btn.setAttribute('aria-label', label);
+    btn.dataset.tip = label;
+    const name = docked ? 'up-right-from-square' : 'table-columns';
+    btn.innerHTML = `<i data-icon="${name}">${icon(name)}</i>`;
+    if (docked) {
+      ipWin.dataset.docked = '';
+      $('#sc-split').append(ipWin);
+      const w = +ipStore(`${IP_DOCK_KEY}.width`) || 300;
+      ipWin.style.width = `${ipDockWidth(w)}px`;
+      ipWin.style.left = ipWin.style.top = '';
+    } else {
+      delete ipWin.dataset.docked;
+      document.body.append(ipWin);
+      ipWin.style.width = '';
+      ipWin.style.left = `${Math.max(8, innerWidth - 460 - 320)}px`;
+      ipWin.style.top = '96px';
+      if (!ipWin.hidden) winClamp(ipWin);
+    }
+    ipSplitter.hidden = !docked || ipWin.hidden;
+    applyView();
+  }
   function openIconPreview() {
     iconPrev.open = true;
     ipWin.hidden = false;
-    if (!ipWin.style.left) {
-      ipWin.style.left = `${Math.max(8, innerWidth - ipWin.offsetWidth - 320)}px`;
-      ipWin.style.top = '96px';
-    }
-    winClamp(ipWin);
+    const docked = ipStore(IP_DOCK_KEY) !== 'float';
+    const isDocked = 'docked' in ipWin.dataset;
+    if (docked !== isDocked || (!docked && !ipWin.style.left)) setIconPreviewDocked(docked, false);
+    ipSplitter.hidden = !docked;
+    if (!docked) winClamp(ipWin);
+    else applyView();
     $('[data-action="toggleIconPreview"]').setAttribute('aria-checked', 'true');
     renderIconPreview();
   }
@@ -3117,9 +3161,49 @@
     iconPrev.open = false;
     clearTimeout(iconPrev.timer);
     ipWin.hidden = true;
+    ipSplitter.hidden = true;
+    if ('docked' in ipWin.dataset) applyView();
     $('[data-action="toggleIconPreview"]').setAttribute('aria-checked', 'false');
     if (ipWin.contains(document.activeElement)) document.activeElement.blur();
   }
+  $('#sc-ip-dock').addEventListener('click', () => {
+    setIconPreviewDocked(!('docked' in ipWin.dataset));
+    $('#sc-ip-dock').focus();
+  });
+  // The divider: drag it, or use the arrow keys (Shift for bigger steps).
+  function setDockWidth(w) {
+    w = ipDockWidth(w);
+    ipWin.style.width = `${w}px`;
+    ipStore(`${IP_DOCK_KEY}.width`, w);
+    ipSplitter.setAttribute('aria-valuenow', w);
+    applyView();
+  }
+  ipSplitter.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    const x0 = e.clientX;
+    const w0 = ipWin.offsetWidth;
+    ipSplitter.setPointerCapture(e.pointerId);
+    ipSplitter.classList.add('dragging');
+    const move = (ev) => setDockWidth(w0 - (ev.clientX - x0));
+    const up = () => {
+      ipSplitter.classList.remove('dragging');
+      ipSplitter.removeEventListener('pointermove', move);
+      ipSplitter.removeEventListener('pointerup', up);
+      ipSplitter.removeEventListener('pointercancel', up);
+    };
+    ipSplitter.addEventListener('pointermove', move);
+    ipSplitter.addEventListener('pointerup', up);
+    ipSplitter.addEventListener('pointercancel', up);
+  });
+  ipSplitter.addEventListener('keydown', (e) => {
+    const step = e.shiftKey ? 50 : 10;
+    const d = { ArrowLeft: step, ArrowRight: -step }[e.key];
+    if (!d) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setDockWidth(ipWin.offsetWidth + d);
+  });
   const toggleIconPreview = () => (iconPrev.open ? closeIconPreview() : openIconPreview());
   dragWindow(ipWin, $('#sc-ip-titlebar'));
   $('#sc-ip-close').addEventListener('click', closeIconPreview);
@@ -3244,6 +3328,7 @@
       const t = ICON_TEMPLATES[niTemplate.value];
       if (t) setIconPreviewMask(t.mask || 'none', !!t.crop);
       openIconPreview();
+      fit(); // around the pane, if it docked
     }
     say(`New ${s} × ${s} icon${m > 0 ? `, ${m} px margins as guides` : ''}.`);
   }
