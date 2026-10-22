@@ -57,6 +57,9 @@
             <button role="menuitem" data-action="exportPng4">
               <i></i><span>Export PNG @4×</span>
             </button>
+            <button role="menuitem" data-action="exportAppIcons">
+              <i data-icon="icons"></i><span>Export App Icons…</span>
+            </button>
             <hr />
             <button role="menuitem" data-action="fileInfo">
               <i data-icon="circle-info"></i><span>File Info…</span><kbd>Alt+Shift+Ctrl+I</kbd>
@@ -2517,6 +2520,48 @@
       <div class="sc-dialog-foot">
         <button class="sc-tbtn" data-ng="cancel">Cancel</button>
         <button class="sc-tbtn sc-primary-btn" data-ng="ok">OK</button>
+      </div>
+    </div>
+
+    <!-- File → Export App Icons…: every size each platform needs, in one zip. -->
+    <div
+      class="sc-dialog sc-appicons"
+      id="sc-appicons"
+      role="dialog"
+      aria-modal="false"
+      aria-labelledby="sc-ai-title"
+      hidden
+    >
+      <div class="sc-dialog-title" id="sc-ai-title">Export App Icons</div>
+      <div class="sc-dialog-body">
+        <p class="sc-hint sc-ai-note">
+          The drawing at every size each platform needs, in one zip. Square artwork works best;
+          other shapes are centred.
+        </p>
+        <label class="sc-check"
+          ><input type="checkbox" data-ai="web" checked /> Web: favicon, Apple touch icon, web app
+          icons and manifest</label
+        >
+        <label class="sc-check"
+          ><input type="checkbox" data-ai="ios" checked /> iOS: AppIcon.appiconset for Xcode</label
+        >
+        <label class="sc-check"
+          ><input type="checkbox" data-ai="android" checked /> Android: launcher icons for every
+          density, and the Play Store icon</label
+        >
+        <label class="sc-check"
+          ><input type="checkbox" data-ai="macos" checked /> macOS: AppIcon.icns and its
+          .iconset</label
+        >
+        <label class="sc-field"
+          >Background <input type="color" id="sc-ai-bg" value="#ffffff" /><span class="sc-unit"
+            >for icons that can’t be transparent (iOS, Apple touch icon)</span
+          ></label
+        >
+      </div>
+      <div class="sc-dialog-foot">
+        <button class="sc-tbtn" data-ai-btn="cancel">Cancel</button>
+        <button class="sc-tbtn sc-primary-btn" data-ai-btn="ok">Export</button>
       </div>
     </div>
 

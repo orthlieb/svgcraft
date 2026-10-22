@@ -565,6 +565,23 @@ Features):
     fifth), or none.
   - **Adaptive crop** shows only the middle 72 dp of a 108 dp Android
     adaptive icon, the part launchers show (and mask).
+- **File → Export App Icons…** saves `<name>-app-icons.zip` with every
+  size each platform asks for, each drawn from the vector art (not scaled
+  from one big bitmap). Pick the platforms:
+  - **Web**: `favicon.ico` (16, 32 and 48 px), `favicon.svg`,
+    `apple-touch-icon.png` (180), `icon-192.png` and `icon-512.png`, a
+    `site.webmanifest` and `head.html`, the `<link>` tags to paste into your
+    pages.
+  - **iOS**: `AppIcon.appiconset` (one 1024 px icon and its
+    `Contents.json`) to drag into an Xcode asset catalogue.
+  - **Android**: `res/mipmap-*/ic_launcher.png` for mdpi to xxxhdpi (48 to
+    192 px) and the 512 px Play Store icon.
+  - **macOS**: `AppIcon.icns`, and the `AppIcon.iconset` it's built from
+    (16 to 1024 px), for `iconutil`.
+  - The iOS icon and the Apple touch icon can't be transparent: they're
+    filled with the **Background** colour and saved without an alpha
+    channel, as the App Store requires. The rest keep their transparency.
+    A non-square artboard is centred in each square icon.
 
 ## Symbols
 

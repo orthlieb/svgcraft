@@ -9082,6 +9082,276 @@
     img.src = url;
   }
 
+  // ---- File → Export App Icons… --------------------------------------------------
+  // The drawing rendered at every size each platform asks for, in one zip:
+  //   web/      favicon.ico (16, 32, 48), favicon.svg, apple-touch-icon.png,
+  //             icon-192.png, icon-512.png, site.webmanifest, head.html
+  //   ios/      AppIcon.appiconset (one 1024 px icon and its Contents.json)
+  //   android/  res/mipmap-*/ic_launcher.png (48–192 px), playstore-icon.png
+  //   macos/    AppIcon.icns, and AppIcon.iconset for iconutil
+  // Each size is drawn from the vector art, not scaled from a big bitmap.
+  // Icons that can't be transparent (iOS, the Apple touch icon) get a
+  // background colour; a non-square artboard is centred.
+
+  // PNG bytes of the drawing at each size: [size, opaque?] → Uint8Array.
+  async function renderIconPngs(jobs, bg) {
+    const fontCss = await embeddedFontCss(usedGoogleFonts());
+    const url = URL.createObjectURL(new Blob([serialize({ fontCss })], { type: 'image/svg+xml' }));
+    try {
+      const img = new Image();
+      img.src = url;
+      await img.decode();
+      const out = new Map();
+      for (const [size, opaque] of jobs) {
+        const key = `${size}${opaque ? 'o' : ''}`;
+        if (out.has(key)) continue;
+        const c = document.createElement('canvas');
+        c.width = c.height = size;
+        const ctx = c.getContext('2d');
+        if (opaque) {
+          ctx.fillStyle = bg;
+          ctx.fillRect(0, 0, size, size);
+        }
+        const k = size / Math.max(state.w, state.h);
+        const w = state.w * k;
+        const h = state.h * k;
+        ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
+        if (opaque) {
+          out.set(key, await rgbPng(ctx.getImageData(0, 0, size, size)));
+          continue;
+        }
+        const blob = await new Promise((r) => c.toBlob(r, 'image/png'));
+        if (!blob) throw new Error('PNG failed');
+        out.set(key, new Uint8Array(await blob.arrayBuffer()));
+      }
+      return (size, opaque = false) => out.get(`${size}${opaque ? 'o' : ''}`);
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  }
+
+  // A PNG with no alpha channel at all (colour type 2), which the App Store
+  // insists on for app icons; canvas.toBlob always writes one.
+  async function rgbPng({ width, height, data }) {
+    const raw = new Uint8Array(height * (1 + width * 3));
+    for (let y = 0, o = 0; y < height; y++) {
+      raw[o++] = 0; // filter: none
+      for (let x = 0; x < width; x++) {
+        const i = (y * width + x) * 4;
+        raw[o++] = data[i];
+        raw[o++] = data[i + 1];
+        raw[o++] = data[i + 2];
+      }
+    }
+    const zlib = new Uint8Array(
+      await new Response(
+        new Blob([raw]).stream().pipeThrough(new CompressionStream('deflate')),
+      ).arrayBuffer(),
+    );
+    const chunk = (type, body) => {
+      const b = new Uint8Array(12 + body.length);
+      const v = new DataView(b.buffer);
+      v.setUint32(0, body.length);
+      b.set(new TextEncoder().encode(type), 4);
+      b.set(body, 8);
+      v.setUint32(8 + body.length, crc32(b.subarray(4, 8 + body.length)));
+      return b;
+    };
+    const ihdr = new DataView(new ArrayBuffer(13));
+    ihdr.setUint32(0, width);
+    ihdr.setUint32(4, height);
+    ihdr.setUint8(8, 8); // bit depth
+    ihdr.setUint8(9, 2); // RGB
+    return concatBytes([
+      new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]),
+      chunk('IHDR', new Uint8Array(ihdr.buffer)),
+      chunk('IDAT', zlib),
+      chunk('IEND', new Uint8Array()),
+    ]);
+  }
+
+  // Windows icon: a directory of PNG images (Vista and later read PNG).
+  function icoBytes(pngs) {
+    const head = new DataView(new ArrayBuffer(6 + 16 * pngs.length));
+    head.setUint16(2, 1, true);
+    head.setUint16(4, pngs.length, true);
+    let offset = head.byteLength;
+    pngs.forEach(([size, data], i) => {
+      const p = 6 + 16 * i;
+      head.setUint8(p, size >= 256 ? 0 : size);
+      head.setUint8(p + 1, size >= 256 ? 0 : size);
+      head.setUint16(p + 4, 1, true); // planes
+      head.setUint16(p + 6, 32, true); // bits per pixel
+      head.setUint32(p + 8, data.length, true);
+      head.setUint32(p + 12, offset, true);
+      offset += data.length;
+    });
+    return concatBytes([new Uint8Array(head.buffer), ...pngs.map(([, d]) => d)]);
+  }
+  // Apple icon image: 'icns', then [type, length, PNG] blocks.
+  function icnsBytes(blocks) {
+    const enc = new TextEncoder();
+    const parts = [];
+    for (const [type, data] of blocks) {
+      const h = new DataView(new ArrayBuffer(8));
+      enc.encode(type).forEach((b, i) => h.setUint8(i, b));
+      h.setUint32(4, 8 + data.length);
+      parts.push(new Uint8Array(h.buffer), data);
+    }
+    const total = 8 + parts.reduce((n, p) => n + p.length, 0);
+    const h = new DataView(new ArrayBuffer(8));
+    enc.encode('icns').forEach((b, i) => h.setUint8(i, b));
+    h.setUint32(4, total);
+    return concatBytes([new Uint8Array(h.buffer), ...parts]);
+  }
+  function concatBytes(parts) {
+    const out = new Uint8Array(parts.reduce((n, p) => n + p.length, 0));
+    let at = 0;
+    for (const p of parts) {
+      out.set(p, at);
+      at += p.length;
+    }
+    return out;
+  }
+
+  const ANDROID_DENSITIES = [
+    ['mdpi', 48],
+    ['hdpi', 72],
+    ['xhdpi', 96],
+    ['xxhdpi', 144],
+    ['xxxhdpi', 192],
+  ];
+  // macOS: the .iconset names iconutil expects, and the matching icns types.
+  const MAC_ICONSET = [
+    [16, 'icon_16x16.png', 'icp4'],
+    [32, 'icon_16x16@2x.png', 'ic11'],
+    [32, 'icon_32x32.png', 'icp5'],
+    [64, 'icon_32x32@2x.png', 'ic12'],
+    [128, 'icon_128x128.png', 'ic07'],
+    [256, 'icon_128x128@2x.png', 'ic13'],
+    [256, 'icon_256x256.png', 'ic08'],
+    [512, 'icon_256x256@2x.png', 'ic14'],
+    [512, 'icon_512x512.png', 'ic09'],
+    [1024, 'icon_512x512@2x.png', 'ic10'],
+  ];
+
+  async function exportAppIcons({ web, ios, android, macos }, bg) {
+    if (!web && !ios && !android && !macos) return say('Pick at least one platform.');
+    const jobs = [];
+    if (web) jobs.push([16], [32], [48], [180, true], [192], [512]);
+    if (ios) jobs.push([1024, true]);
+    if (android) jobs.push(...ANDROID_DENSITIES.map(([, s]) => [s]), [512]);
+    if (macos) jobs.push(...MAC_ICONSET.map(([s]) => [s]));
+    say('Drawing the app icons…');
+    let png;
+    try {
+      png = await renderIconPngs(jobs, bg);
+    } catch {
+      return say('App icon export failed: the drawing couldn’t be drawn as an image.');
+    }
+    const name = state.fileName;
+    const json = (o) => JSON.stringify(o, null, 2) + '\n';
+    const files = [];
+    const readme = [`App icons for ${name}, exported by SVGCraft.`, ''];
+    if (web) {
+      files.push(
+        ['web/favicon.ico', icoBytes([16, 32, 48].map((s) => [s, png(s)]))],
+        ['web/favicon.svg', serialize({ fontCss: fontImport() })],
+        ['web/apple-touch-icon.png', png(180, true)],
+        ['web/icon-192.png', png(192)],
+        ['web/icon-512.png', png(512)],
+        [
+          'web/site.webmanifest',
+          json({
+            name,
+            icons: [
+              { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
+              { src: 'icon-512.png', sizes: '512x512', type: 'image/png' },
+            ],
+          }),
+        ],
+        [
+          'web/head.html',
+          [
+            '<link rel="icon" href="/favicon.ico" sizes="32x32">',
+            '<link rel="icon" href="/favicon.svg" type="image/svg+xml">',
+            '<link rel="apple-touch-icon" href="/apple-touch-icon.png">',
+            '<link rel="manifest" href="/site.webmanifest">',
+            '',
+          ].join('\n'),
+        ],
+      );
+      readme.push("web/      Put these at your site root and add head.html to your pages' <head>.");
+    }
+    if (ios) {
+      files.push(
+        ['ios/AppIcon.appiconset/AppIcon-1024.png', png(1024, true)],
+        [
+          'ios/AppIcon.appiconset/Contents.json',
+          json({
+            images: [
+              {
+                filename: 'AppIcon-1024.png',
+                idiom: 'universal',
+                platform: 'ios',
+                size: '1024x1024',
+              },
+            ],
+            info: { author: 'svgcraft', version: 1 },
+          }),
+        ],
+      );
+      readme.push(
+        'ios/      Drag AppIcon.appiconset into your Xcode asset catalogue (Xcode 14+).',
+        '          iOS rounds the corners itself.',
+      );
+    }
+    if (android) {
+      for (const [d, s] of ANDROID_DENSITIES)
+        files.push([`android/res/mipmap-${d}/ic_launcher.png`, png(s)]);
+      files.push(['android/playstore-icon.png', png(512)]);
+      readme.push(
+        'android/  Copy res/ into app/src/main/; playstore-icon.png is for the Play Console.',
+      );
+    }
+    if (macos) {
+      for (const [s, file] of MAC_ICONSET) files.push([`macos/AppIcon.iconset/${file}`, png(s)]);
+      files.push(['macos/AppIcon.icns', icnsBytes(MAC_ICONSET.map(([s, , t]) => [t, png(s)]))]);
+      readme.push(
+        'macos/    AppIcon.icns is ready to use; iconutil -c icns AppIcon.iconset rebuilds it.',
+      );
+    }
+    files.push(['README.txt', readme.join('\n') + '\n']);
+    download(zipBlob(files), `${name}-app-icons.zip`);
+    say(`Exported ${name}-app-icons.zip.`);
+  }
+
+  const aiDlg = $('#sc-appicons');
+  function openAppIcons() {
+    aiDlg.hidden = false;
+    setTimeout(() => aiDlg.querySelector('[data-ai-btn="ok"]').focus(), 0);
+  }
+  function closeAppIcons(ok) {
+    aiDlg.hidden = true;
+    if (!ok) return;
+    const on = (k) => aiDlg.querySelector(`[data-ai="${k}"]`).checked;
+    exportAppIcons(
+      { web: on('web'), ios: on('ios'), android: on('android'), macos: on('macos') },
+      $('#sc-ai-bg').value,
+    );
+  }
+  aiDlg.addEventListener('keydown', (e) => {
+    e.stopPropagation();
+    if (e.key === 'Enter' && !e.target.closest('[data-ai-btn="cancel"]')) {
+      e.preventDefault();
+      closeAppIcons(true);
+    } else if (e.key === 'Escape') closeAppIcons(false);
+  });
+  aiDlg.querySelector('[data-ai-btn="ok"]').addEventListener('click', () => closeAppIcons(true));
+  aiDlg
+    .querySelector('[data-ai-btn="cancel"]')
+    .addEventListener('click', () => closeAppIcons(false));
+
   async function copySvg() {
     const text = serialize({ selection: state.sel.length > 0, fontCss: fontImport() });
     try {
@@ -10562,7 +10832,7 @@
     const central = [];
     let offset = 0;
     for (const [name, text] of files) {
-      const data = enc.encode(text);
+      const data = typeof text === 'string' ? enc.encode(text) : text;
       const fname = enc.encode(name);
       const crc = crc32(data);
       // The fields local and central headers share, from "version needed" on.
@@ -12077,6 +12347,7 @@
     exportPng1: () => exportPng(1),
     exportPng2: () => exportPng(2),
     exportPng4: () => exportPng(4),
+    exportAppIcons: openAppIcons,
     copySvg,
     fileInfo: openFileInfo,
     toggleSource,

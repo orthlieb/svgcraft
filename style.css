@@ -2575,3 +2575,15 @@ select[data-stroke-dash] {
 .sc-preview .sc-splitter {
   display: none !important;
 }
+
+/* ---- File → Export App Icons… ------------------------------------------------ */
+.sc-appicons {
+  width: min(380px, calc(100vw - 32px));
+}
+.sc-ai-note {
+  margin: 0;
+}
+.sc-appicons .sc-field .sc-unit {
+  white-space: normal;
+  line-height: 1.3;
+}
