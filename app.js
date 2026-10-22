@@ -116,6 +116,9 @@
     guidesLocked: false,
     snapGuides: true,
     smart: true, // smart guides: snap to other objects and the artboard
+    pixelGrid: false, // View → Pixel Grid (from 600%)
+    snapPixel: false, // View → Snap to Pixel
+    keylines: false, // View → Icon Keylines
     rulers: true,
     opacity: 1,
   };
@@ -189,6 +192,7 @@
       .map((m) => ({ axis: m[1], pos: parseFloat(m[2]) }));
 
   function renderGuides() {
+    drawKeylines();
     guideLayer.replaceChildren();
     guideLayer.toggleAttribute('data-locked', state.guidesLocked);
     if (!state.guidesOn) return;
@@ -269,8 +273,10 @@
     const hx = closest(c.xs, [p.x], tol);
     const hy = closest(c.ys, [p.y], tol);
     const g = state.gridSize;
-    const x = hx ? hx.v : state.snap ? Math.round(p.x / g) * g : p.x;
-    const y = hy ? hy.v : state.snap ? Math.round(p.y / g) * g : p.y;
+    const o = state.snapPixel ? pixelOffset(state.tool === 'node' ? tools.node.el : null) : 0;
+    const free = (v) => (state.snap ? Math.round(v / g) * g : state.snapPixel ? toPixel(v, o) : v);
+    const x = hx ? hx.v : free(p.x);
+    const y = hy ? hy.v : free(p.y);
     showSmart([hx, hy], { x, y, w: 0, h: 0 });
     return { x, y };
   }
@@ -287,10 +293,13 @@
     const hx = closest(c.xs, [box.x + dx, box.x + box.w / 2 + dx, box.x + box.w + dx], tol);
     const hy = closest(c.ys, [box.y + dy, box.y + box.h / 2 + dy, box.y + box.h + dy], tol);
     const g = state.gridSize;
+    const o = state.snapPixel && state.sel.length === 1 ? pixelOffset(state.sel[0]) : 0;
     if (hx) dx += hx.v - hx.from;
     else if (state.snap) dx = Math.round((box.x + dx) / g) * g - box.x;
+    else if (state.snapPixel) dx = toPixel(box.x + dx, o) - box.x;
     if (hy) dy += hy.v - hy.from;
     else if (state.snap) dy = Math.round((box.y + dy) / g) * g - box.y;
+    else if (state.snapPixel) dy = toPixel(box.y + dy, o) - box.y;
     showSmart([hx, hy], { x: box.x + dx, y: box.y + dy, w: box.w, h: box.h });
     return { dx, dy };
   }
@@ -463,6 +472,9 @@
           guidesLocked: state.guidesLocked,
           snapGuides: state.snapGuides,
           smart: state.smart,
+          pixelGrid: state.pixelGrid,
+          snapPixel: state.snapPixel,
+          keylines: state.keylines,
         }),
       );
     } catch {
@@ -476,6 +488,9 @@
       toggleLockGuides: state.guidesLocked,
       toggleSnapGuides: state.snapGuides,
       toggleSmart: state.smart,
+      togglePixelGrid: state.pixelGrid,
+      toggleSnapPixel: state.snapPixel,
+      toggleKeylines: state.keylines,
     };
     for (const [a, v] of Object.entries(on))
       $(`[data-action="${a}"]`).setAttribute('aria-checked', v);
@@ -490,6 +505,7 @@
     state[key] = !state[key];
     if (key === 'rulers') setRulers(state.rulers);
     renderGuides();
+    drawPixelGrid();
     syncViewMenu();
     saveView();
   }
@@ -2484,6 +2500,7 @@
     clearTimeout(saveTimer);
     saveTimer = setTimeout(saveDocs, 400);
     srcSchedule();
+    scheduleIconPreview();
   }
 
   // ---------------------------------------------------------------------
@@ -2667,17 +2684,18 @@
     return d;
   }
 
-  function newDoc() {
-    const d = addDoc(nextUntitled());
+  // File → New, and New Icon with its size, name and margin guides.
+  function newDoc({ w = 800, h = 600, name = nextUntitled(), guides = [] } = {}) {
+    const d = addDoc(name);
     tools[state.tool].leave?.();
     dropIso();
     doc.replaceChildren();
     defs.replaceChildren();
     state.sel = [];
-    state.guides = [];
+    state.guides = guides;
     state.meta = {};
+    setSize(w, h);
     renderGuides();
-    setSize(800, 600);
     fit();
     commit();
     d.saved = d.svg;
@@ -2795,10 +2813,404 @@
       el.setAttribute('y', i * c);
     }
     $('#sc-gridline').setAttribute('stroke-width', 1 / state.zoom);
+    drawPixelGrid();
     drawRulers();
     drawSelection();
     tools[state.tool].redraw?.();
   }
+
+  // ---- icon mode: pixel grid, snap to pixel, keylines, icon preview ----------------
+  // The pixel grid shows from 600% up, as in Illustrator. It's drawn only
+  // where the artboard is on screen, with hairlines whatever the zoom.
+  const PIXEL_GRID_ZOOM = 6;
+  function drawPixelGrid() {
+    const path = $('#sc-pixgrid');
+    if (!state.pixelGrid || state.zoom < PIXEL_GRID_ZOOM) return path.setAttribute('d', '');
+    const r = stage.getBoundingClientRect();
+    const x0 = Math.max(0, Math.floor(-state.panX / state.zoom));
+    const y0 = Math.max(0, Math.floor(-state.panY / state.zoom));
+    const x1 = Math.min(Math.floor(state.w), Math.ceil((r.width - state.panX) / state.zoom));
+    const y1 = Math.min(Math.floor(state.h), Math.ceil((r.height - state.panY) / state.zoom));
+    let d = '';
+    if (x1 > x0 && y1 > y0) {
+      for (let x = x0; x <= x1; x++) d += `M${x} ${y0}V${y1}`;
+      for (let y = y0; y <= y1; y++) d += `M${x0} ${y}H${x1}`;
+    }
+    path.setAttribute('d', d);
+  }
+
+  // Snap to Pixel puts points and edges on whole pixels, or on half pixels
+  // when a centred stroke of odd whole width would otherwise straddle them,
+  // so the stroke's own edges land on whole pixels.
+  const DRAW_TOOLS = new Set(['rect', 'ellipse', 'line', 'pen', 'pencil']);
+  const oddCentred = (on, w, align) =>
+    on && align === 'center' && Number.isInteger(w) && w % 2 === 1;
+  function pixelOffset(el) {
+    if (!el)
+      return DRAW_TOOLS.has(state.tool) &&
+        oddCentred(state.strokeOn, +state.strokeWidth, state.strokeAlign)
+        ? 0.5
+        : 0;
+    const cs = getComputedStyle(el);
+    return oddCentred(
+      cs.stroke !== 'none',
+      parseFloat(cs.strokeWidth),
+      el.getAttribute('data-stroke-align') || 'center',
+    )
+      ? 0.5
+      : 0;
+  }
+  const toPixel = (v, o) => Math.round(v - o) + o;
+
+  // Keylines (Material's icon grid): a circle, a square and portrait and
+  // landscape rectangles, centred in the live area, with its diagonals and
+  // centre lines. The live area is inside the margin guides nearest each
+  // edge (within a quarter of the artboard), so moving a guide moves them.
+  function liveArea() {
+    const m = Math.round(Math.min(state.w, state.h) / 12);
+    const span = (axis, size) => {
+      const ps = state.guides.filter((g) => g.axis === axis).map((g) => g.pos);
+      const lo = ps.filter((p) => p > 0 && p <= size / 4);
+      const hi = ps.filter((p) => p < size && p >= (size * 3) / 4);
+      return [lo.length ? Math.max(...lo) : m, hi.length ? Math.min(...hi) : size - m];
+    };
+    const [x0, x1] = span('x', state.w);
+    const [y0, y1] = span('y', state.h);
+    return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
+  }
+  function drawKeylines() {
+    const g = $('#sc-keylines');
+    g.replaceChildren();
+    if (!state.keylines) return;
+    const a = liveArea();
+    if (a.w <= 0 || a.h <= 0) return;
+    const cx = a.x + a.w / 2;
+    const cy = a.y + a.h / 2;
+    const L = Math.min(a.w, a.h);
+    const box = (w, h) =>
+      mk(
+        'rect',
+        {
+          x: cx - w / 2,
+          y: cy - h / 2,
+          width: w,
+          height: h,
+          rx: L / 10,
+          class: 'sc-keyline',
+        },
+        g,
+      );
+    mk('circle', { cx, cy, r: L / 2, class: 'sc-keyline' }, g);
+    box(L * 0.9, L * 0.9);
+    box(L * 0.8, L);
+    box(L, L * 0.8);
+    const line = (x1, y1, x2, y2) => mk('line', { x1, y1, x2, y2, class: 'sc-keyline' }, g);
+    line(a.x, a.y, a.x + a.w, a.y + a.h);
+    line(a.x + a.w, a.y, a.x, a.y + a.h);
+    line(cx, a.y, cx, a.y + a.h);
+    line(a.x, cy, a.x + a.w, cy);
+  }
+
+  // A floating window: drag it by its title bar, and keep it on screen.
+  function winClamp(win) {
+    const r = win.getBoundingClientRect();
+    win.style.left = `${clamp(r.left, 0, Math.max(0, innerWidth - 120))}px`;
+    win.style.top = `${clamp(r.top, 0, Math.max(0, innerHeight - 40))}px`;
+  }
+  function dragWindow(win, bar) {
+    bar.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0 || e.target.closest('button')) return;
+      e.preventDefault();
+      const r = win.getBoundingClientRect();
+      const dx = e.clientX - r.left;
+      const dy = e.clientY - r.top;
+      bar.setPointerCapture(e.pointerId);
+      const move = (ev) => {
+        win.style.left = `${ev.clientX - dx}px`;
+        win.style.top = `${ev.clientY - dy}px`;
+        winClamp(win);
+      };
+      const up = () => {
+        bar.removeEventListener('pointermove', move);
+        bar.removeEventListener('pointerup', up);
+        bar.removeEventListener('pointercancel', up);
+      };
+      bar.addEventListener('pointermove', move);
+      bar.addEventListener('pointerup', up);
+      bar.addEventListener('pointercancel', up);
+    });
+    window.addEventListener('resize', () => !win.hidden && winClamp(win));
+  }
+
+  // View → Icon Preview: the drawing at icon sizes on a light, dark or
+  // checkerboard background (or all three). Each is an <img> of the exported
+  // SVG at that many CSS pixels, so the browser draws it the way a page would.
+  // The background starts on the app's theme; a choice is remembered.
+  const ICON_SIZES = [16, 24, 32, 48, 64, 128];
+  const ICON_BGS = [
+    ['light', 'Light'],
+    ['dark', 'Dark'],
+    ['checker', 'Transparent'],
+  ];
+  const iconPrev = { open: false, url: null, timer: 0 };
+  const ipWin = $('#sc-iconprev');
+  function buildIconPreview() {
+    const body = $('#sc-ip-body');
+    if (body.firstChild) return;
+    for (const [bg, label] of ICON_BGS) {
+      const row = document.createElement('div');
+      row.className = `sc-ip-row sc-ip-${bg}`;
+      row.dataset.bg = bg;
+      row.setAttribute('role', 'group');
+      row.setAttribute('aria-label', label);
+      for (const size of ICON_SIZES) {
+        const b = document.createElement('button');
+        b.className = 'sc-ip-tile';
+        b.dataset.size = size;
+        b.dataset.tip = `${size} × ${size} px on ${label.toLowerCase()}: show the canvas at this size`;
+        b.setAttribute('aria-label', `${size} px on ${label.toLowerCase()}`);
+        const box = document.createElement('span');
+        box.className = 'sc-ip-box';
+        box.style.width = box.style.height = `${size}px`;
+        const img = document.createElement('img');
+        img.alt = '';
+        img.decoding = 'async';
+        box.append(img);
+        const cap = document.createElement('span');
+        cap.className = 'sc-ip-cap';
+        cap.textContent = size;
+        b.append(box, cap);
+        b.addEventListener('click', () => showAtSize(size));
+        row.append(b);
+      }
+      body.append(row);
+    }
+  }
+  const IP_BG_KEY = 'svgcraft.iconPreviewBg';
+  function iconPreviewBg() {
+    try {
+      const v = localStorage.getItem(IP_BG_KEY);
+      if (v === 'all' || ICON_BGS.some(([k]) => k === v)) return v;
+    } catch {
+      /* storage blocked: follow the theme */
+    }
+    return isDark() ? 'dark' : 'light';
+  }
+  function setIconPreviewBg(bg, save = true) {
+    if (save)
+      try {
+        localStorage.setItem(IP_BG_KEY, bg);
+      } catch {
+        /* storage blocked: just for this visit */
+      }
+    for (const b of ipWin.querySelectorAll('[data-ip-bg]'))
+      b.setAttribute('aria-checked', b.dataset.ipBg === bg);
+    for (const row of ipWin.querySelectorAll('.sc-ip-row'))
+      row.hidden = bg !== 'all' && row.dataset.bg !== bg;
+  }
+  for (const b of ipWin.querySelectorAll('[data-ip-bg]'))
+    b.addEventListener('click', () => setIconPreviewBg(b.dataset.ipBg));
+  function renderIconPreview() {
+    if (!iconPrev.open) return;
+    buildIconPreview();
+    setIconPreviewBg(iconPreviewBg(), false);
+    const old = iconPrev.url;
+    iconPrev.url = URL.createObjectURL(new Blob([serialize()], { type: 'image/svg+xml' }));
+    const big = Math.max(state.w, state.h);
+    for (const img of ipWin.querySelectorAll('.sc-ip-box img')) {
+      const size = +img.closest('.sc-ip-tile').dataset.size;
+      img.width = Math.max(1, Math.round((size * state.w) / big));
+      img.height = Math.max(1, Math.round((size * state.h) / big));
+      img.src = iconPrev.url;
+    }
+    if (old) setTimeout(() => URL.revokeObjectURL(old), 1000);
+  }
+  function scheduleIconPreview() {
+    if (!iconPrev.open) return;
+    clearTimeout(iconPrev.timer);
+    iconPrev.timer = setTimeout(renderIconPreview, 120);
+  }
+  // The canvas with the artboard's longer side at `size` screen pixels.
+  function showAtSize(size) {
+    const r = stage.getBoundingClientRect();
+    state.zoom = clamp(size / Math.max(state.w, state.h), 0.02, 64);
+    state.panX = (r.width - state.w * state.zoom) / 2;
+    state.panY = (r.height - state.h * state.zoom) / 2;
+    applyView();
+  }
+  function openIconPreview() {
+    iconPrev.open = true;
+    ipWin.hidden = false;
+    if (!ipWin.style.left) {
+      ipWin.style.left = `${Math.max(8, innerWidth - ipWin.offsetWidth - 320)}px`;
+      ipWin.style.top = '96px';
+    }
+    winClamp(ipWin);
+    $('[data-action="toggleIconPreview"]').setAttribute('aria-checked', 'true');
+    renderIconPreview();
+  }
+  function closeIconPreview() {
+    if (!iconPrev.open) return;
+    iconPrev.open = false;
+    clearTimeout(iconPrev.timer);
+    ipWin.hidden = true;
+    $('[data-action="toggleIconPreview"]').setAttribute('aria-checked', 'false');
+    if (ipWin.contains(document.activeElement)) document.activeElement.blur();
+  }
+  const toggleIconPreview = () => (iconPrev.open ? closeIconPreview() : openIconPreview());
+  dragWindow(ipWin, $('#sc-ip-titlebar'));
+  $('#sc-ip-close').addEventListener('click', closeIconPreview);
+  ipWin.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    e.stopPropagation();
+    closeIconPreview();
+  });
+
+  // File → New Icon…: a square artboard with its margins (and, optionally,
+  // centre lines) as ordinary guides, ready for keylines, the pixel grid and
+  // the icon preview. Templates follow the platforms' icon guidelines;
+  // `extra` adds more guides, inset that far from every edge.
+  const ICON_TEMPLATES = {
+    material: {
+      size: 24,
+      margin: 2,
+      keylines: true,
+      pixels: true,
+      note: 'Material Design system icon: a 20 px live area inside 2 px of padding, with keylines.',
+    },
+    favicon: {
+      size: 32,
+      margin: 1,
+      keylines: false,
+      pixels: true,
+      note: 'Browser tab icon. Keep it bold: browsers also show it at 16 px.',
+    },
+    adaptive: {
+      size: 432,
+      margin: 84,
+      extra: [72],
+      keylines: true,
+      pixels: false,
+      note:
+        'Android adaptive launcher icon, 108 dp at 4×. Launchers show the middle 72 dp ' +
+        '(guides 72 px in) and mask it to their own shape; keep the logo inside the 66 dp ' +
+        'safe zone (guides 84 px in).',
+    },
+    play: {
+      size: 512,
+      margin: 0,
+      keylines: true,
+      pixels: false,
+      note: 'Google Play store icon: full bleed and square. Google Play rounds the corners itself.',
+    },
+    ios: {
+      size: 1024,
+      margin: 0,
+      keylines: false,
+      pixels: false,
+      note:
+        'iOS app icon: full bleed, square and opaque. iOS rounds the corners itself, so ' +
+        'don’t draw them.',
+    },
+    macos: {
+      size: 1024,
+      margin: 100,
+      keylines: false,
+      pixels: false,
+      note:
+        'macOS app icon: an 824 px rounded body (corner radius about 185 px) inside the ' +
+        'margin guides, leaving room for its shadow.',
+    },
+  };
+  const niDlg = $('#sc-newicon');
+  const niSize = $('#sc-ni-size');
+  const niMarginEl = $('#sc-ni-margin');
+  const niTemplate = $('#sc-ni-template');
+  const niAutoMargin = (s) => Math.max(1, Math.round(s / 12));
+  let niMarginSet = false;
+  function setNewIconSize(s, fromTemplate = false) {
+    niSize.value = s;
+    if (!fromTemplate) {
+      niTemplate.value = '';
+      $('#sc-ni-note').hidden = true;
+      if (!niMarginSet) niMarginEl.value = niAutoMargin(s);
+      $('#sc-ni-pixels').checked = s <= 128;
+    }
+    for (const b of niDlg.querySelectorAll('[data-ni-size]'))
+      b.classList.toggle('on', +b.dataset.niSize === s);
+  }
+  function setNewIconTemplate(key) {
+    const t = ICON_TEMPLATES[key];
+    const note = $('#sc-ni-note');
+    if (!t) {
+      note.hidden = true;
+      return;
+    }
+    setNewIconSize(t.size, true);
+    niMarginEl.value = t.margin;
+    niMarginSet = true;
+    $('#sc-ni-keylines').checked = t.keylines;
+    $('#sc-ni-pixels').checked = t.pixels;
+    note.textContent = t.note;
+    note.hidden = false;
+  }
+  function openNewIcon() {
+    niMarginSet = false;
+    if (niTemplate.value) setNewIconTemplate(niTemplate.value);
+    else setNewIconSize(+niSize.value || 24);
+    niDlg.hidden = false;
+    setTimeout(() => niDlg.querySelector('[data-ni="ok"]').focus(), 0);
+  }
+  function closeNewIcon(ok) {
+    niDlg.hidden = true;
+    if (!ok) return;
+    const s = clamp(Math.round(+niSize.value) || 24, 8, 2048);
+    const raw = Math.round(+niMarginEl.value);
+    const m = clamp(isFinite(raw) ? raw : niAutoMargin(s), 0, Math.ceil(s / 2) - 1);
+    const guides = [];
+    const inset = [m, ...(ICON_TEMPLATES[niTemplate.value]?.extra || [])].filter(
+      (v) => v > 0 && v < s / 2,
+    );
+    for (const axis of ['x', 'y'])
+      for (const v of inset) guides.push({ axis, pos: v }, { axis, pos: s - v });
+    if ($('#sc-ni-centre').checked)
+      for (const axis of ['x', 'y']) guides.push({ axis, pos: s / 2 });
+    let name = `icon-${s}`;
+    for (let n = 2; docs.some((d) => d.name === name); n++) name = `icon-${s}-${n}`;
+    state.keylines = $('#sc-ni-keylines').checked;
+    state.pixelGrid = state.snapPixel = $('#sc-ni-pixels').checked;
+    state.guidesOn = true;
+    syncViewMenu();
+    saveView();
+    // An untouched Untitled tab gives way to the icon, as with Open.
+    const spare = pristine(curDoc) ? curDoc : null;
+    newDoc({ w: s, h: s, name, guides });
+    if (spare) {
+      docs.splice(docs.indexOf(spare), 1);
+      renderTabs();
+      saveDocs();
+    }
+    drawPixelGrid();
+    if ($('#sc-ni-preview').checked) openIconPreview();
+    say(`New ${s} × ${s} icon${m > 0 ? `, ${m} px margins as guides` : ''}.`);
+  }
+  for (const b of niDlg.querySelectorAll('[data-ni-size]'))
+    b.addEventListener('click', () => setNewIconSize(+b.dataset.niSize));
+  niSize.addEventListener('input', () => setNewIconSize(+niSize.value));
+  niMarginEl.addEventListener('input', () => (niMarginSet = true));
+  niTemplate.addEventListener('change', () => {
+    niMarginSet = false;
+    setNewIconTemplate(niTemplate.value);
+  });
+  niDlg.addEventListener('keydown', (e) => {
+    e.stopPropagation();
+    if (e.key === 'Enter' && !e.target.closest('[data-ni-size], [data-ni="cancel"], select')) {
+      e.preventDefault();
+      closeNewIcon(true);
+    } else if (e.key === 'Escape') closeNewIcon(false);
+  });
+  niDlg.querySelector('[data-ni="ok"]').addEventListener('click', () => closeNewIcon(true));
+  niDlg.querySelector('[data-ni="cancel"]').addEventListener('click', () => closeNewIcon(false));
 
   function zoomAt(z, sx, sy) {
     z = clamp(z, 0.02, 64);
@@ -2855,6 +3267,8 @@
     }
     $('#sc-w').value = f(state.w);
     $('#sc-h').value = f(state.h);
+    drawPixelGrid();
+    drawKeylines();
     updateTitle();
   }
 
@@ -8975,11 +9389,7 @@
   const toggleSource = () => (srcView.open ? closeSource() : openSource());
 
   // Keep at least the title bar on screen.
-  function srcClamp() {
-    const r = srcWin.getBoundingClientRect();
-    srcWin.style.left = `${clamp(r.left, 0, Math.max(0, innerWidth - 120))}px`;
-    srcWin.style.top = `${clamp(r.top, 0, Math.max(0, innerHeight - 40))}px`;
-  }
+  const srcClamp = () => winClamp(srcWin);
 
   async function copySource() {
     srcRender();
@@ -9062,29 +9472,7 @@
     });
 
     // Drag by the title bar; resizing is the browser's own corner handle.
-    const bar = $('#sc-src-titlebar');
-    bar.addEventListener('pointerdown', (e) => {
-      if (e.button !== 0 || e.target.closest('button')) return;
-      e.preventDefault();
-      const r = srcWin.getBoundingClientRect();
-      const dx = e.clientX - r.left;
-      const dy = e.clientY - r.top;
-      bar.setPointerCapture(e.pointerId);
-      const move = (ev) => {
-        srcWin.style.left = `${ev.clientX - dx}px`;
-        srcWin.style.top = `${ev.clientY - dy}px`;
-        srcClamp();
-      };
-      const up = () => {
-        bar.removeEventListener('pointermove', move);
-        bar.removeEventListener('pointerup', up);
-        bar.removeEventListener('pointercancel', up);
-      };
-      bar.addEventListener('pointermove', move);
-      bar.addEventListener('pointerup', up);
-      bar.addEventListener('pointercancel', up);
-    });
-    window.addEventListener('resize', () => srcView.open && srcClamp());
+    dragWindow(srcWin, $('#sc-src-titlebar'));
   }
   // Copy / cut inside the source window copy its text, not the layers.
   const inSource = (e) => {
@@ -11349,6 +11737,11 @@
       openFileInfo();
       return;
     }
+    if (mod && e.altKey && e.code === 'KeyP') {
+      e.preventDefault();
+      toggleIconPreview();
+      return;
+    }
     if (mod && e.altKey && e.code === 'KeyG') {
       e.preventDefault();
       if (e.shiftKey) releaseClip();
@@ -11535,7 +11928,12 @@
     editSymbol,
     breakSymbolLink,
     symbolDone: () => exitIso(),
-    new: newDoc,
+    new: () => newDoc(),
+    newIcon: openNewIcon,
+    togglePixelGrid: () => toggleView('pixelGrid'),
+    toggleSnapPixel: () => toggleView('snapPixel'),
+    toggleKeylines: () => toggleView('keylines'),
+    toggleIconPreview,
     closeDoc: () => closeDoc(curDoc),
     open: () => openPicker('open'),
     place: () => openPicker('place'),

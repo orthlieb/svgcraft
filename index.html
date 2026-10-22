@@ -32,6 +32,9 @@
             <button role="menuitem" data-action="new">
               <i data-icon="file"></i><span>New</span>
             </button>
+            <button role="menuitem" data-action="newIcon">
+              <i data-icon="icons"></i><span>New Icon…</span>
+            </button>
             <button role="menuitem" data-action="open">
               <i data-icon="folder-open"></i><span>Open…</span><kbd>Ctrl+O</kbd>
             </button>
@@ -336,6 +339,18 @@
             </button>
             <button role="menuitemcheckbox" data-action="toggleSnap" aria-checked="false">
               <i data-icon="magnet"></i><span>Snap to Grid</span>
+            </button>
+            <button role="menuitemcheckbox" data-action="togglePixelGrid" aria-checked="false">
+              <i data-icon="table-cells"></i><span>Pixel Grid</span>
+            </button>
+            <button role="menuitemcheckbox" data-action="toggleSnapPixel" aria-checked="false">
+              <i></i><span>Snap to Pixel</span>
+            </button>
+            <button role="menuitemcheckbox" data-action="toggleKeylines" aria-checked="false">
+              <i data-icon="crosshairs"></i><span>Icon Keylines</span>
+            </button>
+            <button role="menuitemcheckbox" data-action="toggleIconPreview" aria-checked="false">
+              <i data-icon="images"></i><span>Icon Preview</span><kbd>Ctrl+Alt+P</kbd>
             </button>
             <hr />
             <button role="menuitemcheckbox" data-action="toggleRulers" aria-checked="true">
@@ -1199,6 +1214,8 @@
               <defs id="sc-defs"></defs>
               <g id="sc-doc"></g>
               <rect id="sc-board-frame" x="0" y="0" width="800" height="600" fill="none" />
+              <path id="sc-pixgrid" class="sc-pixgrid" />
+              <g id="sc-keylines"></g>
               <g id="sc-guidelines"></g>
               <g id="sc-selection"></g>
               <g id="sc-nodes"></g>
@@ -2476,6 +2493,102 @@
         <button class="sc-tbtn" data-ng="cancel">Cancel</button>
         <button class="sc-tbtn sc-primary-btn" data-ng="ok">OK</button>
       </div>
+    </div>
+
+    <!-- File → New Icon…: a square artboard with its margins as guides. -->
+    <div
+      class="sc-dialog sc-newicon"
+      id="sc-newicon"
+      role="dialog"
+      aria-modal="false"
+      aria-labelledby="sc-ni-title"
+      hidden
+    >
+      <div class="sc-dialog-title" id="sc-ni-title">New Icon</div>
+      <div class="sc-dialog-body">
+        <label class="sc-field"
+          >Template
+          <select id="sc-ni-template" aria-label="Template">
+            <option value="">Custom</option>
+            <option value="material">Material system icon · 24</option>
+            <option value="favicon">Favicon · 32</option>
+            <option value="adaptive">Android adaptive icon · 108 dp (432)</option>
+            <option value="play">Google Play icon · 512</option>
+            <option value="ios">iOS app icon · 1024</option>
+            <option value="macos">macOS app icon · 1024</option>
+          </select></label
+        >
+        <p class="sc-hint sc-ni-note" id="sc-ni-note" hidden></p>
+        <div class="sc-ni-sizes" role="group" aria-label="Size presets">
+          <button class="sc-tbtn" data-ni-size="16">16</button>
+          <button class="sc-tbtn" data-ni-size="24">24</button>
+          <button class="sc-tbtn" data-ni-size="32">32</button>
+          <button class="sc-tbtn" data-ni-size="48">48</button>
+          <button class="sc-tbtn" data-ni-size="64">64</button>
+          <button class="sc-tbtn" data-ni-size="128">128</button>
+          <button class="sc-tbtn" data-ni-size="256">256</button>
+          <button class="sc-tbtn" data-ni-size="512">512</button>
+          <button class="sc-tbtn" data-ni-size="1024">1024</button>
+          <button class="sc-tbtn" data-ni-size="2048">2048</button>
+        </div>
+        <label class="sc-field"
+          >Size <input type="number" id="sc-ni-size" min="8" max="2048" step="1" /><span
+            class="sc-unit"
+            >px</span
+          ></label
+        >
+        <label class="sc-field"
+          >Margin <input type="number" id="sc-ni-margin" min="0" step="1" /><span class="sc-unit"
+            >px</span
+          ></label
+        >
+        <label class="sc-check"
+          ><input type="checkbox" id="sc-ni-centre" checked /> Centre guides</label
+        >
+        <label class="sc-check"
+          ><input type="checkbox" id="sc-ni-keylines" checked /> Show keylines</label
+        >
+        <label class="sc-check"
+          ><input type="checkbox" id="sc-ni-pixels" checked /> Pixel grid and snap to pixel</label
+        >
+        <label class="sc-check"
+          ><input type="checkbox" id="sc-ni-preview" checked /> Open the icon preview</label
+        >
+      </div>
+      <div class="sc-dialog-foot">
+        <button class="sc-tbtn" data-ni="cancel">Cancel</button>
+        <button class="sc-tbtn sc-primary-btn" data-ni="ok">Create</button>
+      </div>
+    </div>
+
+    <!-- View → Icon Preview: the drawing at icon sizes on light, dark and
+         checkerboard backgrounds, drawn at real screen pixels. -->
+    <div
+      class="sc-src sc-iconprev"
+      id="sc-iconprev"
+      role="dialog"
+      aria-modal="false"
+      aria-labelledby="sc-ip-title"
+      hidden
+    >
+      <div class="sc-src-titlebar" id="sc-ip-titlebar">
+        <span class="sc-src-grip" aria-hidden="true">⠿</span>
+        <i data-icon="images"></i>
+        <span class="sc-src-name" id="sc-ip-title">Icon Preview</span>
+        <button class="sc-src-x" id="sc-ip-close" aria-label="Close" data-tip="Close (Esc)">
+          <i data-icon="xmark"></i>
+        </button>
+      </div>
+      <div class="sc-ip-bar">
+        <div class="sc-seg" role="radiogroup" aria-label="Background">
+          <button role="radio" aria-checked="false" data-ip-bg="light">Light</button>
+          <button role="radio" aria-checked="false" data-ip-bg="dark">Dark</button>
+          <button role="radio" aria-checked="false" data-ip-bg="checker">Transparent</button>
+          <button role="radio" aria-checked="false" data-ip-bg="all">All</button>
+        </div>
+      </div>
+      <div class="sc-ip-body" id="sc-ip-body"></div>
+      <p class="sc-hint sc-ip-hint">Click a size to see it on the canvas at that size.</p>
     </div>
 
     <!-- File → File Info… (document title, author, licence: saved as SVG <title>,

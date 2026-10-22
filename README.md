@@ -513,6 +513,42 @@ point-edited:
   The glyph shapes come from [opentype.js](https://opentype.js.org), which
   loads the first time you create outlines.
 
+## Icons
+
+Tools for drawing icons that stay crisp at small sizes:
+
+- **File → New Icon…** makes a square artboard. Pick a size (16 to 2048,
+  or type one) and a margin: the margins become ordinary guides on all four
+  sides, plus centre guides if you like, so they move, lock, snap and save
+  like any other guide. The margin follows the size (a twelfth of it) until
+  you type your own. An untouched Untitled tab gives way to the icon.
+- **Templates** from the platforms' guidelines set the size, margins and
+  options, and say what the guides mean:
+  - Material system icon: 24 px with 2 px padding and keylines.
+  - Favicon: 32 px.
+  - Android adaptive launcher icon: 108 dp at 4× (432 px), with guides
+    around the 72 dp area launchers show and the 66 dp safe zone inside it.
+  - Google Play icon: 512 px, full bleed.
+  - iOS app icon: 1024 px, full bleed (iOS rounds the corners itself).
+  - macOS app icon: 1024 px with guides around the 824 px body.
+- **View → Icon Keylines** draws Material's keyline shapes (circle, square,
+  portrait and landscape rectangles, diagonals and centre lines) in the live
+  area: inside the guides nearest each edge, so moving a margin guide moves
+  them. Without guides the margin is a twelfth of the artboard. Keylines
+  aren't part of the drawing.
+- **View → Pixel Grid** shows a 1 px grid over the artboard from 600% zoom
+  up, and **View → Snap to Pixel** puts points and moved shapes on whole
+  pixels. A centred stroke of odd whole width (1, 3 px …) snaps to half
+  pixels instead, so its edges land on whole pixels and stay sharp.
+  Guides and smart guides still win when they're close. These and Icon
+  Keylines are remembered.
+- **View → Icon Preview** (Ctrl+Alt+P) opens a floating window with the
+  drawing at 16, 24, 32, 48, 64 and 128 px, drawn by the browser just as a
+  web page would draw the SVG. Show it on a light, dark or transparent
+  (checkerboard) background, or all three: it starts on the app's theme
+  and remembers your choice. It updates as you work, and clicking a size
+  shows the canvas at that size.
+
 ## Symbols
 
 A symbol is artwork you reuse: draw it once, place it as often as you like,
@@ -657,6 +693,7 @@ else is refused with a note under the fields.
 | + − 0 1               | Zoom in / out · fit · 100%                |
 | Ctrl+S · Ctrl+O       | Save as SVG · open                        |
 | Ctrl+U                | Show / hide the SVG source                |
+| Ctrl+Alt+P            | Show / hide the icon preview              |
 | Alt+Shift+Ctrl+I      | File Info                                 |
 
 ## SVG source

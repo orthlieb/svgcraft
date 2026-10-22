@@ -23,6 +23,8 @@
   --check-b: #cccccc;
   --frame: rgba(0, 0, 0, 0.35);
   --grid: rgba(20, 115, 230, 0.22);
+  --pixgrid: rgba(110, 110, 110, 0.5); /* View → Pixel Grid, over the artboard */
+  --keyline: rgba(214, 51, 132, 0.55); /* View → Icon Keylines */
   --danger: #d7373f;
   /* SVG Source syntax colours */
   --syn-tag: #116329;
@@ -55,6 +57,8 @@
     --shadow: rgba(0, 0, 0, 0.55);
     --frame: rgba(0, 0, 0, 0.6);
     --grid: rgba(49, 168, 255, 0.28);
+    --keyline: rgba(244, 114, 182, 0.6);
+    --keyline: rgba(244, 114, 182, 0.6);
     --danger: #f15c62;
     --syn-tag: #7ee787;
     --syn-attr: #79c0ff;
@@ -86,6 +90,7 @@
   --shadow: rgba(0, 0, 0, 0.55);
   --frame: rgba(0, 0, 0, 0.6);
   --grid: rgba(49, 168, 255, 0.28);
+  --keyline: rgba(244, 114, 182, 0.6);
   --danger: #f15c62;
   --syn-tag: #7ee787;
   --syn-attr: #79c0ff;
@@ -722,6 +727,23 @@ kbd {
 }
 .sc-gridline {
   stroke: var(--grid);
+}
+.sc-pixgrid {
+  fill: none;
+  stroke: var(--pixgrid);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  shape-rendering: crispEdges;
+  pointer-events: none;
+}
+#sc-keylines {
+  pointer-events: none;
+}
+.sc-keyline {
+  fill: none;
+  stroke: var(--keyline);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
 }
 #sc-board-frame {
   stroke: var(--frame);
@@ -2398,4 +2420,102 @@ select[data-stroke-dash] {
   background:
     var(--tile) center / contain no-repeat content-box,
     #fff;
+}
+
+/* ---- File → New Icon… ------------------------------------------------------- */
+.sc-newicon {
+  width: min(340px, calc(100vw - 32px));
+}
+.sc-ni-sizes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.sc-ni-sizes .sc-tbtn {
+  min-width: 40px;
+  justify-content: center;
+}
+.sc-ni-sizes .sc-tbtn.on {
+  border-color: var(--accent);
+  background: var(--row-sel);
+}
+
+/* ---- View → Icon Preview ----------------------------------------------------- */
+.sc-iconprev {
+  width: min(440px, calc(100vw - 16px));
+  height: auto;
+  max-height: calc(100vh - 120px);
+  min-height: 0;
+}
+.sc-ip-bar {
+  padding: 8px 8px 0;
+}
+.sc-ip-bar .sc-seg button + button {
+  border-left: 0;
+}
+.sc-ip-row[hidden] {
+  display: none;
+}
+.sc-ni-note {
+  margin: 0;
+}
+.sc-newicon select {
+  min-width: 0;
+  flex: 1;
+}
+.sc-ip-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  overflow: auto;
+}
+.sc-ip-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 4px 10px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+}
+.sc-ip-light {
+  background: #ffffff;
+  color: #555555;
+}
+.sc-ip-dark {
+  background: #1e1e1e;
+  color: #aaaaaa;
+}
+.sc-ip-checker {
+  background: var(--checker) 0 0 / 12px 12px;
+  color: #444444;
+}
+.sc-ip-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 2px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background: transparent;
+  color: inherit;
+  font-size: 10px;
+}
+.sc-ip-tile:hover,
+.sc-ip-tile:focus-visible {
+  border-color: var(--accent);
+  outline: none;
+}
+.sc-ip-box {
+  display: grid;
+  place-items: center;
+}
+.sc-ip-box img {
+  display: block;
+}
+.sc-ip-hint {
+  margin: 0;
+  padding: 0 8px 8px;
 }
