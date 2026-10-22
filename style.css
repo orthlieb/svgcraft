@@ -2097,19 +2097,24 @@ select[data-stroke-dash] {
   stroke-width: 2;
 }
 .sc-dialog {
+  /* A native <dialog>: undo the browser's centring and padding. */
   position: fixed;
-  z-index: 80;
-  top: 96px;
-  left: 50%;
+  inset: 96px auto auto 50%;
   transform: translateX(-50%);
+  margin: 0;
+  padding: 0;
   width: 260px;
+  max-width: calc(100vw - 16px);
+  max-height: calc(100dvh - 112px);
+  overflow: auto;
   border: 1px solid var(--line);
   border-radius: 6px;
   background: var(--menu);
+  color: var(--text);
   box-shadow: 0 10px 30px var(--shadow);
 }
-.sc-dialog[hidden] {
-  display: none;
+.sc-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.12);
 }
 .sc-dialog-title {
   padding: 8px 12px;

@@ -864,6 +864,11 @@ and shortcut table in step with this README.
   geometry.
 - History is a stack of `innerHTML` snapshots (150 deep), which keeps undo
   simple and exact.
+- Dialogs (New Guide, New Icon, File Info, Layer Style, the export
+  dialogs and the name / confirm prompt) are native `<dialog>` elements
+  shown modally, so the browser keeps focus inside them, makes the page
+  behind inert, and turns Esc into the dialog's own Cancel. The SVG Source
+  and Icon Preview windows aren't dialogs: they stay open while you work.
 - `window.svgcraft` exposes `state`, `serialize`, `openSvg`, `placeSvg`
   and friends for poking at the editor from the console.
 

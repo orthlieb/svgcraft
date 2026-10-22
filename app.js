@@ -133,6 +133,20 @@
   const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
   const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 
+  // Dialogs are native <dialog>s, shown modally: the browser moves them to
+  // the top layer, keeps focus inside and makes the page behind inert. Esc
+  // (the dialog's cancel) runs the dialog's own Cancel.
+  function showDialog(d, onCancel) {
+    d.oncancel = (e) => {
+      e.preventDefault();
+      onCancel();
+    };
+    if (!d.open) d.showModal();
+  }
+  function hideDialog(d) {
+    if (d.open) d.close();
+  }
+
   function mk(tag, attrs = {}, parent) {
     const el = document.createElementNS(NS, tag);
     for (const [k, v] of Object.entries(attrs)) if (v != null) el.setAttribute(k, v);
@@ -516,7 +530,7 @@
   // New Guide…: a small dialog with orientation and position.
   const ngDialog = $('#sc-newguide');
   function openNewGuide() {
-    ngDialog.hidden = false;
+    showDialog(ngDialog, () => closeNewGuide(false));
     const inp = ngDialog.querySelector('input[type="number"]');
     inp.value = 0;
     setTimeout(() => {
@@ -536,7 +550,7 @@
         commit();
       }
     }
-    ngDialog.hidden = true;
+    hideDialog(ngDialog);
   }
   ngDialog.addEventListener('keydown', (e) => {
     e.stopPropagation();
@@ -3292,11 +3306,11 @@
     niMarginSet = false;
     if (niTemplate.value) setNewIconTemplate(niTemplate.value);
     else setNewIconSize(+niSize.value || 24);
-    niDlg.hidden = false;
+    showDialog(niDlg, () => closeNewIcon(false));
     setTimeout(() => niDlg.querySelector('[data-ni="ok"]').focus(), 0);
   }
   function closeNewIcon(ok) {
-    niDlg.hidden = true;
+    hideDialog(niDlg);
     if (!ok) return;
     const s = clamp(Math.round(+niSize.value) || 24, 8, 2048);
     const raw = Math.round(+niMarginEl.value);
@@ -7948,7 +7962,7 @@
     showPassThrough(fxDlg.querySelector('[data-fx="blend"]'), els[0]);
     const first = FX_PAGES.find((k) => fxSess.fx[k].on);
     showFxPage(page || first || 'ds');
-    fxDlg.hidden = false;
+    showDialog(fxDlg, () => closeLayerStyle(false));
     // Focus lands on OK, the button the user is about to press.
     setTimeout(() => fxDlg.querySelector('[data-fxd="ok"]').focus(), 0);
   }
@@ -8008,7 +8022,7 @@
       readStyle(fxSess.els[0]);
     } else for (const o of fxSess.orig) fxRestore(o);
     fxSess = null;
-    fxDlg.hidden = true;
+    hideDialog(fxDlg);
     renderLayers();
   }
 
@@ -8904,7 +8918,7 @@
     el.focus();
   }
   function openFileInfo() {
-    if (!infoDlg.hidden) return;
+    if (infoDlg.open) return;
     closeMenus();
     const m = state.meta || {};
     for (const k of ['title', 'creator', 'description', 'rights', 'source', 'language'])
@@ -8917,14 +8931,14 @@
     infoField('licenseUrl').value = key || m.license === 'arr' ? '' : m.license || '';
     syncLicenceUrl();
     infoError();
-    infoDlg.hidden = false;
+    showDialog(infoDlg, () => closeFileInfo(false));
     setTimeout(() => {
       infoField('title').focus();
       infoField('title').select();
     }, 0);
   }
   function closeFileInfo(ok) {
-    if (infoDlg.hidden) return;
+    if (!infoDlg.open) return;
     if (ok) {
       const v = (k) => infoField(k).value;
       const choice = v('license');
@@ -8962,7 +8976,7 @@
         commit();
       }
     }
-    infoDlg.hidden = true;
+    hideDialog(infoDlg);
   }
   infoField('license').addEventListener('change', () => {
     syncLicenceUrl();
@@ -9256,11 +9270,11 @@
       if (el.type === 'checkbox') el.checked = !!o[k];
       else el.value = o[k];
     }
-    csDlg.hidden = false;
+    showDialog(csDlg, () => closeCleanSvg(false));
     setTimeout(() => csDlg.querySelector('[data-cs-btn="ok"]').focus(), 0);
   }
   function closeCleanSvg(ok) {
-    csDlg.hidden = true;
+    hideDialog(csDlg);
     if (!ok) return;
     const o = {};
     for (const el of csDlg.querySelectorAll('[data-cs]'))
@@ -9688,11 +9702,11 @@
 
   const aiDlg = $('#sc-appicons');
   function openAppIcons() {
-    aiDlg.hidden = false;
+    showDialog(aiDlg, () => closeAppIcons(false));
     setTimeout(() => aiDlg.querySelector('[data-ai-btn="ok"]').focus(), 0);
   }
   function closeAppIcons(ok) {
-    aiDlg.hidden = true;
+    hideDialog(aiDlg);
     if (!ok) return;
     const on = (k) => aiDlg.querySelector(`[data-ai="${k}"]`).checked;
     exportAppIcons(
@@ -10620,7 +10634,7 @@
     inp.hidden = value == null;
     inp.value = value ?? '';
     askDlg.querySelector('[data-ask="ok"]').textContent = ok;
-    askDlg.hidden = false;
+    showDialog(askDlg, () => askDone?.(null));
     setTimeout(() => {
       if (value == null) askDlg.querySelector('[data-ask="ok"]').focus();
       else {
@@ -10631,7 +10645,7 @@
     return new Promise((resolve) => {
       askDone = (v) => {
         askDone = null;
-        askDlg.hidden = true;
+        hideDialog(askDlg);
         resolve(v);
       };
     });

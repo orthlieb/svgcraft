@@ -2499,14 +2499,7 @@
     </div>
 
     <!-- View → New Guide… -->
-    <div
-      class="sc-dialog"
-      id="sc-newguide"
-      role="dialog"
-      aria-modal="false"
-      aria-labelledby="sc-ng-title"
-      hidden
-    >
+    <dialog class="sc-dialog" id="sc-newguide" aria-labelledby="sc-ng-title">
       <div class="sc-dialog-title" id="sc-ng-title">New Guide</div>
       <div class="sc-dialog-body">
         <label class="sc-check"
@@ -2524,17 +2517,10 @@
         <button class="sc-tbtn" data-ng="cancel">Cancel</button>
         <button class="sc-tbtn sc-primary-btn" data-ng="ok">OK</button>
       </div>
-    </div>
+    </dialog>
 
     <!-- File → Export Clean SVG…: plain SVG without SVGCraft's editing data. -->
-    <div
-      class="sc-dialog sc-cleansvg"
-      id="sc-cleansvg"
-      role="dialog"
-      aria-modal="false"
-      aria-labelledby="sc-cs-title"
-      hidden
-    >
+    <dialog class="sc-dialog sc-cleansvg" id="sc-cleansvg" aria-labelledby="sc-cs-title">
       <div class="sc-dialog-title" id="sc-cs-title">Export Clean SVG</div>
       <div class="sc-dialog-body">
         <p class="sc-hint sc-cs-note">
@@ -2568,17 +2554,10 @@
         <button class="sc-tbtn" data-cs-btn="cancel">Cancel</button>
         <button class="sc-tbtn sc-primary-btn" data-cs-btn="ok">Export</button>
       </div>
-    </div>
+    </dialog>
 
     <!-- File → Export App Icons…: every size each platform needs, in one zip. -->
-    <div
-      class="sc-dialog sc-appicons"
-      id="sc-appicons"
-      role="dialog"
-      aria-modal="false"
-      aria-labelledby="sc-ai-title"
-      hidden
-    >
+    <dialog class="sc-dialog sc-appicons" id="sc-appicons" aria-labelledby="sc-ai-title">
       <div class="sc-dialog-title" id="sc-ai-title">Export App Icons</div>
       <div class="sc-dialog-body">
         <p class="sc-hint sc-ai-note">
@@ -2612,17 +2591,10 @@
         <button class="sc-tbtn" data-ai-btn="cancel">Cancel</button>
         <button class="sc-tbtn sc-primary-btn" data-ai-btn="ok">Export</button>
       </div>
-    </div>
+    </dialog>
 
     <!-- File → New Icon…: a square artboard with its margins as guides. -->
-    <div
-      class="sc-dialog sc-newicon"
-      id="sc-newicon"
-      role="dialog"
-      aria-modal="false"
-      aria-labelledby="sc-ni-title"
-      hidden
-    >
+    <dialog class="sc-dialog sc-newicon" id="sc-newicon" aria-labelledby="sc-ni-title">
       <div class="sc-dialog-title" id="sc-ni-title">New Icon</div>
       <div class="sc-dialog-body">
         <label class="sc-field"
@@ -2678,7 +2650,7 @@
         <button class="sc-tbtn" data-ni="cancel">Cancel</button>
         <button class="sc-tbtn sc-primary-btn" data-ni="ok">Create</button>
       </div>
-    </div>
+    </dialog>
 
     <!-- View → Icon Preview: the drawing at icon sizes on light, dark and
          checkerboard backgrounds, drawn at real screen pixels. -->
@@ -2757,14 +2729,7 @@
 
     <!-- File → File Info… (document title, author, licence: saved as SVG <title>,
          <desc> and RDF <metadata>). -->
-    <div
-      class="sc-dialog sc-info-dialog"
-      id="sc-fileinfo"
-      role="dialog"
-      aria-modal="false"
-      aria-labelledby="sc-info-title"
-      hidden
-    >
+    <dialog class="sc-dialog sc-info-dialog" id="sc-fileinfo" aria-labelledby="sc-info-title">
       <div class="sc-dialog-title" id="sc-info-title">File Info</div>
       <div class="sc-dialog-body sc-info-body">
         <label class="sc-info-field"
@@ -2828,17 +2793,10 @@
         <button class="sc-tbtn" data-info="cancel">Cancel</button>
         <button class="sc-tbtn sc-primary-btn" data-info="ok">OK</button>
       </div>
-    </div>
+    </dialog>
 
     <!-- Object → Layer Style… (Photoshop's fx dialog). -->
-    <div
-      class="sc-dialog sc-fx-dialog"
-      id="sc-fx"
-      role="dialog"
-      aria-modal="false"
-      aria-labelledby="sc-fx-title"
-      hidden
-    >
+    <dialog class="sc-dialog sc-fx-dialog" id="sc-fx" aria-labelledby="sc-fx-title">
       <div class="sc-dialog-title" id="sc-fx-title">Layer Style</div>
       <div class="sc-fx-body">
         <nav class="sc-fx-nav" aria-label="Effects">
@@ -3133,17 +3091,10 @@
         <button class="sc-tbtn" data-fxd="cancel">Cancel</button>
         <button class="sc-tbtn sc-primary-btn" data-fxd="ok">OK</button>
       </div>
-    </div>
+    </dialog>
 
     <!-- Name / confirm prompts (library items, Define Pattern, Reset). -->
-    <div
-      class="sc-dialog"
-      id="sc-ask"
-      role="dialog"
-      aria-modal="false"
-      aria-labelledby="sc-ask-title"
-      hidden
-    >
+    <dialog class="sc-dialog" id="sc-ask" aria-labelledby="sc-ask-title">
       <div class="sc-dialog-title" id="sc-ask-title"></div>
       <div class="sc-dialog-body">
         <p class="sc-ask-text"></p>
@@ -3154,7 +3105,7 @@
         <button class="sc-tbtn" data-ask="alt" hidden></button>
         <button class="sc-tbtn sc-primary-btn" data-ask="ok">OK</button>
       </div>
-    </div>
+    </dialog>
     <input
       type="file"
       id="sc-lib-file"
