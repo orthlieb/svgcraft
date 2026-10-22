@@ -151,6 +151,13 @@ stroke="currentColor"` (common in icon sets) is pushed down so it survives.
   out, centred where you pressed. With it off, drag a box to fill the window
   with that area. 100%, Fit Screen and Fill Screen are in the options bar,
   and double-clicking the tool goes to 100%.
+- **Pixel grid and Snap to Pixel** (View menu, or the checkboxes under
+  Document in Properties): the pixel grid is a 1 px grid over the artboard
+  from 600% zoom up. Snap to Pixel puts points and moved shapes on whole
+  pixels, so edges stay sharp in PNG exports and at small sizes. A centred
+  stroke of odd whole width (1, 3 px …) snaps to half pixels instead, so
+  its edges land on whole pixels. Guides and smart guides still win when
+  they're close, and Snap to Grid wins when it's on. Both are remembered.
 - **Eraser**: **Object** mode deletes anything you rub. **Cut** mode splits
   stroked lines and paths where you rub and leaves filled shapes alone.
 - **Gradients**, for fill and stroke:
@@ -515,7 +522,8 @@ point-edited:
 
 ## Icons
 
-Tools for drawing icons that stay crisp at small sizes:
+Tools for drawing icons (see also the pixel grid and Snap to Pixel, under
+Features):
 
 - **File → New Icon…** makes a square artboard. Pick a size (16 to 2048,
   or type one) and a margin: the margins become ordinary guides on all four
@@ -523,7 +531,7 @@ Tools for drawing icons that stay crisp at small sizes:
   like any other guide. The margin follows the size (a twelfth of it) until
   you type your own. An untouched Untitled tab gives way to the icon.
 - **Templates** from the platforms' guidelines set the size, margins and
-  options, and say what the guides mean:
+  keylines, and say what the guides mean:
   - Material system icon: 24 px with 2 px padding and keylines.
   - Favicon: 32 px.
   - Android adaptive launcher icon: 108 dp at 4× (432 px), with guides
@@ -536,12 +544,6 @@ Tools for drawing icons that stay crisp at small sizes:
   area: inside the guides nearest each edge, so moving a margin guide moves
   them. Without guides the margin is a twelfth of the artboard. Keylines
   aren't part of the drawing.
-- **View → Pixel Grid** shows a 1 px grid over the artboard from 600% zoom
-  up, and **View → Snap to Pixel** puts points and moved shapes on whole
-  pixels. A centred stroke of odd whole width (1, 3 px …) snaps to half
-  pixels instead, so its edges land on whole pixels and stay sharp.
-  Guides and smart guides still win when they're close. These and Icon
-  Keylines are remembered.
 - **View → Icon Preview** (Ctrl+Alt+P) opens a floating window with the
   drawing at 16, 24, 32, 48, 64 and 128 px, drawn by the browser just as a
   web page would draw the SVG. Show it on a light, dark or transparent

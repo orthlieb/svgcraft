@@ -494,6 +494,9 @@
     };
     for (const [a, v] of Object.entries(on))
       $(`[data-action="${a}"]`).setAttribute('aria-checked', v);
+    // The Document section's checkboxes mirror the pixel options.
+    $('#sc-pixgrid-on').checked = state.pixelGrid;
+    $('#sc-snappix-on').checked = state.snapPixel;
   }
   function setGuidesOn(on) {
     state.guidesOn = on;
@@ -3067,22 +3070,19 @@
   });
 
   // File → New Icon…: a square artboard with its margins (and, optionally,
-  // centre lines) as ordinary guides, ready for keylines, the pixel grid and
-  // the icon preview. Templates follow the platforms' icon guidelines;
+  // centre lines) as ordinary guides, ready for keylines and the icon preview. Templates follow the platforms' icon guidelines;
   // `extra` adds more guides, inset that far from every edge.
   const ICON_TEMPLATES = {
     material: {
       size: 24,
       margin: 2,
       keylines: true,
-      pixels: true,
       note: 'Material Design system icon: a 20 px live area inside 2 px of padding, with keylines.',
     },
     favicon: {
       size: 32,
       margin: 1,
       keylines: false,
-      pixels: true,
       note: 'Browser tab icon. Keep it bold: browsers also show it at 16 px.',
     },
     adaptive: {
@@ -3090,7 +3090,6 @@
       margin: 84,
       extra: [72],
       keylines: true,
-      pixels: false,
       note:
         'Android adaptive launcher icon, 108 dp at 4×. Launchers show the middle 72 dp ' +
         '(guides 72 px in) and mask it to their own shape; keep the logo inside the 66 dp ' +
@@ -3100,14 +3099,12 @@
       size: 512,
       margin: 0,
       keylines: true,
-      pixels: false,
       note: 'Google Play store icon: full bleed and square. Google Play rounds the corners itself.',
     },
     ios: {
       size: 1024,
       margin: 0,
       keylines: false,
-      pixels: false,
       note:
         'iOS app icon: full bleed, square and opaque. iOS rounds the corners itself, so ' +
         'don’t draw them.',
@@ -3116,7 +3113,6 @@
       size: 1024,
       margin: 100,
       keylines: false,
-      pixels: false,
       note:
         'macOS app icon: an 824 px rounded body (corner radius about 185 px) inside the ' +
         'margin guides, leaving room for its shadow.',
@@ -3134,7 +3130,6 @@
       niTemplate.value = '';
       $('#sc-ni-note').hidden = true;
       if (!niMarginSet) niMarginEl.value = niAutoMargin(s);
-      $('#sc-ni-pixels').checked = s <= 128;
     }
     for (const b of niDlg.querySelectorAll('[data-ni-size]'))
       b.classList.toggle('on', +b.dataset.niSize === s);
@@ -3150,7 +3145,6 @@
     niMarginEl.value = t.margin;
     niMarginSet = true;
     $('#sc-ni-keylines').checked = t.keylines;
-    $('#sc-ni-pixels').checked = t.pixels;
     note.textContent = t.note;
     note.hidden = false;
   }
@@ -3178,7 +3172,6 @@
     let name = `icon-${s}`;
     for (let n = 2; docs.some((d) => d.name === name); n++) name = `icon-${s}-${n}`;
     state.keylines = $('#sc-ni-keylines').checked;
-    state.pixelGrid = state.snapPixel = $('#sc-ni-pixels').checked;
     state.guidesOn = true;
     syncViewMenu();
     saveView();
@@ -12180,6 +12173,8 @@
   }
   $('#sc-grid').addEventListener('change', (e) => setGridOn(e.target.checked));
   $('#sc-snap').addEventListener('change', (e) => setSnapOn(e.target.checked));
+  $('#sc-pixgrid-on').addEventListener('change', () => toggleView('pixelGrid'));
+  $('#sc-snappix-on').addEventListener('change', () => toggleView('snapPixel'));
   $('#sc-grid-size').addEventListener('change', (e) => {
     state.gridSize = clamp(+e.target.value || 20, 2, 500);
     e.target.value = state.gridSize;

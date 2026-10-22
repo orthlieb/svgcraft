@@ -36,13 +36,9 @@ test.describe('New Icon', () => {
     // The untouched Untitled-1 tab made way for it.
     await expect(page.locator('.sc-doctab')).toHaveCount(1);
     expect(await state(page, 'keylines')).toBe(true);
-    expect(await state(page, 'pixelGrid')).toBe(true);
-    expect(await state(page, 'snapPixel')).toBe(true);
     await expect(page.locator('#sc-iconprev')).toBeVisible();
-    await expect(page.locator('[data-action="togglePixelGrid"]')).toHaveAttribute(
-      'aria-checked',
-      'true',
-    );
+    // The pixel grid is a general option: New Icon leaves it alone.
+    expect(await state(page, 'pixelGrid')).toBe(false);
     // The guides are saved with the drawing, and a second icon gets its own tab.
     expect(await page.evaluate(() => window.svgcraft.serialize())).toContain(
       'data-sc-guides="x:2 x:22 y:2 y:22 x:12 y:12"',
@@ -56,7 +52,6 @@ test.describe('New Icon', () => {
     await newIcon(page, async () => {
       await dialog(page).locator('[data-ni-size="2048"]').click();
       await expect(page.locator('#sc-ni-margin')).toHaveValue('171');
-      await expect(page.locator('#sc-ni-pixels')).not.toBeChecked();
       await dialog(page).locator('[data-ni-size="1024"]').click();
       await expect(page.locator('#sc-ni-size')).toHaveValue('1024');
       await expect(page.locator('#sc-ni-margin')).toHaveValue('85');
@@ -69,7 +64,6 @@ test.describe('New Icon', () => {
     });
     expect(await state(page, 'w')).toBe(512);
     expect(await guides(page)).toEqual(['x64', 'x448', 'y64', 'y448']);
-    expect(await state(page, 'pixelGrid')).toBe(false);
     await expect(page.locator('#sc-iconprev')).toBeHidden();
   });
 
@@ -287,15 +281,25 @@ test.describe('Icon Preview', () => {
   });
 });
 
-test('view settings for icon work are remembered', async ({ page }) => {
+test('pixel options are in the View menu and the Document section, and remembered', async ({
+  page,
+}) => {
   await menu(page, 'View', 'togglePixelGrid');
-  await menu(page, 'View', 'toggleSnapPixel');
+  await expect(page.locator('#sc-pixgrid-on')).toBeChecked();
+  await page.check('#sc-snappix-on');
+  await expect(page.locator('[data-action="toggleSnapPixel"]')).toHaveAttribute(
+    'aria-checked',
+    'true',
+  );
   await menu(page, 'View', 'toggleKeylines');
   await page.reload();
   await page.waitForFunction(() => !!window.svgcraft);
   for (const k of ['pixelGrid', 'snapPixel', 'keylines']) expect(await state(page, k)).toBe(true);
-  await expect(page.locator('[data-action="toggleSnapPixel"]')).toHaveAttribute(
+  await expect(page.locator('#sc-snappix-on')).toBeChecked();
+  await page.uncheck('#sc-pixgrid-on');
+  expect(await state(page, 'pixelGrid')).toBe(false);
+  await expect(page.locator('[data-action="togglePixelGrid"]')).toHaveAttribute(
     'aria-checked',
-    'true',
+    'false',
   );
 });
