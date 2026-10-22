@@ -574,12 +574,27 @@ Features):
     pages.
   - **iOS**: `AppIcon.appiconset` (one 1024 px icon and its
     `Contents.json`) to drag into an Xcode asset catalogue.
-  - **Android**: `res/mipmap-*/ic_launcher.png` for mdpi to xxxhdpi (48 to
-    192 px) and the 512 px Play Store icon.
+  - **Android**: a `res/` folder to copy into `app/src/main/`, and the
+    512 px Play Store icon. It has an **adaptive icon** (Android 8+):
+    108 dp foreground, background and monochrome layers for mdpi to
+    xxxhdpi, and `mipmap-anydpi-v26/ic_launcher.xml` and
+    `ic_launcher_round.xml` tying them together. The monochrome layer is
+    the foreground's shape, for Android 13's themed icons. There are also
+    legacy square and round `ic_launcher` PNGs (48 to 192 px) for older
+    launchers.
+    - A top-level layer named **Background** becomes the background layer,
+      and the rest the foreground. Without one, the background is the
+      Background colour (`values/ic_launcher_background.xml`).
+    - Artwork drawn on New Icon's Android adaptive template (a 108 dp
+      canvas, recognised by its guides 1/6 in) is used as drawn, edge to
+      edge; the legacy and Play Store icons show its middle 72 dp, as a
+      launcher does. Any other icon is fitted into the 66 dp safe zone, so
+      no launcher mask cuts into it.
   - **macOS**: `AppIcon.icns`, and the `AppIcon.iconset` it's built from
     (16 to 1024 px), for `iconutil`.
   - The iOS icon and the Apple touch icon can't be transparent: they're
-    filled with the **Background** colour and saved without an alpha
+    filled with the **Background** colour (as is Android's adaptive
+    background, when there's no Background layer) and saved without an alpha
     channel, as the App Store requires. The rest keep their transparency.
     A non-square artboard is centred in each square icon.
 

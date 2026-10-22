@@ -5,6 +5,7 @@ import { readZip } from './zip.js';
 // File → Export App Icons…: every size each platform needs, in one zip.
 
 const DOT = '<circle cx="32" cy="32" r="28" fill="#2563eb"/>';
+const DENSITIES = ['mdpi', 'hdpi', 'xhdpi', 'xxhdpi', 'xxxhdpi'];
 const dialog = (page) => page.locator('#sc-appicons');
 
 // Export with some platforms switched off; returns the zip's files.
@@ -57,11 +58,17 @@ test('every platform, every size', async ({ page }) => {
     'web/head.html',
     'ios/AppIcon.appiconset/AppIcon-1024.png',
     'ios/AppIcon.appiconset/Contents.json',
-    'android/res/mipmap-mdpi/ic_launcher.png',
-    'android/res/mipmap-hdpi/ic_launcher.png',
-    'android/res/mipmap-xhdpi/ic_launcher.png',
-    'android/res/mipmap-xxhdpi/ic_launcher.png',
-    'android/res/mipmap-xxxhdpi/ic_launcher.png',
+    ...DENSITIES.flatMap((d) => [
+      `android/res/mipmap-${d}/ic_launcher_foreground.png`,
+      `android/res/mipmap-${d}/ic_launcher_monochrome.png`,
+    ]),
+    ...DENSITIES.flatMap((d) => [
+      `android/res/mipmap-${d}/ic_launcher.png`,
+      `android/res/mipmap-${d}/ic_launcher_round.png`,
+    ]),
+    'android/res/mipmap-anydpi-v26/ic_launcher.xml',
+    'android/res/mipmap-anydpi-v26/ic_launcher_round.xml',
+    'android/res/values/ic_launcher_background.xml',
     'android/playstore-icon.png',
     'macos/AppIcon.iconset/icon_16x16.png',
     'macos/AppIcon.iconset/icon_16x16@2x.png',
@@ -185,4 +192,118 @@ test('nothing picked: nothing exported; Esc cancels', async ({ page }) => {
   await menu(page, 'File', 'exportAppIcons');
   await page.keyboard.press('Escape');
   await expect(dialog(page)).toBeHidden();
+});
+
+test.describe('Android adaptive icons', () => {
+  const xml = (z, f) => z[`android/res/${f}`].toString();
+  const layer = (z, d, kind) => z[`android/res/mipmap-${d}/ic_launcher_${kind}.png`];
+
+  test('an ordinary icon: in the safe zone, on the background colour', async ({ page }) => {
+    const z = await exportIcons(page, { off: ['web', 'ios', 'macos'], bg: '#ffcc00' });
+    // 108 dp layers at every density.
+    for (const [d, s] of [
+      ['mdpi', 108],
+      ['xxxhdpi', 432],
+    ])
+      expect(png(layer(z, d, 'foreground')).slice(0, 2)).toEqual([s, s]);
+    expect(xml(z, 'mipmap-anydpi-v26/ic_launcher.xml')).toBe(
+      [
+        '<?xml version="1.0" encoding="utf-8"?>',
+        '<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">',
+        '    <background android:drawable="@color/ic_launcher_background"/>',
+        '    <foreground android:drawable="@mipmap/ic_launcher_foreground"/>',
+        '    <monochrome android:drawable="@mipmap/ic_launcher_monochrome"/>',
+        '</adaptive-icon>',
+        '',
+      ].join('\n'),
+    );
+    expect(xml(z, 'mipmap-anydpi-v26/ic_launcher_round.xml')).toBe(
+      xml(z, 'mipmap-anydpi-v26/ic_launcher.xml'),
+    );
+    expect(xml(z, 'values/ic_launcher_background.xml')).toContain(
+      '<color name="ic_launcher_background">#FFCC00</color>',
+    );
+    // The 64 px dot fills 66 of the 108 dp: radius 28/64 × 66/108 × 432 ≈ 115 px.
+    const fg = layer(z, 'xxxhdpi', 'foreground');
+    const [centre, inside, outside] = await pixels(page, fg, [
+      [216, 216],
+      [216, 216 + 110],
+      [216, 216 + 120],
+    ]);
+    expect(centre).toEqual([37, 99, 235, 255]);
+    expect(inside[3]).toBe(255);
+    expect(outside[3]).toBe(0);
+    // Monochrome: the same shape in white.
+    expect(await pixels(page, layer(z, 'xxxhdpi', 'monochrome'), [[216, 216]])).toEqual([
+      [255, 255, 255, 255],
+    ]);
+    // Legacy round icon: the background colour in a circle, transparent outside.
+    const [rim, corner] = await pixels(
+      page,
+      z['android/res/mipmap-xxxhdpi/ic_launcher_round.png'],
+      [
+        [96, 4],
+        [2, 2],
+      ],
+    );
+    expect(rim).toEqual([255, 204, 0, 255]);
+    expect(corner[3]).toBe(0);
+  });
+
+  test('a 108 dp canvas with a Background layer', async ({ page }) => {
+    // The Android adaptive template's guides mark the visible area.
+    await load(
+      page,
+      '<rect data-name="Background" width="432" height="432" fill="#0b6e4f"/>' +
+        '<circle cx="216" cy="216" r="100" fill="#ffd166"/>' +
+        '<rect width="432" height="40" fill="#ef476f"/>',
+      432,
+      432,
+      'icon.svg',
+    );
+    await page.evaluate(() => {
+      window.svgcraft.state.guides = [
+        { axis: 'x', pos: 72 },
+        { axis: 'x', pos: 360 },
+        { axis: 'y', pos: 72 },
+        { axis: 'y', pos: 360 },
+      ];
+    });
+    const z = await exportIcons(page, { off: ['web', 'ios', 'macos'] });
+    expect(xml(z, 'mipmap-anydpi-v26/ic_launcher.xml')).toContain(
+      '<background android:drawable="@mipmap/ic_launcher_background"/>',
+    );
+    expect(z['android/res/values/ic_launcher_background.xml']).toBeUndefined();
+    // Layers are the canvas as drawn: the background on its own…
+    const bg = layer(z, 'xxxhdpi', 'background');
+    expect(
+      await pixels(page, bg, [
+        [216, 216],
+        [5, 5],
+      ]),
+    ).toEqual([
+      [11, 110, 79, 255],
+      [11, 110, 79, 255],
+    ]);
+    // …and the rest, edge to edge, without it.
+    const fg = layer(z, 'xxxhdpi', 'foreground');
+    const [band, centre, empty] = await pixels(page, fg, [
+      [216, 10],
+      [216, 216],
+      [216, 400],
+    ]);
+    expect(band).toEqual([239, 71, 111, 255]);
+    expect(centre).toEqual([255, 209, 102, 255]);
+    expect(empty[3]).toBe(0);
+    // Legacy and Play Store icons show the 72 dp a launcher shows: the band,
+    // in the outer 18 dp, is cut off.
+    const play = z['android/playstore-icon.png'];
+    const [top, mid] = await pixels(page, play, [
+      [256, 4],
+      [256, 256],
+    ]);
+    expect(top).toEqual([11, 110, 79, 255]);
+    expect(mid).toEqual([255, 209, 102, 255]);
+    expect(z['README.txt'].toString()).toContain('the Background layer as its background');
+  });
 });

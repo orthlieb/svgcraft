@@ -9087,47 +9087,157 @@
   //   web/      favicon.ico (16, 32, 48), favicon.svg, apple-touch-icon.png,
   //             icon-192.png, icon-512.png, site.webmanifest, head.html
   //   ios/      AppIcon.appiconset (one 1024 px icon and its Contents.json)
-  //   android/  res/mipmap-*/ic_launcher.png (48–192 px), playstore-icon.png
+  //   android/  res/: an adaptive icon (foreground, background, monochrome
+  //             layers and their XML), legacy square and round launcher
+  //             icons for every density; playstore-icon.png
   //   macos/    AppIcon.icns, and AppIcon.iconset for iconutil
   // Each size is drawn from the vector art, not scaled from a big bitmap.
   // Icons that can't be transparent (iOS, the Apple touch icon) get a
   // background colour; a non-square artboard is centred.
 
-  // PNG bytes of the drawing at each size: [size, opaque?] → Uint8Array.
-  async function renderIconPngs(jobs, bg) {
-    const fontCss = await embeddedFontCss(usedGoogleFonts());
-    const url = URL.createObjectURL(new Blob([serialize({ fontCss })], { type: 'image/svg+xml' }));
+  // Draws an SVG (the exported drawing, or one layer of it) into square
+  // PNGs. `box` is the square of document space that fills the PNG; `fill`
+  // paints a background first; `rgb` writes no alpha channel; `circle` clips
+  // to a circle; `mono` keeps only the shape (white, with its alpha).
+  async function svgRasterizer(text) {
+    const url = URL.createObjectURL(new Blob([text], { type: 'image/svg+xml' }));
+    const img = new Image();
+    img.src = url;
     try {
-      const img = new Image();
-      img.src = url;
       await img.decode();
-      const out = new Map();
-      for (const [size, opaque] of jobs) {
-        const key = `${size}${opaque ? 'o' : ''}`;
-        if (out.has(key)) continue;
-        const c = document.createElement('canvas');
-        c.width = c.height = size;
-        const ctx = c.getContext('2d');
-        if (opaque) {
-          ctx.fillStyle = bg;
-          ctx.fillRect(0, 0, size, size);
-        }
-        const k = size / Math.max(state.w, state.h);
-        const w = state.w * k;
-        const h = state.h * k;
-        ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
-        if (opaque) {
-          out.set(key, await rgbPng(ctx.getImageData(0, 0, size, size)));
-          continue;
-        }
-        const blob = await new Promise((r) => c.toBlob(r, 'image/png'));
-        if (!blob) throw new Error('PNG failed');
-        out.set(key, new Uint8Array(await blob.arrayBuffer()));
-      }
-      return (size, opaque = false) => out.get(`${size}${opaque ? 'o' : ''}`);
     } finally {
       URL.revokeObjectURL(url);
     }
+    return async (size, { box = artSquare(), fill, rgb, circle, mono } = {}) => {
+      const c = document.createElement('canvas');
+      c.width = c.height = size;
+      const ctx = c.getContext('2d');
+      if (circle) {
+        ctx.beginPath();
+        ctx.arc(size / 2, size / 2, size / 2, 0, 2 * Math.PI);
+        ctx.clip();
+      }
+      if (fill) {
+        ctx.fillStyle = fill;
+        ctx.fillRect(0, 0, size, size);
+      }
+      const k = size / box.w;
+      ctx.drawImage(img, -box.x * k, -box.y * k, state.w * k, state.h * k);
+      if (mono || rgb) {
+        const d = ctx.getImageData(0, 0, size, size);
+        if (rgb) return rgbPng(d);
+        for (let p = 0; p < d.data.length; p += 4) d.data.fill(255, p, p + 3);
+        ctx.putImageData(d, 0, 0);
+      }
+      const blob = await new Promise((r) => c.toBlob(r, 'image/png'));
+      if (!blob) throw new Error('PNG failed');
+      return new Uint8Array(await blob.arrayBuffer());
+    };
+  }
+  // The square around the artboard (a non-square one is centred in it).
+  function artSquare() {
+    const side = Math.max(state.w, state.h);
+    return { x: (state.w - side) / 2, y: (state.h - side) / 2, w: side };
+  }
+
+  // Android adaptive icons are two 108 dp layers: launchers show the middle
+  // 72 dp, masked to their own shape, and keep the middle 66 dp (the safe
+  // zone) whole. A top-level layer named "Background" is the background
+  // layer (otherwise it's a solid colour); everything else is the
+  // foreground. Artwork on a 108 dp canvas (New Icon's Android adaptive
+  // template, recognised by its guides at the visible area, 1/6 in) is
+  // used as it is; any other icon is fitted into the safe zone.
+  const BG_LAYER = /^\s*background\s*$/i;
+  function isAdaptiveArt() {
+    if (state.w !== state.h) return false;
+    const at = (axis) =>
+      state.guides.some((g) => g.axis === axis && Math.abs(g.pos - state.w / 6) < 0.01);
+    return at('x') && at('y');
+  }
+  // The drawing's SVG with or without its Background layer.
+  function layerSvg(text, keepBackground) {
+    const d = new DOMParser().parseFromString(text, 'image/svg+xml');
+    const root = d.documentElement;
+    const bg = [...root.children].find((n) => BG_LAYER.test(n.getAttribute('data-name') || ''));
+    if (!bg) return null;
+    const meta = new Set(['defs', 'style', 'title', 'desc', 'metadata']);
+    for (const n of [...root.children])
+      if (keepBackground ? n !== bg && !meta.has(n.localName) : n === bg) n.remove();
+    return new XMLSerializer().serializeToString(d);
+  }
+  const ANDROID_LAYER_SIZES = [
+    ['mdpi', 108],
+    ['hdpi', 162],
+    ['xhdpi', 216],
+    ['xxhdpi', 324],
+    ['xxxhdpi', 432],
+  ];
+  async function androidIcons(full, bg) {
+    const adaptive = isAdaptiveArt();
+    const fgText = layerSvg(full, false);
+    const bgText = adaptive ? layerSvg(full, true) : null;
+    const whole = await svgRasterizer(full);
+    const fg = fgText ? await svgRasterizer(fgText) : whole;
+    const back = bgText && (await svgRasterizer(bgText));
+    // The 108 dp canvas, and the 72 dp a launcher shows, in document units.
+    const art = artSquare();
+    const side = adaptive ? art.w : (art.w * 108) / 66;
+    const canvas = { x: art.x - (side - art.w) / 2, y: art.y - (side - art.w) / 2, w: side };
+    const visible = { x: canvas.x + side / 6, y: canvas.y + side / 6, w: (side * 2) / 3 };
+    const fill = back ? undefined : bg;
+    const files = [];
+    const res = (p) => `android/res/${p}`;
+    for (const [d, s] of ANDROID_LAYER_SIZES) {
+      files.push([res(`mipmap-${d}/ic_launcher_foreground.png`), await fg(s, { box: canvas })]);
+      files.push([
+        res(`mipmap-${d}/ic_launcher_monochrome.png`),
+        await fg(s, { box: canvas, mono: true }),
+      ]);
+      if (back)
+        files.push([res(`mipmap-${d}/ic_launcher_background.png`), await back(s, { box: canvas })]);
+    }
+    // Launchers before Android 8 use these: the visible area as it would
+    // look, square and round (an ordinary icon keeps its own square look).
+    for (const [d, s] of ANDROID_DENSITIES) {
+      files.push([
+        res(`mipmap-${d}/ic_launcher.png`),
+        adaptive ? await whole(s, { box: visible, fill }) : await whole(s),
+      ]);
+      files.push([
+        res(`mipmap-${d}/ic_launcher_round.png`),
+        await whole(s, { box: visible, fill: adaptive ? fill : bg, circle: true }),
+      ]);
+    }
+    const layers = [
+      `    <background android:drawable="${back ? '@mipmap/ic_launcher_background' : '@color/ic_launcher_background'}"/>`,
+      '    <foreground android:drawable="@mipmap/ic_launcher_foreground"/>',
+      '    <monochrome android:drawable="@mipmap/ic_launcher_monochrome"/>',
+    ];
+    const xml = [
+      '<?xml version="1.0" encoding="utf-8"?>',
+      '<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">',
+      ...layers,
+      '</adaptive-icon>',
+      '',
+    ].join('\n');
+    files.push([res('mipmap-anydpi-v26/ic_launcher.xml'), xml]);
+    files.push([res('mipmap-anydpi-v26/ic_launcher_round.xml'), xml]);
+    if (!back)
+      files.push([
+        res('values/ic_launcher_background.xml'),
+        [
+          '<?xml version="1.0" encoding="utf-8"?>',
+          '<resources>',
+          `    <color name="ic_launcher_background">${bg.toUpperCase()}</color>`,
+          '</resources>',
+          '',
+        ].join('\n'),
+      ]);
+    files.push([
+      'android/playstore-icon.png',
+      adaptive ? await whole(512, { box: visible, fill }) : await whole(512),
+    ]);
+    return { files, adaptive, layered: !!back };
   }
 
   // A PNG with no alpha channel at all (colour type 2), which the App Store
@@ -9237,29 +9347,39 @@
 
   async function exportAppIcons({ web, ios, android, macos }, bg) {
     if (!web && !ios && !android && !macos) return say('Pick at least one platform.');
-    const jobs = [];
-    if (web) jobs.push([16], [32], [48], [180, true], [192], [512]);
-    if (ios) jobs.push([1024, true]);
-    if (android) jobs.push(...ANDROID_DENSITIES.map(([, s]) => [s]), [512]);
-    if (macos) jobs.push(...MAC_ICONSET.map(([s]) => [s]));
     say('Drawing the app icons…');
-    let png;
+    const full = serialize({ fontCss: await embeddedFontCss(usedGoogleFonts()) });
+    const cache = new Map();
+    let draw;
     try {
-      png = await renderIconPngs(jobs, bg);
+      draw = await svgRasterizer(full);
     } catch {
       return say('App icon export failed: the drawing couldn’t be drawn as an image.');
     }
+    // The whole drawing at a size, opaque (on the background colour) or not.
+    const png = (size, opaque = false) => {
+      const k = `${size}${opaque ? 'o' : ''}`;
+      if (!cache.has(k)) cache.set(k, draw(size, opaque ? { fill: bg, rgb: true } : {}));
+      return cache.get(k);
+    };
     const name = state.fileName;
     const json = (o) => JSON.stringify(o, null, 2) + '\n';
     const files = [];
     const readme = [`App icons for ${name}, exported by SVGCraft.`, ''];
     if (web) {
       files.push(
-        ['web/favicon.ico', icoBytes([16, 32, 48].map((s) => [s, png(s)]))],
+        [
+          'web/favicon.ico',
+          icoBytes([
+            [16, await png(16)],
+            [32, await png(32)],
+            [48, await png(48)],
+          ]),
+        ],
         ['web/favicon.svg', serialize({ fontCss: fontImport() })],
-        ['web/apple-touch-icon.png', png(180, true)],
-        ['web/icon-192.png', png(192)],
-        ['web/icon-512.png', png(512)],
+        ['web/apple-touch-icon.png', await png(180, true)],
+        ['web/icon-192.png', await png(192)],
+        ['web/icon-512.png', await png(512)],
         [
           'web/site.webmanifest',
           json({
@@ -9285,7 +9405,7 @@
     }
     if (ios) {
       files.push(
-        ['ios/AppIcon.appiconset/AppIcon-1024.png', png(1024, true)],
+        ['ios/AppIcon.appiconset/AppIcon-1024.png', await png(1024, true)],
         [
           'ios/AppIcon.appiconset/Contents.json',
           json({
@@ -9307,16 +9427,26 @@
       );
     }
     if (android) {
-      for (const [d, s] of ANDROID_DENSITIES)
-        files.push([`android/res/mipmap-${d}/ic_launcher.png`, png(s)]);
-      files.push(['android/playstore-icon.png', png(512)]);
+      let a;
+      try {
+        a = await androidIcons(full, bg);
+      } catch {
+        return say('App icon export failed: the drawing couldn’t be drawn as an image.');
+      }
+      files.push(...a.files);
       readme.push(
-        'android/  Copy res/ into app/src/main/; playstore-icon.png is for the Play Console.',
+        'android/  Copy res/ into app/src/main/ (it replaces ic_launcher). The adaptive icon',
+        `          (Android 8+) has ${a.layered ? 'the Background layer as its background' : 'a solid background colour'}, the rest as foreground,`,
+        '          and a monochrome layer for themed icons (Android 13+). ' +
+          (a.adaptive ? 'The artwork fills' : 'The artwork sits in the safe zone of'),
+        '          the 108 dp canvas. playstore-icon.png is for the Play Console.',
       );
     }
     if (macos) {
-      for (const [s, file] of MAC_ICONSET) files.push([`macos/AppIcon.iconset/${file}`, png(s)]);
-      files.push(['macos/AppIcon.icns', icnsBytes(MAC_ICONSET.map(([s, , t]) => [t, png(s)]))]);
+      const mac = [];
+      for (const [s, file, type] of MAC_ICONSET) mac.push([s, file, type, await png(s)]);
+      for (const [, file, , data] of mac) files.push([`macos/AppIcon.iconset/${file}`, data]);
+      files.push(['macos/AppIcon.icns', icnsBytes(mac.map(([, , t, data]) => [t, data]))]);
       readme.push(
         'macos/    AppIcon.icns is ready to use; iconutil -c icns AppIcon.iconset rebuilds it.',
       );

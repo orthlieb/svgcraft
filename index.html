@@ -2546,8 +2546,9 @@
           ><input type="checkbox" data-ai="ios" checked /> iOS: AppIcon.appiconset for Xcode</label
         >
         <label class="sc-check"
-          ><input type="checkbox" data-ai="android" checked /> Android: launcher icons for every
-          density, and the Play Store icon</label
+          ><input type="checkbox" data-ai="android" checked /> Android: adaptive and legacy launcher
+          icons, and the Play Store icon. A top-level layer named “Background” becomes the adaptive
+          background</label
         >
         <label class="sc-check"
           ><input type="checkbox" data-ai="macos" checked /> macOS: AppIcon.icns and its
@@ -2555,7 +2556,8 @@
         >
         <label class="sc-field"
           >Background <input type="color" id="sc-ai-bg" value="#ffffff" /><span class="sc-unit"
-            >for icons that can’t be transparent (iOS, Apple touch icon)</span
+            >for icons that can’t be transparent (iOS, Apple touch icon) and Android’s adaptive
+            background when there’s no Background layer</span
           ></label
         >
       </div>
