@@ -102,6 +102,25 @@ stroke="currentColor"` (common in icon sets) is pushed down so it survives.
 - **Export**: SVG download (Ctrl+S), PNG at 1× / 2× / 4× with a
   transparent background, and Copy, which puts the drawing (or the
   selection) on the clipboard as SVG markup.
+- **Export Clean SVG…** (File menu) saves `<name>.min.svg`: plain SVG for
+  the web or another app. It draws exactly the same (effects, clips,
+  masks, gradients and patterns stay as the real SVG that draws them), but
+  leaves out what SVGCraft keeps to reopen the file editable: every
+  `data-*` attribute (layer names, locks, effect settings, guides…),
+  unreferenced ids, unused defs, comments, empty and attribute-free groups
+  and attributes set to their defaults. Options, remembered:
+  - **Decimal places** for coordinates (2 by default; path data is
+    compacted too).
+  - **Minify**: one line, with short ids.
+  - **Scale to fit**: only a viewBox, no width and height.
+  - **Leave out hidden layers**.
+  - **Keep File Info**: the title, description and licence.
+  - **Solid colours as currentColor**, for one-colour icons a page can
+    recolour with CSS.
+
+  Keep Save as SVG for your working copy: a clean SVG reopens as plain
+  shapes.
+
 - **Pencil**: freehand drawing with adjustable smoothing (RDP simplification
   plus a Catmull-Rom → Bézier fit).
 - **Pen**: click for corners, drag for smooth curves, click the first point

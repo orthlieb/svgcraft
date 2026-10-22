@@ -48,6 +48,9 @@
             <button role="menuitem" data-action="exportSvg">
               <i data-icon="file-export"></i><span>Save as SVG</span><kbd>Ctrl+S</kbd>
             </button>
+            <button role="menuitem" data-action="exportCleanSvg">
+              <i></i><span>Export Clean SVG…</span>
+            </button>
             <button role="menuitem" data-action="exportPng1">
               <i data-icon="image"></i><span>Export PNG @1×</span>
             </button>
@@ -2520,6 +2523,50 @@
       <div class="sc-dialog-foot">
         <button class="sc-tbtn" data-ng="cancel">Cancel</button>
         <button class="sc-tbtn sc-primary-btn" data-ng="ok">OK</button>
+      </div>
+    </div>
+
+    <!-- File → Export Clean SVG…: plain SVG without SVGCraft's editing data. -->
+    <div
+      class="sc-dialog sc-cleansvg"
+      id="sc-cleansvg"
+      role="dialog"
+      aria-modal="false"
+      aria-labelledby="sc-cs-title"
+      hidden
+    >
+      <div class="sc-dialog-title" id="sc-cs-title">Export Clean SVG</div>
+      <div class="sc-dialog-body">
+        <p class="sc-hint sc-cs-note">
+          Plain SVG for the web or another app. It looks the same, but drops what SVGCraft keeps to
+          reopen it editable: layer names, locks, effect settings, guides, unused definitions. Keep
+          Save as SVG for your working copy.
+        </p>
+        <label class="sc-field"
+          >Decimal places <input type="number" data-cs="decimals" min="0" max="6" step="1"
+        /></label>
+        <label class="sc-check"
+          ><input type="checkbox" data-cs="minify" /> Minify: one line, short ids</label
+        >
+        <label class="sc-check"
+          ><input type="checkbox" data-cs="responsive" /> Scale to fit (viewBox only, no width and
+          height)</label
+        >
+        <label class="sc-check"
+          ><input type="checkbox" data-cs="hidden" /> Leave out hidden layers</label
+        >
+        <label class="sc-check"
+          ><input type="checkbox" data-cs="meta" /> Keep File Info (title, description,
+          licence)</label
+        >
+        <label class="sc-check"
+          ><input type="checkbox" data-cs="currentColor" /> Solid colours as currentColor (for
+          one-colour icons a page can recolour)</label
+        >
+      </div>
+      <div class="sc-dialog-foot">
+        <button class="sc-tbtn" data-cs-btn="cancel">Cancel</button>
+        <button class="sc-tbtn sc-primary-btn" data-cs-btn="ok">Export</button>
       </div>
     </div>
 
