@@ -58,11 +58,23 @@ function inlineStyles(root) {
 }
 
 // Rename incoming ids that already exist in the drawing, and repoint refs.
+// Placed or pasted into a drawing, SVGCraft's own generated ids (sc-…) are
+// always renamed. Opening a file replaces the drawing, so its ids only
+// change if they clash with the editor's own elements (sc-view, sc-checker…);
+// otherwise they'd grow a -2 on every reload.
 function dedupeIds(root, againstDrawing) {
   const map = new Map();
+  const editorOwn = (id) => {
+    const e = document.getElementById(id);
+    // The drawing's own content is being replaced; #sc-doc and #sc-defs aren't.
+    return !!e && (e === doc || e === defs || (!doc.contains(e) && !defs.contains(e)));
+  };
   for (const el of root.querySelectorAll('[id]')) {
     const id = el.id;
-    if (!id.startsWith('sc-') && !(againstDrawing && document.getElementById(id))) continue;
+    const clash = againstDrawing
+      ? id.startsWith('sc-') || document.getElementById(id)
+      : editorOwn(id);
+    if (!clash) continue;
     let n = 2;
     while (document.getElementById(`${id}-${n}`)) n++;
     map.set(id, `${id}-${n}`);
@@ -130,8 +142,13 @@ const INHERITED = [
 
 // Paint set on the root <svg> (icon sets love fill="none"
 // stroke="currentColor") would be lost when the root is unwrapped, so
-// push it down onto each top-level child. currentColor has no meaning
-// outside the source page; pin it to the root's colour (or black).
+// push it down onto each top-level child. currentColor that would come from
+// the source page has no meaning here; pin it to the root's colour (or
+// black). currentColor under an element of the file that sets its own
+// colour (a pattern tile, drawn in its paint's colour) keeps working, so
+// it's left alone.
+const setsColor = (el) =>
+  el.hasAttribute('color') || /(^|;)\s*color\s*:/.test(el.getAttribute('style') || '');
 function inheritRootPaint(root) {
   const own = Object.fromEntries(
     (root.getAttribute('style') || '')
@@ -141,6 +158,9 @@ function inheritRootPaint(root) {
   );
   const color = own.color || root.getAttribute('color') || '#000000';
   for (const el of [root, ...root.querySelectorAll('*')]) {
+    let owned = false;
+    for (let a = el; a && a !== root && !owned; a = a.parentNode) owned = setsColor(a);
+    if (owned) continue;
     for (const k of ['fill', 'stroke'])
       if (/^currentcolor$/i.test(el.getAttribute(k) || '')) el.setAttribute(k, color);
   }
