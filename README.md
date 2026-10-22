@@ -1,9 +1,9 @@
 # SVGCraft
 
 A small in-browser SVG editor with no dependencies and no build step. It's
-four static files (`index.html`, `style.css`, `app.js`, `icons.js`): open `index.html`
-directly, or serve the folder (`npx serve .`) and host it
-anywhere static.
+static files (`index.html`, `style.css`, the scripts in `src/`, `icons.js`
+and `symbols-library.js`): open `index.html` directly, or serve the folder
+(`npx serve .`) and host it anywhere static.
 
 **Live:** <https://orthlieb.github.io/svgcraft/> (served by GitHub Pages
 from the root of `main`; every push to `main` redeploys it).
@@ -836,6 +836,19 @@ npm test                          # Playwright tests (Chromium)
 npm run lint                      # ESLint
 npm run format:check              # Prettier (npm run format to fix)
 ```
+
+**The code.** The editor is split by area into the scripts in `src/`:
+`core.js` (state and helpers), `guides.js`, `geometry.js`, `paints.js`,
+`type.js`, `points.js`, `export.js`, `libraries.js`, `symbols.js`,
+`input.js` and so on, each starting with a line saying what it covers.
+They're classic scripts that share one scope, loaded in order by
+`index.html`, rather than ES modules: browsers don't load modules from
+`file://`, and SVGCraft runs when `index.html` is opened straight from
+disk. So a file can use anything another file declares at its top level
+once start-up is done; code that runs while the scripts load can only use
+what earlier files declared. Two files can't declare the same name (ESLint
+checks; the browser would refuse to load the second). ESLint gives each
+file the others' top-level names as globals, so typos are still caught.
 
 The tests in `tests/` drive the real app in Chromium, opening `index.html`
 straight from disk. Each feature has its own spec, and they check exact

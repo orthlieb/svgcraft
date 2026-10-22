@@ -181,7 +181,7 @@ kbd {
 }
 
 /* Tooltips: one floating box in the top layer (a popover), so nothing
-   clips or covers it. app.js places it and hides it after a few seconds. */
+   clips or covers it. src/tooltips.js places it and hides it after a few seconds. */
 .sc-tip {
   position: fixed;
   inset: auto;
@@ -1518,7 +1518,7 @@ button.sc-fx-item.sel {
 }
 /* ---- phone preview ---------------------------------------------------------
    Below tablet size there isn't room to edit, so the editor turns into a
-   viewer: open, switch tabs, pan / pinch-zoom, fit. app.js toggles
+   viewer: open, switch tabs, pan / pinch-zoom, fit. src/boot.js toggles
    .sc-preview on <html> from the same media query. */
 .sc-preview-only {
   display: none;
@@ -2509,7 +2509,7 @@ select[data-stroke-dash] {
   place-items: center;
   position: relative;
   overflow: hidden;
-  /* The mask a platform crops app icons to (set from app.js). */
+  /* The mask a platform crops app icons to (set from src/icons.js). */
   -webkit-mask: var(--ip-mask, none) center / 100% 100% no-repeat;
   mask: var(--ip-mask, none) center / 100% 100% no-repeat;
 }

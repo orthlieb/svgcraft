@@ -3215,6 +3215,49 @@
 
     <script src="icons.js"></script>
     <script src="symbols-library.js"></script>
-    <script src="app.js"></script>
+    <!-- The editor: classic scripts sharing one scope, in this order (later
+         files use what earlier ones define). Not ES modules, so it still
+         runs when index.html is opened straight from disk. -->
+    <script src="src/core.js"></script>
+    <script src="src/guides.js"></script>
+    <script src="src/geometry.js"></script>
+    <script src="src/smoothing.js"></script>
+    <script src="src/style.js"></script>
+    <script src="src/stroke-align.js"></script>
+    <script src="src/effects.js"></script>
+    <script src="src/clipping.js"></script>
+    <script src="src/rounded-rect.js"></script>
+    <script src="src/paints.js"></script>
+    <script src="src/gradient-editor.js"></script>
+    <script src="src/history.js"></script>
+    <script src="src/documents.js"></script>
+    <script src="src/view.js"></script>
+    <script src="src/icons.js"></script>
+    <script src="src/selection.js"></script>
+    <script src="src/tools.js"></script>
+    <script src="src/type.js"></script>
+    <script src="src/type-editor.js"></script>
+    <script src="src/gradient-tool.js"></script>
+    <script src="src/points.js"></script>
+    <script src="src/commands.js"></script>
+    <script src="src/outlines.js"></script>
+    <script src="src/transform.js"></script>
+    <script src="src/layer-style.js"></script>
+    <script src="src/import.js"></script>
+    <script src="src/export.js"></script>
+    <script src="src/file-info.js"></script>
+    <script src="src/clean-svg.js"></script>
+    <script src="src/app-icons.js"></script>
+    <script src="src/source.js"></script>
+    <script src="src/ui.js"></script>
+    <script src="src/libraries.js"></script>
+    <script src="src/library-exchange.js"></script>
+    <script src="src/zip.js"></script>
+    <script src="src/pattern-editor.js"></script>
+    <script src="src/symbols.js"></script>
+    <script src="src/input.js"></script>
+    <script src="src/controls.js"></script>
+    <script src="src/tooltips.js"></script>
+    <script src="src/boot.js"></script>
   </body>
 </html>

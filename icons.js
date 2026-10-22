@@ -5,7 +5,7 @@
 // official SVG with its comment stripped; CSS colours it via currentColor.
 // To add one: copy the icon's SVG from fontawesome.com (or the
 // @fontawesome/fontawesome-free package) and keep its viewBox and path.
-// Mark an element data-icon="name" and app.js inlines the snippet.
+// Mark an element data-icon="name" and src/core.js inlines the snippet.
 'use strict';
 
 window.SC_ICONS = {
