@@ -782,12 +782,21 @@ function loopD(pts, smooth) {
     }
     const p0 = P(i - 1);
     const p3 = P(i + 2);
+    // Handles along the Catmull-Rom tangent, but no longer than a third of
+    // this segment: where a long side meets a short one (a narrow end) a
+    // longer handle would overshoot into a spike.
+    const seg = Math.hypot(p2[0] - p1[0], p2[1] - p1[1]) / 3;
+    const handle = (from, tx, ty) => {
+      const l = Math.hypot(tx, ty);
+      const k = l > seg ? seg / l : 1;
+      return [from[0] + tx * k, from[1] + ty * k];
+    };
     const c1 = c1n
       ? [p1[0] + (p2[0] - p1[0]) / 3, p1[1] + (p2[1] - p1[1]) / 3]
-      : [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
+      : handle(p1, (p2[0] - p0[0]) / 6, (p2[1] - p0[1]) / 6);
     const c2 = c2n
       ? [p2[0] - (p2[0] - p1[0]) / 3, p2[1] - (p2[1] - p1[1]) / 3]
-      : [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
+      : handle(p2, -(p3[0] - p1[0]) / 6, -(p3[1] - p1[1]) / 6);
     d += `C${tf(c1[0])} ${tf(c1[1])} ${tf(c2[0])} ${tf(c2[1])} ${tf(p2[0])} ${tf(p2[1])}`;
   }
   return d + 'Z';
