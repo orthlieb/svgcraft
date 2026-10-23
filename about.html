@@ -179,6 +179,9 @@
         border-color: rgba(255, 255, 255, 0.12);
         box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5);
       }
+      .shot.inset {
+        margin-top: 16px;
+      }
       .shot figcaption {
         margin-top: 10px;
         font-size: 14px;
@@ -500,10 +503,6 @@
               <li>All 16 Photoshop <strong>blend modes</strong>, plus Pass Through for groups.</li>
               <li>Lock position or lock everything, per layer or per group.</li>
               <li><strong>Clipping masks</strong>: clip layers to the shape below them.</li>
-              <li>
-                <strong>Animate</strong> any layer with presets: fade, slide, pop, spin, pulse,
-                bounce, draw on a line and more, saved as SVG animation that plays anywhere.
-              </li>
             </ul>
           </div>
         </div>
@@ -566,6 +565,49 @@
               </li>
               <li>Effects, locks, blend modes and dashes all survive a save and reopen.</li>
             </ul>
+          </div>
+        </div>
+
+        <div class="feature">
+          <figure class="shot">
+            <img
+              src="about/animated.svg"
+              width="800"
+              height="560"
+              alt="The SVGCraft palette, animated: it pops in, its five paints pulse one after another, the brush dabs up and down, the title glows and the dashed frame's dashes march round."
+            />
+            <figcaption>
+              Not a video: this is the SVG file SVGCraft saved, under 8 KB, playing in an ordinary
+              image tag.
+            </figcaption>
+          </figure>
+          <div>
+            <h3>Animation</h3>
+            <ul>
+              <li>
+                <strong>Animate</strong> any layer or group from Properties, with presets to pick
+                from: fade, slide, pop and zoom in or out, spin, pulse, bounce, shake, float and
+                blink, draw a line on or off, march its dashes, or cycle its colour.
+              </li>
+              <li>
+                Set the length, delay, how many times or forever, direction, back and forth, and
+                easing. Layers can have several animations at once.
+              </li>
+              <li>Preview it on the canvas with ▶ Play.</li>
+              <li>
+                Saved as standard SVG animation that plays in every current browser, with no script,
+                and reopens editable.
+              </li>
+            </ul>
+            <figure class="shot inset">
+              <img
+                src="about/animate.png"
+                width="1440"
+                height="900"
+                loading="lazy"
+                alt="The editor with the brush selected and Properties → Animate showing its Float animation: length, delay, forever, back and forth, ease in-out and distance."
+              />
+            </figure>
           </div>
         </div>
 

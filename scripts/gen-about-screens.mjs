@@ -105,7 +105,36 @@ await page.keyboard.press('Control+u');
 await shot(page, 'source');
 await page.close();
 
-// 7. The light theme.
+// 7. Animation: the palette pops in, its paints pulse in turn, the brush
+// dabs, the title glows and the frame's dashes march. The saved drawing,
+// cleaned, is the About page's demo (about/animated.svg); the shot shows
+// the brush's settings in Properties → Animate.
+page = await editor();
+await page.evaluate(() => {
+  const by = (n) => document.querySelector(`#sc-doc [data-name="${n}"]`);
+  const set = (n, list) => by(n).setAttribute('data-sc-anim', JSON.stringify(list));
+  set('Palette', [{ p: 'popIn', dur: 0.7 }]);
+  ['Red', 'Yellow', 'Green', 'Blue', 'Purple'].forEach((c, i) =>
+    set(`${c} paint`, [{ p: 'pulse', dur: 1.5, delay: 0.7 + i * 0.15, scale: 118 }]),
+  );
+  set('Brush', [{ p: 'float', dur: 0.9, dist: 14 }]);
+  set('Title', [{ p: 'colourCycle', dur: 2.5, to: '#9fd8ff' }]);
+  set('Frame', [{ p: 'dashMarch', dur: 1.2 }]);
+  window.svgcraft.commit();
+});
+const animated = await page.evaluate(() =>
+  // eslint-disable-next-line no-undef -- the editor's own globals
+  cleanSvgText(window.svgcraft.serialize(), { ...CLEAN_DEFAULTS, responsive: false }),
+);
+fs.writeFileSync(path.join(out, 'animated.svg'), animated);
+console.log(`wrote about/animated.svg (${animated.length} bytes)`);
+await clickDoc(page, 613, 338);
+await page.click('[data-tab="props"]');
+await page.locator('#sc-anim-props').scrollIntoViewIfNeeded();
+await shot(page, 'animate');
+await page.close();
+
+// 8. The light theme.
 page = await editor('light');
 await clickDoc(page, 400, 200);
 await shot(page, 'light');

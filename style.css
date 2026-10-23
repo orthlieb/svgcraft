@@ -2690,6 +2690,12 @@ select[data-stroke-dash],
   flex: 1;
   min-width: 0;
 }
+.sc-anim-edit .sc-field:has(select) {
+  grid-column: 1 / -1;
+}
+.sc-anim-edit .sc-field:has(select) select {
+  max-width: 180px;
+}
 .sc-anim-opts {
   display: flex;
   flex-wrap: wrap;
