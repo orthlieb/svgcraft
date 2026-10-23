@@ -76,7 +76,7 @@ test('traces into one layer per colour, over the image, stacked', async ({ page 
   await openTrace(page);
   // Logo: six colours at most, the white background left out.
   await expect(page.locator('[data-tr="preset"]')).toHaveValue('logo');
-  expect(await status(page)).toMatch(/^4 colours · \d+ shapes( \(\d+ ellipses?\))? · [\d.]+ KB$/);
+  expect(await status(page)).toMatch(/^4 colours · \d+ shapes( \([^)]+\))? · [\d.]+ K?B$/);
   await expect(page.locator('[data-tr="preview"] path')).toHaveCount(4);
   await page.click('[data-tr-btn="ok"]');
   await expect(page.locator('#sc-msg')).toHaveText('Traced into 4 colour layers.');
@@ -212,7 +212,7 @@ test.describe('without workers', () => {
 test('circles and ellipses come out as true arcs', async ({ page }) => {
   await placeTestImage(page);
   await openTrace(page);
-  await expect(page.locator('[data-tr="status"]')).toHaveText(/\(\d+ ellipses?\)/);
+  await expect(page.locator('[data-tr="status"]')).toHaveText(/\(\d+ ellipses?[,)]/);
   await page.click('[data-tr-btn="ok"]');
   // The red disc (radius 60 of the image's 300 px) is two elliptical arcs
   // of equal radii, centred where it was.
@@ -241,4 +241,58 @@ test('circles and ellipses come out as true arcs', async ({ page }) => {
       .locator('[data-tr="preview"] path')
       .evaluateAll((ps) => ps.some((p) => /A/.test(p.getAttribute('d')))),
   ).toBe(false);
+});
+
+test('rectangles, square or rounded, at any angle, come out exact', async ({ page }) => {
+  await load(page, '', 600, 400);
+  await page.evaluate(() => {
+    const c = document.createElement('canvas');
+    c.width = 400;
+    c.height = 300;
+    const x = c.getContext('2d');
+    x.fillStyle = '#ffffff';
+    x.fillRect(0, 0, 400, 300);
+    // Square corners, turned 20°, 120 × 70.
+    x.save();
+    x.translate(110, 150);
+    x.rotate((20 * Math.PI) / 180);
+    x.fillStyle = '#2563eb';
+    x.fillRect(-60, -35, 120, 70);
+    x.restore();
+    // Rounded (radius 18), turned −30°, 130 × 80.
+    x.save();
+    x.translate(290, 150);
+    x.rotate((-30 * Math.PI) / 180);
+    x.fillStyle = '#dc2626';
+    x.beginPath();
+    x.roundRect(-65, -40, 130, 80, 18);
+    x.fill();
+    x.restore();
+    // eslint-disable-next-line no-undef -- the editor's own global
+    placeImage(c.toDataURL());
+  });
+  await expect(page.locator('#sc-doc image')).toHaveCount(1);
+  await openTrace(page);
+  // Stacked: the bottom (red, larger) layer has the blue square in it too.
+  await expect(page.locator('[data-tr="status"]')).toHaveText(/\(3 rectangles\)/);
+  // Traced at 400 px: the image's own pixels. Each layer's path, by colour.
+  const d = async (fill) =>
+    page.locator(`[data-tr="preview"] path[fill="${fill}"]`).getAttribute('d');
+  const nums = (s) => s.match(/-?[\d.]+/g).map(Number);
+  // Square: four corners, the sides 120 and 70 long.
+  const sq = await d('#2563eb');
+  expect(sq).toMatch(/^M[-\d. ]+L[-\d. ]+L[-\d. ]+L[-\d. ]+Z$/);
+  const p = nums(sq);
+  const side = (i, j) => Math.hypot(p[i] - p[j], p[i + 1] - p[j + 1]);
+  // (The top layer reaches a pixel further each side, over the one below.)
+  expect(Math.abs(side(0, 2) - 120)).toBeLessThan(2.5);
+  expect(Math.abs(side(2, 4) - 70)).toBeLessThan(2.5);
+  // Its centre where it was drawn.
+  expect((p[0] + p[4]) / 2).toBeCloseTo(110, 0);
+  expect((p[1] + p[5]) / 2).toBeCloseTo(150, 0);
+  // Rounded: four arcs of the same radius, about 18.
+  const rr = await d('#dc2626');
+  const radii = [...rr.matchAll(/A([\d.]+) ([\d.]+) 0 0 1/g)].map((m) => +m[1]);
+  expect(radii).toHaveLength(4);
+  for (const r of radii) expect(Math.abs(r - 18)).toBeLessThan(2);
 });

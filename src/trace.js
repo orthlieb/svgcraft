@@ -378,7 +378,7 @@ function traceWorker(scope) {
     const th = 0.5 * Math.atan2(2 * mxy, mxx - myy);
     const [co, si] = [Math.cos(th), Math.sin(th)];
     // A step along the pixel staircase is up to ~0.7 px off a true curve.
-    const tol = 1 + 0.015 * b;
+    const tol = 1.2 + 0.015 * b;
     for (let i = 0; i < n; i++) {
       const dx = pts[i * 2] - cx;
       const dy = pts[i * 2 + 1] - cy;
@@ -389,6 +389,125 @@ function traceWorker(scope) {
       if ((Math.abs(r - 1) * Math.hypot(u * a, v * b)) / (r || 1) > tol) return null;
     }
     return new Float32Array([NaN, cx, cy, a, b, (th * 180) / Math.PI]);
+  }
+
+  // A loop that's a rectangle, at any angle, with square or evenly rounded
+  // corners: the smallest box round it (rotating callipers on its hull),
+  // the corner radius from how far the outline stays off the box's corners,
+  // kept if every point is within about a pixel of that shape. Returned as
+  // [NaN, cx, cy, half width, half height, degrees, radius].
+  function rectOf(pts) {
+    const n = pts.length / 2;
+    if (n < 8) return null;
+    const P = [];
+    for (let i = 0; i < n; i++) P.push([pts[i * 2], pts[i * 2 + 1]]);
+    // Convex hull (monotone chain).
+    const S = P.slice().sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+    const cross = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+    const half = (list) => {
+      const out = [];
+      for (const p of list) {
+        while (out.length >= 2 && cross(out[out.length - 2], out[out.length - 1], p) <= 0)
+          out.pop();
+        out.push(p);
+      }
+      out.pop();
+      return out;
+    };
+    const hull = [...half(S), ...half(S.slice().reverse())];
+    if (hull.length < 3) return null;
+    let best = null;
+    for (let i = 0; i < hull.length; i++) {
+      const a = hull[i];
+      const b = hull[(i + 1) % hull.length];
+      const t = Math.atan2(b[1] - a[1], b[0] - a[0]);
+      const [c, s] = [Math.cos(t), Math.sin(t)];
+      let [x0, x1, y0, y1] = [Infinity, -Infinity, Infinity, -Infinity];
+      for (const [x, y] of hull) {
+        const u = x * c + y * s;
+        const v = -x * s + y * c;
+        x0 = Math.min(x0, u);
+        x1 = Math.max(x1, u);
+        y0 = Math.min(y0, v);
+        y1 = Math.max(y1, v);
+      }
+      const area = (x1 - x0) * (y1 - y0);
+      if (!best || area < best.area) best = { area, t, x0, x1, y0, y1 };
+    }
+    const { t, x0, x1, y0, y1 } = best;
+    let hw = (x1 - x0) / 2;
+    let hh = (y1 - y0) / 2;
+    // Small blobs fit a box within a pixel without being boxes.
+    if (hw < 6 || hh < 6) return null;
+    const [c, s] = [Math.cos(t), Math.sin(t)];
+    const uc = (x0 + x1) / 2;
+    const vc = (y0 + y1) / 2;
+    const cx = uc * c - vc * s;
+    const cy = uc * s + vc * c;
+    // Each point in the box's own frame, centred.
+    const L = P.map(([x, y]) => [(x - cx) * c + (y - cy) * s, -(x - cx) * s + (y - cy) * c]);
+    // Corner radius: a rounded corner keeps r(√2 − 1) off the box corner,
+    // plus about a pixel that the outline's steps keep off any corner.
+    const rs = [
+      [-hw, -hh],
+      [hw, -hh],
+      [hw, hh],
+      [-hw, hh],
+    ].map(([kx, ky]) => {
+      let m = Infinity;
+      for (const [u, v] of L) m = Math.min(m, Math.hypot(u - kx, v - ky));
+      return Math.max(0, m - 1.2) / (Math.SQRT2 - 1);
+    });
+    const rmin = Math.min(...rs);
+    const rmax = Math.max(...rs);
+    if (rmax - rmin > 3 + 0.2 * rmax) return null;
+    // The radius that fits best near that estimate (or square corners),
+    // with the box inset by up to a pixel (it's round the outermost pixel
+    // corners): the outline's largest distance from the rounded rectangle.
+    const off = (r, inset) => {
+      const [bw, bh] = [hw - inset, hh - inset];
+      let worst = 0;
+      for (const [u, v] of L) {
+        const qx = Math.abs(u) - (bw - r);
+        const qy = Math.abs(v) - (bh - r);
+        const d = Math.hypot(Math.max(qx, 0), Math.max(qy, 0)) + Math.min(Math.max(qx, qy), 0) - r;
+        worst = Math.max(worst, Math.abs(d));
+      }
+      return worst;
+    };
+    const r0 = (rmin + rmax) / 2;
+    let round = { fit: Infinity, r: 0, inset: 0 };
+    let square = { fit: Infinity, r: 0, inset: 0 };
+    for (const inset of [0, 0.25, 0.5, 0.75, 1]) {
+      const sq = off(0, inset);
+      if (sq < square.fit) square = { fit: sq, r: 0, inset };
+      for (let c = Math.max(2, r0 - 5); c <= Math.min(r0 + 5, hw - inset, hh - inset); c += 0.5) {
+        const e = off(c, inset);
+        if (e < round.fit) round = { fit: e, r: c, inset };
+      }
+    }
+    // Square corners unless rounding fits clearly better.
+    const pick = round.fit < square.fit - 0.5 ? round : square;
+    if (pick.fit > 1.2 + 0.01 * Math.min(hw, hh)) return null;
+    const r = pick.r;
+    hw -= pick.inset;
+    hh -= pick.inset;
+    // Corners that take up most of a near-square's sides make a circle.
+    if (r > 0.8 * Math.min(hw, hh) && Math.abs(hw - hh) < 0.2 * Math.max(hw, hh)) {
+      const rad = (hw + hh) / 2;
+      return new Float32Array([NaN, cx, cy, rad, rad, 0]);
+    }
+    // The angle between -45° and 45°, the sides swapped to suit.
+    let deg = (t * 180) / Math.PI;
+    while (deg > 45) {
+      deg -= 90;
+      [hw, hh] = [hh, hw];
+    }
+    while (deg <= -45) {
+      deg += 90;
+      [hw, hh] = [hh, hw];
+    }
+    return new Float32Array([NaN, cx, cy, hw, hh, deg, r]);
   }
 
   function trace({ id, data, w, h, o }) {
@@ -545,7 +664,7 @@ function traceWorker(scope) {
       }
       const loops = loopsOf(inside, w, h)
         .map((pts) => {
-          const e = o.shapes && o.smooth ? ellipseOf(pts) : null;
+          const e = o.shapes && o.smooth ? ellipseOf(pts) || rectOf(pts) : null;
           if (e) return e;
           const sm = smoothLoop(pts, rad);
           return simplify(sm.pts, eps, sm.fixed);
@@ -612,6 +731,21 @@ function traceStart(data, w, h, o) {
 // (Catmull-Rom tangents). Smoothness 0 is all corners: plain polygons.
 const tf = (v) => String(+v.toFixed(1));
 function loopD(pts, smooth) {
+  // A recognised rectangle: four sides, and quarter-circle arcs for
+  // rounded corners.
+  if (Number.isNaN(pts[0]) && pts.length === 7) {
+    const [, cx, cy, hw, hh, deg, r] = pts;
+    const t = (deg * Math.PI) / 180;
+    const [c, s] = [Math.cos(t), Math.sin(t)];
+    const P = (x, y) => `${tf(cx + x * c - y * s)} ${tf(cy + x * s + y * c)}`;
+    if (!r) return `M${P(-hw, -hh)}L${P(hw, -hh)}L${P(hw, hh)}L${P(-hw, hh)}Z`;
+    const A = `A${tf(r)} ${tf(r)} 0 0 1 `;
+    return (
+      `M${P(-hw + r, -hh)}L${P(hw - r, -hh)}${A}${P(hw, -hh + r)}` +
+      `L${P(hw, hh - r)}${A}${P(hw - r, hh)}L${P(-hw + r, hh)}${A}${P(-hw, hh - r)}` +
+      `L${P(-hw, -hh + r)}${A}${P(-hw + r, -hh)}Z`
+    );
+  }
   // A recognised ellipse: two half-ellipse arcs.
   if (Number.isNaN(pts[0])) {
     const [, cx, cy, a, b, deg] = pts;
@@ -790,13 +924,19 @@ function retrace(wait = 250) {
     trField('preview').replaceChildren(...paths);
     const bytes = paths.reduce((t, p) => t + p.outerHTML.length, 0);
     const shapes = r.layers.reduce((t, l) => t + l.loops.length, 0);
-    const ellipses = r.layers.reduce(
-      (t, l) => t + l.loops.filter((a) => Number.isNaN(a[0])).length,
-      0,
-    );
+    const count = (len) =>
+      r.layers.reduce(
+        (t, l) => t + l.loops.filter((a) => Number.isNaN(a[0]) && a.length === len).length,
+        0,
+      );
+    const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
+    const found = [
+      count(6) && plural(count(6), 'ellipse'),
+      count(7) && plural(count(7), 'rectangle'),
+    ].filter(Boolean);
     trField('status').textContent =
       `${paths.length} colour${paths.length === 1 ? '' : 's'} · ${shapes} shape${shapes === 1 ? '' : 's'}` +
-      (ellipses ? ` (${ellipses} ellipse${ellipses === 1 ? '' : 's'})` : '') +
+      (found.length ? ` (${found.join(', ')})` : '') +
       ` · ${kb(bytes)}`;
     trDlg.querySelector('[data-tr-btn="ok"]').disabled = !paths.length;
   }, wait);
