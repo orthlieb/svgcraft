@@ -4,19 +4,87 @@
 // ---------------------------------------------------------------------
 // Import (open / place / paste) — sanitised
 // ---------------------------------------------------------------------
+// Imported SVG goes into the editor's own page, so anything that could run
+// script, load from elsewhere or reach outside the drawing is taken out.
+// It's an allowlist: only SVG drawing elements (no script, foreignObject,
+// animation or HTML from another namespace, such as <html:base>, which
+// would redirect the editor's own script loads); no event handlers; links
+// only within the file (plus image data and http / mailto on <a>); no
+// url() reaching another server; no <style> (its rules are baked into
+// style attributes first). <title> and <desc> keep their text only: on undo
+// the drawing is re-read as HTML, where their content would be parsed as
+// HTML. <metadata> may hold RDF from other namespaces, but never SVG, HTML
+// or MathML. sanitize() also bakes in <style>, so every caller gets that.
+const SVG_ALLOWED = new Set(
+  (
+    'svg g defs symbol use switch a title desc metadata path rect circle ellipse line ' +
+    'polyline polygon text tspan textPath image clipPath mask marker pattern ' +
+    'linearGradient radialGradient stop filter feBlend feColorMatrix ' +
+    'feComponentTransfer feComposite feConvolveMatrix feDiffuseLighting ' +
+    'feDisplacementMap feDistantLight feDropShadow feFlood feFuncA feFuncB feFuncG ' +
+    'feFuncR feGaussianBlur feImage feMerge feMergeNode feMorphology feOffset ' +
+    'fePointLight feSpecularLighting feSpotLight feTile feTurbulence view'
+  ).split(' '),
+);
+const MARKUP_NS = new Set([
+  NS,
+  'http://www.w3.org/1999/xhtml',
+  'http://www.w3.org/1998/Math/MathML',
+]);
+// A URL as the browser reads it: no whitespace or control characters
+// anywhere (so "java&#9;script:" can't hide), lower case.
+// eslint-disable-next-line no-control-regex -- control characters are the point
+const urlOf = (v) => v.replace(/[\u0000- \u007f-\u009f]/g, '').toLowerCase();
+function hrefAllowed(el, v) {
+  const u = urlOf(v);
+  if (u.startsWith('#')) return true;
+  if (el.localName === 'image') return /^data:image\//.test(u);
+  if (el.localName === 'a') return /^(https?:|mailto:)/.test(u);
+  return false;
+}
+// url(…) is fine inside the file (url(#id)); anything else would fetch.
+const reachesOut = (v) =>
+  [...urlOf(v).matchAll(/url\(\s*(['"]?)([^'")]*)\1\s*\)/g)].some((m) => !m[2].startsWith('#')) ||
+  /expression\(|-moz-binding|behavior:|@import|javascript:/.test(urlOf(v));
+
 function sanitize(root) {
-  root.querySelectorAll('script, foreignObject, iframe, object, embed').forEach((n) => n.remove());
-  for (const n of root.querySelectorAll('animate, set'))
-    if (/href/i.test(n.getAttribute('attributeName') || '')) n.remove();
+  inlineStyles(root);
+  const kill = [];
+  const walker = root.ownerDocument.createTreeWalker(
+    root,
+    NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_PROCESSING_INSTRUCTION | NodeFilter.SHOW_COMMENT,
+  );
+  for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+    if (n.nodeType !== Node.ELEMENT_NODE) {
+      kill.push(n);
+      continue;
+    }
+    const inMeta = !!n.parentNode.closest?.('metadata');
+    const ok = inMeta
+      ? !MARKUP_NS.has(n.namespaceURI)
+      : n.namespaceURI === NS && SVG_ALLOWED.has(n.localName);
+    if (!ok) kill.push(n);
+  }
+  for (const n of kill) n.remove();
+  // <title> and <desc>: text only.
+  for (const t of root.querySelectorAll('title, desc'))
+    if (t.children.length) t.replaceChildren(t.textContent);
   for (const el of [root, ...root.querySelectorAll('*')]) {
     for (const a of [...el.attributes]) {
-      const v = a.value.trim().toLowerCase();
-      if (a.name.toLowerCase().startsWith('on')) el.removeAttribute(a.name);
-      else if (
-        (a.localName === 'href' || a.name === 'xlink:href') &&
-        (v.startsWith('javascript:') || (v.startsWith('data:') && !v.startsWith('data:image/')))
-      )
-        el.removeAttributeNS(a.namespaceURI, a.localName);
+      const name = a.name.toLowerCase();
+      const drop =
+        name.startsWith('on') ||
+        name === 'xml:base' ||
+        ((a.localName === 'href' || name === 'xlink:href') && !hrefAllowed(el, a.value)) ||
+        (name === 'class' && /(^|\s)sc-/.test(a.value)) ||
+        (name !== 'style' && a.value.includes('url(') && reachesOut(a.value));
+      if (drop) el.removeAttributeNS(a.namespaceURI, a.localName);
+    }
+    const st = el.getAttribute('style');
+    if (st && reachesOut(st)) {
+      const kept = st.split(';').filter((d) => d.trim() && !reachesOut(d));
+      if (kept.length) el.setAttribute('style', kept.join(';'));
+      else el.removeAttribute('style');
     }
   }
 }
@@ -181,7 +249,6 @@ function parseSvg(text, { dedupe = true } = {}) {
   if (xml.querySelector('parsererror') || root.localName !== 'svg')
     throw new Error('Not a valid SVG file');
   sanitize(root);
-  inlineStyles(root);
   inheritRootPaint(root);
   // Sprite sheets keep their symbols at the top level: they belong in defs.
   const syms = [...root.children].filter((c) => c.localName === 'symbol');

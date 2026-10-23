@@ -29,8 +29,8 @@ function defaultLibrary(kind) {
 }
 
 // A pattern tile from outside (a library file) is sanitised like an
-// imported drawing, and its <style> rules are baked in so they can't
-// restyle the editor.
+// imported drawing (its <style> rules baked in, so they can't restyle the
+// editor).
 function cleanTile(markup) {
   const d = new DOMParser().parseFromString(
     `<svg xmlns="${NS}" xmlns:xlink="${XLINK}">${markup}</svg>`,
@@ -38,9 +38,7 @@ function cleanTile(markup) {
   );
   if (d.querySelector('parsererror')) return '';
   const root = d.documentElement;
-  inlineStyles(root);
   sanitize(root);
-  for (const st of root.querySelectorAll('style')) st.remove();
   return [...root.childNodes]
     .map((n) => new XMLSerializer().serializeToString(n))
     .join('')

@@ -64,10 +64,20 @@ The layout follows Photoshop:
 - **Import**: Open… replaces the drawing. Import… places an SVG (as a
   group, scaled to fit) or a PNG / JPEG / WebP / GIF into the drawing. You
   can also drag and drop files, or paste SVG markup or images.
-  Imported SVG is sanitized: scripts, `foreignObject`, `on*` handlers and
-  `javascript:` links are stripped, and `<style>` rules are inlined so they
-  can't restyle the editor. Root-level paint like `fill="none"
-stroke="currentColor"` (common in icon sets) is pushed down so it survives.
+  Imported SVG (opened, imported, pasted, restored from this browser, or
+  in a library file) is sanitised with an allowlist, because it goes into
+  the editor's own page. Only SVG drawing elements are kept: no script,
+  `foreignObject`, animation, or elements from other namespaces (such as
+  HTML `<base>`, `<form>` or `<meta>`). Event handlers (`on*`) go. Links
+  may only point inside the file, except image `data:` URLs and `http(s)`
+  / `mailto` on `<a>`; they're checked as the browser reads them, so a
+  hidden tab can't disguise `javascript:`. `url(…)` that would fetch from
+  another server is dropped from styles and paint attributes, so opening
+  a file never contacts anyone. `<style>` rules are baked into style
+  attributes so they can't restyle the editor, and `<title>` / `<desc>`
+  keep their text only. Root-level paint like `fill="none"
+stroke="currentColor"` (common in icon sets) is pushed down so it
+  survives.
 - **Crop** (Image menu): **Crop to Selection** and **Crop to Drawing** fit
   the artboard tightly around the selected layers, or around everything
   visible, rounded out to whole pixels. The box is what's actually
