@@ -153,6 +153,13 @@
             Image
           </button>
           <div class="sc-menu-list" role="menu" hidden>
+            <button role="menuitem" data-action="imageSize">
+              <i data-icon="maximize"></i><span>Image Size…</span>
+            </button>
+            <button role="menuitem" data-action="canvasSize">
+              <i data-icon="expand"></i><span>Canvas Size…</span>
+            </button>
+            <hr />
             <button role="menuitem" data-action="cropToSelection">
               <i data-icon="crop-simple"></i><span>Crop to Selection</span>
             </button>
@@ -2682,6 +2689,110 @@
       </div>
     </dialog>
 
+    <!-- Image → Image Size…: scale the artboard and everything on it. -->
+    <dialog class="sc-dialog sc-docsize" id="sc-imagesize" aria-labelledby="sc-is-title">
+      <div class="sc-dialog-title" id="sc-is-title">Image Size</div>
+      <div class="sc-dialog-body">
+        <p class="sc-hint" data-is="was"></p>
+        <div class="sc-docsize-row">
+          <label class="sc-field"
+            >Width <input type="number" data-is="w" min="0" step="any" aria-label="Width"
+          /></label>
+          <label class="sc-field"
+            >Height <input type="number" data-is="h" min="0" step="any" aria-label="Height"
+          /></label>
+          <select data-is="unit" aria-label="Units">
+            <option value="px">px</option>
+            <option value="pct">%</option>
+          </select>
+        </div>
+        <label class="sc-check"
+          ><input type="checkbox" data-is="lock" checked /> Constrain proportions</label
+        >
+        <label class="sc-check"
+          ><input type="checkbox" data-is="fx" checked /> Scale effects (shadows, glows,
+          blur)</label
+        >
+        <p class="sc-hint">
+          Everything scales with the artboard: shapes, strokes, text and guides. It’s SVG, so
+          nothing gets blurry.
+        </p>
+      </div>
+      <div class="sc-dialog-foot">
+        <button class="sc-tbtn" data-is-btn="cancel">Cancel</button>
+        <button class="sc-tbtn sc-primary-btn" data-is-btn="ok">OK</button>
+      </div>
+    </dialog>
+
+    <!-- Image → Canvas Size…: the artboard grows or shrinks around an anchor. -->
+    <dialog class="sc-dialog sc-docsize" id="sc-canvassize" aria-labelledby="sc-cv-title">
+      <div class="sc-dialog-title" id="sc-cv-title">Canvas Size</div>
+      <div class="sc-dialog-body">
+        <p class="sc-hint" data-cv="was"></p>
+        <div class="sc-docsize-row">
+          <label class="sc-field"
+            >Width <input type="number" data-cv="w" step="1" aria-label="Width" /><span
+              class="sc-unit"
+              >px</span
+            ></label
+          >
+          <label class="sc-field"
+            >Height <input type="number" data-cv="h" step="1" aria-label="Height" /><span
+              class="sc-unit"
+              >px</span
+            ></label
+          >
+        </div>
+        <label class="sc-check"
+          ><input type="checkbox" data-cv="rel" /> Relative (add, or trim with a minus)</label
+        >
+        <span class="sc-opt-label">Anchor</span>
+        <div class="sc-cv-anchors" role="radiogroup" aria-label="Anchor">
+          <button type="button" role="radio" data-cv-anchor="0,0" aria-label="Top left"></button>
+          <button
+            type="button"
+            role="radio"
+            data-cv-anchor="0.5,0"
+            aria-label="Top centre"
+          ></button>
+          <button type="button" role="radio" data-cv-anchor="1,0" aria-label="Top right"></button>
+          <button
+            type="button"
+            role="radio"
+            data-cv-anchor="0,0.5"
+            aria-label="Middle left"
+          ></button>
+          <button type="button" role="radio" data-cv-anchor="0.5,0.5" aria-label="Centre"></button>
+          <button
+            type="button"
+            role="radio"
+            data-cv-anchor="1,0.5"
+            aria-label="Middle right"
+          ></button>
+          <button type="button" role="radio" data-cv-anchor="0,1" aria-label="Bottom left"></button>
+          <button
+            type="button"
+            role="radio"
+            data-cv-anchor="0.5,1"
+            aria-label="Bottom centre"
+          ></button>
+          <button
+            type="button"
+            role="radio"
+            data-cv-anchor="1,1"
+            aria-label="Bottom right"
+          ></button>
+        </div>
+        <p class="sc-hint">
+          Nothing is scaled. Whatever ends up outside the canvas is kept, just not exported.
+        </p>
+      </div>
+      <div class="sc-dialog-foot">
+        <button class="sc-tbtn" data-cv-btn="cancel">Cancel</button>
+        <button class="sc-tbtn sc-primary-btn" data-cv-btn="ok">OK</button>
+      </div>
+    </dialog>
+
     <!-- File → Export App Icons…: every size each platform needs, in one zip. -->
     <dialog class="sc-dialog sc-appicons" id="sc-appicons" aria-labelledby="sc-ai-title">
       <div class="sc-dialog-title" id="sc-ai-title">Export App Icons</div>
@@ -3377,6 +3488,7 @@
     <script src="src/points.js"></script>
     <script src="src/fill-rule.js"></script>
     <script src="src/animate.js"></script>
+    <script src="src/doc-size.js"></script>
     <script src="src/commands.js"></script>
     <script src="src/outlines.js"></script>
     <script src="src/transform.js"></script>

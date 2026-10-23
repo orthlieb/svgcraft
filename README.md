@@ -78,6 +78,22 @@ The layout follows Photoshop:
   keep their text only. Root-level paint like `fill="none"
 stroke="currentColor"` (common in icon sets) is pushed down so it
   survives.
+- **Image Size…** (Image menu) scales the artboard and everything on it,
+  guides included, in one undo step: width and height in pixels or
+  percent, with Constrain proportions. It's SVG, so nothing is resampled
+  or blurred: each top-level layer gets the scale on top of its
+  transform, so strokes, text, patterns and gradients scale with the
+  shapes. **Scale effects** (on by default, Photoshop's Scale Styles)
+  scales layer-effect distances and sizes too (shadow, glow, blur);
+  animation distances always follow the art.
+- **Canvas Size…** (Image menu) changes the artboard without scaling
+  anything: a new width and height, or **Relative** to add pixels (or
+  trim them with a minus), and an **anchor** that says which part stays
+  put. The centre grows or trims every side equally; a corner or edge
+  keeps that side fixed. Content and guides shift by whole pixels and the
+  view follows, so nothing jumps on screen. Whatever ends up outside is
+  kept, just not exported. (Properties → Document's W and H also resize
+  the artboard, anchored top-left.)
 - **Crop** (Image menu): **Crop to Selection** and **Crop to Drawing** fit
   the artboard tightly around the selected layers, or around everything
   visible, rounded out to whole pixels. The box is what's actually

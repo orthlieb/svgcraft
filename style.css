@@ -2734,3 +2734,57 @@ select[data-stroke-dash],
 .sc-anim-opts input[type='number'] {
   width: 64px;
 }
+
+/* ---- Image Size / Canvas Size ---------------------------------------------- */
+.sc-docsize {
+  width: 300px;
+}
+.sc-docsize-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+.sc-docsize-row input[type='number'] {
+  width: 72px;
+}
+.sc-docsize select {
+  height: 24px;
+  padding: 0 6px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: var(--field);
+}
+.sc-cv-anchors {
+  display: grid;
+  grid-template-columns: repeat(3, 24px);
+  gap: 3px;
+}
+.sc-cv-anchors button {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: var(--field);
+}
+.sc-cv-anchors button::after {
+  content: '';
+  display: block;
+  width: 6px;
+  height: 6px;
+  margin: auto;
+  border-radius: 50%;
+  background: var(--text-dim);
+  opacity: 0.4;
+}
+.sc-cv-anchors [aria-checked='true'] {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+.sc-cv-anchors [aria-checked='true']::after {
+  width: 8px;
+  height: 8px;
+  background: var(--accent-fg);
+  opacity: 1;
+}

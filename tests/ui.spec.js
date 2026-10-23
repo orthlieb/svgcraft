@@ -47,7 +47,7 @@ test('menus are keyboard navigable', async ({ page }) => {
   expect(await activeText(page)).toBe('UndoCtrl+Z');
   await page.keyboard.press('ArrowRight');
   await expect(page.locator('.sc-menu-btn[aria-expanded=true]')).toHaveText('Image');
-  expect(await activeText(page)).toBe('Crop to Selection');
+  expect(await activeText(page)).toBe('Image Size…');
   await page.keyboard.press('Escape');
   await expect(page.locator('.sc-menu-list:not([hidden])')).toHaveCount(0);
 });

@@ -96,6 +96,8 @@ const actions = {
   combineUnite: () => combineShapes('unite'),
   reversePath: reversePaths,
   toggleAnimations: () => toggleAnimations(),
+  imageSize: openImageSize,
+  canvasSize: openCanvasSize,
   fillRuleNonzero: () => setFillRule('nonzero'),
   fillRuleEvenodd: () => setFillRule('evenodd'),
   combineSubtract: () => combineShapes('subtract'),
