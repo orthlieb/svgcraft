@@ -97,6 +97,7 @@ const actions = {
   reversePath: reversePaths,
   toggleAnimations: () => toggleAnimations(),
   imageSize: openImageSize,
+  imageTrace: openTrace,
   togglePanels: () => togglePanels(false),
   defaultPaint,
   canvasSize: openCanvasSize,

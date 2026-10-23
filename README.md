@@ -93,6 +93,26 @@ stroke="currentColor"` (common in icon sets) is pushed down so it
   in pixels. Opening a file sized in real units shows it in those units;
   one drawn in other units (a viewBox in mm, say) is scaled to pixels,
   keeping its real size. Plain pixel sizes are left as they were.
+- **Image Trace…** (Image menu, with a placed image selected) turns a
+  bitmap into shapes, as Illustrator's does, with a live preview and the
+  result's colours, shapes and size before you commit. It reduces the
+  image to a few colours (k-means in Lab, so similar-looking colours group
+  together), traces each colour's outline, smooths it into curves (real
+  corners stay sharp) and puts each colour on its own layer in an "Image
+  Trace" group, named like "Colour #2563eb · 34%". **Stacked** (the
+  default) puts the largest colour at the bottom and fills each layer with
+  its colour and every colour above it, so the layers overlap and no
+  hairline gaps show; turn it off for abutting shapes, each just its own
+  colour. **Presets**: Logo (6 colours, background left out), Illustration
+  (16), Photo (24, posterised) and Sketch (black and white, with a
+  threshold). Also: Greyscale, **Ignore specks** under a size (noise and
+  JPEG artefacts), **Smoothness** (0 gives pixel-exact polygons),
+  **Ignore background** (the colour round the edge, where it touches the
+  edge) and **Keep the image** hidden underneath. Thin slivers of
+  in-between colour along anti-aliased edges fold into their neighbours.
+  Images are traced at 400–1000 px on the long side, in a background
+  thread, so the page doesn't stall. Best for logos, icons,
+  illustrations, scans and line art.
 - **Image Size…** (Image menu) scales the artboard and everything on it,
   guides included, in one undo step: width and height in pixels or
   percent, with Constrain proportions. It's SVG, so nothing is resampled

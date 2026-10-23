@@ -1,0 +1,733 @@
+// SVGCraft — Image → Image Trace…: a placed bitmap turned into shapes.
+'use strict';
+
+// Illustrator's Image Trace, done the way it's done there: reduce the image
+// to a few colours, trace each colour's outline, smooth the outlines into
+// curves, and put each colour on its own layer. Stacked (the default)
+// orders the colours largest first and fills each layer with its colour
+// and every colour above it, so the layers overlap and no hairline gaps
+// show between them; Abutting gives each colour only its own area.
+//
+// The pixel work runs in a worker made from the function below (a blob
+// URL, so it works from file:// too), or on the page if workers aren't
+// available. Images are traced at 400–1000 px on the long side.
+
+// ---- the worker ------------------------------------------------------------------
+// Input: { id, data (RGBA), w, h, o: options }. Output: { id, layers: [{ hex,
+// area, loops: [Float32Array x,y,…] }] }, in stacking order, bottom first.
+// `scope` is the worker's global (or a stand-in on the page).
+function traceWorker(scope) {
+  const LIN = new Float32Array(256);
+  for (let i = 0; i < 256; i++) {
+    const c = i / 255;
+    LIN[i] = c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  }
+  const fl = (t) => (t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116);
+  function lab(r, g, b) {
+    const R = LIN[r];
+    const G = LIN[g];
+    const B = LIN[b];
+    const x = fl((0.4124 * R + 0.3576 * G + 0.1805 * B) / 0.95047);
+    const y = fl(0.2126 * R + 0.7152 * G + 0.0722 * B);
+    const z = fl((0.0193 * R + 0.1192 * G + 0.9505 * B) / 1.08883);
+    return [116 * y - 16, 500 * (x - y), 200 * (y - z)];
+  }
+
+  // k-means in Lab (k-means++ start, on a sample), then every pixel to its
+  // nearest centre. Greyscale clusters on lightness alone.
+  function kmeans(P, n, k, grey) {
+    const dims = grey ? 1 : 3;
+    const step = Math.max(1, Math.floor(n / 20000));
+    const sample = [];
+    for (let i = 0; i < n; i += step) sample.push(i);
+    const dist = (i, c) => {
+      let d = 0;
+      for (let j = 0; j < dims; j++) {
+        const t = P[i * 3 + j] - c[j];
+        d += t * t;
+      }
+      return d;
+    };
+    let seed = 12345;
+    const rnd = () => (seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+    const centres = [Array.from(P.subarray(sample[0] * 3, sample[0] * 3 + 3))];
+    const best = new Float64Array(sample.length).fill(Infinity);
+    while (centres.length < k) {
+      const c = centres[centres.length - 1];
+      let total = 0;
+      for (let s = 0; s < sample.length; s++) {
+        best[s] = Math.min(best[s], dist(sample[s], c));
+        total += best[s];
+      }
+      if (!total) break;
+      let r = rnd() * total;
+      let pick = sample.length - 1;
+      for (let s = 0; s < sample.length; s++)
+        if ((r -= best[s]) <= 0) {
+          pick = s;
+          break;
+        }
+      centres.push(Array.from(P.subarray(sample[pick] * 3, sample[pick] * 3 + 3)));
+    }
+    for (let it = 0; it < 12; it++) {
+      const sum = centres.map(() => [0, 0, 0, 0]);
+      for (const i of sample) {
+        let bi = 0;
+        let bd = Infinity;
+        for (let c = 0; c < centres.length; c++) {
+          const d = dist(i, centres[c]);
+          if (d < bd) [bd, bi] = [d, c];
+        }
+        const s = sum[bi];
+        for (let j = 0; j < 3; j++) s[j] += P[i * 3 + j];
+        s[3]++;
+      }
+      let moved = 0;
+      centres.forEach((c, ci) => {
+        const s = sum[ci];
+        if (!s[3]) return;
+        for (let j = 0; j < 3; j++) {
+          const v = s[j] / s[3];
+          moved += Math.abs(v - c[j]);
+          c[j] = v;
+        }
+      });
+      if (moved < 0.01) break;
+    }
+    return centres;
+  }
+
+  // Anti-aliased edges make colours of their own: thin slivers along the
+  // borders between real colours. A colour that's mostly 1-pixel-thin (its
+  // pixels have 3 or fewer of their 3 × 3 neighbourhood in it) is folded
+  // into the colours around it.
+  function thinOut(label, w, h, k) {
+    const own = (p) => {
+      const x = p % w;
+      const y = (p / w) | 0;
+      let c = 0;
+      for (let dy = -1; dy <= 1; dy++)
+        for (let dx = -1; dx <= 1; dx++) {
+          const xx = x + dx;
+          const yy = y + dy;
+          if (xx >= 0 && yy >= 0 && xx < w && yy < h && label[yy * w + xx] === label[p]) c++;
+        }
+      return c;
+    };
+    const n = w * h;
+    const thin = new Int32Array(k);
+    const all = new Int32Array(k);
+    for (let p = 0; p < n; p++) {
+      const c = label[p];
+      if (c < 0) continue;
+      all[c]++;
+      if (own(p) <= 3) thin[c]++;
+    }
+    const sliver = Array.from(all, (a, c) => a > 0 && thin[c] / a > 0.5);
+    if (!sliver.some(Boolean)) return;
+    const next = label.slice();
+    for (let p = 0; p < n; p++) {
+      const c = label[p];
+      if (c < 0 || !sliver[c]) continue;
+      const x = p % w;
+      const y = (p / w) | 0;
+      const votes = new Map();
+      for (let dy = -1; dy <= 1; dy++)
+        for (let dx = -1; dx <= 1; dx++) {
+          const xx = x + dx;
+          const yy = y + dy;
+          if (xx < 0 || yy < 0 || xx >= w || yy >= h) continue;
+          const q = label[yy * w + xx];
+          if (q >= 0 && !sliver[q]) votes.set(q, (votes.get(q) || 0) + 1);
+        }
+      let to = c;
+      let most = 0;
+      for (const [q, m] of votes) if (m > most) [most, to] = [m, q];
+      next[p] = to;
+    }
+    label.set(next);
+  }
+
+  // Pieces smaller than `min` pixels join the colour around them most
+  // (with `clear`, transparency counts as a colour too).
+  function despeckle(lab8, w, h, min, clear = false) {
+    if (min < 2) return;
+    const n = w * h;
+    const seen = new Uint8Array(n);
+    const stack = new Int32Array(n);
+    const comp = [];
+    for (let s = 0; s < n; s++) {
+      if (seen[s]) continue;
+      const v = lab8[s];
+      let top = 0;
+      let len = 0;
+      stack[top++] = s;
+      seen[s] = 1;
+      comp.length = 0;
+      while (top) {
+        const p = stack[--top];
+        comp.push(p);
+        len++;
+        const x = p % w;
+        const y = (p / w) | 0;
+        const nb = [
+          x > 0 ? p - 1 : -1,
+          x < w - 1 ? p + 1 : -1,
+          y > 0 ? p - w : -1,
+          y < h - 1 ? p + w : -1,
+        ];
+        for (const q of nb)
+          if (q >= 0 && !seen[q] && lab8[q] === v) {
+            seen[q] = 1;
+            stack[top++] = q;
+          }
+      }
+      if (len >= min || v < 0) continue;
+      const votes = new Map();
+      for (const p of comp) {
+        const x = p % w;
+        const y = (p / w) | 0;
+        for (const q of [
+          x > 0 ? p - 1 : -1,
+          x < w - 1 ? p + 1 : -1,
+          y > 0 ? p - w : -1,
+          y < h - 1 ? p + w : -1,
+        ])
+          if (q >= 0 && lab8[q] !== v) votes.set(lab8[q], (votes.get(lab8[q]) || 0) + 1);
+      }
+      let to = v;
+      let most = 0;
+      for (const [c, m] of votes) if (m > most && (c >= 0 || clear)) [most, to] = [m, c];
+      if (to !== v) for (const p of comp) lab8[p] = to;
+    }
+  }
+
+  // Outlines of a mask as closed loops of pixel-corner points, inside on
+  // the right; at a pinch (two pixels touching at a corner) the walk turns
+  // right, so diagonal neighbours stay separate shapes.
+  function loopsOf(inside, w, h) {
+    const W = w + 1;
+    const out = new Uint8Array(W * (h + 1));
+    const at = (x, y) => x >= 0 && y >= 0 && x < w && y < h && inside[y * w + x];
+    for (let y = 0; y < h; y++)
+      for (let x = 0; x < w; x++) {
+        if (!inside[y * w + x]) continue;
+        if (!at(x, y - 1)) out[y * W + x] |= 1; // right, along the top
+        if (!at(x + 1, y)) out[y * W + x + 1] |= 2; // down the right side
+        if (!at(x, y + 1)) out[(y + 1) * W + x + 1] |= 4; // left, along the bottom
+        if (!at(x - 1, y)) out[(y + 1) * W + x] |= 8; // up the left side
+      }
+    const DX = [1, 0, -1, 0];
+    const DY = [0, 1, 0, -1];
+    const loops = [];
+    for (let v0 = 0; v0 < out.length; v0++) {
+      while (out[v0]) {
+        let d = Math.log2(out[v0] & -out[v0]);
+        out[v0] &= ~(1 << d);
+        const d0 = d;
+        let x = v0 % W;
+        let y = (v0 / W) | 0;
+        const pts = [x, y];
+        for (;;) {
+          x += DX[d];
+          y += DY[d];
+          const v = y * W + x;
+          const avail = out[v] | (v === v0 ? 1 << d0 : 0);
+          let nd = -1;
+          for (const t of [(d + 1) % 4, d, (d + 3) % 4])
+            if (avail & (1 << t)) {
+              nd = t;
+              break;
+            }
+          if (nd < 0 || (v === v0 && nd === d0)) break;
+          out[v] &= ~(1 << nd);
+          pts.push(x, y);
+          d = nd;
+        }
+        if (pts.length >= 6) loops.push(pts);
+      }
+    }
+    return loops;
+  }
+
+  // A traced outline is a pixel staircase. Smoothing averages each point
+  // with r neighbours either side, except real corners: a turn with a
+  // straight run of 3+ pixels on both sides (a rectangle's corner, not a
+  // step of a slanted edge), which stays put.
+  function smoothLoop(pts, r) {
+    const n = pts.length / 2;
+    const fixed = new Uint8Array(n);
+    const dir = (i) => {
+      const a = ((i % n) + n) % n;
+      const b = (a + 1) % n;
+      return (pts[b * 2] - pts[a * 2]) * 3 + (pts[b * 2 + 1] - pts[a * 2 + 1]);
+    };
+    const run = (i, step) => {
+      const d = dir(i);
+      let k = 1;
+      while (k < 4 && dir(i + step * k) === d) k++;
+      return k;
+    };
+    for (let i = 0; i < n; i++)
+      if (dir(i - 1) !== dir(i) && run(i - 1, -1) >= 3 && run(i, 1) >= 3) fixed[i] = 1;
+    if (!r) return { pts, fixed };
+    const out = new Float32Array(pts.length);
+    for (let i = 0; i < n; i++) {
+      if (fixed[i]) {
+        out[i * 2] = pts[i * 2];
+        out[i * 2 + 1] = pts[i * 2 + 1];
+        continue;
+      }
+      let sx = 0;
+      let sy = 0;
+      for (let k = -r; k <= r; k++) {
+        const j = (((i + k) % n) + n) % n;
+        sx += pts[j * 2];
+        sy += pts[j * 2 + 1];
+      }
+      out[i * 2] = sx / (2 * r + 1);
+      out[i * 2 + 1] = sy / (2 * r + 1);
+    }
+    return { pts: out, fixed };
+  }
+
+  // Douglas–Peucker on a closed loop, split at its two farthest-apart
+  // points and at the fixed corners, which are always kept.
+  function simplify(pts, eps, fixed) {
+    const n = pts.length / 2;
+    const P = (i) => [pts[(i % n) * 2], pts[(i % n) * 2 + 1]];
+    let far = 0;
+    let fd = -1;
+    for (let i = 1; i < n; i++) {
+      const [x, y] = P(i);
+      const d = (x - pts[0]) ** 2 + (y - pts[1]) ** 2;
+      if (d > fd) [fd, far] = [d, i];
+    }
+    const keep = new Uint8Array(n + 1);
+    keep[0] = keep[far] = keep[n] = 1;
+    for (let i = 0; i < n; i++) if (fixed[i]) keep[i] = 1;
+    const stack = [];
+    for (let a = 0, b = 1; b <= n; b++)
+      if (keep[b]) {
+        stack.push([a, b]);
+        a = b;
+      }
+    while (stack.length) {
+      const [a, b] = stack.pop();
+      const [ax, ay] = P(a);
+      const [bx, by] = P(b);
+      const dx = bx - ax;
+      const dy = by - ay;
+      const len = Math.hypot(dx, dy) || 1e-9;
+      let max = 0;
+      let idx = -1;
+      for (let i = a + 1; i < b; i++) {
+        const [x, y] = P(i);
+        const d = Math.abs(dy * x - dx * y + bx * ay - by * ax) / len;
+        if (d > max) [max, idx] = [d, i];
+      }
+      if (max > eps && idx > 0) {
+        keep[idx] = 1;
+        stack.push([a, idx], [idx, b]);
+      }
+    }
+    const out = [];
+    for (let i = 0; i < n; i++) if (keep[i]) out.push(...P(i));
+    return new Float32Array(out);
+  }
+
+  function trace({ id, data, w, h, o }) {
+    const n = w * h;
+    const opaque = new Uint8Array(n);
+    const P = new Float32Array(n * 3);
+    let m = 0;
+    const idx = new Int32Array(n);
+    for (let p = 0; p < n; p++) {
+      if (data[p * 4 + 3] < 128) continue;
+      opaque[p] = 1;
+      const [L, A, B] = lab(data[p * 4], data[p * 4 + 1], data[p * 4 + 2]);
+      P[m * 3] = L;
+      P[m * 3 + 1] = o.mode === 'grey' ? 0 : A;
+      P[m * 3 + 2] = o.mode === 'grey' ? 0 : B;
+      idx[m++] = p;
+    }
+    // Each pixel's colour (-1: transparent).
+    const label = new Int16Array(n).fill(-1);
+    let k;
+    if (o.mode === 'bw') {
+      k = 2;
+      for (let i = 0; i < m; i++) label[idx[i]] = P[i * 3] < (o.threshold / 255) * 100 ? 1 : 0;
+    } else {
+      const centres = m ? kmeans(P, m, Math.min(o.colours, m), o.mode === 'grey') : [];
+      k = centres.length;
+      const dims = o.mode === 'grey' ? 1 : 3;
+      for (let i = 0; i < m; i++) {
+        let bi = 0;
+        let bd = Infinity;
+        for (let c = 0; c < k; c++) {
+          let d = 0;
+          for (let j = 0; j < dims; j++) d += (P[i * 3 + j] - centres[c][j]) ** 2;
+          if (d < bd) [bd, bi] = [d, c];
+        }
+        label[idx[i]] = bi;
+      }
+    }
+    if (o.mode !== 'bw' && o.speck >= 2) thinOut(label, w, h, k);
+    despeckle(label, w, h, o.speck);
+    // The background: the colour round the edge, cleared where it's
+    // connected to the edge.
+    if (o.ignoreBg) {
+      const edge = new Map();
+      for (let x = 0; x < w; x++)
+        for (const p of [x, (h - 1) * w + x]) edge.set(label[p], (edge.get(label[p]) || 0) + 1);
+      for (let y = 0; y < h; y++)
+        for (const p of [y * w, y * w + w - 1]) edge.set(label[p], (edge.get(label[p]) || 0) + 1);
+      let bg = -1;
+      let most = 0;
+      for (const [c, cnt] of edge) if (c >= 0 && cnt > most) [most, bg] = [cnt, c];
+      if (bg >= 0) {
+        const stack = [];
+        const push = (p) => {
+          if (label[p] === bg) {
+            label[p] = -1;
+            stack.push(p);
+          }
+        };
+        for (let x = 0; x < w; x++) {
+          push(x);
+          push((h - 1) * w + x);
+        }
+        for (let y = 0; y < h; y++) {
+          push(y * w);
+          push(y * w + w - 1);
+        }
+        while (stack.length) {
+          const p = stack.pop();
+          const x = p % w;
+          const y = (p / w) | 0;
+          if (x > 0) push(p - 1);
+          if (x < w - 1) push(p + 1);
+          if (y > 0) push(p - w);
+          if (y < h - 1) push(p + w);
+        }
+      }
+    }
+    // Specks the background left behind go with it.
+    if (o.ignoreBg) despeckle(label, w, h, o.speck, true);
+    // Colours by area, largest first (the bottom layer), with their mean RGB.
+    const stats = Array.from({ length: k }, () => [0, 0, 0, 0]);
+    for (let p = 0; p < n; p++) {
+      const c = label[p];
+      if (c < 0) continue;
+      const s = stats[c];
+      s[0] += data[p * 4];
+      s[1] += data[p * 4 + 1];
+      s[2] += data[p * 4 + 2];
+      s[3]++;
+    }
+    const total = stats.reduce((t, s) => t + s[3], 0) || 1;
+    const order = stats
+      .map((s, c) => ({ c, s }))
+      .filter((x) => x.s[3] > 0)
+      .sort((a, b) => b.s[3] - a.s[3]);
+    const rank = new Int16Array(k).fill(-1);
+    order.forEach((x, r) => (rank[x.c] = r));
+    const hex = (v) => Math.round(v).toString(16).padStart(2, '0');
+    // Smoothing radius (points either side) and simplifying tolerance.
+    const rad = o.smooth ? 1 + Math.floor(o.smooth / 3) : 0;
+    const eps = o.smooth ? 0.4 + o.smooth * 0.08 : 0.5;
+    const layers = [];
+    const inside = new Uint8Array(n);
+    order.forEach(({ c, s }, r) => {
+      for (let p = 0; p < n; p++) {
+        const lr = label[p] < 0 ? -1 : rank[label[p]];
+        inside[p] = o.stacked ? (lr >= r ? 1 : 0) : lr === r ? 1 : 0;
+      }
+      const loops = loopsOf(inside, w, h)
+        .map((pts) => {
+          const sm = smoothLoop(pts, rad);
+          return simplify(sm.pts, eps, sm.fixed);
+        })
+        .filter((pts) => pts.length >= 6);
+      const colour =
+        o.mode === 'bw'
+          ? c === 1
+            ? '#000000'
+            : '#ffffff'
+          : `#${hex(s[0] / s[3])}${hex(s[1] / s[3])}${hex(s[2] / s[3])}`;
+      layers.push({ hex: colour, area: s[3] / total, loops });
+    });
+    return { id, layers };
+  }
+
+  scope.onmessage = (e) => {
+    const r = trace(e.data);
+    scope.postMessage(
+      r,
+      r.layers.flatMap((l) => l.loops.map((a) => a.buffer)),
+    );
+  };
+  return trace;
+}
+
+// ---- running it ------------------------------------------------------------------
+let traceW = null;
+let traceRun = null; // the page-side fallback
+const traceJobs = new Map();
+let traceId = 0;
+function traceStart(data, w, h, o) {
+  const id = ++traceId;
+  if (traceW === null) {
+    try {
+      const url = URL.createObjectURL(
+        new Blob([`(${traceWorker.toString()})(self);`], { type: 'text/javascript' }),
+      );
+      traceW = new Worker(url);
+      traceW.onmessage = (e) => {
+        traceJobs.get(e.data.id)?.(e.data);
+        traceJobs.delete(e.data.id);
+      };
+    } catch {
+      traceW = false;
+    }
+  }
+  return new Promise((resolve) => {
+    if (traceW) {
+      traceJobs.set(id, resolve);
+      traceW.postMessage({ id, data, w, h, o }, [data.buffer]);
+    } else {
+      // No workers: the same code on the page.
+      traceRun ??= traceWorker({});
+      setTimeout(() => resolve(traceRun({ id, data, w, h, o })), 0);
+    }
+  });
+}
+
+// One loop as path data: straight between corners, curves elsewhere
+// (Catmull-Rom tangents). Smoothness 0 is all corners: plain polygons.
+const tf = (v) => String(+v.toFixed(1));
+function loopD(pts, smooth) {
+  const n = pts.length / 2;
+  const P = (i) => {
+    const j = ((i % n) + n) % n;
+    return [pts[j * 2], pts[j * 2 + 1]];
+  };
+  const limit = smooth ? ((20 + smooth * 10) * Math.PI) / 180 : -1;
+  const corner = [];
+  for (let i = 0; i < n; i++) {
+    const [ax, ay] = P(i - 1);
+    const [bx, by] = P(i);
+    const [cx, cy] = P(i + 1);
+    let t = Math.abs(Math.atan2(cy - by, cx - bx) - Math.atan2(by - ay, bx - ax));
+    if (t > Math.PI) t = 2 * Math.PI - t;
+    corner.push(limit < 0 || t > limit);
+  }
+  const [x0, y0] = P(0);
+  let d = `M${tf(x0)} ${tf(y0)}`;
+  for (let i = 0; i < n; i++) {
+    const p1 = P(i);
+    const p2 = P(i + 1);
+    const c1n = corner[i];
+    const c2n = corner[(i + 1) % n];
+    if (c1n && c2n) {
+      d += `L${tf(p2[0])} ${tf(p2[1])}`;
+      continue;
+    }
+    const p0 = P(i - 1);
+    const p3 = P(i + 2);
+    const c1 = c1n
+      ? [p1[0] + (p2[0] - p1[0]) / 3, p1[1] + (p2[1] - p1[1]) / 3]
+      : [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
+    const c2 = c2n
+      ? [p2[0] - (p2[0] - p1[0]) / 3, p2[1] - (p2[1] - p1[1]) / 3]
+      : [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
+    d += `C${tf(c1[0])} ${tf(c1[1])} ${tf(c2[0])} ${tf(c2[1])} ${tf(p2[0])} ${tf(p2[1])}`;
+  }
+  return d + 'Z';
+}
+// The traced layers as path elements (in trace pixels).
+function tracePaths(layers, smooth) {
+  return layers
+    .filter((l) => l.loops.length)
+    .map((l) =>
+      mk('path', {
+        d: l.loops.map((pts) => loopD(pts, smooth)).join(''),
+        fill: l.hex,
+        'fill-rule': 'evenodd',
+        'data-name': `Colour ${l.hex} · ${Math.max(1, Math.round(l.area * 100))}%`,
+      }),
+    );
+}
+
+// ---- the dialog -----------------------------------------------------------------
+const TRACE_PRESETS = {
+  logo: { mode: 'colour', colours: 6, speck: 8, smooth: 5, ignoreBg: true },
+  illustration: { mode: 'colour', colours: 16, speck: 4, smooth: 4, ignoreBg: false },
+  photo: { mode: 'colour', colours: 24, speck: 12, smooth: 5, ignoreBg: false },
+  sketch: { mode: 'bw', threshold: 128, speck: 10, smooth: 6, ignoreBg: true },
+};
+const trDlg = $('#sc-trace');
+const trField = (k) => trDlg.querySelector(`[data-tr="${k}"]`);
+const tr = { img: null, pixels: null, w: 0, h: 0, layers: null, M: null, timer: 0, busy: 0 };
+
+function traceOptions() {
+  const mode =
+    trDlg.querySelector('[data-tr-mode][aria-checked="true"]')?.dataset.trMode || 'colour';
+  return {
+    mode,
+    colours: clamp(Math.round(+trField('colours').value) || 6, 2, 32),
+    threshold: clamp(+trField('threshold').value || 128, 0, 255),
+    speck: clamp(Math.round(+trField('speck').value) || 0, 0, 500),
+    smooth: clamp(+trField('smooth').value || 0, 0, 10),
+    stacked: trField('stacked').checked,
+    ignoreBg: trField('ignoreBg').checked,
+  };
+}
+function syncTraceFields() {
+  const mode = traceOptions().mode;
+  trField('colours').closest('label').hidden = mode === 'bw';
+  trField('threshold').closest('label').hidden = mode !== 'bw';
+}
+function setTracePreset(k) {
+  const p = TRACE_PRESETS[k];
+  if (!p) return;
+  for (const b of trDlg.querySelectorAll('[data-tr-mode]'))
+    b.setAttribute('aria-checked', b.dataset.trMode === p.mode);
+  for (const key of ['colours', 'threshold', 'speck', 'smooth'])
+    if (key in p) trField(key).value = p[key];
+  trField('ignoreBg').checked = p.ignoreBg;
+  syncTraceFields();
+}
+
+// The image's pixels at tracing size, and the matrix from tracing pixels
+// to the drawing (its placement, aspect ratio and transform).
+async function imagePixels(el) {
+  const href = el.getAttribute('href') || el.getAttribute('xlink:href') || '';
+  const img = new Image();
+  img.src = href;
+  await img.decode();
+  const nw = img.naturalWidth || 1;
+  const nh = img.naturalHeight || 1;
+  // 400–1000 px on the long side: big enough for detail, small enough to be quick.
+  const long = Math.max(nw, nh);
+  const k = clamp(long, 400, 1000) / long;
+  const w = Math.max(1, Math.round(nw * k));
+  const h = Math.max(1, Math.round(nh * k));
+  const c = document.createElement('canvas');
+  c.width = w;
+  c.height = h;
+  const ctx = c.getContext('2d', { willReadFrequently: true });
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(img, 0, 0, w, h);
+  const data = ctx.getImageData(0, 0, w, h).data;
+  // Where the image is drawn (preserveAspectRatio: meet, or none).
+  const num = (a) => parseFloat(el.getAttribute(a)) || 0;
+  const W = num('width') || nw;
+  const H = num('height') || nh;
+  const par = el.getAttribute('preserveAspectRatio') || '';
+  let sx = W / nw;
+  let sy = H / nh;
+  let ox = 0;
+  let oy = 0;
+  if (!/^none/.test(par)) {
+    sx = sy = Math.min(sx, sy);
+    const a = /x(Min|Mid|Max)Y(Min|Mid|Max)/.exec(par) || [0, 'Mid', 'Mid'];
+    const frac = { Min: 0, Mid: 0.5, Max: 1 };
+    ox = (W - nw * sx) * frac[a[1]];
+    oy = (H - nh * sy) * frac[a[2]];
+  }
+  const M = getM(el)
+    .translate(num('x') + ox, num('y') + oy)
+    .scale((sx * nw) / w, (sy * nh) / h);
+  return { data, w, h, M };
+}
+
+async function openTrace() {
+  const el = state.sel.length === 1 && state.sel[0].localName === 'image' ? state.sel[0] : null;
+  if (!el)
+    return say('Select a placed image to trace it (File → Place, or drop one on the canvas).');
+  if (refuseLocked([el], 'edit')) return;
+  let px;
+  try {
+    px = await imagePixels(el);
+  } catch {
+    return say('Couldn’t read that image’s pixels to trace it.');
+  }
+  Object.assign(tr, { img: el, pixels: px.data, w: px.w, h: px.h, M: px.M, layers: null });
+  trField('preview').setAttribute('viewBox', `0 0 ${px.w} ${px.h}`);
+  showDialog(trDlg, () => closeTrace(false));
+  setTimeout(() => trDlg.querySelector('[data-tr-btn="ok"]').focus(), 0);
+  retrace(0);
+}
+// Trace again (after a pause while settings change); the newest run wins.
+function retrace(wait = 250) {
+  clearTimeout(tr.timer);
+  // The last result no longer matches the settings: wait for the new one.
+  const id = ++tr.busy;
+  tr.layers = null;
+  trField('status').textContent = 'Tracing…';
+  trDlg.querySelector('[data-tr-btn="ok"]').disabled = true;
+  tr.timer = setTimeout(async () => {
+    const o = traceOptions();
+    const r = await traceStart(new Uint8ClampedArray(tr.pixels), tr.w, tr.h, o);
+    if (id !== tr.busy || !trDlg.open) return;
+    tr.layers = r.layers;
+    const paths = tracePaths(r.layers, o.smooth);
+    trField('preview').replaceChildren(...paths);
+    const bytes = paths.reduce((t, p) => t + p.outerHTML.length, 0);
+    const shapes = r.layers.reduce((t, l) => t + l.loops.length, 0);
+    trField('status').textContent =
+      `${paths.length} colour${paths.length === 1 ? '' : 's'} · ${shapes} shape${shapes === 1 ? '' : 's'} · ${kb(bytes)}`;
+    trDlg.querySelector('[data-tr-btn="ok"]').disabled = !paths.length;
+  }, wait);
+}
+function closeTrace(ok) {
+  hideDialog(trDlg);
+  clearTimeout(tr.timer);
+  tr.busy++;
+  const el = tr.img;
+  const layers = tr.layers;
+  tr.pixels = null;
+  if (!ok || !el?.isConnected || !layers) return;
+  const paths = tracePaths(layers, traceOptions().smooth);
+  if (!paths.length)
+    return say('Nothing to trace: try fewer colours or turn off Ignore background.');
+  const g = mk('g', { 'data-name': 'Image Trace' });
+  setM(g, tr.M);
+  // The top layer first in the Layers panel: SVG paints later children on top.
+  g.append(...paths);
+  el.after(g);
+  if (trField('keep').checked) el.setAttribute('display', 'none');
+  else el.remove();
+  state.sel = [g];
+  commit();
+  say(`Traced into ${paths.length} colour layer${paths.length === 1 ? '' : 's'}.`);
+}
+
+for (const b of trDlg.querySelectorAll('[data-tr-mode]'))
+  b.addEventListener('click', () => {
+    for (const x of trDlg.querySelectorAll('[data-tr-mode]'))
+      x.setAttribute('aria-checked', x === b);
+    trField('preset').value = '';
+    syncTraceFields();
+    retrace();
+  });
+trField('preset').addEventListener('change', () => {
+  setTracePreset(trField('preset').value);
+  retrace();
+});
+for (const k of ['colours', 'threshold', 'speck', 'smooth', 'stacked', 'ignoreBg'])
+  trField(k).addEventListener('input', () => {
+    if (['colours', 'threshold', 'speck', 'smooth'].includes(k)) trField('preset').value = '';
+    retrace();
+  });
+trDlg.addEventListener('keydown', (e) => {
+  e.stopPropagation();
+  if (e.key === 'Enter' && !e.target.closest('[data-tr-btn="cancel"], select')) {
+    e.preventDefault();
+    if (!trDlg.querySelector('[data-tr-btn="ok"]').disabled) closeTrace(true);
+  } else if (e.key === 'Escape') closeTrace(false);
+});
+trDlg.querySelector('[data-tr-btn="ok"]').addEventListener('click', () => closeTrace(true));
+trDlg.querySelector('[data-tr-btn="cancel"]').addEventListener('click', () => closeTrace(false));
+setTracePreset('logo');

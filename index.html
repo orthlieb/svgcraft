@@ -162,6 +162,9 @@
             <button role="menuitem" data-action="canvasSize">
               <i data-icon="expand"></i><span>Canvas Size…</span><kbd>Ctrl+Alt+C</kbd>
             </button>
+            <button role="menuitem" data-action="imageTrace">
+              <i data-icon="image"></i><span>Image Trace…</span>
+            </button>
             <hr />
             <button role="menuitem" data-action="cropToSelection">
               <i data-icon="crop-simple"></i><span>Crop to Selection</span>
@@ -2756,6 +2759,93 @@
       </div>
     </dialog>
 
+    <!-- Image → Image Trace…: a placed bitmap traced into colour layers. -->
+    <dialog class="sc-dialog sc-trace" id="sc-trace" aria-labelledby="sc-tr-title">
+      <div class="sc-dialog-title" id="sc-tr-title">Image Trace</div>
+      <div class="sc-tr-body">
+        <div class="sc-tr-view">
+          <svg
+            class="sc-tr-preview"
+            data-tr="preview"
+            viewBox="0 0 100 100"
+            role="img"
+            aria-label="Preview"
+          ></svg>
+          <p class="sc-hint sc-tr-status" data-tr="status" role="status"></p>
+        </div>
+        <div class="sc-tr-opts">
+          <label class="sc-field"
+            >Preset
+            <select data-tr="preset" aria-label="Preset">
+              <option value="logo">Logo (6 colours)</option>
+              <option value="illustration">Illustration (16 colours)</option>
+              <option value="photo">Photo (24 colours)</option>
+              <option value="sketch">Sketch (black and white)</option>
+              <option value="">Custom</option>
+            </select></label
+          >
+          <div class="sc-seg" role="radiogroup" aria-label="Mode">
+            <button type="button" role="radio" data-tr-mode="colour" aria-checked="true">
+              Colour
+            </button>
+            <button type="button" role="radio" data-tr-mode="grey" aria-checked="false">
+              Greyscale
+            </button>
+            <button type="button" role="radio" data-tr-mode="bw" aria-checked="false">
+              B&amp;W
+            </button>
+          </div>
+          <label class="sc-field"
+            >Colours
+            <input data-tr="colours" type="number" min="2" max="32" step="1" aria-label="Colours"
+          /></label>
+          <label class="sc-field" hidden
+            >Threshold
+            <input
+              data-tr="threshold"
+              type="range"
+              min="0"
+              max="255"
+              step="1"
+              aria-label="Threshold"
+          /></label>
+          <label class="sc-field"
+            >Ignore specks under
+            <input
+              data-tr="speck"
+              type="number"
+              min="0"
+              max="500"
+              step="1"
+              aria-label="Ignore specks under"
+            /><span class="sc-unit">px</span></label
+          >
+          <label class="sc-field"
+            >Smoothness
+            <input data-tr="smooth" type="range" min="0" max="10" step="1" aria-label="Smoothness"
+          /></label>
+          <label class="sc-check"
+            ><input type="checkbox" data-tr="stacked" checked /> Stacked (layers overlap, no
+            gaps)</label
+          >
+          <label class="sc-check"
+            ><input type="checkbox" data-tr="ignoreBg" /> Ignore background</label
+          >
+          <label class="sc-check"
+            ><input type="checkbox" data-tr="keep" checked /> Keep the image (hidden)</label
+          >
+          <p class="sc-hint">
+            One layer per colour. Best for logos, illustrations, scans and line art; photos come out
+            posterised.
+          </p>
+        </div>
+      </div>
+      <div class="sc-dialog-foot">
+        <button class="sc-tbtn" data-tr-btn="cancel">Cancel</button>
+        <button class="sc-tbtn sc-primary-btn" data-tr-btn="ok">Trace</button>
+      </div>
+    </dialog>
+
     <!-- File → New…: Photoshop's New Document, presets and details. -->
     <dialog class="sc-dialog sc-newdoc" id="sc-newdoc" aria-labelledby="sc-nd-title">
       <div class="sc-dialog-title" id="sc-nd-title">New Document</div>
@@ -3712,6 +3802,7 @@
     <script src="src/export.js"></script>
     <script src="src/file-info.js"></script>
     <script src="src/clean-svg.js"></script>
+    <script src="src/trace.js"></script>
     <script src="src/app-icons.js"></script>
     <script src="src/source.js"></script>
     <script src="src/ui.js"></script>

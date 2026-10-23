@@ -3042,3 +3042,67 @@ body.sc-no-right .sc-main {
     height: 180px;
   }
 }
+
+/* ---- Image → Image Trace… ---------------------------------------------------- */
+.sc-trace {
+  width: min(720px, calc(100vw - 16px));
+}
+.sc-tr-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 250px;
+}
+.sc-tr-view {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  border-right: 1px solid var(--line);
+}
+.sc-tr-preview {
+  width: 100%;
+  height: 320px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: repeating-conic-gradient(#d8d8d8 0 25%, #ffffff 0 50%) 0 0 / 16px 16px;
+}
+.sc-tr-opts {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+}
+.sc-tr-opts .sc-field[hidden] {
+  display: none;
+}
+.sc-tr-opts select {
+  height: 24px;
+  padding: 0 6px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: var(--field);
+}
+.sc-tr-opts input[type='number'] {
+  width: 60px;
+}
+.sc-tr-opts input[type='range'] {
+  flex: 1;
+  min-width: 0;
+}
+.sc-tr-opts .sc-seg {
+  margin: 0;
+}
+.sc-tr-opts .sc-seg button + button {
+  border-left: 0;
+}
+@media (max-width: 600px) {
+  .sc-tr-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .sc-tr-view {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .sc-tr-preview {
+    height: 200px;
+  }
+}
