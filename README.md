@@ -174,6 +174,20 @@ stroke="currentColor"` (common in icon sets) is pushed down so it
   Alt-drag a handle to break one. Works on paths with any command (arcs
   included) and on rectangles, ellipses, circles, lines, polylines and
   polygons. A basic shape turns into a `<path>` only once you change it.
+- **Fill rule and path direction** (Properties, under Stroke, when a path,
+  polygon or polyline is selected; also Object → Path). Where a path
+  crosses itself or holds another subpath, the fill rule decides what's
+  inside: **Non-zero** (SVG's default) fills an area unless the outline's
+  directions around it cancel out; **Even-odd** makes every nested loop a
+  hole, whichever way it runs. It's set on each selected shape, inside
+  groups too, and saved as `fill-rule` (nothing for non-zero, unless a
+  group or style above would make it even-odd). **Reverse** (Reverse Path
+  Direction) runs the selected paths, polygons, polylines and lines the
+  other way: under non-zero, a loop running against its outer shape is a
+  hole; it also flips where text on the path starts and which way dashes
+  and markers run. A closed path keeps its starting point. Rectangles,
+  circles and ellipses become paths (a live rectangle's corners stop being
+  editable as corners).
 - **Zoom** (Z), as in Photoshop: click to zoom in one step (50%, 66.7%,
   100%, 200%, 300% …), and Alt-click or the options bar's Zoom Out button to
   step out. With **Scrubby Zoom** on, drag right to zoom in and left to zoom

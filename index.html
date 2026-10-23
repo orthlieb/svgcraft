@@ -211,6 +211,23 @@
             <hr />
             <div class="sc-submenu">
               <button role="menuitem" class="sc-sub-btn" aria-haspopup="menu" aria-expanded="false">
+                <i data-icon="bezier-curve"></i><span>Path</span
+                ><i data-icon="chevron-right" class="sc-sub-caret"></i>
+              </button>
+              <div class="sc-menu-list sc-sub-list" role="menu" hidden>
+                <button role="menuitem" data-action="reversePath">
+                  <i></i><span>Reverse Direction</span>
+                </button>
+                <button role="menuitem" data-action="fillRuleNonzero">
+                  <i></i><span>Non-Zero Fill Rule</span>
+                </button>
+                <button role="menuitem" data-action="fillRuleEvenodd">
+                  <i></i><span>Even-Odd Fill Rule</span>
+                </button>
+              </div>
+            </div>
+            <div class="sc-submenu">
+              <button role="menuitem" class="sc-sub-btn" aria-haspopup="menu" aria-expanded="false">
                 <i data-icon="scissors"></i><span>Clipping Mask</span
                 ><i data-icon="chevron-right" class="sc-sub-caret"></i>
               </button>
@@ -2208,6 +2225,34 @@
                 In multiples of the stroke width. Leave a pair blank to repeat a shorter pattern.
               </p>
             </div>
+            <div class="sc-fillrule" id="sc-fillrule-props" hidden>
+              <span class="sc-opt-label">Fill rule</span>
+              <div class="sc-seg" role="radiogroup" aria-label="Fill rule">
+                <button
+                  role="radio"
+                  aria-checked="true"
+                  data-fill-rule="nonzero"
+                  data-tip="Non-zero: holes depend on which way each loop runs"
+                >
+                  Non-zero
+                </button>
+                <button
+                  role="radio"
+                  aria-checked="false"
+                  data-fill-rule="evenodd"
+                  data-tip="Even-odd: every loop inside another is a hole"
+                >
+                  Even-odd
+                </button>
+              </div>
+              <button
+                class="sc-tbtn"
+                data-action="reversePath"
+                data-tip="Reverse Path Direction: run the outline the other way"
+              >
+                Reverse
+              </button>
+            </div>
             <div class="sc-corners" id="sc-corner-props" hidden>
               <div class="sc-corners-head">
                 <span class="sc-opt-label">Corner radius</span>
@@ -3239,6 +3284,7 @@
     <script src="src/type-editor.js"></script>
     <script src="src/gradient-tool.js"></script>
     <script src="src/points.js"></script>
+    <script src="src/fill-rule.js"></script>
     <script src="src/commands.js"></script>
     <script src="src/outlines.js"></script>
     <script src="src/transform.js"></script>

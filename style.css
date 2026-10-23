@@ -2600,3 +2600,18 @@ select[data-stroke-dash] {
 .sc-cs-note {
   margin: 0;
 }
+
+/* ---- Properties: fill rule ----------------------------------------------------- */
+.sc-fillrule {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  margin-top: 8px;
+}
+.sc-fillrule[hidden] {
+  display: none;
+}
+.sc-fillrule .sc-seg button + button {
+  border-left: 0;
+}

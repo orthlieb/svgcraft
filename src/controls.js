@@ -94,6 +94,9 @@ const actions = {
   showParagraph: showParagraphPanel,
   convertTextKind,
   combineUnite: () => combineShapes('unite'),
+  reversePath: reversePaths,
+  fillRuleNonzero: () => setFillRule('nonzero'),
+  fillRuleEvenodd: () => setFillRule('evenodd'),
   combineSubtract: () => combineShapes('subtract'),
   combineIntersect: () => combineShapes('intersect'),
   combineExclude: () => combineShapes('exclude'),
@@ -420,6 +423,8 @@ for (const inp of document.querySelectorAll('[data-corner]')) {
     radiiChanged({ [k]: Math.max(0, parseFloat(inp.value) || 0) }, true),
   );
 }
+for (const b of document.querySelectorAll('[data-fill-rule]'))
+  b.addEventListener('click', () => setFillRule(b.dataset.fillRule));
 $('#sc-corner-link').addEventListener('click', () => {
   state.radiusLinked = !state.radiusLinked;
   syncCornerUI();

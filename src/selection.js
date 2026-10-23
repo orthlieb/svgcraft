@@ -48,6 +48,7 @@ function drawSelection() {
   srcSyncSel();
   selLayer.replaceChildren();
   syncCornerUI();
+  syncFillRuleUI();
   syncTextPathUI();
   syncLayerHead();
   $('#sc-pos').dataset.sel = '';
