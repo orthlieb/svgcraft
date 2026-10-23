@@ -125,6 +125,48 @@ stage.addEventListener(
   { passive: false },
 );
 
+// Browser zoom ----------------------------------------------------------
+// The editor's own zoom is for the drawing; the page itself never zooms, so
+// the panels keep their size and nothing scrolls off. Ctrl/⌘ + = − 0 (also
+// on the number pad) zoom the canvas, as in Photoshop, even in a field;
+// Ctrl/⌘ + wheel and trackpad pinches outside the canvas do nothing.
+// (Touch pinches: the viewport meta tag and touch-action in style.css.)
+window.addEventListener(
+  'keydown',
+  (e) => {
+    if (!(e.ctrlKey || e.metaKey) || e.altKey) return;
+    const zoom = {
+      Equal: 1.25,
+      NumpadAdd: 1.25,
+      Minus: 1 / 1.25,
+      NumpadSubtract: 1 / 1.25,
+      Digit0: 0,
+      Numpad0: 0,
+    }[e.code];
+    if (zoom == null) return;
+    e.preventDefault();
+    e.stopPropagation();
+    if (zoom) zoomAt(state.zoom * zoom);
+    else fit();
+  },
+  true,
+);
+document.addEventListener('wheel', (e) => (e.ctrlKey || e.metaKey) && e.preventDefault(), {
+  passive: false,
+});
+// Safari's trackpad pinch: zoom the canvas over it, nothing elsewhere.
+let pinchFrom = 0;
+for (const t of ['gesturestart', 'gesturechange', 'gestureend'])
+  document.addEventListener(t, (e) => {
+    e.preventDefault();
+    if (!stage.contains(e.target)) return;
+    if (t === 'gesturestart') pinchFrom = state.zoom;
+    else if (t === 'gesturechange') {
+      const r = stage.getBoundingClientRect();
+      zoomAt(pinchFrom * e.scale, e.clientX - r.left, e.clientY - r.top);
+    }
+  });
+
 // Keyboard ------------------------------------------------------------
 const TOOL_KEYS = {
   v: 'select',

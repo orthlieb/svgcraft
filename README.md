@@ -213,6 +213,10 @@ stroke="currentColor"` (common in icon sets) is pushed down so it
   out, centred where you pressed. With it off, drag a box to fill the window
   with that area. 100%, Fit Screen and Fill Screen are in the options bar,
   and double-clicking the tool goes to 100%.
+- **The page itself doesn't zoom.** The browser's zoom keys (Ctrl/⌘ + =,
+  − and 0) zoom the canvas instead, like Photoshop's, and Ctrl/⌘ + wheel
+  or a pinch only zooms the canvas, never the panels. On phones and
+  tablets the page can't be pinched or double-tapped bigger.
 - **Pixel grid and Snap to Pixel** (View menu, or the checkboxes under
   Document in Properties): the pixel grid is a 1 px grid over the artboard
   from 600% zoom up. Snap to Pixel puts points and moved shapes on whole

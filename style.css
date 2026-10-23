@@ -111,6 +111,14 @@ body {
   height: 100%;
   margin: 0;
 }
+/* No pinch or double-tap page zoom (iOS ignores user-scalable=no); the
+   canvas does its own pinch. */
+html {
+  touch-action: pan-x pan-y;
+}
+#sc-stage {
+  touch-action: none;
+}
 body {
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr) auto;
