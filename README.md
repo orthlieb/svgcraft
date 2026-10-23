@@ -341,11 +341,18 @@ The Type tool (T) works like Photoshop's:
   with Move, to edit it right on the canvas, in its own font, size, colour
   and rotation.
 - **Fonts.** The font picker (searchable, each name shown in its own face)
-  lists web-safe system fonts and about 25 Google Fonts covering sans,
-  serif, display, script and mono. In Chromium browsers, "Show fonts
-  installed on this computer" adds your own fonts through the browser's
-  Local Font Access permission. The Style menu only offers weights and
-  italics the font really has.
+  opens on **Popular**: web-safe system fonts and about 40 popular Google
+  Fonts. The whole Google Fonts catalogue, about 1,900 families, is a
+  search away, or browse it by category (Sans, Serif, Display, Script,
+  Mono). A search ranks names that start with what you typed first, then
+  names with a word that does; long lists show their first 150 and
+  narrow as you type. Each name loads a tiny preview of itself as it
+  scrolls into view. A drawing opened from elsewhere in any Google family
+  loads that family. In Chromium browsers, "Show fonts installed on this
+  computer" adds your own fonts through the browser's Local Font Access
+  permission. The Style menu only offers the weights and italics the font
+  really has. The catalogue (`google-fonts.js`, 13 KB compressed) is
+  regenerated with `scripts/gen-google-fonts.mjs`.
 - **Options bar.** Family, style, size and alignment, plus a button that
   opens the Character and Paragraph panels.
 - **Per-character styling.** While editing, select characters (drag,

@@ -3311,6 +3311,15 @@
         aria-label="Search fonts"
         spellcheck="false"
       />
+      <div class="sc-font-cats" role="radiogroup" aria-label="Show">
+        <button role="radio" aria-checked="true" data-font-cat="pop">Popular</button>
+        <button role="radio" aria-checked="false" data-font-cat="all">All</button>
+        <button role="radio" aria-checked="false" data-font-cat="s">Sans</button>
+        <button role="radio" aria-checked="false" data-font-cat="r">Serif</button>
+        <button role="radio" aria-checked="false" data-font-cat="d">Display</button>
+        <button role="radio" aria-checked="false" data-font-cat="h">Script</button>
+        <button role="radio" aria-checked="false" data-font-cat="m">Mono</button>
+      </div>
       <ul role="listbox" aria-label="Fonts"></ul>
       <button class="sc-tbtn" id="sc-local-fonts" hidden>
         Show fonts installed on this computer…
@@ -3338,6 +3347,7 @@
 
     <script src="icons.js"></script>
     <script src="symbols-library.js"></script>
+    <script src="google-fonts.js"></script>
     <!-- The editor: classic scripts sharing one scope, in this order (later
          files use what earlier ones define). Not ES modules, so it still
          runs when index.html is opened straight from disk. -->

@@ -24,8 +24,9 @@ const WEIGHT_NAMES = {
   900: 'Black',
 };
 const ALL_W = [100, 200, 300, 400, 500, 600, 700, 800, 900];
-// name, CSS stack, weights, has italics, source. Google weights are the
-// ones each family really ships, so every requested style exists.
+// name, CSS stack, weights, has italics, source: the system fonts here,
+// then every Google family. Google weights are the ones each family
+// really ships, so every requested style exists.
 const FONTS = [
   { name: 'System UI', css: 'system-ui, sans-serif', w: ALL_W, i: true, src: 'system' },
   { name: 'Arial', css: 'Arial, Helvetica, sans-serif', w: [400, 700], i: true, src: 'system' },
@@ -53,44 +54,96 @@ const FONTS = [
     src: 'system',
   },
   { name: 'Impact', css: 'Impact, sans-serif', w: [400], i: false, src: 'system' },
-  { name: 'Roboto', cat: 'sans-serif', w: ALL_W, i: true },
-  { name: 'Open Sans', cat: 'sans-serif', w: [300, 400, 500, 600, 700, 800], i: true },
-  { name: 'Lato', cat: 'sans-serif', w: [100, 300, 400, 700, 900], i: true },
-  { name: 'Montserrat', cat: 'sans-serif', w: ALL_W, i: true },
-  { name: 'Inter', cat: 'sans-serif', w: ALL_W, i: false },
-  { name: 'Raleway', cat: 'sans-serif', w: ALL_W, i: true },
-  { name: 'Josefin Sans', cat: 'sans-serif', w: [100, 200, 300, 400, 500, 600, 700], i: true },
-  { name: 'Oswald', cat: 'sans-serif', w: [200, 300, 400, 500, 600, 700], i: false },
-  { name: 'Bebas Neue', cat: 'sans-serif', w: [400], i: false },
-  { name: 'Archivo Black', cat: 'sans-serif', w: [400], i: false },
-  { name: 'Playfair Display', cat: 'serif', w: [400, 500, 600, 700, 800, 900], i: true },
-  { name: 'Merriweather', cat: 'serif', w: [300, 400, 700, 900], i: true },
-  { name: 'Source Serif 4', cat: 'serif', w: [200, 300, 400, 500, 600, 700, 800, 900], i: true },
-  { name: 'Lora', cat: 'serif', w: [400, 500, 600, 700], i: true },
-  { name: 'Cinzel', cat: 'serif', w: [400, 500, 600, 700, 800, 900], i: false },
-  { name: 'Abril Fatface', cat: 'serif', w: [400], i: false },
-  { name: 'Lobster', cat: 'cursive', w: [400], i: false },
-  { name: 'Pacifico', cat: 'cursive', w: [400], i: false },
-  { name: 'Dancing Script', cat: 'cursive', w: [400, 500, 600, 700], i: false },
-  { name: 'Caveat', cat: 'cursive', w: [400, 500, 600, 700], i: false },
-  { name: 'Permanent Marker', cat: 'cursive', w: [400], i: false },
-  { name: 'Fira Code', cat: 'monospace', w: [300, 400, 500, 600, 700], i: false },
-  { name: 'Space Mono', cat: 'monospace', w: [400, 700], i: true },
-  { name: 'Press Start 2P', cat: 'monospace', w: [400], i: false },
 ];
+// Google Fonts: the whole catalogue (google-fonts.js, from the Google Fonts
+// listing), with the styles each family really ships. The popular ones are
+// what the picker shows first.
+const FONT_CATS = {
+  s: ['Sans serif', 'sans-serif'],
+  r: ['Serif', 'serif'],
+  d: ['Display', 'sans-serif'],
+  h: ['Handwriting', 'cursive'],
+  m: ['Monospace', 'monospace'],
+};
+const POPULAR_FONTS = new Set([
+  'Roboto',
+  'Open Sans',
+  'Lato',
+  'Montserrat',
+  'Inter',
+  'Poppins',
+  'Raleway',
+  'Nunito',
+  'Work Sans',
+  'DM Sans',
+  'Rubik',
+  'Quicksand',
+  'Josefin Sans',
+  'Oswald',
+  'Bebas Neue',
+  'Anton',
+  'Archivo Black',
+  'Playfair Display',
+  'Merriweather',
+  'Source Serif 4',
+  'Lora',
+  'EB Garamond',
+  'Libre Baskerville',
+  'Roboto Slab',
+  'Cinzel',
+  'Abril Fatface',
+  'Righteous',
+  'Lobster',
+  'Pacifico',
+  'Dancing Script',
+  'Caveat',
+  'Great Vibes',
+  'Permanent Marker',
+  'Fira Code',
+  'JetBrains Mono',
+  'Space Mono',
+  'Press Start 2P',
+]);
+const hundreds = (s) => [...s].map((d) => d * 100);
+for (const line of window.SC_GOOGLE_FONTS || []) {
+  const [name, cat, w, iw] = line.split('|');
+  if (!FONT_CATS[cat]) continue;
+  FONTS.push({
+    name,
+    cat,
+    css: `'${name}', ${FONT_CATS[cat][1]}`,
+    w: hundreds(w),
+    iw: hundreds(iw),
+    src: 'google',
+    pop: POPULAR_FONTS.has(name),
+  });
+}
+// Every family lists its italic weights (iw); `i` says it has any.
 for (const ft of FONTS) {
-  if (!ft.src) ft.src = 'google';
-  if (!ft.css) ft.css = `'${ft.name}', ${ft.cat}`;
+  ft.iw ??= ft.i ? ft.w : [];
+  ft.i = ft.iw.length > 0;
 }
 
-const fontByName = (name) =>
-  FONTS.find((ft) => ft.name.toLowerCase() === String(name).toLowerCase()) || {
-    name,
-    css: `'${name}', sans-serif`,
-    w: [400, 700],
-    i: true,
-    src: 'unknown',
-  };
+// Families by lower-case name; installed fonts are added as they're listed.
+const fontIndex = new Map();
+const fontByName = (name) => {
+  const k = String(name).toLowerCase();
+  let ft = fontIndex.get(k);
+  if (!ft) {
+    ft = FONTS.find((x) => x.name.toLowerCase() === k);
+    if (ft) fontIndex.set(k, ft);
+  }
+  return (
+    ft || {
+      name,
+      css: `'${name}', sans-serif`,
+      w: [400, 700],
+      iw: [400, 700],
+      i: true,
+      src: 'unknown',
+    }
+  );
+};
 
 // The family a font-family value starts with, matched to the catalogue.
 function fontFromCss(value) {
@@ -110,7 +163,7 @@ function fontFromCss(value) {
 const googleSpec = (ft) =>
   `family=${encodeURIComponent(ft.name).replace(/%20/g, '+')}:` +
   (ft.i
-    ? `ital,wght@${[...ft.w.map((w) => `0,${w}`), ...ft.w.map((w) => `1,${w}`)].join(';')}`
+    ? `ital,wght@${[...ft.w.map((w) => `0,${w}`), ...ft.iw.map((w) => `1,${w}`)].join(';')}`
     : `wght@${ft.w.join(';')}`);
 const googleUrl = (fonts) =>
   `https://fonts.googleapis.com/css2?${fonts.map(googleSpec).join('&')}&display=swap`;
@@ -135,37 +188,55 @@ function ensureFont(name) {
   document.head.append(link);
 }
 
-// One small request that draws every catalogue name in its own face.
-let previewsLoaded = false;
-function loadFontPreviews() {
-  if (previewsLoaded) return;
-  previewsLoaded = true;
-  const g = FONTS.filter((ft) => ft.src === 'google');
-  const chars = [...new Set(g.map((ft) => ft.name).join(''))].join('');
-  const link = document.createElement('link');
-  link.rel = 'stylesheet';
-  link.href =
-    'https://fonts.googleapis.com/css2?' +
-    g.map((ft) => `family=${encodeURIComponent(ft.name).replace(/%20/g, '+')}`).join('&') +
-    `&text=${encodeURIComponent(chars)}&display=swap`;
-  document.head.append(link);
+// The font picker draws each Google family's name in its own face: as
+// names scroll into view they're queued, then fetched together, each cut
+// down to just the letters of the names.
+const previewed = new Set();
+let previewQueue = [];
+function previewFont(ft) {
+  if (ft.src !== 'google' || previewed.has(ft.name)) return;
+  previewed.add(ft.name);
+  previewQueue.push(ft);
+  if (previewQueue.length === 1) requestAnimationFrame(flushPreviews);
+}
+function flushPreviews() {
+  const g = previewQueue;
+  previewQueue = [];
+  for (let k = 0; k < g.length; k += 30) {
+    const part = g.slice(k, k + 30);
+    const chars = [...new Set(part.map((ft) => ft.name).join(''))].join('');
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href =
+      'https://fonts.googleapis.com/css2?' +
+      part
+        .map((ft) => {
+          // Asking for a weight a family doesn't have fails the whole request.
+          const w = ft.w.includes(400) ? 400 : ft.w[0];
+          return `family=${encodeURIComponent(ft.name).replace(/%20/g, '+')}:wght@${w}`;
+        })
+        .join('&') +
+      `&text=${encodeURIComponent(chars)}&display=swap`;
+    document.head.append(link);
+  }
 }
 
 // Style menu entries for a family: [weight, italic, label].
 function fontStyles(name) {
   const ft = fontByName(name);
   const out = ft.w.map((w) => [w, false, WEIGHT_NAMES[w] || String(w)]);
-  if (ft.i)
-    for (const w of ft.w)
-      out.push([w, true, w === 400 ? 'Italic' : `${WEIGHT_NAMES[w] || w} Italic`]);
+  for (const w of ft.iw)
+    out.push([w, true, w === 400 ? 'Italic' : `${WEIGHT_NAMES[w] || w} Italic`]);
   return out;
 }
 
 // Nearest style a family actually has.
 function fitStyle(name, weight, italic) {
   const ft = fontByName(name);
-  const w = ft.w.reduce((a, b) => (Math.abs(b - weight) < Math.abs(a - weight) ? b : a), ft.w[0]);
-  return { weight: w, italic: italic && ft.i };
+  const it = italic && ft.i;
+  const ws = it ? ft.iw : ft.w;
+  const w = ws.reduce((a, b) => (Math.abs(b - weight) < Math.abs(a - weight) ? b : a), ws[0]);
+  return { weight: w, italic: it };
 }
 
 // ---- reading / writing a layer's character + paragraph settings

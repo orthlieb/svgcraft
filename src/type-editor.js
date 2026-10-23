@@ -526,23 +526,65 @@ const fontPop = $('#sc-fontpop');
 const fontSearch = fontPop.querySelector('input');
 const fontList = fontPop.querySelector('ul');
 let fontActive = 0;
+// The list shows Popular (system fonts, the popular Google families and
+// any installed fonts) or one Google category; a search looks through
+// every family, best matches first. Long lists stop at FONT_ROWS rows.
+const FONT_ROWS = 150;
+let fontCat = 'pop';
+const fontSeen = new IntersectionObserver(
+  (entries) => {
+    for (const e of entries)
+      if (e.isIntersecting) {
+        previewFont(fontByName(e.target.dataset.font));
+        fontSeen.unobserve(e.target);
+      }
+  },
+  { root: fontList, rootMargin: '200px 0px' },
+);
+function fontMatches(q) {
+  const rank = (ft) => {
+    const n = ft.name.toLowerCase();
+    return n === q ? 0 : n.startsWith(q) ? 1 : n.split(' ').some((w) => w.startsWith(q)) ? 2 : 3;
+  };
+  return FONTS.map((ft) => [ft, rank(ft)])
+    .filter(([ft, r]) => r < 3 || ft.name.toLowerCase().includes(q))
+    .sort(([a, ra], [b, rb]) => ra - rb || !!b.pop - !!a.pop)
+    .map(([ft]) => ft);
+}
 function renderFontList() {
   const q = fontSearch.value.trim().toLowerCase();
-  const groups = [
-    ['System fonts', 'system'],
-    ['Google Fonts', 'google'],
-    ['Installed on this computer', 'local'],
-  ];
+  for (const b of fontPop.querySelectorAll('[data-font-cat]'))
+    b.setAttribute('aria-checked', b.dataset.fontCat === fontCat);
+  const inCat = (ft) =>
+    fontCat === 'pop' || fontCat === 'all' ? true : ft.src === 'google' && ft.cat === fontCat;
+  const pool = q ? fontMatches(q) : FONTS;
+  const groups = [];
+  if (fontCat === 'pop' || fontCat === 'all')
+    groups.push(['System fonts', pool.filter((ft) => ft.src === 'system')]);
+  const google = pool.filter(
+    (ft) => ft.src === 'google' && inCat(ft) && (q || fontCat !== 'pop' || ft.pop),
+  );
+  groups.push([
+    !q && fontCat === 'pop'
+      ? 'Popular Google Fonts'
+      : `${fontCat === 'pop' || fontCat === 'all' ? 'Google Fonts' : FONT_CATS[fontCat][0]} · ${google.length}`,
+    google,
+  ]);
+  if (fontCat === 'pop' || fontCat === 'all')
+    groups.push(['Installed on this computer', pool.filter((ft) => ft.src === 'local')]);
+  $('#sc-local-fonts').hidden =
+    !('queryLocalFonts' in window) ||
+    FONTS.some((ft) => ft.src === 'local') ||
+    (fontCat !== 'pop' && fontCat !== 'all');
   fontList.replaceChildren();
   let idx = 0;
-  for (const [title, src] of groups) {
-    const list = FONTS.filter((ft) => ft.src === src && ft.name.toLowerCase().includes(q));
+  for (const [title, list] of groups) {
     if (!list.length) continue;
     const h = document.createElement('li');
     h.className = 'sc-font-head';
     h.textContent = title;
     fontList.append(h);
-    for (const ft of list) {
+    for (const ft of list.slice(0, FONT_ROWS)) {
       const li = document.createElement('li');
       li.className = 'sc-font-item';
       li.setAttribute('role', 'option');
@@ -556,6 +598,13 @@ function renderFontList() {
         pickFont(ft.name);
       });
       fontList.append(li);
+      if (ft.src === 'google') fontSeen.observe(li);
+    }
+    if (list.length > FONT_ROWS) {
+      const more = document.createElement('li');
+      more.className = 'sc-font-head';
+      more.textContent = `${list.length - FONT_ROWS} more: type to narrow them down`;
+      fontList.append(more);
     }
   }
   if (!idx) {
@@ -570,7 +619,17 @@ function renderFontList() {
       (li) => li.dataset.font === state.type.family,
     ),
   );
+  if (q) fontActive = 0;
   markFontActive();
+}
+for (const b of fontPop.querySelectorAll('[data-font-cat]')) {
+  b.addEventListener('pointerdown', (e) => e.preventDefault());
+  b.addEventListener('click', () => {
+    fontCat = b.dataset.fontCat;
+    fontList.scrollTop = 0;
+    renderFontList();
+    fontSearch.focus();
+  });
 }
 function markFontActive() {
   const items = [...fontList.querySelectorAll('.sc-font-item')];
@@ -578,7 +637,6 @@ function markFontActive() {
   items[fontActive]?.scrollIntoView({ block: 'nearest' });
 }
 function openFontPicker(btn) {
-  loadFontPreviews();
   fontPop.hidden = false;
   const r = btn.getBoundingClientRect();
   fontPop.style.left = `${Math.max(4, Math.min(r.left, innerWidth - fontPop.offsetWidth - 4))}px`;
@@ -587,8 +645,6 @@ function openFontPicker(btn) {
   fontSearch.value = '';
   renderFontList();
   fontSearch.focus();
-  $('#sc-local-fonts').hidden =
-    !('queryLocalFonts' in window) || FONTS.some((ft) => ft.src === 'local');
 }
 function closeFontPicker() {
   fontPop.hidden = true;
@@ -645,8 +701,9 @@ async function loadLocalFonts() {
   try {
     const data = await window.queryLocalFonts();
     const fam = new Map();
+    const known = new Set(FONTS.map((ft) => ft.name));
     for (const d of data) {
-      if (FONTS.some((ft) => ft.name === d.family)) continue;
+      if (known.has(d.family)) continue;
       const s = d.style.toLowerCase();
       const w = styleWeight(s);
       const e = fam.get(d.family) || { w: new Set(), i: false };
@@ -654,14 +711,10 @@ async function loadLocalFonts() {
       if (/italic|oblique/.test(s)) e.i = true;
       fam.set(d.family, e);
     }
-    for (const [name, e] of [...fam].sort((a, b) => a[0].localeCompare(b[0])))
-      FONTS.push({
-        name,
-        css: `'${name}', sans-serif`,
-        w: [...e.w].sort((a, b) => a - b),
-        i: e.i,
-        src: 'local',
-      });
+    for (const [name, e] of [...fam].sort((a, b) => a[0].localeCompare(b[0]))) {
+      const w = [...e.w].sort((a, b) => a - b);
+      FONTS.push({ name, css: `'${name}', sans-serif`, w, iw: e.i ? w : [], i: e.i, src: 'local' });
+    }
     say(
       `${fam.size} installed font families added. They only look right on computers that have them.`,
     );

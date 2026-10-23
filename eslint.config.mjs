@@ -29,7 +29,7 @@ export default [
   { ignores: ['vendor/', 'node_modules/', 'playwright-report/', 'test-results/'] },
   js.configs.recommended,
   {
-    files: ['src/**/*.js', 'icons.js', 'symbols-library.js'],
+    files: ['src/**/*.js', 'icons.js', 'symbols-library.js', 'google-fonts.js'],
     languageOptions: { sourceType: 'script', globals: globals.browser },
   },
   ...srcFiles.map((f) => ({

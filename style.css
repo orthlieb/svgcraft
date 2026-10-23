@@ -1663,8 +1663,8 @@ select[data-type='style'] {
   z-index: 70;
   display: flex;
   flex-direction: column;
-  width: 260px;
-  max-height: min(420px, 70vh);
+  width: 280px;
+  max-height: min(460px, 70vh);
   padding: 6px;
   gap: 6px;
   border: 1px solid var(--line);
@@ -1681,6 +1681,27 @@ select[data-type='style'] {
   border: 1px solid var(--line);
   border-radius: 3px;
   background: var(--field);
+}
+.sc-font-cats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.sc-font-cats button {
+  padding: 2px 8px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 11px;
+}
+.sc-font-cats button:hover {
+  background: var(--hover);
+}
+.sc-font-cats [aria-checked='true'] {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-fg);
 }
 .sc-fontpop ul {
   flex: 1;

@@ -238,8 +238,11 @@ test.describe('paragraph text', () => {
     await selectParagraph(page);
     await page.click('.sc-ptabs [data-tab="character"]');
     await page.click('.sc-char [data-fontpick]');
-    await expect(page.locator('.sc-font-item')).toHaveCount(32);
-    await expect(page.locator('.sc-font-head')).toHaveText(['System fonts', 'Google Fonts']);
+    await expect(page.locator('.sc-font-item')).toHaveCount(45);
+    await expect(page.locator('.sc-font-head')).toHaveText([
+      'System fonts',
+      'Popular Google Fonts',
+    ]);
     await page.keyboard.type('geor');
     await page.keyboard.press('Enter');
     await page.selectOption('.sc-char select[data-type="style"]', '700i');
@@ -264,11 +267,12 @@ test.describe('paragraph text', () => {
       'font-weight',
       'font-style',
     ]);
-    expect(a['font-family']).toBe("'Lobster', cursive");
+    expect(a['font-family']).toBe("'Lobster', sans-serif");
     expect(a['font-weight'] ?? '400').toBe('400');
     expect(a['font-style'] ?? 'normal').toBe('normal');
+    // Its stylesheet, all styles (the picker's name previews are separate).
     await expect(
-      page.locator('link[href*="fonts.googleapis.com/css2?family=Lobster"]'),
+      page.locator('link[href$="fonts.googleapis.com/css2?family=Lobster:wght@400&display=swap"]'),
     ).toHaveCount(1);
   });
 
@@ -347,7 +351,7 @@ test.describe('saving text', () => {
         );
       });
     const before = await read();
-    expect(before.family).toBe("'Lobster', cursive");
+    expect(before.family).toBe("'Lobster', sans-serif");
     const svg = await page.evaluate(() => window.svgcraft.serialize());
     await page.evaluate((t) => window.svgcraft.openSvg(t, 'rt.svg'), svg);
     expect(await read()).toEqual(before);
