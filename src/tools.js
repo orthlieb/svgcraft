@@ -391,13 +391,18 @@ tools.pen = {
   },
 };
 
+// The Shape tools (src/shapes.js has the group, triangle, polygon and
+// custom shape): drag a box, Shift for equal sides, Alt from the centre;
+// a click without dragging asks for an exact size instead.
 function shapeTool(kind, hint) {
+  const tag = kind === 'triangle' || kind === 'polygon' ? 'polygon' : kind;
   return {
     hint,
     cursor: 'crosshair',
     down(e, p) {
       this.p0 = snapPt(p);
-      this.el = mk(kind, newStyle(kind === 'line' ? 'line' : 'shape'), doc);
+      this.el = mk(tag, newStyle(kind === 'line' ? 'line' : 'shape'), doc);
+      if (kind === 'line') setArrows(this.el, state.arrows);
       this.move(e, p);
     },
     move(e, p) {
@@ -424,6 +429,10 @@ function shapeTool(kind, hint) {
       const y = e.altKey ? a.y - Math.abs(h) : Math.min(a.y, a.y + h);
       const W = Math.abs(w) * k;
       const H = Math.abs(h) * k;
+      if (tag === 'polygon') {
+        writeShape(this.el, newShape(kind, { x, y, w: W, h: H }));
+        return;
+      }
       const attrs =
         kind === 'rect'
           ? { x, y, width: W, height: H }
@@ -442,6 +451,8 @@ function shapeTool(kind, hint) {
       const b = bboxDoc(el);
       if (!b || (b.w * state.zoom < 2 && b.h * state.zoom < 2)) {
         el.remove();
+        // A click: Photoshop's Create box, for an exact size.
+        if (kind !== 'line') openCreateShape(kind, this.p0);
         return;
       }
       state.sel = [el];
@@ -456,10 +467,18 @@ function shapeTool(kind, hint) {
 
 tools.rect = shapeTool(
   'rect',
-  'Drag for a rectangle · Shift for a square · Alt draws from the centre',
+  'Drag for a rectangle · Shift for a square · Alt draws from the centre · Click for an exact size',
 );
 tools.ellipse = shapeTool(
   'ellipse',
-  'Drag for an ellipse · Shift for a circle · Alt draws from the centre',
+  'Drag for an ellipse · Shift for a circle · Alt draws from the centre · Click for an exact size',
 );
 tools.line = shapeTool('line', 'Drag for a line · Shift snaps to 45° · Alt draws from the centre');
+tools.triangle = shapeTool(
+  'triangle',
+  'Drag for a triangle · Shift for equal sides · Alt draws from the centre · Click for an exact size',
+);
+tools.polygon = shapeTool(
+  'polygon',
+  'Drag for a polygon or star · Shift for equal sides · Alt draws from the centre · Click for an exact size',
+);

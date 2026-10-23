@@ -4,7 +4,7 @@
 import { test, expect } from './fixtures.js';
 
 const VW = 1400;
-const PEN_TIP = 'PenBClick for corners, drag for curves. Click the first point to close.';
+const PEN_TIP = 'Pen (P)Click for corners, drag for curves. Click the first point to close.';
 
 // The tip's state right now (no auto-waiting, for timing-sensitive checks).
 const tipState = (page) =>
@@ -42,8 +42,8 @@ test('a tool tip waits for the delay, then shows beside the tool in the top laye
   const pr = await pen.boundingBox();
   expect(s.hidden).toBe(false);
   expect(s.text).toBe(PEN_TIP);
-  await expect(page.locator('.sc-tip b')).toHaveText('Pen');
-  await expect(page.locator('.sc-tip kbd')).toHaveText('B');
+  // The shortcut ends the title, in parentheses.
+  await expect(page.locator('.sc-tip b')).toHaveText('Pen (P)');
   // Right of the tool, vertically centred on it.
   expect(s.x).toBeGreaterThan(pr.x + pr.width);
   expect(Math.abs(s.y + s.h / 2 - (pr.y + pr.height / 2))).toBeLessThan(2);
@@ -73,7 +73,7 @@ test('sweeping to the next tool shows its tip straight away; leaving hides it', 
   await page.locator('[data-tool="gradient"]').hover();
   await page.waitForTimeout(60);
   expect((await tipState(page)).text).toBe(
-    'GradientGDrag across a shape to lay a linear or radial gradient.',
+    'Gradient (G)Drag across a shape to lay a linear or radial gradient.',
   );
   await page.mouse.move(700, 450);
   await page.waitForTimeout(60);
@@ -81,7 +81,7 @@ test('sweeping to the next tool shows its tip straight away; leaving hides it', 
 });
 
 test('pressing the mouse hides the tip', async ({ page }) => {
-  await hoverAndWait(page, page.locator('[data-tool="rect"]'));
+  await hoverAndWait(page, page.locator('#sc-shape-btn'));
   await page.mouse.down();
   await page.mouse.up();
   expect((await tipState(page)).hidden).toBe(true);
@@ -90,7 +90,7 @@ test('pressing the mouse hides the tip', async ({ page }) => {
 test('an options-bar tip near the top shows below, inside the viewport', async ({ page }) => {
   await hoverAndWait(page, page.locator('[data-action="undo"]').last());
   const s = await tipState(page);
-  expect(s.text).toBe('Undo · Ctrl+Z');
+  expect(s.text).toBe('Undo (Ctrl+Z)');
   expect(s.y).toBeGreaterThanOrEqual(0);
   expect(s.open).toBe(true);
 });
@@ -98,7 +98,7 @@ test('an options-bar tip near the top shows below, inside the viewport', async (
 test('a tip at the right edge is clamped into the viewport', async ({ page }) => {
   await hoverAndWait(page, page.locator('.sc-menubar-end [data-tip]').last());
   const s = await tipState(page);
-  expect(s.text).toBe('Download SVG · Ctrl+S');
+  expect(s.text).toBe('Download SVG (Ctrl+S)');
   expect(s.x + s.w).toBeLessThanOrEqual(VW - 4);
 });
 

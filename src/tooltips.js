@@ -4,7 +4,8 @@
 // Tooltips -------------------------------------------------------------
 // One shared box for every [data-tip]. It's a popover, so it sits in the top
 // layer above menus, panels and dialogs, and hides itself after a few
-// seconds. Tools add data-tip-desc for a second, explanatory line.
+// seconds. Tools add data-tip-desc for a second, explanatory line. A tip
+// ends with the control's shortcut in parentheses, "Move (V)".
 const tip = document.createElement('div');
 tip.className = 'sc-tip';
 tip.hidden = true;
@@ -18,20 +19,37 @@ let tipWait = 0;
 let tipLife = 0;
 let tipLast = 0;
 
+// A control's shortcut: its data-key, else the key its menu item shows
+// (same data-action) or its tool's key, so a tip can't disagree with the
+// menus.
+let menuKeys = null;
+function shortcutFor(el) {
+  if (el.dataset.key) return el.dataset.key;
+  if (el.dataset.action) {
+    menuKeys ??= new Map(
+      [...document.querySelectorAll('[role^="menuitem"][data-action]')]
+        .filter((m) => m.querySelector('kbd'))
+        .map((m) => [m.dataset.action, m.querySelector('kbd').textContent.trim()]),
+    );
+    return menuKeys.get(el.dataset.action) || '';
+  }
+  const key =
+    el.dataset.tool && Object.keys(TOOL_KEYS).find((k) => TOOL_KEYS[k] === el.dataset.tool);
+  return key ? key.toUpperCase() : '';
+}
+const tipTitle = (el) => {
+  const key = !el.closest('[role="menu"]') && shortcutFor(el);
+  return key ? `${el.dataset.tip} (${key})` : el.dataset.tip;
+};
+
 function fillTip(el) {
-  const text = el.dataset.tip;
+  const text = tipTitle(el);
   const desc = el.dataset.tipDesc;
   tip.replaceChildren();
   if (!desc) return tip.append(text);
-  const [name, ...keys] = text.split(' · ');
   const b = document.createElement('b');
-  b.textContent = name;
+  b.textContent = text;
   tip.append(b);
-  if (keys.length) {
-    const k = document.createElement('kbd');
-    k.textContent = keys.join(' · ');
-    tip.append(k);
-  }
   const p = document.createElement('p');
   p.textContent = desc;
   tip.append(p);

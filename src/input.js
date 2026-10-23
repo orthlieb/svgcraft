@@ -168,11 +168,13 @@ for (const t of ['gesturestart', 'gesturechange', 'gestureend'])
   });
 
 // Keyboard ------------------------------------------------------------
+// Photoshop's tool keys (U, the Shape tools, is handled on its own); R, O
+// and L also pick the rectangle, ellipse and line.
 const TOOL_KEYS = {
   v: 'select',
   a: 'node',
-  p: 'pencil',
-  b: 'pen',
+  p: 'pen',
+  b: 'pencil',
   e: 'eraser',
   r: 'rect',
   o: 'ellipse',
@@ -236,6 +238,19 @@ window.addEventListener('keydown', (e) => {
     toggleIconPreview();
     return;
   }
+  // Image Size (Ctrl+Alt+I) and Canvas Size (Ctrl+Alt+C), as in Photoshop.
+  if (mod && e.altKey && !e.shiftKey && (e.code === 'KeyI' || e.code === 'KeyC')) {
+    e.preventDefault();
+    if (e.code === 'KeyI') openImageSize();
+    else openCanvasSize();
+    return;
+  }
+  // Ctrl+Alt+; locks the guides.
+  if (mod && e.altKey && e.code === 'Semicolon') {
+    e.preventDefault();
+    toggleView('guidesLocked');
+    return;
+  }
   if (mod && e.altKey && e.code === 'KeyG') {
     e.preventDefault();
     if (e.shiftKey) releaseClip();
@@ -249,16 +264,24 @@ window.addEventListener('keydown', (e) => {
       s: exportSvg,
       o: () => (e.shiftKey ? createOutlines() : openPicker('open')),
       u: toggleSource,
-      d: cmds.duplicate,
+      j: cmds.duplicate,
+      d: () => setSel([]),
       a: cmds.selectAll,
       ...(e.shiftKey && { i: cmds.invertSelection }),
       g: () => (e.shiftKey ? cmds.ungroup() : cmds.group()),
-      ']': cmds.front,
-      '[': cmds.back,
+      r: () => toggleView('rulers'),
     };
-    if (map[k]) {
+    // By key position, so Shift and keyboard layouts don't change them.
+    const byCode = {
+      BracketRight: () => (e.shiftKey ? cmds.front() : cmds.forward()),
+      BracketLeft: () => (e.shiftKey ? cmds.back() : cmds.backward()),
+      Semicolon: () => (e.shiftKey ? setSnapOn(!state.snap) : toggleView('guidesOn')),
+      Quote: () => setGridOn(!state.grid),
+    };
+    const run = byCode[e.code] || map[k];
+    if (run) {
       e.preventDefault();
-      map[k]();
+      run();
     }
     return;
   }
@@ -280,10 +303,24 @@ window.addEventListener('keydown', (e) => {
   } else if (k === 'escape') {
     if (iso) exitIso();
     else setSel([]);
+  } else if (k === 'u') shapeKey(e.shiftKey);
+  else if (k === 'tab') {
+    // Tab hides the panels (Shift+Tab just the right-hand ones) while
+    // you're working on the canvas; with a control focused it moves focus.
+    const at = document.activeElement;
+    if (
+      (at && at !== document.body && !stage.contains(at)) ||
+      document.querySelector('dialog[open]')
+    )
+      return;
+    e.preventDefault();
+    togglePanels(e.shiftKey);
   } else if (TOOL_KEYS[k]) setTool(TOOL_KEYS[k]);
   else if (k === 'x') swapPaint();
-  else if (k === ']') cmds.forward();
-  else if (k === '[') cmds.backward();
+  else if (k === 'd') defaultPaint();
+  // Photoshop's brush size keys: the stroke width.
+  else if (e.code === 'BracketRight' || e.code === 'BracketLeft')
+    setStrokeWidthBy(e.code === 'BracketRight' ? 1 : -1);
   else if (k === '+' || k === '=') zoomAt(state.zoom * 1.25);
   else if (k === '-' || k === '_') zoomAt(state.zoom / 1.25);
   else if (k === '0') fit();

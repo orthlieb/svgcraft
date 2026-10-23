@@ -717,6 +717,29 @@ function swapPaint() {
   }
 }
 
+// D: Photoshop's default colours, a black fill and a white stroke (on the
+// selection too, as X swaps them there).
+function defaultPaint() {
+  Object.assign(state, {
+    fill: '#000000',
+    stroke: '#ffffff',
+    fillA: 1,
+    strokeA: 1,
+    fillGrad: null,
+    strokeGrad: null,
+    fillPat: null,
+    strokePat: null,
+  });
+  syncStyleUI();
+  if (state.sel.length) {
+    for (const el of state.sel) {
+      applyStyle(el, 'fill');
+      applyStyle(el, 'stroke');
+    }
+    commit();
+  }
+}
+
 // A tool-option number field (smoothing, eraser size, font size).
 function bindNumber(id, key) {
   const el = $(id);

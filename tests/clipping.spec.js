@@ -338,7 +338,7 @@ test('deleting the clipper or moving it out of the group ends the clip', async (
 
 test('a duplicated clipping group gets its own clipPath', async ({ page }) => {
   await makeIt(page);
-  await page.keyboard.press('Control+d');
+  await page.keyboard.press('Control+j');
   await tick(page);
   const refs = await page.evaluate(() =>
     [...document.querySelectorAll('#sc-doc > [data-sc-clip]')].map((g) =>

@@ -223,7 +223,7 @@ test.describe('instances', () => {
     ]);
     expect(near(px[0], BLUE)).toBe(true);
     expect(near(px[1], RED)).toBe(true);
-    await page.keyboard.press('Control+d');
+    await page.keyboard.press('Control+j');
     await expect(uses(page)).toHaveCount(2);
     expect(await page.evaluate(() => document.querySelectorAll('#sc-doc use[id]').length)).toBe(0);
     await page.click('#sc-layers li.sc-instance >> nth=0 >> .sc-eye');

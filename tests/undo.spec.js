@@ -4,7 +4,7 @@ test('Ctrl+Z undoes, Ctrl+Y and Ctrl+Shift+Z redo', async ({ page }) => {
   await load(page, '<rect id="a" x="10" y="10" width="50" height="50"/>');
   await select(page, 'a');
   const count = () => page.locator('#sc-doc rect').count();
-  await page.keyboard.press('Control+d');
+  await page.keyboard.press('Control+j');
   expect(await count()).toBe(2);
   await page.keyboard.press('Control+z');
   expect(await count()).toBe(1);

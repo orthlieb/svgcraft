@@ -234,7 +234,7 @@ test.describe('pattern paint', () => {
   });
 
   test('a duplicate gets its own pattern once edited; undo works', async ({ page }) => {
-    await page.keyboard.press('Control+d');
+    await page.keyboard.press('Control+j');
     await page.evaluate(() => {
       window.svgcraft.state.fill = '#0000ff';
       document.querySelector('#sc-fill-hex').dispatchEvent(new Event('change'));

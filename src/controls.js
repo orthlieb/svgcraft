@@ -97,6 +97,8 @@ const actions = {
   reversePath: reversePaths,
   toggleAnimations: () => toggleAnimations(),
   imageSize: openImageSize,
+  togglePanels: () => togglePanels(false),
+  defaultPaint,
   canvasSize: openCanvasSize,
   fillRuleNonzero: () => setFillRule('nonzero'),
   fillRuleEvenodd: () => setFillRule('evenodd'),

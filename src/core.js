@@ -106,6 +106,14 @@ const state = {
   join: 'round', // stroke-linejoin: miter | round | bevel
   dash: 'solid', // solid | dash | dot | long (sized from the stroke width)
   radius: 0, // corner radius for new rectangles
+  // The Shape tool group (src/shapes.js): its current tool, new polygons'
+  // sides and star ratio (100 = a plain polygon), new lines' arrowheads,
+  // and the Symbols-library shape Custom Shape draws.
+  shape: 'rect',
+  polySides: 5,
+  starRatio: 100,
+  arrows: { start: false, end: false },
+  customShape: '',
   radiusLinked: true,
   fillGrad: null, // { type, stops, angle } when the fill is a gradient
   strokeGrad: null,

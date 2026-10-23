@@ -89,7 +89,7 @@
             </button>
             <hr />
             <button role="menuitem" data-action="duplicate">
-              <i data-icon="clone"></i><span>Duplicate</span><kbd>Ctrl+D</kbd>
+              <i data-icon="clone"></i><span>Duplicate</span><kbd>Ctrl+J</kbd>
             </button>
             <button role="menuitem" data-action="delete">
               <i data-icon="trash-can"></i><span>Delete</span><kbd>Del</kbd>
@@ -146,6 +146,9 @@
             <button role="menuitem" data-action="swapPaint">
               <i data-icon="right-left"></i><span>Swap Fill and Stroke</span><kbd>X</kbd>
             </button>
+            <button role="menuitem" data-action="defaultPaint">
+              <i></i><span>Default Fill and Stroke</span><kbd>D</kbd>
+            </button>
           </div>
         </div>
         <div class="sc-menu">
@@ -154,10 +157,10 @@
           </button>
           <div class="sc-menu-list" role="menu" hidden>
             <button role="menuitem" data-action="imageSize">
-              <i data-icon="maximize"></i><span>Image Size…</span>
+              <i data-icon="maximize"></i><span>Image Size…</span><kbd>Ctrl+Alt+I</kbd>
             </button>
             <button role="menuitem" data-action="canvasSize">
-              <i data-icon="expand"></i><span>Canvas Size…</span>
+              <i data-icon="expand"></i><span>Canvas Size…</span><kbd>Ctrl+Alt+C</kbd>
             </button>
             <hr />
             <button role="menuitem" data-action="cropToSelection">
@@ -207,16 +210,16 @@
             </button>
             <hr />
             <button role="menuitem" data-action="front">
-              <i data-icon="angles-up"></i><span>Bring to Front</span><kbd>Ctrl+]</kbd>
+              <i data-icon="angles-up"></i><span>Bring to Front</span><kbd>Ctrl+Shift+]</kbd>
             </button>
             <button role="menuitem" data-action="forward">
-              <i data-icon="arrow-up"></i><span>Bring Forward</span><kbd>]</kbd>
+              <i data-icon="arrow-up"></i><span>Bring Forward</span><kbd>Ctrl+]</kbd>
             </button>
             <button role="menuitem" data-action="backward">
-              <i data-icon="arrow-down"></i><span>Send Backward</span><kbd>[</kbd>
+              <i data-icon="arrow-down"></i><span>Send Backward</span><kbd>Ctrl+[</kbd>
             </button>
             <button role="menuitem" data-action="back">
-              <i data-icon="angles-down"></i><span>Send to Back</span><kbd>Ctrl+[</kbd>
+              <i data-icon="angles-down"></i><span>Send to Back</span><kbd>Ctrl+Shift+[</kbd>
             </button>
             <hr />
             <div class="sc-submenu">
@@ -342,7 +345,7 @@
               <i></i><span>All</span><kbd>Ctrl+A</kbd>
             </button>
             <button role="menuitem" data-action="deselect">
-              <i></i><span>Deselect</span><kbd>Esc</kbd>
+              <i></i><span>Deselect</span><kbd>Ctrl+D</kbd>
             </button>
             <button role="menuitem" data-action="invertSelection">
               <i></i><span>Inverse</span><kbd>Shift+F7</kbd>
@@ -368,10 +371,10 @@
             </button>
             <hr />
             <button role="menuitemcheckbox" data-action="toggleGrid" aria-checked="false">
-              <i data-icon="border-all"></i><span>Show Grid</span>
+              <i data-icon="border-all"></i><span>Show Grid</span><kbd>Ctrl+'</kbd>
             </button>
             <button role="menuitemcheckbox" data-action="toggleSnap" aria-checked="false">
-              <i data-icon="magnet"></i><span>Snap to Grid</span>
+              <i data-icon="magnet"></i><span>Snap to Grid</span><kbd>Ctrl+Shift+;</kbd>
             </button>
             <button role="menuitemcheckbox" data-action="togglePixelGrid" aria-checked="false">
               <i data-icon="table-cells"></i><span>Pixel Grid</span>
@@ -391,13 +394,13 @@
             </button>
             <hr />
             <button role="menuitemcheckbox" data-action="toggleRulers" aria-checked="true">
-              <i data-icon="ruler"></i><span>Rulers</span>
+              <i data-icon="ruler"></i><span>Rulers</span><kbd>Ctrl+R</kbd>
             </button>
             <button role="menuitemcheckbox" data-action="toggleGuides" aria-checked="true">
-              <i></i><span>Show Guides</span>
+              <i></i><span>Show Guides</span><kbd>Ctrl+;</kbd>
             </button>
             <button role="menuitemcheckbox" data-action="toggleLockGuides" aria-checked="false">
-              <i data-icon="lock"></i><span>Lock Guides</span>
+              <i data-icon="lock"></i><span>Lock Guides</span><kbd>Ctrl+Alt+;</kbd>
             </button>
             <button role="menuitemcheckbox" data-action="toggleSnapGuides" aria-checked="true">
               <i></i><span>Snap to Guides</span>
@@ -410,6 +413,9 @@
               <i></i><span>Clear Guides</span>
             </button>
             <hr />
+            <button role="menuitemcheckbox" data-action="togglePanels" aria-checked="false">
+              <i data-icon="table-columns"></i><span>Hide Panels</span><kbd>Tab</kbd>
+            </button>
             <button role="menuitemcheckbox" data-action="toggleSource" aria-checked="false">
               <i data-icon="code"></i><span>SVG Source</span><kbd>Ctrl+U</kbd>
             </button>
@@ -462,22 +468,10 @@
         <button class="sc-tbtn sc-preview-only" data-action="about" data-tip="About SVGCraft">
           <i data-icon="circle-info"></i> About
         </button>
-        <button
-          class="sc-ibtn"
-          data-action="undo"
-          aria-label="Undo"
-          data-tip="Undo · Ctrl+Z"
-          id="sc-undo"
-        >
+        <button class="sc-ibtn" data-action="undo" aria-label="Undo" data-tip="Undo" id="sc-undo">
           <i data-icon="rotate-left"></i>
         </button>
-        <button
-          class="sc-ibtn"
-          data-action="redo"
-          aria-label="Redo"
-          data-tip="Redo · Ctrl+Shift+Z or Ctrl+Y"
-          id="sc-redo"
-        >
+        <button class="sc-ibtn" data-action="redo" aria-label="Redo" data-tip="Redo" id="sc-redo">
           <i data-icon="rotate-right"></i>
         </button>
         <button
@@ -489,7 +483,7 @@
         >
           <i data-icon="moon"></i>
         </button>
-        <button class="sc-export" data-action="exportSvg" data-tip="Download SVG · Ctrl+S">
+        <button class="sc-export" data-action="exportSvg" data-tip="Download SVG">
           <i data-icon="file-export"></i><span>Export</span>
         </button>
         <button
@@ -608,7 +602,8 @@
           class="sc-ibtn sc-tf-cancel"
           data-action="tfCancel"
           aria-label="Cancel transform"
-          data-tip="Cancel transform · Esc"
+          data-tip="Cancel transform"
+          data-key="Esc"
         >
           <i data-icon="xmark"></i>
         </button>
@@ -616,7 +611,8 @@
           class="sc-ibtn sc-tf-commit"
           data-action="tfCommit"
           aria-label="Commit transform"
-          data-tip="Commit transform · Enter"
+          data-tip="Commit transform"
+          data-key="Enter"
         >
           <i data-icon="check"></i>
         </button>
@@ -749,15 +745,10 @@
           <i data-icon="up-down"></i>
         </button>
         <span class="sc-vsep"></span>
-        <button class="sc-ibtn" data-action="group" aria-label="Group" data-tip="Group · Ctrl+G">
+        <button class="sc-ibtn" data-action="group" aria-label="Group" data-tip="Group">
           <i data-icon="object-group"></i>
         </button>
-        <button
-          class="sc-ibtn"
-          data-action="ungroup"
-          aria-label="Ungroup"
-          data-tip="Ungroup · Ctrl+Shift+G"
-        >
+        <button class="sc-ibtn" data-action="ungroup" aria-label="Ungroup" data-tip="Ungroup">
           <i data-icon="object-ungroup"></i>
         </button>
         <span class="sc-vsep"></span>
@@ -765,7 +756,7 @@
           class="sc-ibtn"
           data-action="front"
           aria-label="Bring to front"
-          data-tip="Bring to front · Ctrl+]"
+          data-tip="Bring to front"
         >
           <i data-icon="angles-up"></i>
         </button>
@@ -773,7 +764,7 @@
           class="sc-ibtn"
           data-action="forward"
           aria-label="Bring forward"
-          data-tip="Bring forward · ]"
+          data-tip="Bring forward"
         >
           <i data-icon="arrow-up"></i>
         </button>
@@ -781,7 +772,7 @@
           class="sc-ibtn"
           data-action="backward"
           aria-label="Send backward"
-          data-tip="Send backward · ["
+          data-tip="Send backward"
         >
           <i data-icon="arrow-down"></i>
         </button>
@@ -789,7 +780,7 @@
           class="sc-ibtn"
           data-action="back"
           aria-label="Send to back"
-          data-tip="Send to back · Ctrl+["
+          data-tip="Send to back"
         >
           <i data-icon="angles-down"></i>
         </button>
@@ -801,7 +792,7 @@
         <button class="sc-tbtn" data-node-cmd="smooth" data-tip="Grow smooth handles">
           <i data-icon="bezier-curve"></i>Smooth
         </button>
-        <button class="sc-tbtn" data-node-cmd="delete" data-tip="Delete points · Del">
+        <button class="sc-tbtn" data-node-cmd="delete" data-tip="Delete points" data-key="Del">
           <i data-icon="trash-can"></i>Delete
         </button>
         <button class="sc-tbtn" data-node-cmd="close" data-tip="Close or open the path">
@@ -943,6 +934,39 @@
           /><span class="sc-unit">px</span></label
         >
       </div>
+      <div class="sc-opt" data-for="polygon">
+        <label class="sc-field"
+          >Sides:<input
+            type="number"
+            data-shape-opt="sides"
+            min="3"
+            max="100"
+            step="1"
+            aria-label="Sides"
+        /></label>
+        <label
+          class="sc-field"
+          data-tip="100% is a plain polygon; lower pulls every other point in to make a star"
+          >Star ratio:<input
+            type="number"
+            data-shape-opt="ratio"
+            min="1"
+            max="100"
+            step="1"
+            aria-label="Star ratio"
+          /><span class="sc-unit">%</span></label
+        >
+      </div>
+      <div class="sc-opt" data-for="line">
+        <span class="sc-opt-label">Arrowheads:</span>
+        <label class="sc-check"><input type="checkbox" data-shape-opt="arrowStart" /> Start</label>
+        <label class="sc-check"><input type="checkbox" data-shape-opt="arrowEnd" /> End</label>
+      </div>
+      <div class="sc-opt" data-for="custom">
+        <label class="sc-field"
+          >Shape:<select id="sc-custom-shape" aria-label="Custom shape"></select
+        ></label>
+      </div>
       <div class="sc-opt" data-for="pencil">
         <label class="sc-field"
           ><span class="sc-scrub" data-tip="Drag to adjust">Smoothing:</span
@@ -1074,7 +1098,7 @@
         <button
           data-tool="select"
           aria-label="Move / select"
-          data-tip="Move · V"
+          data-tip="Move"
           data-tip-desc="Select, move, scale and rotate layers. Drag a guide to move it."
         >
           <i data-icon="arrow-pointer"></i>
@@ -1082,7 +1106,7 @@
         <button
           data-tool="node"
           aria-label="Edit points"
-          data-tip="Edit points · A"
+          data-tip="Edit points"
           data-tip-desc="Move, add and delete the points and curve handles of a path."
         >
           <i data-icon="bezier-curve"></i>
@@ -1091,7 +1115,7 @@
         <button
           data-tool="pencil"
           aria-label="Pencil"
-          data-tip="Pencil · P"
+          data-tip="Pencil"
           data-tip-desc="Draw freehand lines, smoothed as you go."
         >
           <i data-icon="pencil"></i>
@@ -1099,7 +1123,7 @@
         <button
           data-tool="pen"
           aria-label="Pen"
-          data-tip="Pen · B"
+          data-tip="Pen"
           data-tip-desc="Click for corners, drag for curves. Click the first point to close."
         >
           <i data-icon="pen-nib"></i>
@@ -1107,7 +1131,7 @@
         <button
           data-tool="eraser"
           aria-label="Eraser"
-          data-tip="Eraser · E"
+          data-tip="Eraser"
           data-tip-desc="Object mode deletes what you rub; Cut mode splits stroked paths."
         >
           <i data-icon="eraser"></i>
@@ -1115,7 +1139,7 @@
         <button
           data-tool="gradient"
           aria-label="Gradient"
-          data-tip="Gradient · G"
+          data-tip="Gradient"
           data-tip-desc="Drag across a shape to lay a linear or radial gradient."
         >
           <i data-icon="sc-gradient"></i>
@@ -1123,40 +1147,28 @@
         <button
           data-tool="eyedropper"
           aria-label="Eyedropper"
-          data-tip="Eyedropper · I"
+          data-tip="Eyedropper"
           data-tip-desc="Click a shape to copy its style or one of its colours."
         >
           <i data-icon="eye-dropper"></i>
         </button>
         <span class="sc-sep"></span>
         <button
-          data-tool="rect"
+          class="sc-tool-group"
+          id="sc-shape-btn"
           aria-label="Rectangle"
-          data-tip="Rectangle · R"
-          data-tip-desc="Drag to draw a rectangle. Shift makes a square."
+          aria-haspopup="menu"
+          aria-pressed="false"
+          data-tip="Rectangle"
+          data-key="U"
+          data-tip-desc="Drag to draw a shape; click for an exact size. Hold, right-click or Alt-click for the others: ellipse, triangle, polygon or star, line, custom shape."
         >
-          <i data-icon="square"></i>
-        </button>
-        <button
-          data-tool="ellipse"
-          aria-label="Ellipse"
-          data-tip="Ellipse · O"
-          data-tip-desc="Drag to draw an ellipse. Shift makes a circle."
-        >
-          <i data-icon="circle"></i>
-        </button>
-        <button
-          data-tool="line"
-          aria-label="Line"
-          data-tip="Line · L"
-          data-tip-desc="Drag to draw a straight line. Shift snaps to 45°."
-        >
-          <i data-icon="slash"></i>
+          <i data-shape-icon></i><span class="sc-tool-more" aria-hidden="true"></span>
         </button>
         <button
           data-tool="text"
           aria-label="Text"
-          data-tip="Type · T"
+          data-tip="Type"
           data-tip-desc="Click to type a line, or drag to make a text box."
         >
           <i data-icon="font"></i>
@@ -1165,15 +1177,15 @@
         <button
           data-tool="hand"
           aria-label="Hand"
-          data-tip="Hand · H (or hold Space)"
-          data-tip-desc="Drag to scroll around the canvas."
+          data-tip="Hand"
+          data-tip-desc="Drag to scroll around the canvas. Or hold Space with any tool."
         >
           <i data-icon="hand"></i>
         </button>
         <button
           data-tool="zoom"
           aria-label="Zoom"
-          data-tip="Zoom · Z"
+          data-tip="Zoom"
           data-tip-desc="Click to zoom in, Alt-click to zoom out. Drag left or right to zoom smoothly. Double-click for 100%."
         >
           <i data-icon="magnifying-glass"></i>
@@ -1196,7 +1208,7 @@
             class="sc-tb-mini sc-tb-swap"
             data-action="swapPaint"
             aria-label="Swap fill and stroke"
-            data-tip="Swap · X"
+            data-tip="Swap fill and stroke"
           >
             <i data-icon="right-left"></i>
           </button>
@@ -1271,7 +1283,12 @@
             </svg>
             <div class="sc-iso-bar" id="sc-iso" hidden>
               <i data-icon="clover"></i><span>Editing symbol <b id="sc-iso-name"></b></span>
-              <button class="sc-tbtn sc-primary-btn" data-action="symbolDone" data-tip="Done · Esc">
+              <button
+                class="sc-tbtn sc-primary-btn"
+                data-action="symbolDone"
+                data-tip="Done"
+                data-key="Esc"
+              >
                 Done
               </button>
             </div>
@@ -2239,6 +2256,41 @@
                 In multiples of the stroke width. Leave a pair blank to repeat a shorter pattern.
               </p>
             </div>
+            <div class="sc-shapeprops" id="sc-shape-props" hidden>
+              <div class="sc-shapeprops-row" data-shape-poly hidden>
+                <span class="sc-opt-label">Polygon</span>
+                <label class="sc-field"
+                  >Sides
+                  <input
+                    type="number"
+                    data-shape-prop="sides"
+                    min="3"
+                    max="100"
+                    step="1"
+                    aria-label="Sides"
+                /></label>
+                <label class="sc-field"
+                  >Star ratio
+                  <input
+                    type="number"
+                    data-shape-prop="ratio"
+                    min="1"
+                    max="100"
+                    step="1"
+                    aria-label="Star ratio"
+                  /><span class="sc-unit">%</span></label
+                >
+              </div>
+              <div class="sc-shapeprops-row" data-shape-arrows hidden>
+                <span class="sc-opt-label">Arrowheads</span>
+                <label class="sc-check"
+                  ><input type="checkbox" data-shape-prop="arrowStart" /> Start</label
+                >
+                <label class="sc-check"
+                  ><input type="checkbox" data-shape-prop="arrowEnd" /> End</label
+                >
+              </div>
+            </div>
             <div class="sc-fillrule" id="sc-fillrule-props" hidden>
               <span class="sc-opt-label">Fill rule</span>
               <div class="sc-seg" role="radiogroup" aria-label="Fill rule">
@@ -2594,19 +2646,14 @@
             >
               <i data-icon="sc-fx"></i>
             </button>
-            <button
-              class="sc-ibtn"
-              data-action="group"
-              aria-label="Group"
-              data-tip="Group · Ctrl+G"
-            >
+            <button class="sc-ibtn" data-action="group" aria-label="Group" data-tip="Group">
               <i data-icon="folder"></i>
             </button>
             <button
               class="sc-ibtn"
               data-action="clipMake"
               aria-label="Make clipping mask"
-              data-tip="Clipping mask: clip to the top layer · Ctrl+Alt+G"
+              data-tip="Clipping mask: clip to the top layer"
             >
               <i data-icon="scissors"></i>
             </button>
@@ -2614,7 +2661,7 @@
               class="sc-ibtn"
               data-action="duplicate"
               aria-label="Duplicate"
-              data-tip="Duplicate · Ctrl+D"
+              data-tip="Duplicate"
             >
               <i data-icon="clone"></i>
             </button>
@@ -2622,7 +2669,7 @@
               class="sc-ibtn"
               data-action="forward"
               aria-label="Bring forward"
-              data-tip="Bring forward · ]"
+              data-tip="Bring forward"
             >
               <i data-icon="arrow-up"></i>
             </button>
@@ -2630,16 +2677,11 @@
               class="sc-ibtn"
               data-action="backward"
               aria-label="Send backward"
-              data-tip="Send backward · ["
+              data-tip="Send backward"
             >
               <i data-icon="arrow-down"></i>
             </button>
-            <button
-              class="sc-ibtn"
-              data-action="delete"
-              aria-label="Delete"
-              data-tip="Delete · Del"
-            >
+            <button class="sc-ibtn" data-action="delete" aria-label="Delete" data-tip="Delete">
               <i data-icon="trash-can"></i>
             </button>
           </div>
@@ -2703,6 +2745,65 @@
       <div class="sc-dialog-foot">
         <button class="sc-tbtn" data-cs-btn="cancel">Cancel</button>
         <button class="sc-tbtn sc-primary-btn" data-cs-btn="ok">Export</button>
+      </div>
+    </dialog>
+
+    <!-- A Shape tool's click without dragging: draw one at an exact size. -->
+    <dialog class="sc-dialog sc-docsize" id="sc-createshape" aria-labelledby="sc-cs-shape-title">
+      <div class="sc-dialog-title" id="sc-cs-shape-title">Create Rectangle</div>
+      <div class="sc-dialog-body">
+        <div class="sc-docsize-row">
+          <label class="sc-field"
+            >Width
+            <input type="number" data-cs-shape="w" min="0" step="any" aria-label="Width" /><span
+              class="sc-unit"
+              data-doc-unit
+              >px</span
+            ></label
+          >
+          <label class="sc-field"
+            >Height
+            <input type="number" data-cs-shape="h" min="0" step="any" aria-label="Height" /><span
+              class="sc-unit"
+              data-doc-unit
+              >px</span
+            ></label
+          >
+        </div>
+        <div class="sc-docsize-row" data-cs-for="rect">
+          <label class="sc-field"
+            >Corner radius
+            <input
+              type="number"
+              data-cs-shape="radius"
+              min="0"
+              step="1"
+              aria-label="Corner radius"
+            /><span class="sc-unit">px</span></label
+          >
+        </div>
+        <div class="sc-docsize-row" data-cs-for="polygon">
+          <label class="sc-field"
+            >Sides <input type="number" data-cs-shape="sides" min="3" max="100" aria-label="Sides"
+          /></label>
+          <label class="sc-field"
+            >Star ratio
+            <input
+              type="number"
+              data-cs-shape="ratio"
+              min="1"
+              max="100"
+              aria-label="Star ratio"
+            /><span class="sc-unit">%</span></label
+          >
+        </div>
+        <label class="sc-check"
+          ><input type="checkbox" data-cs-shape="centre" /> From centre (where you clicked)</label
+        >
+      </div>
+      <div class="sc-dialog-foot">
+        <button class="sc-tbtn" data-cs-shape-btn="cancel">Cancel</button>
+        <button class="sc-tbtn sc-primary-btn" data-cs-shape-btn="ok">OK</button>
       </div>
     </dialog>
 
@@ -3437,6 +3538,28 @@
     </div>
 
     <!-- Font picker (shared by the options bar and the Character panel). -->
+    <!-- The Shape tool group's flyout (beside the toolbar's Shape button). -->
+    <div class="sc-flyout" id="sc-shape-menu" role="menu" aria-label="Shape tools" hidden>
+      <button role="menuitemradio" data-shape-tool="rect">
+        <i data-icon="square"></i><span>Rectangle Tool</span><kbd>U</kbd>
+      </button>
+      <button role="menuitemradio" data-shape-tool="ellipse">
+        <i data-icon="circle"></i><span>Ellipse Tool</span><kbd>U</kbd>
+      </button>
+      <button role="menuitemradio" data-shape-tool="triangle">
+        <i data-icon="sc-triangle"></i><span>Triangle Tool</span><kbd>U</kbd>
+      </button>
+      <button role="menuitemradio" data-shape-tool="polygon">
+        <i data-icon="sc-star"></i><span>Polygon Tool</span><kbd>U</kbd>
+      </button>
+      <button role="menuitemradio" data-shape-tool="line">
+        <i data-icon="slash"></i><span>Line Tool</span><kbd>U</kbd>
+      </button>
+      <button role="menuitemradio" data-shape-tool="custom">
+        <i data-icon="sc-custom-shape"></i><span>Custom Shape Tool</span><kbd>U</kbd>
+      </button>
+    </div>
+
     <div class="sc-fontpop" id="sc-fontpop" hidden>
       <input
         type="search"
@@ -3525,6 +3648,7 @@
     <script src="src/zip.js"></script>
     <script src="src/pattern-editor.js"></script>
     <script src="src/symbols.js"></script>
+    <script src="src/shapes.js"></script>
     <script src="src/input.js"></script>
     <script src="src/controls.js"></script>
     <script src="src/tooltips.js"></script>

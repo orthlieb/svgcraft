@@ -194,4 +194,10 @@ window.SC_ICONS = {
     '<svg viewBox="0 0 512 512" aria-hidden="true"><rect x="54" y="54" width="252" height="252" fill="none" stroke="currentColor" stroke-width="28"/><rect x="206" y="206" width="252" height="252" fill="none" stroke="currentColor" stroke-width="28"/><path d="M192 192H320V320H192Z"/></svg>',
   'sc-exclude':
     '<svg viewBox="0 0 512 512" aria-hidden="true"><path fill-rule="evenodd" d="M40 40H320V320H40ZM192 192H472V472H192Z"/></svg>',
+  'sc-triangle':
+    '<svg viewBox="0 0 512 512" aria-hidden="true"><path d="M256 40 488 456H24Z"/></svg>',
+  'sc-star':
+    '<svg viewBox="0 0 512 512" aria-hidden="true"><path d="M256 24l68 152 164 16-124 110 36 162-144-84-144 84 36-162L24 192l164-16z"/></svg>',
+  'sc-custom-shape':
+    '<svg viewBox="0 0 512 512" aria-hidden="true"><path d="M256 464 72 280C16 224 24 120 104 88c56-22 112 2 152 58 40-56 96-80 152-58 80 32 88 136 32 192Z"/></svg>',
 };

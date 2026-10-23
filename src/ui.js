@@ -12,7 +12,10 @@ const TOOL_META = {
   eraser: ['eraser', 'Eraser'],
   rect: ['square', 'Rectangle'],
   ellipse: ['circle', 'Ellipse'],
+  triangle: ['sc-triangle', 'Triangle'],
+  polygon: ['sc-star', 'Polygon'],
   line: ['slash', 'Line'],
+  custom: ['sc-custom-shape', 'Custom Shape'],
   text: ['font', 'Type'],
   eyedropper: ['eye-dropper', 'Eyedropper'],
   gradient: ['sc-gradient', 'Gradient'],
@@ -55,6 +58,7 @@ function setTool(name) {
   stage.dataset.tool = name;
   for (const b of document.querySelectorAll('[data-tool]'))
     b.setAttribute('aria-pressed', b.dataset.tool === name);
+  syncShapeButton();
   updateOptions();
   stage.style.cursor = tools[name].cursor;
   $('#sc-hint').textContent = tools[name].hint;
@@ -62,6 +66,27 @@ function setTool(name) {
   if (changed && name === 'text') $('[data-tab="character"]').click();
   drawSelection();
   renderLayers();
+}
+
+// Tab hides the toolbar, options bar and panels, Shift+Tab just the
+// panels on the right; either brings everything back, as in Photoshop.
+function togglePanels(rightOnly) {
+  const b = document.body.classList;
+  const hidden = b.contains('sc-no-panels') || b.contains('sc-no-right');
+  b.remove('sc-no-panels', 'sc-no-right');
+  if (!hidden) b.add(rightOnly ? 'sc-no-right' : 'sc-no-panels');
+  for (const m of document.querySelectorAll('[data-action="togglePanels"]'))
+    m.setAttribute('aria-checked', !hidden);
+  applyView();
+  drawRulers();
+}
+
+// [ and ]: the stroke width down or up a pixel (Photoshop's brush size keys).
+function setStrokeWidthBy(d) {
+  state.strokeWidth = clamp(Math.round(state.strokeWidth + d), 0, 200);
+  styleChanged('width', true);
+  syncStyleUI();
+  say(`Stroke width: ${state.strokeWidth} px.`);
 }
 
 function syncStyleUI() {

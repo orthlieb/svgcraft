@@ -197,7 +197,7 @@ test.describe('Layer Style', () => {
     await openStyle(page);
     await effect(page, 'ds');
     await page.click('#sc-fx [data-fxd="ok"]');
-    await page.keyboard.press('Control+d');
+    await page.keyboard.press('Control+j');
     await tick(page);
     const ids = await page.evaluate(() =>
       [...document.querySelectorAll('#sc-doc [data-sc-fx]')].map((e) => e.getAttribute('filter')),

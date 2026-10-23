@@ -52,7 +52,7 @@ const PEN_GAP = 400;
 
 test.describe('drawing tools', () => {
   test('Pencil draws a smoothed path from the drag', async ({ page }) => {
-    await page.keyboard.press('p');
+    await page.keyboard.press('b');
     await drag(page, [
       [100, 100],
       [150, 140],
@@ -66,7 +66,7 @@ test.describe('drawing tools', () => {
   });
 
   test('Pen: clicks make corners, a drag makes a smooth point, Enter ends', async ({ page }) => {
-    await page.keyboard.press('b');
+    await page.keyboard.press('p');
     for (const [x, y, curve] of [
       [100, 300, false],
       [200, 250, true],
@@ -91,7 +91,7 @@ test.describe('drawing tools', () => {
   });
 
   test('Pen: clicking the first point closes the path', async ({ page }) => {
-    await page.keyboard.press('b');
+    await page.keyboard.press('p');
     for (const [x, y] of [
       [500, 100],
       [600, 100],
@@ -210,7 +210,7 @@ test.describe('selection', () => {
 
 test.describe('erasers and history', () => {
   test('the Cut eraser splits a stroke in two', async ({ page }) => {
-    await page.keyboard.press('p');
+    await page.keyboard.press('b');
     await drag(page, [
       [100, 100],
       [150, 140],

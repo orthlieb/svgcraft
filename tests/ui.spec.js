@@ -47,13 +47,13 @@ test('menus are keyboard navigable', async ({ page }) => {
   expect(await activeText(page)).toBe('UndoCtrl+Z');
   await page.keyboard.press('ArrowRight');
   await expect(page.locator('.sc-menu-btn[aria-expanded=true]')).toHaveText('Image');
-  expect(await activeText(page)).toBe('Image Size…');
+  expect(await activeText(page)).toBe('Image Size…Ctrl+Alt+I');
   await page.keyboard.press('Escape');
   await expect(page.locator('.sc-menu-list:not([hidden])')).toHaveCount(0);
 });
 
 test('dragging a scrubby label changes the stroke width everywhere', async ({ page }) => {
-  await page.keyboard.press('p');
+  await page.keyboard.press('b');
   const lb = await page.locator('.sc-opt.on .sc-scrub').first().boundingBox();
   await page.mouse.move(lb.x + 10, lb.y + 5);
   await page.mouse.down();

@@ -162,6 +162,22 @@ stroke="currentColor"` (common in icon sets) is pushed down so it
   Keep Save as SVG for your working copy: a clean SVG reopens as plain
   shapes.
 
+- **Shape tools** (U), Photoshop's group: **Rectangle**, **Ellipse**,
+  **Triangle**, **Polygon** (sides, and a **Star ratio** below 100% pulls
+  every other point in), **Line** (with **Arrowheads** at the start, end or
+  both) and **Custom Shape** (any shape from the Symbols library, drawn
+  into the box you drag with its proportions kept). The toolbar shows one
+  Shape button, the last tool used; hold it, right-click it or Alt-click it
+  for the flyout, and Shift+U steps through the group (R, O and L still
+  pick the rectangle, ellipse and line). Drag a box: Shift makes the sides
+  equal, Alt draws from the centre. Click without dragging for Photoshop's
+  **Create** box: an exact width and height (in the document's units),
+  plus the corner radius, sides or star ratio, from the corner or the
+  centre. A polygon or star stays live: Properties changes its sides and
+  star ratio later, until you edit its points by hand. Arrowheads are one
+  shared SVG marker drawn in each line's own stroke colour
+  (`context-stroke`), sized by its stroke width; Properties turns them on
+  or off for any selected line or open path.
 - **Pencil**: freehand drawing with adjustable smoothing (RDP simplification
   plus a Catmull-Rom → Bézier fit).
 - **Pen**: click for corners, drag for smooth curves, click the first point
@@ -825,29 +841,46 @@ else is refused with a note under the fields.
 
 ## Shortcuts
 
-| Key                   | Action                                    |
-| --------------------- | ----------------------------------------- |
-| V A                   | Select · Edit points                      |
-| P B E I               | Pencil · Pen · Eraser · Eyedropper        |
-| R O L T H Z           | Rect · Ellipse · Line · Text · Pan · Zoom |
-| Space (hold)          | Pan                                       |
-| Ctrl+Z / Ctrl+Shift+Z | Undo / redo (Ctrl+Y redoes too)           |
-| Ctrl+C / X / V        | Copy / cut / paste (as SVG)               |
-| Ctrl+D · Ctrl+A       | Duplicate · select all                    |
-| Shift+F7              | Select inverse                            |
-| Alt+T · Alt+Shift+T   | Free Transform · Transform Again          |
-| Ctrl+G · Ctrl+Shift+G | Group · ungroup                           |
-| Ctrl+Alt+G (+ Shift)  | Make / release clipping mask              |
-| Ctrl+Shift+O          | Create Outlines                           |
-| ] [ · Ctrl+] Ctrl+[   | Forward / backward · to front / to back   |
-| Arrows (Shift = 10)   | Nudge                                     |
-| Del / Backspace       | Delete                                    |
-| X                     | Swap fill and stroke                      |
-| + − 0 1               | Zoom in / out · fit · 100%                |
-| Ctrl+S · Ctrl+O       | Save as SVG · open                        |
-| Ctrl+U                | Show / hide the SVG source                |
-| Ctrl+Alt+P            | Show / hide the icon preview              |
-| Alt+Shift+Ctrl+I      | File Info                                 |
+| Key                       | Action                                             |
+| ------------------------- | -------------------------------------------------- |
+| V A                       | Move · Edit points                                 |
+| P B E I                   | Pen · Pencil · Eraser · Eyedropper                 |
+| U · Shift+U               | Shape tool · next shape in the group               |
+| R O L                     | Rectangle · Ellipse · Line                         |
+| T G H Z                   | Type · Gradient · Hand · Zoom                      |
+| Space (hold)              | Pan                                                |
+| D · X                     | Default fill and stroke (black, white) · swap them |
+| [ ]                       | Stroke width down / up                             |
+| Ctrl+Z / Ctrl+Shift+Z     | Undo / redo (Ctrl+Y redoes too)                    |
+| Ctrl+C / X / V            | Copy / cut / paste (as SVG)                        |
+| Ctrl+J                    | Duplicate                                          |
+| Ctrl+A · Ctrl+D           | Select all · deselect                              |
+| Shift+F7                  | Select inverse                                     |
+| Alt+T · Alt+Shift+T       | Free Transform · Transform Again                   |
+| Ctrl+G · Ctrl+Shift+G     | Group · ungroup                                    |
+| Ctrl+Alt+G (+ Shift)      | Make / release clipping mask                       |
+| Ctrl+Shift+O              | Create Outlines                                    |
+| Ctrl+] [ · Ctrl+Shift+] [ | Bring forward / send backward · to front / to back |
+| Arrows (Shift = 10)       | Nudge                                              |
+| Del / Backspace           | Delete                                             |
+| + − 0 1 (or Ctrl + − 0)   | Zoom in / out · fit · 100%                         |
+| Ctrl+R · Ctrl+; · Ctrl+'  | Rulers · guides · grid                             |
+| Ctrl+Shift+; · Ctrl+Alt+; | Snap to grid · lock guides                         |
+| Ctrl+Alt+I · Ctrl+Alt+C   | Image Size · Canvas Size                           |
+| Tab · Shift+Tab           | Hide all panels · hide the right-hand panels       |
+| Ctrl+S · Ctrl+O           | Save as SVG · open                                 |
+| Ctrl+U                    | Show / hide the SVG source                         |
+| Ctrl+Alt+P                | Show / hide the icon preview                       |
+| Alt+Shift+Ctrl+I          | File Info                                          |
+
+The keys follow Photoshop's. A browser keeps a few for itself, so those
+differ: Free Transform is Alt+T (Ctrl+T opens a tab), Select Inverse is
+Shift+F7 (Ctrl+Shift+I opens the developer tools in some browsers), and
+New is in the File menu (Ctrl+N opens a window). On a Mac, Cmd+Opt+I may
+open the developer tools instead of Image Size. Tab hides the panels only
+while you're working on the canvas; with a control focused it moves focus
+as usual. Every tooltip ends with its control's shortcut in parentheses,
+taken from the menus, so they always agree.
 
 ## SVG source
 

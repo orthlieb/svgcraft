@@ -49,6 +49,7 @@ function drawSelection() {
   selLayer.replaceChildren();
   syncCornerUI();
   syncFillRuleUI();
+  syncShapeUI();
   syncAnimUI();
   syncTextPathUI();
   syncLayerHead();

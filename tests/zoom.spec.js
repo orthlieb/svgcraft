@@ -141,6 +141,6 @@ test('the Zoom tool tooltip carries a description', async ({ page }) => {
   await page.mouse.move(700, 450);
   await page.hover('[data-tool="zoom"]');
   await expect(page.locator('.sc-tip')).toHaveText(
-    'ZoomZClick to zoom in, Alt-click to zoom out. Drag left or right to zoom smoothly. Double-click for 100%.',
+    'Zoom (Z)Click to zoom in, Alt-click to zoom out. Drag left or right to zoom smoothly. Double-click for 100%.',
   );
 });

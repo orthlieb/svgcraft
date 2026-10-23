@@ -370,7 +370,7 @@ test.describe('Free Transform', () => {
 
     await setField(page, 'w', 300);
     await page.evaluate(() => document.activeElement.blur());
-    await page.keyboard.press('p');
+    await page.keyboard.press('b');
     expect(await page.evaluate(() => window.svgcraft.state.tf)).toBeNull();
     // Committed, not cancelled.
     expect((await corners(page, 'r'))[2][0]).toBeCloseTo(400, 2);

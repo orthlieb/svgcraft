@@ -252,7 +252,7 @@ test.describe('Gradient tool', () => {
 
 test('a duplicate shares the gradient until one of them is edited', async ({ page }) => {
   await makeLinear(page);
-  await page.keyboard.press('Control+d');
+  await page.keyboard.press('Control+j');
   const fills = () =>
     page.locator('#sc-doc rect').evaluateAll((els) => els.map((r) => r.getAttribute('fill')));
   const [a, b] = await fills();

@@ -100,7 +100,7 @@ test.describe('line caps and dashes from the options bar', () => {
 
 test('joins on a pen path are set from Properties; miter is the default', async ({ page }) => {
   await load(page, '');
-  await page.keyboard.press('b');
+  await page.keyboard.press('p');
   for (const [x, y] of [
     [100, 250],
     [200, 180],
