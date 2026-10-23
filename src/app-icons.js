@@ -267,7 +267,7 @@ const MAC_ICONSET = [
 async function exportAppIcons({ web, ios, android, macos }, bg) {
   if (!web && !ios && !android && !macos) return say('Pick at least one platform.');
   say('Drawing the app icons…');
-  const full = serialize({ fontCss: await embeddedFontCss(usedGoogleFonts()) });
+  const full = serialize({ fontCss: await embeddedFontCss(usedGoogleFonts()), animate: false });
   const cache = new Map();
   let draw;
   try {
@@ -295,7 +295,7 @@ async function exportAppIcons({ web, ios, android, macos }, bg) {
           [48, await png(48)],
         ]),
       ],
-      ['web/favicon.svg', serialize({ fontCss: fontImport() })],
+      ['web/favicon.svg', serialize({ fontCss: fontImport(), animate: false })],
       ['web/apple-touch-icon.png', await png(180, true)],
       ['web/icon-192.png', await png(192)],
       ['web/icon-512.png', await png(512)],

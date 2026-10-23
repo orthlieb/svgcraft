@@ -95,6 +95,7 @@ const actions = {
   convertTextKind,
   combineUnite: () => combineShapes('unite'),
   reversePath: reversePaths,
+  toggleAnimations: () => toggleAnimations(),
   fillRuleNonzero: () => setFillRule('nonzero'),
   fillRuleEvenodd: () => setFillRule('evenodd'),
   combineSubtract: () => combineShapes('subtract'),

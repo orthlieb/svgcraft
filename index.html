@@ -376,6 +376,10 @@
               <i data-icon="images"></i><span>Icon Preview</span><kbd>Ctrl+Alt+P</kbd>
             </button>
             <hr />
+            <button role="menuitemcheckbox" data-action="toggleAnimations" aria-checked="false">
+              <i data-icon="play"></i><span>Play Animations</span>
+            </button>
+            <hr />
             <button role="menuitemcheckbox" data-action="toggleRulers" aria-checked="true">
               <i data-icon="ruler"></i><span>Rulers</span>
             </button>
@@ -2373,6 +2377,80 @@
                 </p>
               </div>
             </div>
+            <div class="sc-anim" id="sc-anim-props" hidden>
+              <div class="sc-anim-head">
+                <span class="sc-subhead">Animate</span>
+                <select id="sc-anim-add" aria-label="Add an animation">
+                  <option value="">Add animation…</option>
+                </select>
+                <button
+                  class="sc-tbtn"
+                  data-action="toggleAnimations"
+                  aria-pressed="false"
+                  data-tip="Play every animation in the drawing (Esc or a click stops)"
+                >
+                  ▶ Play
+                </button>
+              </div>
+              <ul class="sc-anim-list" id="sc-anim-list" aria-label="Animations"></ul>
+              <div class="sc-anim-edit" id="sc-anim-edit" hidden>
+                <div class="sc-prop-grid">
+                  <label class="sc-field"
+                    >Length<input
+                      data-anim="dur"
+                      type="number"
+                      min="0.05"
+                      max="600"
+                      step="0.1"
+                      aria-label="Length in seconds"
+                    /><span class="sc-unit">s</span></label
+                  >
+                  <label class="sc-field"
+                    >Delay<input
+                      data-anim="delay"
+                      type="number"
+                      min="0"
+                      max="600"
+                      step="0.1"
+                      aria-label="Delay in seconds"
+                    /><span class="sc-unit">s</span></label
+                  >
+                  <label class="sc-field"
+                    >Times<input
+                      data-anim="rep"
+                      type="number"
+                      min="1"
+                      max="1000"
+                      step="1"
+                      aria-label="Times to play"
+                  /></label>
+                  <label class="sc-check"
+                    ><input data-anim="forever" type="checkbox" /> Forever</label
+                  >
+                  <label class="sc-field"
+                    >Run<select data-anim="dir" aria-label="Direction">
+                      <option value="normal">Normal</option>
+                      <option value="reverse">Reverse</option>
+                      <option value="alternate">Back and forth</option>
+                    </select></label
+                  >
+                  <label class="sc-field"
+                    >Ease<select data-anim="ease" aria-label="Easing">
+                      <option value="linear">Linear</option>
+                      <option value="ease">Ease</option>
+                      <option value="in">Ease in</option>
+                      <option value="out">Ease out</option>
+                      <option value="inout">Ease in-out</option>
+                    </select></label
+                  >
+                </div>
+                <div class="sc-anim-opts" id="sc-anim-opts"></div>
+                <p class="sc-hint">
+                  Saved as SVG animation (SMIL): it plays in browsers, &lt;img&gt; tags included.
+                  PNG and app icons use the still drawing.
+                </p>
+              </div>
+            </div>
             <span class="sc-subhead">Document</span>
             <div class="sc-prop-grid">
               <label class="sc-field"
@@ -3285,6 +3363,7 @@
     <script src="src/gradient-tool.js"></script>
     <script src="src/points.js"></script>
     <script src="src/fill-rule.js"></script>
+    <script src="src/animate.js"></script>
     <script src="src/commands.js"></script>
     <script src="src/outlines.js"></script>
     <script src="src/transform.js"></script>

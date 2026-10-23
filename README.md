@@ -188,6 +188,25 @@ stroke="currentColor"` (common in icon sets) is pushed down so it
   and markers run. A closed path keeps its starting point. Rectangles,
   circles and ellipses become paths (a live rectangle's corners stop being
   editable as corners).
+- **Animate** (Properties, when one layer or group is selected). Add
+  animations from presets: entrances (Fade, Slide, Pop and Zoom in), exits
+  (Fade, Slide and Zoom out), loops (Spin, Pulse, Bounce, Shake, Float,
+  Blink), line effects (Draw on, Draw off, Dash march) and Colour cycle.
+  Each has a length, delay, number of times or forever, direction (normal,
+  reverse, back and forth) and easing, plus its own options (slide side
+  and distance, turns, how far to grow, the colour to cycle to). A layer
+  can have several, which play together; ▶ **Play** (or View → Play
+  Animations) previews the whole drawing, and Esc, a click on the canvas
+  or any edit stops it. They're kept as settings on the layer
+  (`data-sc-anim`) and written out as SVG animation (SMIL:
+  `<animate>`, `<animateTransform>`, `<set>`) only when the drawing is
+  saved, so editing and undo always see the shapes at rest. Moves, spins
+  and scales are additive, so they happen about the layer's own centre, on
+  top of its transform. SMIL plays in every current browser, including SVG
+  shown in an `<img>` tag. Each animation adds about 150–300 bytes;
+  Export Clean SVG keeps the animation and rounds its coordinates like the
+  rest. PNG, app icon and favicon exports use the still drawing. Reopening
+  a saved file rebuilds the animations from their settings.
 - **Zoom** (Z), as in Photoshop: click to zoom in one step (50%, 66.7%,
   100%, 200%, 300% …), and Alt-click or the options bar's Zoom Out button to
   step out. With **Scrubby Zoom** on, drag right to zoom in and left to zoom

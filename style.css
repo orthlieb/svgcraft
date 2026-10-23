@@ -1112,7 +1112,8 @@ kbd {
 }
 /* Clipping group / clipping path marker; the clipping path's name is
    underlined, as Illustrator does. */
-.sc-clip-badge {
+.sc-clip-badge,
+.sc-anim-badge {
   display: grid;
   place-items: center;
   flex: none;
@@ -1120,7 +1121,8 @@ kbd {
   height: 20px;
   color: var(--text-dim);
 }
-.sc-clip-badge svg {
+.sc-clip-badge svg,
+.sc-anim-badge svg {
   width: 12px;
   height: 12px;
   fill: currentColor;
@@ -1748,7 +1750,8 @@ select[data-type='style'] {
   place-items: center;
   padding: 0 6px;
 }
-select[data-stroke-dash] {
+select[data-stroke-dash],
+.sc-anim select {
   height: 24px;
   padding: 0 6px;
   border: 1px solid var(--line);
@@ -2614,4 +2617,85 @@ select[data-stroke-dash] {
 }
 .sc-fillrule .sc-seg button + button {
   border-left: 0;
+}
+
+/* ---- Properties → Animate ------------------------------------------------- */
+.sc-anim {
+  margin-top: 12px;
+}
+.sc-anim[hidden],
+.sc-anim-edit[hidden] {
+  display: none;
+}
+.sc-anim-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.sc-anim-head .sc-subhead {
+  margin: 0;
+}
+.sc-anim-edit .sc-hint {
+  margin-top: 8px;
+}
+#sc-anim-add {
+  flex: 1;
+  min-width: 0;
+}
+.sc-anim-list {
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.sc-anim-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 4px;
+}
+.sc-anim-item.sel {
+  background: var(--row-sel);
+}
+.sc-anim-name {
+  flex: 1;
+  min-width: 0;
+  padding: 4px 6px;
+  overflow: hidden;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sc-anim-x svg {
+  width: 10px;
+  height: 12px;
+  fill: currentColor;
+}
+.sc-anim-edit {
+  margin-top: 8px;
+}
+.sc-anim-edit .sc-prop-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+.sc-anim-edit .sc-field {
+  min-width: 0;
+}
+.sc-anim-edit input[type='number'] {
+  width: 52px;
+}
+.sc-anim-edit select {
+  flex: 1;
+  min-width: 0;
+}
+.sc-anim-opts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  margin-top: 8px;
+}
+.sc-anim-opts input[type='number'] {
+  width: 64px;
 }

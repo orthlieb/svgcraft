@@ -316,7 +316,9 @@ infoDlg.addEventListener('keydown', (e) => {
 infoDlg.querySelector('[data-info="ok"]').addEventListener('click', () => closeFileInfo(true));
 infoDlg.querySelector('[data-info="cancel"]').addEventListener('click', () => closeFileInfo(false));
 
-function serialize({ selection = false, fontCss = '' } = {}) {
+// `animate: false` leaves the animations out, for the still images (PNG,
+// app icons, previews) drawn from it.
+function serialize({ selection = false, fontCss = '', animate = true } = {}) {
   const root = document.createElementNS(NS, 'svg');
   let box = { x: 0, y: 0, w: state.w, h: state.h };
   if (selection) {
@@ -349,6 +351,7 @@ function serialize({ selection = false, fontCss = '' } = {}) {
   for (const el of layers) {
     const c = el.cloneNode(true);
     for (const n of [c, ...c.querySelectorAll('[data-sc-iso]')]) n.removeAttribute('data-sc-iso');
+    writeAnimations(el, c, animate);
     // A nested layer copied on its own keeps where it sits and how it looks.
     if (selection && el.parentNode !== doc) {
       setM(c, fullM(el));

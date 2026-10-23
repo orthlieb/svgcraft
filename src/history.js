@@ -24,6 +24,8 @@ function snapshot() {
 }
 
 function commit() {
+  // A preview's SMIL never goes into the history.
+  stopAnimations();
   syncTextPaths();
   syncStrokeAlign();
   syncEffects();

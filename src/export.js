@@ -47,7 +47,9 @@ async function exportPng(scale = 2) {
   const fontCss = await embeddedFontCss(g);
   if (g.length && !fontCss)
     say('Could not fetch the fonts (offline?) — the PNG uses fallback fonts.');
-  const url = URL.createObjectURL(new Blob([serialize({ fontCss })], { type: 'image/svg+xml' }));
+  const url = URL.createObjectURL(
+    new Blob([serialize({ fontCss, animate: false })], { type: 'image/svg+xml' }),
+  );
   const img = new Image();
   img.onload = () => {
     const c = document.createElement('canvas');

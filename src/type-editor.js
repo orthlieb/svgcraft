@@ -744,7 +744,9 @@ function raster() {
   if (rasterJob) return rasterJob;
   rasterJob = new Promise((resolve) => {
     const s = clamp(2048 / Math.max(state.w, state.h), 1, 4);
-    const url = URL.createObjectURL(new Blob([serialize()], { type: 'image/svg+xml' }));
+    const url = URL.createObjectURL(
+      new Blob([serialize({ animate: false })], { type: 'image/svg+xml' }),
+    );
     const img = new Image();
     img.onload = () => {
       const c = document.createElement('canvas');

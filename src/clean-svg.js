@@ -36,6 +36,10 @@ const DEFAULT_ATTRS = {
   visibility: 'visible',
   display: 'inline',
 };
+// An animation's values are rounded like the geometry they move; timing,
+// opacity and colours are left alone.
+const ANIM_NUM_ATTRS = new Set(['values', 'from', 'to', 'by']);
+const ANIM_GEOMETRY = /^(transform|stroke-dash(array|offset)|[xy]|[cr]x|[cr]y|r|width|height|d)$/;
 // Elements whose whitespace is content.
 const TEXTY = new Set(['text', 'tspan', 'textPath', 'style', 'title', 'desc']);
 const REF_RE = /url\(\s*["']?#([^"')\s]+)["']?\s*\)/g;
@@ -80,8 +84,14 @@ function cleanSvgText(text, o) {
       if (['title', 'desc', 'metadata'].includes(el.localName)) el.remove();
   // SVGCraft's own attributes, defaults, and rounding.
   for (const el of all()) {
+    const anim = ANIM_KEY_TAGS.includes(el.localName);
     for (const a of [...el.attributes]) {
       const n = a.name;
+      if (anim) {
+        if (ANIM_NUM_ATTRS.has(n) && ANIM_GEOMETRY.test(el.getAttribute('attributeName') || ''))
+          el.setAttribute(n, roundNumbers(a.value, o.decimals));
+        continue;
+      }
       if (n.startsWith('data-') || n === 'xml:space') el.removeAttribute(n);
       else if (DEFAULT_ATTRS[n] === a.value.trim()) el.removeAttribute(n);
       else if (NUM_ATTRS.has(n) && n !== 'viewBox') {
@@ -90,7 +100,8 @@ function cleanSvgText(text, o) {
         el.setAttribute(n, v);
       }
     }
-    if (o.currentColor && !inDefs(el)) {
+    // (An animation's fill="freeze" isn't paint.)
+    if (o.currentColor && !inDefs(el) && !anim) {
       for (const k of ['fill', 'stroke']) {
         const v = el.getAttribute(k);
         if (v && v !== 'none' && !v.startsWith('url(') && v !== 'currentColor')
@@ -142,7 +153,12 @@ function cleanSvgText(text, o) {
   for (const g of [...root.querySelectorAll('g')].reverse()) {
     if (!g.isConnected) continue;
     if (!g.children.length && !g.id) g.remove();
-    else if (!g.attributes.length) g.replaceWith(...g.childNodes);
+    // A group's animations animate it, so it stays.
+    else if (
+      !g.attributes.length &&
+      ![...g.children].some((c) => ANIM_KEY_TAGS.includes(c.localName))
+    )
+      g.replaceWith(...g.childNodes);
   }
   for (const defsEl of root.querySelectorAll('defs')) if (!defsEl.children.length) defsEl.remove();
   if (o.minify) {

@@ -49,6 +49,7 @@ function drawSelection() {
   selLayer.replaceChildren();
   syncCornerUI();
   syncFillRuleUI();
+  syncAnimUI();
   syncTextPathUI();
   syncLayerHead();
   $('#sc-pos').dataset.sel = '';
@@ -293,6 +294,15 @@ function layerRow(el, depth, open, n) {
       openLayerStyle();
     });
     li.append(fx);
+  }
+  if (el.hasAttribute('data-sc-anim') && animated(el)) {
+    const b = document.createElement('i');
+    b.className = 'sc-anim-badge';
+    b.innerHTML = icon('play');
+    b.dataset.tip = 'Animated: see Properties → Animate';
+    b.setAttribute('role', 'img');
+    b.setAttribute('aria-label', 'Animated');
+    li.append(b);
   }
   const lock = el.getAttribute('data-sc-lock');
   if (lock) {
