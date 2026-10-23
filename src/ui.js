@@ -5,8 +5,8 @@
 // UI wiring
 // ---------------------------------------------------------------------
 const TOOL_META = {
-  select: ['arrow-pointer', 'Move'],
-  node: ['bezier-curve', 'Edit Points'],
+  select: ['sc-move', 'Move'],
+  node: ['sc-direct', 'Edit Points'],
   pencil: ['pencil', 'Pencil'],
   pen: ['pen-nib', 'Pen'],
   eraser: ['eraser', 'Eraser'],
@@ -16,7 +16,7 @@ const TOOL_META = {
   polygon: ['sc-star', 'Polygon'],
   line: ['slash', 'Line'],
   custom: ['sc-custom-shape', 'Custom Shape'],
-  text: ['font', 'Type'],
+  text: ['sc-type', 'Type'],
   eyedropper: ['eye-dropper', 'Eyedropper'],
   gradient: ['sc-gradient', 'Gradient'],
   hand: ['hand', 'Hand'],

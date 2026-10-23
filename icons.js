@@ -200,4 +200,15 @@ window.SC_ICONS = {
     '<svg viewBox="0 0 512 512" aria-hidden="true"><path d="M256 24l68 152 164 16-124 110 36 162-144-84-144 84 36-162L24 192l164-16z"/></svg>',
   'sc-custom-shape':
     '<svg viewBox="0 0 512 512" aria-hidden="true"><path d="M256 464 72 280C16 224 24 120 104 88c56-22 112 2 152 58 40-56 96-80 152-58 80 32 88 136 32 192Z"/></svg>',
+  // Tool icons in Photoshop's manner, drawn for SVGCraft: Move (an arrow
+  // with a four-way cross), Edit Points (the hollow direct-selection
+  // arrow), Type (a serif T) and default colours (two small squares).
+  'sc-move':
+    '<svg viewBox="0 0 512 512" aria-hidden="true"><path d="M24 8v368l96-88 62 136 58-27-62-134h132Z"/><path d="M368 312 340 312 384 264 428 312 400 312 400 368 456 368 456 340 504 384 456 428 456 400 400 400 400 456 428 456 384 504 340 456 368 456 368 400 312 400 312 428 264 384 312 340 312 368 368 368Z"/></svg>',
+  'sc-direct':
+    '<svg viewBox="0 0 512 512" aria-hidden="true"><path fill-rule="evenodd" d="M96 32v400l104-96 70 148 64-30-70-146h148Zm40 92v214l58-54 72 152 8-4-72-150h108Z"/></svg>',
+  'sc-type':
+    '<svg viewBox="0 0 512 512" aria-hidden="true"><path d="M72 64h368v120h-30c-6-44-22-70-74-70h-56v300c0 26 12 34 50 36v26H182v-26c38-2 50-10 50-36V114h-56c-52 0-68 26-74 70H72Z"/></svg>',
+  'sc-default-colours':
+    '<svg viewBox="0 0 512 512" aria-hidden="true"><path fill-rule="evenodd" d="M176 176h304v304H176Zm40 40v224h224V216Z"/><path d="M32 32h272v112H144v160H32Z"/></svg>',
 };

@@ -521,7 +521,7 @@ kbd {
 .sc-chips {
   position: relative;
   width: 38px;
-  height: 46px;
+  height: 58px;
   margin-top: 8px;
   flex: none;
 }
@@ -597,8 +597,13 @@ kbd {
   right: -1px;
   top: 0;
 }
-.sc-tb-none {
+.sc-tb-default {
   left: 0;
+  bottom: 12px;
+}
+/* None sits under the chips, as in Illustrator. */
+.sc-tb-none {
+  left: 12px;
   bottom: 0;
 }
 
