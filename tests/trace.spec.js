@@ -149,8 +149,9 @@ test('it looks like the image', async ({ page }) => {
     }
     return n / all;
   });
-  // Edges move by a pixel here and there; nothing more.
-  expect(differ).toBeLessThan(0.02);
+  // Only edges differ: by a pixel here and there, and stacked layers
+  // reach a pixel over the ones below so there's never a gap.
+  expect(differ).toBeLessThan(0.035);
 });
 
 test('abutting, black and white, presets and Cancel', async ({ page }) => {

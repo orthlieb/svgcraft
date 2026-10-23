@@ -97,55 +97,58 @@ function traceWorker(scope) {
     return centres;
   }
 
-  // Anti-aliased edges make colours of their own: thin slivers along the
-  // borders between real colours. A colour that's mostly 1-pixel-thin (its
-  // pixels have 3 or fewer of their 3 × 3 neighbourhood in it) is folded
-  // into the colours around it.
+  // Anti-aliased edges make colours of their own: slivers, a few pixels
+  // wide, along the borders between real colours (thicker when a small
+  // image is scaled up). A colour with almost no solid inside (5 × 5 patches
+  // of itself) is one of those, and folds into the colours around it.
   function thinOut(label, w, h, k) {
-    const own = (p) => {
-      const x = p % w;
-      const y = (p / w) | 0;
-      let c = 0;
-      for (let dy = -1; dy <= 1; dy++)
-        for (let dx = -1; dx <= 1; dx++) {
-          const xx = x + dx;
-          const yy = y + dy;
-          if (xx >= 0 && yy >= 0 && xx < w && yy < h && label[yy * w + xx] === label[p]) c++;
-        }
-      return c;
-    };
     const n = w * h;
-    const thin = new Int32Array(k);
+    const core = new Int32Array(k);
     const all = new Int32Array(k);
-    for (let p = 0; p < n; p++) {
-      const c = label[p];
-      if (c < 0) continue;
-      all[c]++;
-      if (own(p) <= 3) thin[c]++;
+    for (let y = 0; y < h; y++)
+      for (let x = 0; x < w; x++) {
+        const c = label[y * w + x];
+        if (c < 0) continue;
+        all[c]++;
+        if (x < 2 || y < 2 || x >= w - 2 || y >= h - 2) continue;
+        let solid = true;
+        for (let dy = -2; dy <= 2 && solid; dy++)
+          for (let dx = -2; dx <= 2; dx++)
+            if (label[(y + dy) * w + x + dx] !== c) {
+              solid = false;
+              break;
+            }
+        if (solid) core[c]++;
+      }
+    const sliver = Array.from(all, (a, c) => a > 0 && core[c] / a < 0.05);
+    if (!sliver.some(Boolean) || sliver.every((v, c) => v || !all[c])) return;
+    // From the edges in: a pixel takes the commonest solid colour next to it.
+    for (let pass = 0; pass < 6; pass++) {
+      const next = label.slice();
+      let left = 0;
+      for (let p = 0; p < n; p++) {
+        const c = label[p];
+        if (c < 0 || !sliver[c]) continue;
+        const x = p % w;
+        const y = (p / w) | 0;
+        const votes = new Map();
+        for (let dy = -1; dy <= 1; dy++)
+          for (let dx = -1; dx <= 1; dx++) {
+            const xx = x + dx;
+            const yy = y + dy;
+            if (xx < 0 || yy < 0 || xx >= w || yy >= h) continue;
+            const q = label[yy * w + xx];
+            if (q >= 0 && !sliver[q]) votes.set(q, (votes.get(q) || 0) + 1);
+          }
+        let to = c;
+        let most = 0;
+        for (const [q, m] of votes) if (m > most) [most, to] = [m, q];
+        next[p] = to;
+        if (to === c) left++;
+      }
+      label.set(next);
+      if (!left) break;
     }
-    const sliver = Array.from(all, (a, c) => a > 0 && thin[c] / a > 0.5);
-    if (!sliver.some(Boolean)) return;
-    const next = label.slice();
-    for (let p = 0; p < n; p++) {
-      const c = label[p];
-      if (c < 0 || !sliver[c]) continue;
-      const x = p % w;
-      const y = (p / w) | 0;
-      const votes = new Map();
-      for (let dy = -1; dy <= 1; dy++)
-        for (let dx = -1; dx <= 1; dx++) {
-          const xx = x + dx;
-          const yy = y + dy;
-          if (xx < 0 || yy < 0 || xx >= w || yy >= h) continue;
-          const q = label[yy * w + xx];
-          if (q >= 0 && !sliver[q]) votes.set(q, (votes.get(q) || 0) + 1);
-        }
-      let to = c;
-      let most = 0;
-      for (const [q, m] of votes) if (m > most) [most, to] = [m, q];
-      next[p] = to;
-    }
-    label.set(next);
   }
 
   // Pieces smaller than `min` pixels join the colour around them most
@@ -358,7 +361,14 @@ function traceWorker(scope) {
       k = 2;
       for (let i = 0; i < m; i++) label[idx[i]] = P[i * 3] < (o.threshold / 255) * 100 ? 1 : 0;
     } else {
-      const centres = m ? kmeans(P, m, Math.min(o.colours, m), o.mode === 'grey') : [];
+      let centres = m ? kmeans(P, m, Math.min(o.colours, m), o.mode === 'grey') : [];
+      // "Up to" that many: centres that look the same (ΔE under 4) are one
+      // colour, so a flat image keeps only the colours it has.
+      const merged = [];
+      for (const c of centres)
+        if (!merged.some((d) => Math.hypot(c[0] - d[0], c[1] - d[1], c[2] - d[2]) < 4))
+          merged.push(c);
+      centres = merged;
       k = centres.length;
       const dims = o.mode === 'grey' ? 1 : 3;
       for (let i = 0; i < m; i++) {
@@ -442,6 +452,24 @@ function traceWorker(scope) {
       for (let p = 0; p < n; p++) {
         const lr = label[p] < 0 ? -1 : rank[label[p]];
         inside[p] = o.stacked ? (lr >= r ? 1 : 0) : lr === r ? 1 : 0;
+      }
+      // Stacked: each layer above the bottom reaches a pixel further over
+      // the one below, so smoothing can't open a sliver of gap between
+      // them (not out over transparency, which would grow the outline).
+      if (o.stacked && r > 0) {
+        const grown = inside.slice();
+        for (let p = 0; p < n; p++) {
+          if (inside[p] || label[p] < 0) continue;
+          const x = p % w;
+          if (
+            (x > 0 && inside[p - 1]) ||
+            (x < w - 1 && inside[p + 1]) ||
+            (p >= w && inside[p - w]) ||
+            (p < n - w && inside[p + w])
+          )
+            grown[p] = 1;
+        }
+        inside.set(grown);
       }
       const loops = loopsOf(inside, w, h)
         .map((pts) => {
@@ -561,7 +589,7 @@ function tracePaths(layers, smooth) {
 
 // ---- the dialog -----------------------------------------------------------------
 const TRACE_PRESETS = {
-  logo: { mode: 'colour', colours: 6, speck: 8, smooth: 5, ignoreBg: true },
+  logo: { mode: 'colour', colours: 12, speck: 8, smooth: 5, ignoreBg: true },
   illustration: { mode: 'colour', colours: 16, speck: 4, smooth: 4, ignoreBg: false },
   photo: { mode: 'colour', colours: 24, speck: 12, smooth: 5, ignoreBg: false },
   sketch: { mode: 'bw', threshold: 128, speck: 10, smooth: 6, ignoreBg: true },
