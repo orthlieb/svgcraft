@@ -102,8 +102,14 @@ stroke="currentColor"` (common in icon sets) is pushed down so it
   Trace" group, named like "Colour #2563eb · 34%". **Stacked** (the
   default) puts the largest colour at the bottom and fills each layer with
   its colour and every colour above it, so the layers overlap and no
-  hairline gaps show; turn it off for abutting shapes, each just its own
-  colour. **Presets**: Logo (6 colours, background left out), Illustration
+  hairline gaps show (each layer reaches a pixel over the one below); turn
+  it off for abutting shapes, each just its own colour. **Colours** is a
+  maximum: colours that look the same merge, so a flat logo keeps exactly
+  the colours it has, and each colour is taken from its solid inside, not
+  its blended edges, so flat colours come out exact. **Recognise circles
+  and ellipses** (on by default) fits each outline's ellipse from its area
+  and moments; one that stays within about a pixel of it is written as
+  true elliptical arcs, at any angle. **Presets**: Logo (6 colours, background left out), Illustration
   (16), Photo (24, posterised) and Sketch (black and white, with a
   threshold). Also: Greyscale, **Ignore specks** under a size (noise and
   JPEG artefacts), **Smoothness** (0 gives pixel-exact polygons),

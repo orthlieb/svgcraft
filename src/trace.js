@@ -339,6 +339,58 @@ function traceWorker(scope) {
     return new Float32Array(out);
   }
 
+  // A loop that's an ellipse (or circle), at any angle: the ellipse with
+  // its area, centre and second moments, kept if every point of the
+  // outline is within about a pixel of it. Returned as [NaN, cx, cy, rx,
+  // ry, degrees].
+  function ellipseOf(pts) {
+    const n = pts.length / 2;
+    if (n < 12) return null;
+    let A = 0;
+    let Sx = 0;
+    let Sy = 0;
+    let Sxx = 0;
+    let Syy = 0;
+    let Sxy = 0;
+    for (let i = 0; i < n; i++) {
+      const j = (i + 1) % n;
+      const [x0, y0, x1, y1] = [pts[i * 2], pts[i * 2 + 1], pts[j * 2], pts[j * 2 + 1]];
+      const cr = x0 * y1 - x1 * y0;
+      A += cr;
+      Sx += (x0 + x1) * cr;
+      Sy += (y0 + y1) * cr;
+      Sxx += (x0 * x0 + x0 * x1 + x1 * x1) * cr;
+      Syy += (y0 * y0 + y0 * y1 + y1 * y1) * cr;
+      Sxy += (x0 * y1 + 2 * x0 * y0 + 2 * x1 * y1 + x1 * y0) * cr;
+    }
+    A /= 2;
+    if (Math.abs(A) < 30) return null;
+    const cx = Sx / (6 * A);
+    const cy = Sy / (6 * A);
+    const mxx = Sxx / (12 * A) - cx * cx;
+    const myy = Syy / (12 * A) - cy * cy;
+    const mxy = Sxy / (24 * A) - cx * cy;
+    const tr = (mxx + myy) / 2;
+    const det = Math.sqrt(Math.max(0, ((mxx - myy) / 2) ** 2 + mxy * mxy));
+    const a = 2 * Math.sqrt(Math.max(0, tr + det));
+    const b = 2 * Math.sqrt(Math.max(0, tr - det));
+    if (b < 3) return null;
+    const th = 0.5 * Math.atan2(2 * mxy, mxx - myy);
+    const [co, si] = [Math.cos(th), Math.sin(th)];
+    // A step along the pixel staircase is up to ~0.7 px off a true curve.
+    const tol = 1 + 0.015 * b;
+    for (let i = 0; i < n; i++) {
+      const dx = pts[i * 2] - cx;
+      const dy = pts[i * 2 + 1] - cy;
+      const u = (dx * co + dy * si) / a;
+      const v = (-dx * si + dy * co) / b;
+      const r = Math.hypot(u, v);
+      // Distance off the ellipse, roughly, in pixels.
+      if ((Math.abs(r - 1) * Math.hypot(u * a, v * b)) / (r || 1) > tol) return null;
+    }
+    return new Float32Array([NaN, cx, cy, a, b, (th * 180) / Math.PI]);
+  }
+
   function trace({ id, data, w, h, o }) {
     const n = w * h;
     const opaque = new Uint8Array(n);
@@ -424,17 +476,37 @@ function traceWorker(scope) {
     }
     // Specks the background left behind go with it.
     if (o.ignoreBg) despeckle(label, w, h, o.speck, true);
-    // Colours by area, largest first (the bottom layer), with their mean RGB.
+    // Colours by area, largest first (the bottom layer). Each colour is the
+    // mean of its solid inside (5 × 5 patches of it), away from edges that
+    // blend into the colours next to it; a colour with no such inside uses
+    // all its pixels.
     const stats = Array.from({ length: k }, () => [0, 0, 0, 0]);
-    for (let p = 0; p < n; p++) {
-      const c = label[p];
-      if (c < 0) continue;
-      const s = stats[c];
-      s[0] += data[p * 4];
-      s[1] += data[p * 4 + 1];
-      s[2] += data[p * 4 + 2];
-      s[3]++;
-    }
+    const inner = Array.from({ length: k }, () => [0, 0, 0, 0]);
+    for (let y = 0; y < h; y++)
+      for (let x = 0; x < w; x++) {
+        const p = y * w + x;
+        const c = label[p];
+        if (c < 0) continue;
+        const s = stats[c];
+        s[0] += data[p * 4];
+        s[1] += data[p * 4 + 1];
+        s[2] += data[p * 4 + 2];
+        s[3]++;
+        if (x < 2 || y < 2 || x >= w - 2 || y >= h - 2) continue;
+        let solid = true;
+        for (let dy = -2; dy <= 2 && solid; dy++)
+          for (let dx = -2; dx <= 2; dx++)
+            if (label[p + dy * w + dx] !== c) {
+              solid = false;
+              break;
+            }
+        if (!solid) continue;
+        const t = inner[c];
+        t[0] += data[p * 4];
+        t[1] += data[p * 4 + 1];
+        t[2] += data[p * 4 + 2];
+        t[3]++;
+      }
     const total = stats.reduce((t, s) => t + s[3], 0) || 1;
     const order = stats
       .map((s, c) => ({ c, s }))
@@ -473,6 +545,8 @@ function traceWorker(scope) {
       }
       const loops = loopsOf(inside, w, h)
         .map((pts) => {
+          const e = o.shapes && o.smooth ? ellipseOf(pts) : null;
+          if (e) return e;
           const sm = smoothLoop(pts, rad);
           return simplify(sm.pts, eps, sm.fixed);
         })
@@ -482,7 +556,10 @@ function traceWorker(scope) {
           ? c === 1
             ? '#000000'
             : '#ffffff'
-          : `#${hex(s[0] / s[3])}${hex(s[1] / s[3])}${hex(s[2] / s[3])}`;
+          : (() => {
+              const t = inner[c][3] >= 9 ? inner[c] : s;
+              return `#${hex(t[0] / t[3])}${hex(t[1] / t[3])}${hex(t[2] / t[3])}`;
+            })();
       layers.push({ hex: colour, area: s[3] / total, loops });
     });
     return { id, layers };
@@ -535,6 +612,14 @@ function traceStart(data, w, h, o) {
 // (Catmull-Rom tangents). Smoothness 0 is all corners: plain polygons.
 const tf = (v) => String(+v.toFixed(1));
 function loopD(pts, smooth) {
+  // A recognised ellipse: two half-ellipse arcs.
+  if (Number.isNaN(pts[0])) {
+    const [, cx, cy, a, b, deg] = pts;
+    const t = (deg * Math.PI) / 180;
+    const [dx, dy] = [a * Math.cos(t), a * Math.sin(t)];
+    const arc = (x, y) => `A${tf(a)} ${tf(b)} ${tf(deg)} 1 1 ${tf(x)} ${tf(y)}`;
+    return `M${tf(cx + dx)} ${tf(cy + dy)}${arc(cx - dx, cy - dy)}${arc(cx + dx, cy + dy)}Z`;
+  }
   const n = pts.length / 2;
   const P = (i) => {
     const j = ((i % n) + n) % n;
@@ -609,6 +694,7 @@ function traceOptions() {
     smooth: clamp(+trField('smooth').value || 0, 0, 10),
     stacked: trField('stacked').checked,
     ignoreBg: trField('ignoreBg').checked,
+    shapes: trField('shapes').checked,
   };
 }
 function syncTraceFields() {
@@ -704,8 +790,14 @@ function retrace(wait = 250) {
     trField('preview').replaceChildren(...paths);
     const bytes = paths.reduce((t, p) => t + p.outerHTML.length, 0);
     const shapes = r.layers.reduce((t, l) => t + l.loops.length, 0);
+    const ellipses = r.layers.reduce(
+      (t, l) => t + l.loops.filter((a) => Number.isNaN(a[0])).length,
+      0,
+    );
     trField('status').textContent =
-      `${paths.length} colour${paths.length === 1 ? '' : 's'} · ${shapes} shape${shapes === 1 ? '' : 's'} · ${kb(bytes)}`;
+      `${paths.length} colour${paths.length === 1 ? '' : 's'} · ${shapes} shape${shapes === 1 ? '' : 's'}` +
+      (ellipses ? ` (${ellipses} ellipse${ellipses === 1 ? '' : 's'})` : '') +
+      ` · ${kb(bytes)}`;
     trDlg.querySelector('[data-tr-btn="ok"]').disabled = !paths.length;
   }, wait);
 }
@@ -744,7 +836,7 @@ trField('preset').addEventListener('change', () => {
   setTracePreset(trField('preset').value);
   retrace();
 });
-for (const k of ['colours', 'threshold', 'speck', 'smooth', 'stacked', 'ignoreBg'])
+for (const k of ['colours', 'threshold', 'speck', 'smooth', 'stacked', 'ignoreBg', 'shapes'])
   trField(k).addEventListener('input', () => {
     if (['colours', 'threshold', 'speck', 'smooth'].includes(k)) trField('preset').value = '';
     retrace();

@@ -76,16 +76,16 @@ test('traces into one layer per colour, over the image, stacked', async ({ page 
   await openTrace(page);
   // Logo: six colours at most, the white background left out.
   await expect(page.locator('[data-tr="preset"]')).toHaveValue('logo');
-  expect(await status(page)).toMatch(/^4 colours · \d+ shapes · [\d.]+ KB$/);
+  expect(await status(page)).toMatch(/^4 colours · \d+ shapes( \(\d+ ellipses?\))? · [\d.]+ KB$/);
   await expect(page.locator('[data-tr="preview"] path')).toHaveCount(4);
   await page.click('[data-tr-btn="ok"]');
   await expect(page.locator('#sc-msg')).toHaveText('Traced into 4 colour layers.');
   const g = page.locator('#sc-doc g[data-name="Image Trace"]');
   await expect(g).toHaveCount(1);
   const fills = await g.locator('path').evaluateAll((ps) => ps.map((p) => p.getAttribute('fill')));
-  // Largest colour at the bottom: the red disc, then the blue box.
-  for (const [i, want] of ['#dc2626', '#2563eb'].entries())
-    expect(near(fills[i], want)).toBeLessThan(12);
+  // Largest colour at the bottom: the red disc, then the blue box, in their
+  // exact colours (from their insides, not their blended edges).
+  expect(fills.slice(0, 2)).toEqual(['#dc2626', '#2563eb']);
   expect(fills.some((f) => near(f, '#16a34a') < 12)).toBe(true);
   expect(fills.some((f) => near(f, '#111111') < 20)).toBe(true);
   // Layer names say the colour and its share.
@@ -207,4 +207,38 @@ test.describe('without workers', () => {
     await openTrace(page);
     expect(await status(page)).toMatch(/^4 colours/);
   });
+});
+
+test('circles and ellipses come out as true arcs', async ({ page }) => {
+  await placeTestImage(page);
+  await openTrace(page);
+  await expect(page.locator('[data-tr="status"]')).toHaveText(/\(\d+ ellipses?\)/);
+  await page.click('[data-tr-btn="ok"]');
+  // The red disc (radius 60 of the image's 300 px) is two elliptical arcs
+  // of equal radii, centred where it was.
+  const red = page.locator('#sc-doc g[data-name="Image Trace"] path').first();
+  const d = await red.getAttribute('d');
+  const m = /^M([\d.]+) ([\d.]+)A([\d.]+) ([\d.]+) [-\d.]+ 1 1 ([\d.]+) ([\d.]+)A/.exec(d);
+  expect(m).not.toBeNull();
+  const [x0, y0, rx, ry, x1, y1] = m.slice(1).map(Number);
+  const k = 400 / 300; // traced at 400 px on the long side
+  expect(rx / k).toBeCloseTo(60, 0);
+  expect(ry / k).toBeCloseTo(60, 0);
+  expect((x0 + x1) / 2 / k).toBeCloseTo(80, 0);
+  expect((y0 + y1) / 2 / k).toBeCloseTo(100, 0);
+  // The box isn't an ellipse; turned off, nothing is.
+  const blue = page.locator('#sc-doc g[data-name="Image Trace"] path').nth(1);
+  expect(await blue.getAttribute('d')).toMatch(/^M[^A]*?L/);
+  await page.evaluate(() => window.svgcraft.undo());
+  await page.evaluate(
+    () => (window.svgcraft.state.sel = [document.querySelector('#sc-doc image')]),
+  );
+  await openTrace(page);
+  await page.locator('[data-tr="shapes"]').uncheck();
+  await expect(page.locator('[data-tr="status"]')).toHaveText(/shapes · /);
+  expect(
+    await page
+      .locator('[data-tr="preview"] path')
+      .evaluateAll((ps) => ps.some((p) => /A/.test(p.getAttribute('d')))),
+  ).toBe(false);
 });
