@@ -126,7 +126,18 @@ stroke="currentColor"` (common in icon sets) is pushed down so it
   shape inside a group, Inverse works with individual shapes. Otherwise it
   works with top-level layers.
 - **Documents**: every open drawing gets a tab, as in Photoshop.
-  - **File → New** (or + in the tab bar) adds an Untitled tab. **Open**
+  - **File → New…** (or + in the tab bar) opens Photoshop's New Document
+    dialog. Pick a preset from **Recent** (the last five sizes you made),
+    **Web**, **Social** (Instagram, stories, X, link previews, YouTube,
+    LinkedIn), **Mobile** (iPhone, Android, iPad, Apple Watch) or
+    **Print** (A5–A2, US Letter, Legal, Tabloid, business card, postcard,
+    poster), or type a width and height in any units. Then set the name,
+    orientation and **Background**: Transparent, or a White, Black or
+    custom colour, which becomes a "Background" layer at the bottom,
+    locked in place as in Photoshop (recolour it, or unlock and delete
+    it). Create, Enter or double-clicking a preset makes the tab. The
+    dialog remembers your last settings; **Icon templates…** switches to
+    New Icon. **Open**
     puts a file in a tab of its own, reusing an untouched Untitled tab.
     **Close** (the tab's ✕, a middle-click, or File → Close) asks first
     if the drawing has unsaved changes.

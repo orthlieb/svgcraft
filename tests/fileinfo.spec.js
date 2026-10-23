@@ -174,6 +174,7 @@ test('reopening a saved file restores every field', async ({ page }) => {
   await fillInfo(page, { ...FULL, license: 'custom', licenseUrl: 'https://example.org/licence' });
   const svg = await saveFile(page);
   await page.click('.sc-doctab-new');
+  await page.click('[data-nd-btn="ok"]');
   expect(await meta(page)).toEqual({});
   await page.evaluate((t) => window.svgcraft.openSvg(t, 'again.svg'), svg);
   expect(await meta(page)).toEqual({
@@ -330,6 +331,7 @@ test('each tab keeps its own File Info', async ({ page }) => {
   await load(page, '<rect id="r" width="10" height="10"/>', 800, 600, 'first.svg');
   await fillInfo(page, { title: 'First drawing' });
   await page.click('.sc-doctab-new');
+  await page.click('[data-nd-btn="ok"]');
   expect(await meta(page)).toEqual({});
   await fillInfo(page, { title: 'Second drawing' });
   const tabs = page.locator('#sc-doctabs .sc-doctab');

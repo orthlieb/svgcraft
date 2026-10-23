@@ -96,8 +96,8 @@ function renderTabs() {
   add.className = 'sc-doctab-new';
   add.innerHTML = icon('plus');
   add.setAttribute('aria-label', 'New document');
-  add.dataset.tip = 'New document · File → New';
-  add.addEventListener('click', () => newDoc());
+  add.dataset.tip = 'New document';
+  add.addEventListener('click', () => openNewDoc());
   bar.append(add);
   updateTitle();
 }
@@ -182,8 +182,17 @@ function addDoc(name) {
   return d;
 }
 
-// File → New, and New Icon with its size, name and margin guides.
-function newDoc({ w = 800, h = 600, name = nextUntitled(), guides = [], units = 'px' } = {}) {
+// A new tab (File → New… and New Icon… set it up). A background colour
+// is a full-size "Background" layer at the bottom, locked in place, as in
+// Photoshop.
+function newDoc({
+  w = 800,
+  h = 600,
+  name = nextUntitled(),
+  guides = [],
+  units = 'px',
+  background = null,
+} = {}) {
   const d = addDoc(name);
   tools[state.tool].leave?.();
   dropIso();
@@ -194,6 +203,18 @@ function newDoc({ w = 800, h = 600, name = nextUntitled(), guides = [], units = 
   state.meta = {};
   state.units = units;
   setSize(w, h);
+  if (background)
+    mk(
+      'rect',
+      {
+        width: f(state.w),
+        height: f(state.h),
+        fill: background,
+        'data-name': 'Background',
+        'data-sc-lock': 'position',
+      },
+      doc,
+    );
   renderGuides();
   fit();
   commit();

@@ -76,6 +76,7 @@ test('a change adds a *, and undoing back to the saved version removes it', asyn
 test('File → New opens another tab; each tab keeps its drawing and history', async ({ page }) => {
   await drawRect(page);
   await menu(page, 'File', 'new');
+  await page.click('[data-nd-btn="ok"]');
   await expect(tabs(page)).toHaveCount(2);
   expect(await tabNames(page)).toEqual(['Untitled-1.svg*', 'Untitled-2.svg']);
   expect(await shapes(page)).toBe(0);
@@ -98,7 +99,10 @@ test('File → New opens another tab; each tab keeps its drawing and history', a
 });
 
 test('the + button in the tab bar makes a new document', async ({ page }) => {
+  // It opens File → New…, as in Photoshop.
   await page.click('#sc-doctabs .sc-doctab-new');
+  await expect(page.locator('#sc-newdoc')).toBeVisible();
+  await page.keyboard.press('Enter');
   expect(await tabNames(page)).toEqual(['Untitled-1.svg', 'Untitled-2.svg']);
   await expect(active(page)).toHaveAttribute('data-doc', /.+/);
   await expect(page.locator('#sc-doc-title')).toHaveText(/^Untitled-2\.svg/);
@@ -139,6 +143,7 @@ test('open tabs, their * and the active one come back after a reload', async ({ 
   await openFile(page, 'b.svg', '<circle cx="50" cy="50" r="20"/>');
   await drawRect(page);
   await menu(page, 'File', 'new');
+  await page.click('[data-nd-btn="ok"]');
   await tabs(page).nth(1).click();
   await settled(page);
   await reload(page);
@@ -176,6 +181,7 @@ test('a reload keeps the zoom of the active tab', async ({ page }) => {
 test('closing a changed tab asks first; Cancel keeps it, Close drops it', async ({ page }) => {
   await drawRect(page);
   await menu(page, 'File', 'new');
+  await page.click('[data-nd-btn="ok"]');
   await tabs(page).first().locator('.sc-doctab-x').click();
   await expect(page.locator('#sc-ask')).toBeVisible();
   await expect(page.locator('#sc-ask-title')).toHaveText('Close Untitled-1.svg?');

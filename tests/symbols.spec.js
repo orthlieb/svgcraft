@@ -394,6 +394,7 @@ test.describe('Edit Symbol', () => {
       window.svgcraft.commit();
     });
     await page.click('.sc-doctab-new');
+    await page.click('[data-nd-btn="ok"]');
     await expect(page.locator('#sc-iso')).toBeHidden();
     await expect(page.locator('#sc-doc > *')).toHaveCount(0);
     await page.click('.sc-doctab >> nth=0');

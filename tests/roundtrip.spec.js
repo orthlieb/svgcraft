@@ -108,6 +108,7 @@ test('Import into another drawing keeps the same settings', async ({ page }) => 
   const before = await snapshot(page);
   const file = await saveFile(page);
   await page.click('#sc-doctabs .sc-doctab-new');
+  await page.click('[data-nd-btn="ok"]');
   await page.evaluate((t) => window.svgcraft.placeSvg(t, 'all.svg'), file);
   await page.evaluate(() => new Promise((r) => setTimeout(r, 0)));
   const after = await snapshot(page);

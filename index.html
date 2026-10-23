@@ -33,7 +33,7 @@
           </button>
           <div class="sc-menu-list" role="menu" hidden>
             <button role="menuitem" data-action="new">
-              <i data-icon="file"></i><span>New</span>
+              <i data-icon="file"></i><span>New…</span>
             </button>
             <button role="menuitem" data-action="newIcon">
               <i data-icon="icons"></i><span>New Icon…</span>
@@ -2748,6 +2748,69 @@
       </div>
     </dialog>
 
+    <!-- File → New…: Photoshop's New Document, presets and details. -->
+    <dialog class="sc-dialog sc-newdoc" id="sc-newdoc" aria-labelledby="sc-nd-title">
+      <div class="sc-dialog-title" id="sc-nd-title">New Document</div>
+      <div class="sc-nd-body">
+        <div class="sc-nd-browse">
+          <div class="sc-nd-cats" id="sc-nd-cats" role="tablist" aria-label="Preset category"></div>
+          <div class="sc-nd-presets" id="sc-nd-presets" role="listbox" aria-label="Presets"></div>
+        </div>
+        <div class="sc-nd-details">
+          <label class="sc-field sc-nd-name"
+            >Name <input data-nd="name" type="text" spellcheck="false" aria-label="Name"
+          /></label>
+          <div class="sc-nd-row">
+            <label class="sc-field"
+              >Width <input data-nd="w" type="number" min="0" step="any" aria-label="Width" /><span
+                class="sc-unit"
+                data-nd-unit
+                >px</span
+              ></label
+            >
+            <label class="sc-field"
+              >Height
+              <input data-nd="h" type="number" min="0" step="any" aria-label="Height" /><span
+                class="sc-unit"
+                data-nd-unit
+                >px</span
+              ></label
+            >
+          </div>
+          <div class="sc-nd-row">
+            <label class="sc-field"
+              >Units
+              <select data-nd="units" aria-label="Units"></select
+            ></label>
+            <div class="sc-seg" role="radiogroup" aria-label="Orientation">
+              <button type="button" role="radio" data-nd-orient="portrait" aria-checked="false">
+                Portrait
+              </button>
+              <button type="button" role="radio" data-nd-orient="landscape" aria-checked="false">
+                Landscape
+              </button>
+            </div>
+          </div>
+          <div class="sc-nd-row">
+            <label class="sc-field"
+              >Background
+              <select data-nd="bg" aria-label="Background"></select
+            ></label>
+            <input data-nd="colour" type="color" aria-label="Background colour" hidden />
+          </div>
+          <p class="sc-hint">
+            A background colour is a locked “Background” layer you can recolour or delete. For app
+            and toolbar icons, use the icon templates.
+          </p>
+          <button type="button" class="sc-tbtn" data-nd-btn="icon">Icon templates…</button>
+        </div>
+      </div>
+      <div class="sc-dialog-foot">
+        <button class="sc-tbtn" data-nd-btn="cancel">Cancel</button>
+        <button class="sc-tbtn sc-primary-btn" data-nd-btn="ok">Create</button>
+      </div>
+    </dialog>
+
     <!-- A Shape tool's click without dragging: draw one at an exact size. -->
     <dialog class="sc-dialog sc-docsize" id="sc-createshape" aria-labelledby="sc-cs-shape-title">
       <div class="sc-dialog-title" id="sc-cs-shape-title">Create Rectangle</div>
@@ -3632,6 +3695,7 @@
     <script src="src/fill-rule.js"></script>
     <script src="src/animate.js"></script>
     <script src="src/doc-size.js"></script>
+    <script src="src/new-doc.js"></script>
     <script src="src/commands.js"></script>
     <script src="src/outlines.js"></script>
     <script src="src/transform.js"></script>

@@ -50,7 +50,7 @@ const actions = {
   editSymbol,
   breakSymbolLink,
   symbolDone: () => exitIso(),
-  new: () => newDoc(),
+  new: () => openNewDoc(),
   newIcon: openNewIcon,
   togglePixelGrid: () => toggleView('pixelGrid'),
   toggleSnapPixel: () => toggleView('snapPixel'),

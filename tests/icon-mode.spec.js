@@ -129,6 +129,7 @@ test.describe('New Icon', () => {
   test('File → New is still a plain 800 × 600 with no guides', async ({ page }) => {
     await newIcon(page);
     await menu(page, 'File', 'new');
+    await page.click('[data-nd-btn="ok"]');
     expect([await state(page, 'w'), await state(page, 'h')]).toEqual([800, 600]);
     expect(await guides(page)).toEqual([]);
   });
