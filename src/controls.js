@@ -302,7 +302,7 @@ zoomInput.addEventListener('keydown', (e) => {
 });
 for (const id of ['#sc-w', '#sc-h']) {
   $(id).addEventListener('change', () => {
-    setSize($('#sc-w').value, $('#sc-h').value);
+    setSize(fromUnits($('#sc-w').value), fromUnits($('#sc-h').value));
     commit();
   });
 }
@@ -311,8 +311,8 @@ $('#sc-snap').addEventListener('change', (e) => setSnapOn(e.target.checked));
 $('#sc-pixgrid-on').addEventListener('change', () => toggleView('pixelGrid'));
 $('#sc-snappix-on').addEventListener('change', () => toggleView('snapPixel'));
 $('#sc-grid-size').addEventListener('change', (e) => {
-  state.gridSize = clamp(+e.target.value || 20, 2, 500);
-  e.target.value = state.gridSize;
+  state.gridSize = clamp(fromUnits(e.target.value) || 20, 2, 500);
+  syncUnits();
   setGrid();
 });
 $('#sc-panel-toggle').addEventListener('click', (e) => {

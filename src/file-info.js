@@ -326,8 +326,10 @@ function serialize({ selection = false, fontCss = '', animate = true } = {}) {
     box = paintBox(normalizeSel(state.sel)) || selBox() || box;
     root.setAttribute('data-svgcraft', 'clip');
   }
-  root.setAttribute('width', f(box.w));
-  root.setAttribute('height', f(box.h));
+  // A drawing in mm, in… says its real size; the viewBox stays in px.
+  const len = (px) => (selection || state.units === 'px' ? f(px) : `${inUnits(px)}${state.units}`);
+  root.setAttribute('width', len(box.w));
+  root.setAttribute('height', len(box.h));
   root.setAttribute('viewBox', [box.x, box.y, box.w, box.h].map(f).join(' '));
   // Guides ride along as inert metadata, so reopening the file restores them.
   if (!selection && state.guides.length) root.setAttribute('data-sc-guides', guidesAttr());

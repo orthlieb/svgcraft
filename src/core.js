@@ -68,6 +68,8 @@ const state = {
   grid: false,
   snap: false,
   gridSize: 20,
+  // Lengths shown and typed in (src/units.js); the drawing is always px.
+  units: 'px',
   fileName: 'Untitled-1',
   eraserMode: 'object',
   eyedropMode: 'style',

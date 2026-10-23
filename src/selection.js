@@ -69,7 +69,7 @@ function drawSelection() {
     selLayer,
   );
   const n = state.sel.length;
-  $('#sc-pos').dataset.sel = `${n} selected · ${f(box.w)}×${f(box.h)}`;
+  $('#sc-pos').dataset.sel = `${n} selected · ${inUnits(box.w)}×${inUnits(box.h)}`;
   syncTransformFields(box);
   if (state.tool === 'gradient') drawGradAnnotator(z);
   if (state.tool !== 'select') return;

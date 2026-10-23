@@ -523,7 +523,7 @@
             min="-100000"
             max="100000"
             aria-label="X"
-          /><span class="sc-unit">px</span></label
+          /><span class="sc-unit" data-doc-unit>px</span></label
         >
         <label class="sc-field"
           ><span class="sc-scrub" data-tip="Drag to adjust">Y:</span
@@ -534,7 +534,7 @@
             min="-100000"
             max="100000"
             aria-label="Y"
-          /><span class="sc-unit">px</span></label
+          /><span class="sc-unit" data-doc-unit>px</span></label
         >
         <span class="sc-vsep"></span>
         <label class="sc-field"
@@ -546,7 +546,7 @@
             min="0.01"
             max="100000"
             aria-label="Width"
-          /><span class="sc-unit">px</span></label
+          /><span class="sc-unit" data-doc-unit>px</span></label
         >
         <button
           class="sc-ibtn"
@@ -566,7 +566,7 @@
             min="0.01"
             max="100000"
             aria-label="Height"
-          /><span class="sc-unit">px</span></label
+          /><span class="sc-unit" data-doc-unit>px</span></label
         >
         <span class="sc-vsep"></span>
         <label class="sc-field"
@@ -2462,6 +2462,23 @@
               </div>
             </div>
             <span class="sc-subhead">Document</span>
+            <div class="sc-docunits">
+              <label class="sc-field"
+                >Units
+                <select id="sc-units" aria-label="Document units"></select
+              ></label>
+              <select id="sc-page" aria-label="Page size" data-tip="Page size">
+                <option value="">Custom size</option>
+              </select>
+              <button
+                class="sc-ibtn"
+                id="sc-orient"
+                aria-label="Turn the page"
+                data-tip="Turn the page: portrait or landscape"
+              >
+                <i data-icon="rotate"></i>
+              </button>
+            </div>
             <div class="sc-prop-grid">
               <label class="sc-field"
                 ><span class="sc-scrub" data-tip="Drag to adjust">W</span
@@ -2472,7 +2489,7 @@
                   max="20000"
                   value="800"
                   aria-label="Document width"
-                /><span class="sc-unit">px</span></label
+                /><span class="sc-unit" data-doc-unit>px</span></label
               >
               <label class="sc-field"
                 ><span class="sc-scrub" data-tip="Drag to adjust">H</span
@@ -2483,7 +2500,7 @@
                   max="20000"
                   value="600"
                   aria-label="Document height"
-                /><span class="sc-unit">px</span></label
+                /><span class="sc-unit" data-doc-unit>px</span></label
               >
               <label class="sc-check"><input id="sc-grid" type="checkbox" /> Grid</label>
               <label class="sc-check"><input id="sc-snap" type="checkbox" /> Snap</label>
@@ -2502,10 +2519,9 @@
                   max="500"
                   value="20"
                   aria-label="Grid size"
-                /><span class="sc-unit">px</span></label
+                /><span class="sc-unit" data-doc-unit>px</span></label
               >
             </div>
-            <p class="sc-hint sc-prop-note">W and H set the document (artboard) size.</p>
           </div>
         </section>
 
@@ -2642,6 +2658,7 @@
         <label class="sc-field"
           >Position <input type="number" step="1" aria-label="Guide position" /><span
             class="sc-unit"
+            data-doc-unit
             >px</span
           ></label
         >
@@ -2702,7 +2719,7 @@
             >Height <input type="number" data-is="h" min="0" step="any" aria-label="Height"
           /></label>
           <select data-is="unit" aria-label="Units">
-            <option value="px">px</option>
+            <option value="len">px</option>
             <option value="pct">%</option>
           </select>
         </div>
@@ -2733,12 +2750,14 @@
           <label class="sc-field"
             >Width <input type="number" data-cv="w" step="1" aria-label="Width" /><span
               class="sc-unit"
+              data-doc-unit
               >px</span
             ></label
           >
           <label class="sc-field"
             >Height <input type="number" data-cv="h" step="1" aria-label="Height" /><span
               class="sc-unit"
+              data-doc-unit
               >px</span
             ></label
           >
@@ -3479,6 +3498,7 @@
     <script src="src/history.js"></script>
     <script src="src/documents.js"></script>
     <script src="src/view.js"></script>
+    <script src="src/units.js"></script>
     <script src="src/icons.js"></script>
     <script src="src/selection.js"></script>
     <script src="src/tools.js"></script>

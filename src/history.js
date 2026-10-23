@@ -18,6 +18,7 @@ function snapshot() {
     f: defs.innerHTML,
     w: state.w,
     h: state.h,
+    u: state.units,
     g: guidesAttr(),
     m: metaJson(),
   };
@@ -42,6 +43,7 @@ function restore(s, keepSel = false) {
   dropIso();
   doc.innerHTML = s.d;
   defs.innerHTML = s.f;
+  state.units = s.u || 'px';
   setSize(s.w, s.h);
   state.guides = parseGuides(s.g);
   state.meta = JSON.parse(s.m || '{}');

@@ -183,7 +183,7 @@ function addDoc(name) {
 }
 
 // File → New, and New Icon with its size, name and margin guides.
-function newDoc({ w = 800, h = 600, name = nextUntitled(), guides = [] } = {}) {
+function newDoc({ w = 800, h = 600, name = nextUntitled(), guides = [], units = 'px' } = {}) {
   const d = addDoc(name);
   tools[state.tool].leave?.();
   dropIso();
@@ -192,6 +192,7 @@ function newDoc({ w = 800, h = 600, name = nextUntitled(), guides = [] } = {}) {
   state.sel = [];
   state.guides = guides;
   state.meta = {};
+  state.units = units;
   setSize(w, h);
   renderGuides();
   fit();

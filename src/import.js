@@ -267,6 +267,19 @@ function parseSvg(text, { dedupe = true } = {}) {
       : [0, 0, num(root.getAttribute('width')), num(root.getAttribute('height'))];
   if (!(w > 0)) w = 800;
   if (!(h > 0)) h = 600;
+  // A width and height in real-world units: the document shows those
+  // units, and if the file's user units aren't CSS pixels (a viewBox in
+  // mm, say) the drawing is scaled to pixels, keeping its real size.
+  const lw = parseLength(root.getAttribute('width'));
+  const lh = parseLength(root.getAttribute('height'));
+  let units = 'px';
+  let k = 1;
+  if (lw && lw.unit !== 'px') {
+    units = lw.unit === 'pc' ? 'pt' : lw.unit;
+    if (vb.length === 4 && vb.every(isFinite)) k = lw.px / w;
+    else [w, h] = [lw.px, lh?.px || h];
+    if (Math.abs(k - 1) < 1e-3) k = 1;
+  }
   const defsOut = [];
   const nodes = [];
   for (const c of [...root.childNodes]) {
@@ -283,6 +296,8 @@ function parseSvg(text, { dedupe = true } = {}) {
     minY,
     w,
     h,
+    units,
+    k,
     defs: defsOut,
     nodes,
     clip: root.getAttribute('data-svgcraft') === 'clip',
@@ -310,12 +325,14 @@ function openSvg(text, name, { keepSaved = false } = {}) {
   dropIso();
   doc.replaceChildren();
   defs.replaceChildren(...s.defs);
-  const shift = s.minX || s.minY ? new DOMMatrix().translate(-s.minX, -s.minY) : null;
+  const shift =
+    s.minX || s.minY || s.k !== 1 ? new DOMMatrix().scale(s.k).translate(-s.minX, -s.minY) : null;
   for (const n of s.nodes) {
     if (shift) setM(n, shift.multiply(getM(n)));
     doc.append(n);
   }
-  setSize(s.w, s.h);
+  state.units = s.units;
+  setSize(s.w * s.k, s.h * s.k);
   state.guides = s.guides;
   state.meta = s.meta;
   renderGuides();

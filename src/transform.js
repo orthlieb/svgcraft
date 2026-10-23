@@ -104,13 +104,19 @@ function syncTransformFields(box) {
     sky: state.tf.sky,
   };
   for (const el of document.querySelectorAll('[data-tf]'))
-    if (document.activeElement !== el) el.value = f(vals[el.dataset.tf]);
+    if (document.activeElement !== el)
+      el.value = LENGTH_KEYS.has(el.dataset.tf)
+        ? inUnits(vals[el.dataset.tf])
+        : f(vals[el.dataset.tf]);
 }
 
 // A number field changed: turn the new value into a transform of the selection.
+// Position and size are typed in the document's units.
+const LENGTH_KEYS = new Set(['x', 'y', 'w', 'h']);
 function applyTransformField(key, v, final) {
   const box = selBox();
   if (!box || !isFinite(v)) return;
+  if (LENGTH_KEYS.has(key)) v = fromUnits(v);
   const tf = state.tf;
   const c = { x: box.x + box.w / 2, y: box.y + box.h / 2 };
   const about = (x, y, m) =>

@@ -78,6 +78,21 @@ The layout follows Photoshop:
   keep their text only. Root-level paint like `fill="none"
 stroke="currentColor"` (common in icon sets) is pushed down so it
   survives.
+- **Units and page size** (Properties → Document). **Units** sets what
+  lengths are shown and typed in: pixels, millimetres, centimetres,
+  inches or points. That covers the rulers, W and H, guide positions, the
+  X/Y/W/H transform fields, Image and Canvas Size, the grid (which takes a
+  round size in the new units: 5 mm, ¼ in…) and the status bar. Strokes,
+  type and effects stay in pixels, as in Photoshop. **Page** picks a size
+  (A5, A4, A3, US Letter, Legal, Tabloid, business card, Full HD, square
+  post) and its units, keeping the artboard's orientation; the ↻ button beside it
+  turns the page between portrait and landscape. Inside, the drawing is always in pixels (96 per
+  inch), so nothing changes but the numbers. A drawing in mm, cm, in or pt
+  is saved with its real-world width and height (`width="210mm"`), so
+  print, laser-cutter and plotter software know its size; the viewBox stays
+  in pixels. Opening a file sized in real units shows it in those units;
+  one drawn in other units (a viewBox in mm, say) is scaled to pixels,
+  keeping its real size. Plain pixel sizes are left as they were.
 - **Image Size…** (Image menu) scales the artboard and everything on it,
   guides included, in one undo step: width and height in pixels or
   percent, with Constrain proportions. It's SVG, so nothing is resampled

@@ -36,19 +36,18 @@ function scaleDocument(sx, sy, effects) {
   commit();
 }
 
-// The fields show pixels or percent; `ratio` keeps proportions when linked.
-const imgSize = { w: 0, h: 0, unit: 'px' };
-const isPx = (v, of) => (imgSize.unit === 'pct' ? (v / 100) * of : v);
-const isShow = (px, of) => f(imgSize.unit === 'pct' ? (px / of) * 100 : px);
+// The fields show the document's units ('len') or percent.
+const imgSize = { unit: 'len' };
+const isPx = (v, of) => (imgSize.unit === 'pct' ? (v / 100) * of : fromUnits(v));
+const isShow = (px, of) => (imgSize.unit === 'pct' ? f((px / of) * 100) : inUnits(px));
 function openImageSize() {
   exitIso();
-  imgSize.w = state.w;
-  imgSize.h = state.h;
-  imgSize.unit = 'px';
-  isField('unit').value = 'px';
-  isField('w').value = f(state.w);
-  isField('h').value = f(state.h);
-  isField('was').textContent = `Now ${f(state.w)} × ${f(state.h)} px.`;
+  imgSize.unit = 'len';
+  isField('unit').querySelector('[value="len"]').textContent = state.units;
+  isField('unit').value = 'len';
+  isField('w').value = inUnits(state.w);
+  isField('h').value = inUnits(state.h);
+  isField('was').textContent = `Now ${docSizeText()}.`;
   showDialog(isDlg, () => closeImageSize(false));
   setTimeout(() => isField('w').select(), 0);
 }
@@ -57,13 +56,13 @@ function closeImageSize(ok) {
     const w = isPx(+isField('w').value, state.w);
     const h = isPx(+isField('h').value, state.h);
     if (!(w > 0 && h > 0)) return say('Enter a width and height above zero.');
-    const nw = clamp(f(w), 1, 20000);
-    const nh = clamp(f(h), 1, 20000);
+    const nw = clamp(w, 1, 20000);
+    const nh = clamp(h, 1, 20000);
     hideDialog(isDlg);
-    if (nw === state.w && nh === state.h) return;
-    const was = `${f(state.w)} × ${f(state.h)}`;
+    if (Math.abs(nw - state.w) < 1e-6 && Math.abs(nh - state.h) < 1e-6) return;
+    const was = docSizeText();
     scaleDocument(nw / state.w, nh / state.h, isField('fx').checked);
-    say(`Image size: ${was} → ${f(nw)} × ${f(nh)} px.`);
+    say(`Image size: ${was} → ${docSizeText()}.`);
   } else hideDialog(isDlg);
 }
 for (const k of ['w', 'h'])
@@ -84,18 +83,23 @@ isField('unit').addEventListener('change', () => {
   isField('h').value = isShow(h, state.h);
 });
 
+// "800 × 600 px", "210 × 297 mm".
+const docSizeText = () => `${inUnits(state.w)} × ${inUnits(state.h)} ${state.units}`;
+
 // Canvas Size changes the artboard without scaling anything. The anchor
 // says which part stays put: centre (the default) grows or trims every
-// side equally; a corner or edge keeps that side fixed. Content and
-// guides shift by whole pixels, and the view follows so nothing jumps.
+// side equally; a corner or edge keeps that side fixed. In a pixel
+// document, sizes and shifts are whole pixels, so pixel art stays sharp;
+// the view follows the shift, so nothing jumps.
 // Anything left outside the artboard is kept, just not exported.
 const cvDlg = $('#sc-canvassize');
 const cvField = (k) => cvDlg.querySelector(`[data-cv="${k}"]`);
 const canvasSize = { ax: 0.5, ay: 0.5 };
 function resizeCanvas(nw, nh, ax, ay) {
   exitIso();
-  const dx = Math.round((nw - state.w) * ax);
-  const dy = Math.round((nh - state.h) * ay);
+  const px = state.units === 'px';
+  const dx = px ? Math.round((nw - state.w) * ax) : f((nw - state.w) * ax);
+  const dy = px ? Math.round((nh - state.h) * ay) : f((nh - state.h) * ay);
   if (dx || dy) {
     const T = new DOMMatrix().translate(dx, dy);
     for (const el of doc.children) if (el instanceof SVGGraphicsElement) transformDoc(el, T);
@@ -118,9 +122,9 @@ function openCanvasSize() {
   exitIso();
   canvasSize.ax = canvasSize.ay = 0.5;
   cvField('rel').checked = false;
-  cvField('w').value = f(state.w);
-  cvField('h').value = f(state.h);
-  cvField('was').textContent = `Now ${f(state.w)} × ${f(state.h)} px.`;
+  cvField('w').value = inUnits(state.w);
+  cvField('h').value = inUnits(state.h);
+  cvField('was').textContent = `Now ${docSizeText()}.`;
   syncAnchor();
   showDialog(cvDlg, () => closeCanvasSize(false));
   setTimeout(() => cvField('w').select(), 0);
@@ -128,22 +132,23 @@ function openCanvasSize() {
 function closeCanvasSize(ok) {
   if (ok) {
     const rel = cvField('rel').checked;
-    const nw = Math.round((rel ? state.w : 0) + (+cvField('w').value || 0));
-    const nh = Math.round((rel ? state.h : 0) + (+cvField('h').value || 0));
+    const whole = (v) => (state.units === 'px' ? Math.round(v) : v);
+    const nw = whole((rel ? state.w : 0) + fromUnits(+cvField('w').value || 0));
+    const nh = whole((rel ? state.h : 0) + fromUnits(+cvField('h').value || 0));
     if (!(nw >= 1 && nh >= 1 && nw <= 20000 && nh <= 20000))
       return say('The canvas must be 1 to 20,000 px each way.');
     hideDialog(cvDlg);
-    if (nw === state.w && nh === state.h) return;
-    const was = `${f(state.w)} × ${f(state.h)}`;
+    if (Math.abs(nw - state.w) < 1e-6 && Math.abs(nh - state.h) < 1e-6) return;
+    const was = docSizeText();
     resizeCanvas(nw, nh, canvasSize.ax, canvasSize.ay);
-    say(`Canvas size: ${was} → ${nw} × ${nh} px.`);
+    say(`Canvas size: ${was} → ${docSizeText()}.`);
   } else hideDialog(cvDlg);
 }
 // Relative: the fields say how much to add (or, negative, trim).
 cvField('rel').addEventListener('change', () => {
   const rel = cvField('rel').checked;
   for (const k of ['w', 'h'])
-    cvField(k).value = f((+cvField(k).value || 0) + (rel ? -state[k] : state[k]));
+    cvField(k).value = f((+cvField(k).value || 0) + (rel ? -1 : 1) * +inUnits(state[k]));
 });
 for (const b of cvDlg.querySelectorAll('[data-cv-anchor]'))
   b.addEventListener('click', () => {

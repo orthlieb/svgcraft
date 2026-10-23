@@ -2788,3 +2788,25 @@ select[data-stroke-dash],
   background: var(--accent-fg);
   opacity: 1;
 }
+
+/* ---- Document units and page size ------------------------------------------- */
+.sc-docunits {
+  display: flex;
+  align-items: center;
+  gap: 8px 10px;
+  margin-bottom: 8px;
+}
+.sc-docunits select {
+  height: 24px;
+  min-width: 0;
+  padding: 0 6px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: var(--field);
+}
+.sc-docunits ~ .sc-prop-grid input[type='number'] {
+  width: 56px;
+}
+#sc-page {
+  flex: 1;
+}

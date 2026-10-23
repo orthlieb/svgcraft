@@ -59,7 +59,7 @@ stage.addEventListener('pointermove', (e) => {
   rulerMark = p;
   if (state.rulers) drawRulers();
   $('#sc-pos').textContent =
-    `${$('#sc-pos').dataset.sel || ''}   ${Math.round(p.x)}, ${Math.round(p.y)}`;
+    `${$('#sc-pos').dataset.sel || ''}   ${state.units === 'px' ? `${Math.round(p.x)}, ${Math.round(p.y)}` : `${inUnits(p.x)}, ${inUnits(p.y)} ${state.units}`}`;
   if (pinch && pointers.size >= 2) {
     const [a, b] = [...pointers.values()];
     const r = stage.getBoundingClientRect();

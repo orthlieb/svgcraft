@@ -71,7 +71,7 @@ test('Image Size scales everything, effects included; undo puts it back', async 
   await expect(page.locator('[data-is="h"]')).toHaveValue('200');
   await page.keyboard.press('Enter');
   await expect(dlg(page, 'sc-imagesize')).toBeHidden();
-  await expect(page.locator('#sc-msg')).toHaveText('Image size: 200 × 100 → 400 × 200 px.');
+  await expect(page.locator('#sc-msg')).toHaveText('Image size: 200 × 100 px → 400 × 200 px.');
   const after = await st(page);
   expect(after.w).toBe(400);
   expect(after.h).toBe(200);
@@ -127,7 +127,7 @@ test('Canvas Size grows around the centre without scaling or jumping', async ({ 
   await page.keyboard.type('300');
   await page.fill('[data-cv="h"]', '160');
   await page.keyboard.press('Enter');
-  await expect(page.locator('#sc-msg')).toHaveText('Canvas size: 200 × 100 → 300 × 160 px.');
+  await expect(page.locator('#sc-msg')).toHaveText('Canvas size: 200 × 100 px → 300 × 160 px.');
   const after = await st(page);
   expect([after.w, after.h]).toEqual([300, 160]);
   // Shifted by half the growth, whole pixels, nothing scaled.

@@ -143,11 +143,12 @@ let rulerMark = null;
 let rulerFrame = 0;
 
 // Major tick spacing: the smallest 1/2/5 × 10ⁿ at least 60px apart.
-function rulerStep() {
+// The ruler's labelled step in document units, at z screen px per unit.
+function rulerStep(z) {
   for (let e = -2; e < 7; e++)
     for (const m of [1, 2, 5]) {
       const s = m * 10 ** e;
-      if (s * state.zoom >= 60) return s;
+      if (s * z >= 60) return s;
     }
   return 1e7;
 }
@@ -170,12 +171,14 @@ function drawRuler(cv, horiz) {
   const len = horiz ? w : h;
   const thick = horiz ? h : w;
   const pan = horiz ? state.panX : state.panY;
-  const step = rulerStep();
-  const minor = step * state.zoom >= 100 ? step / 10 : step / 5;
-  const start = Math.floor(-pan / state.zoom / minor) * minor;
+  // Ticks and labels in the document's units.
+  const z = state.zoom * uPx();
+  const step = rulerStep(z);
+  const minor = step * z >= 100 ? step / 10 : step / 5;
+  const start = Math.floor(-pan / z / minor) * minor;
   ctx.beginPath();
-  for (let v = start; v * state.zoom + pan <= len; v += minor) {
-    const s = Math.round(v * state.zoom + pan) + 0.5;
+  for (let v = start; v * z + pan <= len; v += minor) {
+    const s = Math.round(v * z + pan) + 0.5;
     const major = Math.abs(v / step - Math.round(v / step)) < 1e-6;
     const half = !major && Math.abs((2 * v) / step - Math.round((2 * v) / step)) < 1e-6;
     const tl = major ? thick : half ? thick * 0.45 : thick * 0.25;
@@ -258,7 +261,7 @@ function dragGuide(e, i, captureEl) {
     rulerMark = p;
     renderGuides();
     drawRulers();
-    $('#sc-pos').textContent = `${g.axis === 'x' ? 'X' : 'Y'}: ${f(v)}`;
+    $('#sc-pos').textContent = `${g.axis === 'x' ? 'X' : 'Y'}: ${showLen(v)}`;
   };
   const up = (ev) => {
     captureEl.removeEventListener('pointermove', move);
@@ -359,7 +362,7 @@ function openNewGuide() {
 function closeNewGuide(ok) {
   if (ok) {
     const axis = ngDialog.querySelector('input[name="sc-ng-axis"]:checked').value;
-    const pos = parseFloat(ngDialog.querySelector('input[type="number"]').value);
+    const pos = fromUnits(parseFloat(ngDialog.querySelector('input[type="number"]').value));
     if (isFinite(pos)) {
       state.guides.push({ axis, pos });
       if (!state.guidesOn) state.guidesOn = true;

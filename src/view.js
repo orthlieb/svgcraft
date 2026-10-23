@@ -85,8 +85,7 @@ function setSize(w, h) {
     $(id).setAttribute('width', state.w);
     $(id).setAttribute('height', state.h);
   }
-  $('#sc-w').value = f(state.w);
-  $('#sc-h').value = f(state.h);
+  syncUnits();
   drawPixelGrid();
   drawKeylines();
   updateTitle();
@@ -128,7 +127,7 @@ function updateTitle() {
   document.title = `${state.fileName}.svg${curDoc && dirty(curDoc) ? '*' : ''} · SVGCraft`;
   const z = $('#sc-zoom-input');
   if (document.activeElement !== z) z.value = pct;
-  $('#sc-docsize').textContent = `${f(state.w)} × ${f(state.h)} px`;
+  $('#sc-docsize').textContent = `${inUnits(state.w)} × ${inUnits(state.h)} ${state.units}`;
 }
 
 function setGrid() {
