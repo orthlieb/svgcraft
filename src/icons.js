@@ -92,37 +92,6 @@ function drawKeylines() {
   line(a.x, cy, a.x + a.w, cy);
 }
 
-// A floating window: drag it by its title bar, and keep it on screen.
-function winClamp(win) {
-  const r = win.getBoundingClientRect();
-  win.style.left = `${clamp(r.left, 0, Math.max(0, innerWidth - 120))}px`;
-  win.style.top = `${clamp(r.top, 0, Math.max(0, innerHeight - 40))}px`;
-}
-function dragWindow(win, bar) {
-  bar.addEventListener('pointerdown', (e) => {
-    if (e.button !== 0 || e.target.closest('button') || win.dataset.docked) return;
-    e.preventDefault();
-    const r = win.getBoundingClientRect();
-    const dx = e.clientX - r.left;
-    const dy = e.clientY - r.top;
-    bar.setPointerCapture(e.pointerId);
-    const move = (ev) => {
-      win.style.left = `${ev.clientX - dx}px`;
-      win.style.top = `${ev.clientY - dy}px`;
-      winClamp(win);
-    };
-    const up = () => {
-      bar.removeEventListener('pointermove', move);
-      bar.removeEventListener('pointerup', up);
-      bar.removeEventListener('pointercancel', up);
-    };
-    bar.addEventListener('pointermove', move);
-    bar.addEventListener('pointerup', up);
-    bar.addEventListener('pointercancel', up);
-  });
-  window.addEventListener('resize', () => !win.hidden && !win.dataset.docked && winClamp(win));
-}
-
 // View → Icon Preview: the drawing at icon sizes on a light, dark or
 // checkerboard background (or all three). Each is an <img> of the exported
 // SVG at that many CSS pixels, so the browser draws it the way a page would.

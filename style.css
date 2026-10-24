@@ -2156,9 +2156,22 @@ select[data-stroke-dash],
   background: rgba(0, 0, 0, 0.12);
 }
 .sc-dialog-title {
-  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px 8px 8px;
   border-bottom: 1px solid var(--line);
   font-weight: 600;
+  cursor: move;
+  user-select: none;
+  touch-action: none;
+}
+/* The drag grip, as on the SVG Source and Icon Preview windows; hidden
+   from screen readers. */
+.sc-dialog-title::before {
+  content: '⠿' / '';
+  color: var(--text-dim);
+  font-weight: 400;
 }
 .sc-dialog-body {
   display: flex;

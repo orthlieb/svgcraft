@@ -144,6 +144,54 @@ const f = (n) => +(+n).toFixed(2);
 const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 
+// A floating window or dialog: drag it by its title bar (the ⠿ grip on
+// the left), and keep it on screen. A dialog starts centred near the top;
+// once dragged it stays where it was put for the session.
+const shownWin = (win) => (win.localName === 'dialog' ? win.open : !win.hidden);
+function winClamp(win) {
+  const r = win.getBoundingClientRect();
+  win.style.left = `${clamp(r.left, 0, Math.max(0, innerWidth - 120))}px`;
+  win.style.top = `${clamp(r.top, 0, Math.max(0, innerHeight - 40))}px`;
+}
+function dragWindow(win, bar) {
+  bar.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0 || e.target.closest('button, input, select, a') || win.dataset.docked)
+      return;
+    e.preventDefault();
+    const r = win.getBoundingClientRect();
+    // From centred by transform to placed by position.
+    win.style.transform = 'none';
+    win.style.left = `${r.left}px`;
+    win.style.top = `${r.top}px`;
+    const dx = e.clientX - r.left;
+    const dy = e.clientY - r.top;
+    bar.setPointerCapture(e.pointerId);
+    const move = (ev) => {
+      win.style.left = `${ev.clientX - dx}px`;
+      win.style.top = `${ev.clientY - dy}px`;
+      winClamp(win);
+    };
+    const up = () => {
+      bar.removeEventListener('pointermove', move);
+      bar.removeEventListener('pointerup', up);
+      bar.removeEventListener('pointercancel', up);
+    };
+    bar.addEventListener('pointermove', move);
+    bar.addEventListener('pointerup', up);
+    bar.addEventListener('pointercancel', up);
+  });
+  window.addEventListener(
+    'resize',
+    () => shownWin(win) && !win.dataset.docked && win.style.left && winClamp(win),
+  );
+}
+// Every dialog's title bar is a drag bar, with the grip on its left (drawn
+// by style.css, so code that sets a title's text leaves it alone).
+for (const d of document.querySelectorAll('dialog.sc-dialog')) {
+  const bar = d.querySelector(':scope > .sc-dialog-title');
+  if (bar) dragWindow(d, bar);
+}
+
 // Dialogs are native <dialog>s, shown modally: the browser moves them to
 // the top layer, keeps focus inside and makes the page behind inert. Esc
 // (the dialog's cancel) runs the dialog's own Cancel.
@@ -153,6 +201,8 @@ function showDialog(d, onCancel) {
     onCancel();
   };
   if (!d.open) d.showModal();
+  // Where it was dragged to, still on screen if the window got smaller.
+  if (d.style.left) winClamp(d);
 }
 function hideDialog(d) {
   if (d.open) d.close();

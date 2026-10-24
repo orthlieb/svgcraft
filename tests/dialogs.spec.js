@@ -85,3 +85,55 @@ test('Esc in Layer Style puts the layer back as it was', async ({ page }) => {
     await page.evaluate(() => document.getElementById('r').getAttribute('data-sc-fx')),
   ).toBeNull();
 });
+
+// Every dialog has a drag bar: its title, with the ⠿ grip on the left.
+test('every dialog’s title bar has the grip and is the drag handle', async ({ page }) => {
+  const bars = await page.evaluate(() =>
+    [...document.querySelectorAll('dialog')].map((d) => {
+      const t = d.querySelector(':scope > .sc-dialog-title');
+      return [
+        d.id,
+        !!t && getComputedStyle(t, '::before').content,
+        !!t && getComputedStyle(t).cursor,
+      ];
+    }),
+  );
+  expect(bars.length).toBeGreaterThanOrEqual(12);
+  for (const [id, grip, cursor] of bars) {
+    expect(grip, id).toMatch(/⠿/);
+    expect(cursor, id).toBe('move');
+  }
+});
+
+for (const [id, open] of DIALOGS) {
+  test(`${id} drags by its title bar and stays where it's put`, async ({ page }) => {
+    await open(page);
+    const dlg = page.locator(id);
+    const bar = dlg.locator('.sc-dialog-title');
+    const a = await dlg.boundingBox();
+    const t = await bar.boundingBox();
+    // Grab the bar near its left end (by the grip) and move it.
+    await page.mouse.move(t.x + 8, t.y + t.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(t.x + 8 - 120, t.y + t.height / 2 + 60, { steps: 5 });
+    await page.mouse.up();
+    const b = await dlg.boundingBox();
+    expect(b.x).toBeCloseTo(a.x - 120, 0);
+    expect(b.y).toBeCloseTo(a.y + 60, 0);
+    // Closed and opened again: in the same place.
+    await page.keyboard.press('Escape');
+    await expect(dlg).toBeHidden();
+    await open(page);
+    const c = await dlg.boundingBox();
+    expect([c.x, c.y].map(Math.round)).toEqual([b.x, b.y].map(Math.round));
+    // It can't be dragged off screen.
+    const t2 = await bar.boundingBox();
+    await page.mouse.move(t2.x + 8, t2.y + 5);
+    await page.mouse.down();
+    await page.mouse.move(-500, -500, { steps: 5 });
+    await page.mouse.up();
+    const d = await dlg.boundingBox();
+    expect(d.x).toBeGreaterThanOrEqual(0);
+    expect(d.y).toBeGreaterThanOrEqual(0);
+  });
+}
