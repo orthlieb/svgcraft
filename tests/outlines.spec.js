@@ -4,7 +4,7 @@
 // tests/fonts/ (Lato, SIL OFL 1.1, from @fontsource/lato 5.3.0).
 import fs from 'node:fs';
 import path from 'node:path';
-import { test, expect, load, select, menu } from './fixtures.js';
+import { test, expect, load, select, menu, menuOff, action } from './fixtures.js';
 
 const FONTS = path.resolve(import.meta.dirname, 'fonts');
 const LATO = {
@@ -380,7 +380,8 @@ test.describe('Create Outlines', () => {
   test('needs a text layer', async ({ page }) => {
     await load(page, '<rect id="r" width="10" height="10"/>', 400, 200);
     await select(page, 'r');
-    await menu(page, 'Type', 'createOutlines');
+    await menuOff(page, 'Type', 'createOutlines');
+    await action(page, 'createOutlines');
     await expect(msg(page)).toHaveText('Select one or more text layers to create outlines.');
   });
 });

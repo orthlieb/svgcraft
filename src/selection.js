@@ -53,6 +53,7 @@ function drawSelection() {
   syncAnimUI();
   syncTextPathUI();
   syncLayerHead();
+  if (typeof syncActions === 'function') syncActions();
   $('#sc-pos').dataset.sel = '';
   if (!state.sel.length || state.tool === 'node') return;
   const z = state.zoom;

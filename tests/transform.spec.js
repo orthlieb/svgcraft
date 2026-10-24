@@ -75,6 +75,8 @@ test.describe('Edit → Transform submenu', () => {
   });
 
   test('keyboard: ArrowRight enters the submenu, ArrowLeft leaves it', async ({ page }) => {
+    await load(page, RECT);
+    await select(page, 'r');
     await page.focus('.sc-menu-btn:text-is("Edit")');
     await page.keyboard.press('ArrowDown');
     const onSubBtn = () =>
@@ -84,8 +86,10 @@ test.describe('Edit → Transform submenu', () => {
 
     const sub = transformSub(page);
     await page.keyboard.press('ArrowRight');
-    await expect(sub.locator('[data-action="again"]')).toBeFocused();
-    await expect(page.locator(':focus')).toHaveText(/^\s*Again\s*Alt\+Shift\+T\s*$/);
+    // Nothing transformed yet, so Again is greyed out and skipped.
+    await expect(sub.locator('[data-action="again"]')).toBeDisabled();
+    await expect(sub.locator('[data-action="tfScale"]')).toBeFocused();
+    await expect(page.locator(':focus')).toHaveText(/^\s*Scale\s*$/);
 
     await page.keyboard.press('ArrowLeft');
     await expect(sub.locator('.sc-sub-btn')).toBeFocused();

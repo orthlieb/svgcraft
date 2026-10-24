@@ -44,6 +44,7 @@ const selectIds = (page, ids) =>
     const s = window.svgcraft;
     s.setTool('select');
     s.state.sel = ids.map((i) => document.getElementById(i));
+    s.syncActions();
   }, ids);
 
 const run = (page, cmd) => page.evaluate((cmd) => window.svgcraft.cmds[cmd](), cmd);

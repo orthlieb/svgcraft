@@ -52,6 +52,8 @@ const ready = loadDocs();
 // Exposed for the smoke test and for poking at from the console.
 window.svgcraft = {
   ready,
+  actions,
+  syncActions,
   paintBox,
   docs,
   state,

@@ -11,6 +11,7 @@ const selectAll = (page) =>
     const s = window.svgcraft;
     s.setTool('select');
     s.state.sel = [...document.querySelectorAll('#sc-doc > *')];
+    s.syncActions();
   });
 
 const msg = (page) => page.locator('#sc-msg');
@@ -134,6 +135,7 @@ test('rotated and nested operands combine where they appear on screen', async ({
       document.querySelector('#sc-doc > rect'),
     ];
     s.state.sel = els;
+    s.syncActions();
     const v = document.getElementById('sc-view').getCTM().inverse();
     let [x0, y0, x1, y1] = [1e9, 1e9, -1e9, -1e9];
     for (const el of els) {

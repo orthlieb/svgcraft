@@ -51,14 +51,16 @@ export async function select(page, ...ids) {
     s.setTool('select');
     s.state.sel = ids.map((id) => document.getElementById(id));
     if (s.state.sel[0]) s.readStyle(s.state.sel[0]);
+    s.syncActions();
   }, ids);
 }
 
-// Run a data-action, as a menu or options-bar click would.
+// Run a command as its shortcut would, even where its menu item is greyed
+// out (so a test can check the command's own refusal).
 export async function action(page, name) {
   await page.evaluate((name) => {
-    const b = [...document.querySelectorAll(`[data-action="${name}"]`)][0];
-    b.click();
+    if (!document.querySelector(`[data-action="${name}"]`)) throw new Error(`no ${name}`);
+    window.svgcraft.actions[name]();
   }, name);
 }
 
@@ -66,6 +68,13 @@ export async function action(page, name) {
 export async function menu(page, label, act) {
   await page.click(`.sc-menu-btn:text-is("${label}")`);
   await page.click(`.sc-menu-list:not([hidden]) [data-action="${act}"]`);
+}
+
+// Open a top-level menu, check one of its items is greyed out, and close it.
+export async function menuOff(page, label, act) {
+  await page.click(`.sc-menu-btn:text-is("${label}")`);
+  await expect(page.locator(`.sc-menu-list:not([hidden]) [data-action="${act}"]`)).toBeDisabled();
+  await page.keyboard.press('Escape');
 }
 
 // The stage's bounding box in page pixels.

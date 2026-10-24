@@ -144,6 +144,83 @@ const actions = {
   },
 };
 $('#sc-screen-pick').hidden = !('EyeDropper' in window);
+
+// When each action can run: menu items and buttons for any other are
+// greyed out (as in Photoshop) whenever its rule says no. Actions with no
+// rule are always available; the commands still check and explain.
+const selN = () => normalizeSel(state.sel).length;
+const anySel = () => state.sel.length > 0;
+const someSel = (test) => () => normalizeSel(state.sel).some(test);
+const actionRules = {
+  undo: () => !$('#sc-undo').disabled,
+  redo: () => !$('#sc-redo').disabled,
+  deselect: anySel,
+  delete: anySel,
+  duplicate: anySel,
+  cropToSelection: anySel,
+  cropToDrawing: () => items().length > 0,
+  selectAll: () => items().length > 0,
+  front: anySel,
+  back: anySel,
+  forward: anySel,
+  backward: anySel,
+  ungroup: () => state.sel.some((el) => el.localName === 'g'),
+  flipH: anySel,
+  flipV: anySel,
+  ...Object.fromEntries(
+    ['Left', 'HCenter', 'Right', 'Top', 'VCenter', 'Bottom'].map((k) => ['align' + k, anySel]),
+  ),
+  distributeH: () => state.sel.length >= 3,
+  distributeV: () => state.sel.length >= 3,
+  ...Object.fromEntries(
+    ['Unite', 'Subtract', 'Intersect', 'Exclude'].map((k) => ['combine' + k, () => selN() >= 2]),
+  ),
+  clipMake: () => selN() >= 2,
+  clipRelease: () => state.sel.some((el) => el.closest?.('[data-sc-clip]')),
+  lockPosition: anySel,
+  lockAll: anySel,
+  unlockLayers: anySel,
+  layerStyle: anySel,
+  clearLayerStyle: someSel((el) => el.hasAttribute('data-sc-fx')),
+  makeSymbol: anySel,
+  definePattern: anySel,
+  breakSymbolLink: someSel(symbolOf),
+  editSymbol: () => !iso && (state.sel.some(symbolOf) || !!panelSymbol()),
+  symbolDone: () => !!iso,
+  textOnPath() {
+    const sel = normalizeSel(state.sel);
+    return (
+      sel.length === 2 &&
+      sel.some((el) => el.localName === 'text') &&
+      sel.some((el) => TP_SHAPES.has(el.localName))
+    );
+  },
+  releaseTextOnPath: someSel(isTP),
+  convertTextKind: () => selectedTexts().some((el) => !isTP(el)),
+  createOutlines: someSel((el) => el.localName === 'text' || !!el.querySelector?.('text')),
+  reversePath: () => shapesIn(state.sel, REVERSIBLE).length > 0,
+  fillRuleNonzero: () => shapesIn(state.sel, RULE_SHAPES).length > 0,
+  fillRuleEvenodd: () => shapesIn(state.sel, RULE_SHAPES).length > 0,
+  freeTransform: anySel,
+  tfScale: anySel,
+  tfRotate: anySel,
+  tfSkew: anySel,
+  tfCommit: () => !!state.tf,
+  tfCancel: () => !!state.tf,
+  rot180: anySel,
+  rot90cw: anySel,
+  rot90ccw: anySel,
+  again: () => !!lastT && anySel(),
+  againCopy: () => !!lastT && anySel(),
+  clearGuides: () => state.guides.length > 0,
+};
+function syncActions() {
+  for (const b of document.querySelectorAll('button[data-action]')) {
+    const ok = actionRules[b.dataset.action];
+    if (ok) b.disabled = !ok();
+  }
+}
+
 document.addEventListener('click', (e) => {
   const a = e.target.closest?.('[data-action]');
   if (!a || a.disabled) return;
@@ -169,7 +246,7 @@ function openSub(sm, focusFirst) {
   list.style.left = `${Math.max(4, right ? r.left - list.offsetWidth : r.right)}px`;
   list.style.top = `${Math.max(4, Math.min(r.top - 4, innerHeight - list.offsetHeight - 4))}px`;
   btn.setAttribute('aria-expanded', 'true');
-  if (focusFirst) list.querySelector('button').focus();
+  if (focusFirst) list.querySelector('button:not(:disabled)')?.focus();
 }
 for (const sm of document.querySelectorAll('.sc-submenu')) {
   const btn = sm.querySelector('.sc-sub-btn');
@@ -196,6 +273,7 @@ function closeMenus() {
 }
 function showMenu(m, focusFirst) {
   closeMenus();
+  syncActions();
   const btn = m.querySelector('.sc-menu-btn');
   const list = m.querySelector('.sc-menu-list');
   list.hidden = false;
@@ -204,7 +282,7 @@ function showMenu(m, focusFirst) {
   list.style.top = `${r.bottom + 2}px`;
   btn.setAttribute('aria-expanded', 'true');
   openMenu = m;
-  if (focusFirst) list.querySelector('button').focus();
+  if (focusFirst) list.querySelector('button:not(:disabled)')?.focus();
 }
 const menus = [...document.querySelectorAll('.sc-menu')];
 menus.forEach((m, mi) => {
@@ -222,7 +300,11 @@ menus.forEach((m, mi) => {
   });
   list.addEventListener('keydown', (e) => {
     if (e.target.closest('.sc-sub-list')) return;
-    const items = [...list.querySelectorAll(':scope > button, :scope > .sc-submenu > .sc-sub-btn')];
+    const items = [
+      ...list.querySelectorAll(
+        ':scope > button:not(:disabled), :scope > .sc-submenu > .sc-sub-btn',
+      ),
+    ];
     const at = items.indexOf(document.activeElement);
     const go = (d) => items[(at + d + items.length) % items.length].focus();
     const hop = (d) => showMenu(menus[(mi + d + menus.length) % menus.length], true);

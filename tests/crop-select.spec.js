@@ -1,5 +1,5 @@
 // Image → Crop to Drawing / Selection, and Select → Inverse / All / Deselect.
-import { test, expect, load, menu } from './fixtures.js';
+import { test, expect, load, menu, menuOff, action } from './fixtures.js';
 
 // a: filled rect, b: stroked circle (stroke 10), c: hidden, d: nested in g.
 const SCENE =
@@ -42,6 +42,7 @@ const selectIds = (page, ...ids) =>
   page.evaluate((ids) => {
     window.svgcraft.setTool('select');
     window.svgcraft.state.sel = ids.map((id) => document.getElementById(id));
+    window.svgcraft.syncActions();
   }, ids);
 
 function expectPoint(p, x, y) {
@@ -134,7 +135,8 @@ test.describe('Crop to Selection', () => {
 
   test('with nothing selected it asks for a selection', async ({ page }) => {
     await selectIds(page);
-    await menu(page, 'Image', 'cropToSelection');
+    await menuOff(page, 'Image', 'cropToSelection');
+    await action(page, 'cropToSelection');
     const i = await info(page);
     expect(i.msg).toBe('Select something to crop to.');
     expect([i.w, i.h]).toEqual([800, 600]);

@@ -1,4 +1,4 @@
-import { test, expect, load, select, menu, toScreen } from './fixtures.js';
+import { test, expect, load, select, menu, toScreen, menuOff, action } from './fixtures.js';
 
 // Symbols: Make Symbol, instances, the Symbols panel, editing a symbol in
 // place, Break Link, rename / delete, saving, importing, locks and undo.
@@ -112,7 +112,8 @@ test.describe('Make Symbol', () => {
     await expect(uses(page)).toHaveCount(0);
     await expect(symbols(page)).toHaveCount(0);
     await select(page);
-    await menu(page, 'Object', 'makeSymbol');
+    await menuOff(page, 'Object', 'makeSymbol');
+    await action(page, 'makeSymbol');
     await expect(page.locator('#sc-msg')).toContainText('Select the artwork');
   });
 

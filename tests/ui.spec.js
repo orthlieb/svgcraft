@@ -1,6 +1,6 @@
 // Shell UI: theme switching, keyboard menu navigation, scrubby labels, the
 // toolbar paint chips, panel tabs, the zoom field and View → Show Grid.
-import { test, expect, menu } from './fixtures.js';
+import { test, expect, menu, load, action } from './fixtures.js';
 
 test.use({ colorScheme: 'light', viewport: { width: 1280, height: 780 } });
 
@@ -41,7 +41,16 @@ test.describe('theme', () => {
   });
 });
 
+const row = (page, name) =>
+  page.locator('#sc-layers li', {
+    has: page.locator('.sc-layer-name', { hasText: new RegExp(`^${name}$`) }),
+  });
+
 test('menus are keyboard navigable', async ({ page }) => {
+  // Something to undo, so Undo is live.
+  await load(page, '<rect id="a" width="10" height="10"/>');
+  await action(page, 'selectAll');
+  await action(page, 'duplicate');
   await page.focus('.sc-menu-btn:text-is("Edit")');
   await page.keyboard.press('ArrowDown');
   expect(await activeText(page)).toBe('UndoCtrl+Z');
@@ -128,4 +137,36 @@ test('panel tabs show icons, and the open tab its name', async ({ page }) => {
   await expect(
     page.locator('[data-pane="animation"] [data-action="toggleAnimations"]'),
   ).toBeVisible();
+});
+
+test('menu items and buttons are greyed out until they can run', async ({ page }) => {
+  await load(
+    page,
+    '<rect id="a" data-name="A" width="50" height="50"/>' +
+      '<circle id="b" data-name="B" cx="40" cy="40" r="20"/>',
+  );
+  const clip = page.locator('.sc-layers-foot [data-action="clipMake"]');
+  const item = (act) => page.locator(`.sc-menu-list:not([hidden]) [data-action="${act}"]`);
+
+  // Nothing selected: no crop to selection, no clipping mask.
+  await expect(clip).toBeDisabled();
+  await page.click('.sc-menu-btn:text-is("Image")');
+  await expect(item('cropToSelection')).toBeDisabled();
+  await expect(item('cropToDrawing')).toBeEnabled();
+  await page.keyboard.press('Escape');
+
+  // One layer: crop works; a clipping mask still needs two.
+  await row(page, 'B').click();
+  await expect(clip).toBeDisabled();
+  await page.click('.sc-menu-btn:text-is("Image")');
+  await expect(item('cropToSelection')).toBeEnabled();
+  await page.keyboard.press('Escape');
+
+  // Two layers: the clipping mask is live, and makes one.
+  await row(page, 'A').click({ modifiers: ['Shift'] });
+  await expect(clip).toBeEnabled();
+  await clip.click();
+  await expect(page.locator('#sc-doc > [data-sc-clip]')).toHaveCount(1);
+  // The clipping group alone is selected now: one layer again.
+  await expect(clip).toBeDisabled();
 });

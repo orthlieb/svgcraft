@@ -182,6 +182,7 @@ test('a nested <html:base> can’t redirect the editor’s own script loads', as
     const s = window.svgcraft;
     s.setTool('select');
     s.state.sel = [document.getElementById('a'), document.getElementById('b')];
+    s.syncActions();
   });
   await page.evaluate(() => document.querySelector('[data-action="combineUnite"]').click());
   await expect(page.locator('#sc-doc path')).toHaveCount(1);
