@@ -121,6 +121,28 @@ function writeGrad(g, model, geo) {
   );
 }
 
+// A gradient or pattern set on a symbol instance (<use>) is resolved by
+// each shape inside the symbol, in that shape's own coordinates, not the
+// instance's: the library's symbols, drawn at 512 and scaled to 64, would
+// get a gradient an eighth of its handles' length. This is the matrix
+// from those coordinates to the instance's (its x/y and the parts' shared
+// transform), or null when there's nothing to undo or the parts disagree.
+function paintSpaceM(el) {
+  if (el.localName !== 'use') return null;
+  const sym = typeof symbolOf === 'function' ? symbolOf(el) : null;
+  const parts = sym ? [...sym.children].filter((c) => c instanceof SVGGraphicsElement) : [];
+  if (!parts.length) return null;
+  const m = getM(parts[0]);
+  const same = (a) => ['a', 'b', 'c', 'd', 'e', 'f'].every((k) => Math.abs(a[k] - m[k]) < 1e-6);
+  if (!parts.every((c) => same(getM(c)))) return null;
+  const M = new DOMMatrix()
+    .translate(parseFloat(el.getAttribute('x')) || 0, parseFloat(el.getAttribute('y')) || 0)
+    .multiply(m);
+  return M.isIdentity ? null : M;
+}
+const matrixAttr = (m) =>
+  `matrix(${[m.a, m.b, m.c, m.d, m.e, m.f].map((v) => +v.toFixed(6)).join(' ')})`;
+
 // Point el's fill / stroke at a gradient of its own. Its geometry is kept
 // unless gradReset or a geo is passed; a gradient shared with another
 // element (a duplicate) is split off first.
@@ -136,6 +158,10 @@ function setGradPaint(el, attr, model, geo = null) {
     defs.append(g);
   }
   writeGrad(g, model, geo || keep || defaultGeo(el, model.type, model.angle));
+  // Laid out in el's coordinates, whatever the shapes painting it use.
+  const S = paintSpaceM(el);
+  if (S) g.setAttribute('gradientTransform', matrixAttr(S.inverse()));
+  else g.removeAttribute('gradientTransform');
   el.style?.removeProperty(attr);
   el.setAttribute(attr, `url(#${g.id})`);
 }
@@ -229,7 +255,9 @@ function setPatPaint(el, attr, model, ink) {
     patternUnits: 'userSpaceOnUse',
     width: f(model.w),
     height: f(model.h),
-    patternTransform: `translate(${f(b.x)} ${f(b.y)}) rotate(${f(model.angle || 0)}) scale(${f(sc)})`,
+    patternTransform:
+      (paintSpaceM(el) ? `${matrixAttr(paintSpaceM(el).inverse())} ` : '') +
+      `translate(${f(b.x)} ${f(b.y)}) rotate(${f(model.angle || 0)}) scale(${f(sc)})`,
     color: ink,
     'data-sc-pat': model.id || '',
     'data-name': model.name,

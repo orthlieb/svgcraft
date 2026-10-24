@@ -1,4 +1,4 @@
-import { test, expect, toScreen } from './fixtures.js';
+import { test, expect, load, toScreen } from './fixtures.js';
 
 // Linear / radial gradient fills and strokes: the Color-panel editor, the
 // Gradient tool, sharing between duplicates, imported gradients, pruning.
@@ -310,5 +310,55 @@ test.describe('stroke gradient', () => {
 
     await page.keyboard.press('Control+z');
     expect(await grad(page, 'c', 'stroke')).toMatchObject({ tag: 'linearGradient' });
+  });
+});
+
+// A symbol instance's shapes paint a gradient in their own coordinates
+// (the library's are drawn at 512 and scaled to 64): it's mapped back, so
+// the colours sit under their stop handles, as on any shape.
+test('a gradient on a symbol instance lines up with its handles', async ({ page }) => {
+  await load(page, '', 600, 500);
+  const at = await page.evaluate(() => {
+    /* eslint-disable no-undef -- the editor's own globals */
+    const item = lib.symbols.find((x) => x.name === 'Square');
+    const u = placeLibSymbol(item, { x: 300, y: 250 });
+    setM(u, new DOMMatrix([4, 0, 0, 4, 172, 122]));
+    setGradPaint(u, 'fill', { type: 'linear', stops: GRAD_PRESETS.sunset[1](), angle: 0 });
+    window.svgcraft.commit();
+    const g = document.getElementById(paintRef(u, 'fill'));
+    const geo = geoOf(g);
+    const M = fullM(u);
+    /* eslint-enable no-undef */
+    // Where each stop's handle is, in the drawing.
+    return [...g.children].map((s) => {
+      const o = +s.getAttribute('offset');
+      const p = new DOMPoint(
+        geo.x1 + (geo.x2 - geo.x1) * o,
+        geo.y1 + (geo.y2 - geo.y1) * o,
+      ).matrixTransform(M);
+      return { x: Math.round(p.x), y: Math.round(p.y), c: s.getAttribute('stop-color') };
+    });
+  });
+  // The colours drawn there (just inside the ends).
+  const drawn = await page.evaluate(async (pts) => {
+    const im = new Image();
+    im.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(window.svgcraft.serialize());
+    await im.decode();
+    const c = document.createElement('canvas');
+    c.width = 600;
+    c.height = 500;
+    const x = c.getContext('2d');
+    x.drawImage(im, 0, 0);
+    return pts.map((p, i) => {
+      const dx = i === 0 ? 3 : i === pts.length - 1 ? -3 : 0;
+      const [r, g, b] = x.getImageData(p.x + dx, p.y, 1, 1).data;
+      return [r, g, b];
+    });
+  }, at);
+  const rgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+  at.forEach((s, i) => {
+    const want = rgb(s.c);
+    for (let k = 0; k < 3; k++)
+      expect(Math.abs(drawn[i][k] - want[k]), `${s.c} channel ${k}`).toBeLessThan(24);
   });
 });
