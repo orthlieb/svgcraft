@@ -2711,6 +2711,30 @@ select[data-stroke-dash],
 .sc-anim-item.sel {
   background: var(--row-sel);
 }
+/* Drag to reorder: the grip, the row being moved, and where it will land. */
+.sc-anim-grip {
+  padding: 0 2px 0 4px;
+  color: var(--text-dim);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.sc-anim-item.dragging {
+  opacity: 0.5;
+}
+.sc-anim-item.drop-above {
+  box-shadow: inset 0 2px 0 var(--accent);
+}
+.sc-anim-item.drop-below {
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+/* Chained to the one above: indented under it. */
+.sc-anim-item.after {
+  margin-left: 12px;
+}
+.sc-anim-after {
+  grid-column: 1 / -1;
+}
 .sc-anim-name {
   flex: 1;
   min-width: 0;

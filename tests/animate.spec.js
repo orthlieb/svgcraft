@@ -34,7 +34,7 @@ test('add, edit and remove an animation; the layer row shows it', async ({ page 
   expect(await anims(page, 'r')).toEqual([
     { p: 'spin', dur: 1.2, delay: 0, rep: 0, dir: 'normal', ease: 'linear', turns: 1 },
   ]);
-  await expect(page.locator('#sc-anim-list li')).toHaveText(['Spin · 1.2 s · ∞']);
+  await expect(page.locator('#sc-anim-list .sc-anim-name')).toHaveText(['Spin · 1.2 s · ∞']);
   await expect(page.locator('#sc-layers .sc-anim-badge')).toHaveCount(1);
   await expect(page.locator('#sc-anim-add')).toHaveValue('');
 
@@ -47,7 +47,7 @@ test('add, edit and remove an animation; the layer row shows it', async ({ page 
   await page.fill('[data-anim-opt="turns"]', '-2');
   await page.locator('[data-anim-opt="turns"]').blur();
   expect((await anims(page, 'r'))[0]).toMatchObject({ dur: 2, rep: 3, turns: -2 });
-  await expect(page.locator('#sc-anim-list li')).toHaveText(['Spin · 2 s · ×3']);
+  await expect(page.locator('#sc-anim-list .sc-anim-name')).toHaveText(['Spin · 2 s · ×3']);
 
   // A second one, then remove the first; undo brings it back.
   await add(page, 'fadeIn');
@@ -208,4 +208,73 @@ test('a locked layer can’t be given an animation', async ({ page }) => {
   await add(page, 'spin');
   await expect(page.locator('#sc-msg')).toContainText('is locked');
   expect(await anims(page, 'r')).toEqual([]);
+});
+
+test('“Start after the one above” chains an animation to the end of the last', async ({ page }) => {
+  await pick(page, 'r');
+  await add(page, 'fadeIn'); // 0.6 s
+  await add(page, 'shake'); // 0.5 s
+  await add(page, 'pulse'); // 1 s, forever
+  const after = page.locator('[data-anim="after"]');
+  // Pulse runs after Shake, half a second after it ends.
+  await after.check();
+  await page.fill('[data-anim="delay"]', '0.5');
+  await page.press('[data-anim="delay"]', 'Enter');
+  // Shake runs after Fade in.
+  await page.click('#sc-anim-list li:nth-child(2) .sc-anim-name');
+  await after.check();
+  expect((await anims(page, 'r')).map((a) => !!a.after)).toEqual([false, true, true]);
+  await expect(page.locator('#sc-anim-list .sc-anim-name')).toHaveText([
+    'Fade in · 0.6 s · ×1',
+    'Shake · 0.5 s · ×1 · then at 0.6 s',
+    'Pulse · 1 s · ∞ · then at 1.6 s',
+  ]);
+  // The first one has nothing above it.
+  await page.click('#sc-anim-list li:nth-child(1) .sc-anim-name');
+  await expect(after).toBeDisabled();
+
+  const begins = (await saved(page))
+    .match(/<animate(Transform)?\b[^>]*>/g)
+    .map((t) => t.match(/begin="([^"]*)"/)[1]);
+  // Pulse grows about the centre: a scale and a translate, both at 1.6 s.
+  expect(begins).toEqual(['0s', '0.6s', '1.6s', '1.6s']);
+});
+
+test('drag a grip, or Alt+↑ / Alt+↓, to reorder animations', async ({ page }) => {
+  await pick(page, 'r');
+  await add(page, 'fadeIn');
+  await add(page, 'spin');
+  await add(page, 'pulse');
+  const order = async () => (await anims(page, 'r')).map((a) => a.p);
+  const grip = (n) => page.locator(`#sc-anim-list li:nth-child(${n}) .sc-anim-grip`);
+
+  // Pulse to the top.
+  const from = await grip(3).boundingBox();
+  const to = await page.locator('#sc-anim-list li:nth-child(1)').boundingBox();
+  await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(to.x + 20, to.y + 2, { steps: 5 });
+  await expect(page.locator('#sc-anim-list li:nth-child(1)')).toHaveClass(/drop-above/);
+  await page.mouse.up();
+  expect(await order()).toEqual(['pulse', 'fadeIn', 'spin']);
+  await expect(page.locator('#sc-anim-list li.sel .sc-anim-name')).toContainText('Pulse');
+
+  // Keyboard: the edited one moves down, and stays focused.
+  await page.focus('#sc-anim-list li.sel .sc-anim-name');
+  await page.keyboard.press('Alt+ArrowDown');
+  await page.keyboard.press('Alt+ArrowDown');
+  expect(await order()).toEqual(['fadeIn', 'spin', 'pulse']);
+  await expect(page.locator(':focus')).toContainText('Pulse');
+
+  // A chained animation moved to the top no longer runs after anything.
+  await page.check('[data-anim="after"]');
+  await page.focus('#sc-anim-list li.sel .sc-anim-name');
+  await page.keyboard.press('Alt+ArrowUp');
+  await page.keyboard.press('Alt+ArrowUp');
+  expect(await order()).toEqual(['pulse', 'fadeIn', 'spin']);
+  expect((await anims(page, 'r'))[0]).not.toHaveProperty('after');
+  // One undo is one move.
+  await page.evaluate(() => window.svgcraft.undo());
+  expect(await order()).toEqual(['fadeIn', 'pulse', 'spin']);
+  expect((await anims(page, 'r'))[1].after).toBe(true);
 });

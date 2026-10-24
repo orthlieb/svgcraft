@@ -2,7 +2,10 @@
 'use strict';
 
 // A layer's animations are kept as JSON in data-sc-anim, like its effects:
-// [{ p: preset, dur, delay, rep (0 = forever), dir, ease, …preset options }].
+// [{ p: preset, dur, delay, rep (0 = forever), dir, ease, after?, …preset
+// options }]. They all start together, each after its own delay, unless
+// `after` chains one to the end of the one above it in the list; the list's
+// order is also the order their movements combine in.
 // The SMIL that plays them (<animate>, <animateTransform>, <set>) is only
 // generated when the drawing is saved or previewed, never kept in the live
 // drawing, so editing, undo and the Layers panel never see it. Transforms
@@ -117,6 +120,7 @@ function readAnims(el) {
       dir: DIRS[r.dir] ? r.dir : def.dir || 'normal',
       ease: EASES[r.ease] ? r.ease : def.ease,
     };
+    if (r.after === true && out.length) a.after = true;
     if ('from' in def) a.from = ANIM_OPTS.from.includes(r.from) ? r.from : def.from;
     for (const k of ['dist', 'turns', 'scale'])
       if (k in def) a[k] = num(r[k], ...ANIM_OPTS[k], def[k]);
@@ -130,6 +134,19 @@ function writeAnims(el, list) {
   else el.removeAttribute('data-sc-anim');
 }
 const animated = (el) => readAnims(el).length > 0;
+
+// How long one animation runs, in seconds (one run when it loops forever).
+const animLength = (a) => a.dur * (a.dir === 'alternate' ? 2 : 1) * (a.rep || 1);
+// When each of a layer's animations starts: its delay, counted from the end
+// of the one above when it runs after it (from the end of that one's first
+// run when that one loops forever).
+function animStarts(list) {
+  const at = [];
+  list.forEach((a, i) => {
+    at.push(a.after && i ? at[i - 1] + animLength(list[i - 1]) + a.delay : a.delay);
+  });
+  return at;
+}
 
 // ---- SMIL ------------------------------------------------------------------------
 // What an animation changes, as channels: { tag, attrs, values, keyTimes?,
@@ -308,7 +325,7 @@ function animUnfit(el, p) {
 // The SMIL elements for one animation. `preview` makes them wait for
 // beginElementAt() (the editor's timeline started when the page loaded);
 // each node remembers its start in seconds.
-function animNodes(el, a, preview = false) {
+function animNodes(el, a, preview = false, start = a.delay) {
   const def = ANIM_PRESETS[a.p];
   if (animUnfit(el, a.p)) return [];
   const spline = EASES[a.ease][1];
@@ -318,7 +335,7 @@ function animNodes(el, a, preview = false) {
   const nodes = [];
   for (const ch of animChannels(el, a)) {
     const attrs = { ...ch.attrs };
-    let begin = ch.at0 ? 0 : a.delay;
+    const begin = ch.at0 ? 0 : start;
     if (ch.tag === 'set') {
       if (!ch.at0) continue;
     } else {
@@ -360,7 +377,7 @@ function animNodes(el, a, preview = false) {
     nodes.push(n);
   }
   // An entrance waiting for its delay starts hidden, not shown then hidden.
-  if (def.enter && a.delay > 0 && !def.line) {
+  if (def.enter && start > 0 && !def.line) {
     const n = mk('set', {
       attributeName: 'opacity',
       to: '0',
@@ -384,11 +401,14 @@ function writeAnimations(live, copy, on) {
   const lives = pick(live);
   const copies = pick(copy);
   lives.forEach((el, i) => {
-    for (const a of readAnims(el))
-      for (const n of animNodes(el, a)) {
+    const list = readAnims(el);
+    const at = animStarts(list);
+    list.forEach((a, j) => {
+      for (const n of animNodes(el, a, false, at[j])) {
         delete n.dataset.scBegin;
         copies[i]?.append(n);
       }
+    });
   });
 }
 
@@ -398,13 +418,17 @@ function playAnimations() {
   stopAnimations();
   const els = [...doc.querySelectorAll('[data-sc-anim]')];
   if (!els.length) return say('Nothing is animated yet: add an animation under Properties.');
-  for (const el of els)
-    for (const a of readAnims(el))
-      for (const n of animNodes(el, a, true)) {
+  for (const el of els) {
+    const list = readAnims(el);
+    const at = animStarts(list);
+    list.forEach((a, j) => {
+      for (const n of animNodes(el, a, true, at[j])) {
         n.setAttribute('data-sc-preview', '');
         el.append(n);
         animPlay.nodes.push(n);
       }
+    });
+  }
   for (const n of animPlay.nodes) n.beginElementAt(+n.dataset.scBegin || 0);
   animPlay.playing = true;
   syncAnimUI();
@@ -434,12 +458,22 @@ document.addEventListener(
 // ---- Properties: the Animate section ----------------------------------------------
 const animUI = { edit: 0 };
 const animTarget = () => (state.sel.length === 1 ? state.sel[0] : null);
-function describeAnim(a) {
+function describeAnim(a, start) {
   const d = ANIM_PRESETS[a.p];
   const reps = a.rep === 0 ? '∞' : `×${a.rep}`;
-  return [d.name, `${f(a.dur)} s`, reps, a.delay ? `+${f(a.delay)} s` : '']
-    .filter(Boolean)
-    .join(' · ');
+  const when = a.after ? `then at ${f(start)} s` : a.delay ? `at ${f(a.delay)} s` : '';
+  return [d.name, `${f(a.dur)} s`, reps, when].filter(Boolean).join(' · ');
+}
+// Move the animation at `from` to index `to` of the list, keeping it the
+// one being edited. The first one can't run after anything.
+function moveAnim(from, to) {
+  const n = animTarget() ? readAnims(animTarget()).length : 0;
+  if (from === to || from >= n || to < 0 || to >= n) return;
+  editAnims((l) => {
+    l.splice(to, 0, ...l.splice(from, 1));
+    delete l[0].after;
+    animUI.edit = to;
+  });
 }
 function syncAnimUI() {
   for (const b of document.querySelectorAll('[data-action="toggleAnimations"]')) {
@@ -455,19 +489,33 @@ function syncAnimUI() {
   $('#sc-anim-none').hidden = !!el;
   if (!el) return;
   const list = readAnims(el);
+  const at = animStarts(list);
   animUI.edit = clamp(animUI.edit, 0, Math.max(0, list.length - 1));
   const ul = $('#sc-anim-list');
   ul.replaceChildren(
     ...list.map((a, i) => {
       const li = document.createElement('li');
       li.className = 'sc-anim-item' + (i === animUI.edit ? ' sel' : '');
+      li.classList.toggle('after', !!a.after);
+      const grip = document.createElement('span');
+      grip.className = 'sc-anim-grip';
+      grip.textContent = '⠿';
+      grip.dataset.tip = 'Drag to reorder (or Alt+↑ / Alt+↓)';
+      grip.addEventListener('pointerdown', (e) => dragAnim(e, i));
       const name = document.createElement('button');
       name.className = 'sc-anim-name';
-      name.textContent = describeAnim(a);
+      name.textContent = describeAnim(a, at[i]);
       name.setAttribute('aria-pressed', i === animUI.edit);
       name.addEventListener('click', () => {
         animUI.edit = i;
         syncAnimUI();
+      });
+      name.addEventListener('keydown', (e) => {
+        if (!e.altKey || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return;
+        e.preventDefault();
+        e.stopPropagation();
+        moveAnim(i, i + (e.key === 'ArrowUp' ? -1 : 1));
+        $('#sc-anim-list .sel .sc-anim-name')?.focus();
       });
       const x = document.createElement('button');
       x.className = 'sc-ibtn sc-anim-x';
@@ -475,7 +523,7 @@ function syncAnimUI() {
       x.setAttribute('aria-label', `Remove ${ANIM_PRESETS[a.p].name}`);
       x.dataset.tip = 'Remove this animation';
       x.addEventListener('click', () => editAnims((l) => l.splice(i, 1)));
-      li.append(name, x);
+      li.append(grip, name, x);
       return li;
     }),
   );
@@ -498,6 +546,8 @@ function syncAnimUI() {
   box.querySelector('[data-anim="rep"]').disabled = a.rep === 0;
   set('[data-anim="dir"]', a.dir);
   set('[data-anim="ease"]', a.ease);
+  set('[data-anim="after"]', !!a.after);
+  box.querySelector('[data-anim="after"]').disabled = animUI.edit === 0;
   // Preset options.
   const opts = $('#sc-anim-opts');
   const field = (label, input) => {
@@ -545,6 +595,47 @@ function syncAnimUI() {
   }
   const focused = document.activeElement?.dataset?.animOpt;
   if (!focused) opts.replaceChildren(...kids);
+}
+
+// Dragging an animation's grip up or down the list; a line shows where it
+// will land.
+function dragAnim(e, from) {
+  if (e.button !== 0) return;
+  e.preventDefault();
+  const ul = $('#sc-anim-list');
+  const rows = [...ul.children];
+  let to = from;
+  const mark = (y) => {
+    // The slot the pointer is nearest: before row k means index k.
+    let slot = rows.length;
+    for (let k = 0; k < rows.length; k++) {
+      const r = rows[k].getBoundingClientRect();
+      if (y < r.top + r.height / 2) {
+        slot = k;
+        break;
+      }
+    }
+    to = slot > from ? slot - 1 : slot;
+    rows.forEach((r, k) => {
+      r.classList.toggle('drop-above', to !== from && k === slot && slot <= rows.length - 1);
+      r.classList.toggle(
+        'drop-below',
+        to !== from && slot === rows.length && k === rows.length - 1,
+      );
+    });
+  };
+  rows[from].classList.add('dragging');
+  const move = (ev) => mark(ev.clientY);
+  const up = () => {
+    removeEventListener('pointermove', move);
+    removeEventListener('pointerup', up);
+    removeEventListener('pointercancel', up);
+    for (const r of rows) r.classList.remove('dragging', 'drop-above', 'drop-below');
+    if (to !== from) moveAnim(from, to);
+  };
+  addEventListener('pointermove', move);
+  addEventListener('pointerup', up);
+  addEventListener('pointercancel', up);
 }
 
 // Change the selected layer's animations and record it; false if it can't.
@@ -601,7 +692,10 @@ function wireAnimations() {
       if (!a) return;
       if (k === 'forever')
         a.rep = t.checked ? 0 : Math.max(1, +box.querySelector('[data-anim="rep"]').value || 1);
-      else if (k === 'rep') a.rep = Math.max(1, Math.round(+t.value) || 1);
+      else if (k === 'after') {
+        if (t.checked) a.after = true;
+        else delete a.after;
+      } else if (k === 'rep') a.rep = Math.max(1, Math.round(+t.value) || 1);
       else if (['dur', 'delay', 'dist', 'turns', 'scale'].includes(k)) a[k] = +t.value;
       else a[k] = t.value;
     });

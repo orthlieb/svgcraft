@@ -288,7 +288,13 @@ stroke="currentColor"` (common in icon sets) is pushed down so it
   Each has a length, delay, number of times or forever, direction (normal,
   reverse, back and forth) and easing, plus its own options (slide side
   and distance, turns, how far to grow, the colour to cycle to). A layer
-  can have several, which play together; ▶ **Play** (or View → Play
+  can have several, which play together, each after its own delay.
+  **Start after the one above** chains one to the end of the previous
+  (after its first run, if that one loops forever), with its delay counted
+  from there, so an entrance, a loop and an exit can follow one another
+  without adding up delays. Drag a row's ⠿ grip, or press Alt+↑ / Alt+↓,
+  to reorder them; when two move or scale the layer, they combine in list
+  order. ▶ **Play** (or View → Play
   Animations) previews the whole drawing, and Esc, a click on the canvas
   or any edit stops it. They're kept as settings on the layer
   (`data-sc-anim`) and written out as SVG animation (SMIL:
