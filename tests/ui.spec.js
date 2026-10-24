@@ -105,3 +105,27 @@ test('View → Show Grid updates state, checkbox and menu checkmark', async ({ p
 test('the options bar shows the tool icon', async ({ page }) => {
   await expect(page.locator('#sc-opt-icon svg')).toHaveCount(1);
 });
+
+// Panel tabs: each has its panel's icon; the open one also shows its name,
+// the others have it as their tooltip. Animation has a tab of its own.
+test('panel tabs show icons, and the open tab its name', async ({ page }) => {
+  const tabs = page.locator('[role="tab"][data-tab]');
+  await expect(tabs).toHaveCount(9);
+  for (const t of await tabs.all()) {
+    await expect(t.locator('svg')).toHaveCount(1);
+    expect(await t.getAttribute('data-tip')).toBe(await t.getAttribute('aria-label'));
+  }
+  const name = (tab) => page.locator(`[data-tab="${tab}"] span`);
+  await expect(name('props')).toBeVisible();
+  await expect(name('animation')).toBeHidden();
+  await page.click('[data-tab="animation"]');
+  await expect(name('animation')).toBeVisible();
+  await expect(name('props')).toBeHidden();
+  await expect(page.locator('[data-pane="animation"]')).toBeVisible();
+  await expect(page.locator('[data-pane="props"]')).toBeHidden();
+  // Nothing selected: what to do, and Play for the whole drawing.
+  await expect(page.locator('#sc-anim-none')).toBeVisible();
+  await expect(
+    page.locator('[data-pane="animation"] [data-action="toggleAnimations"]'),
+  ).toBeVisible();
+});

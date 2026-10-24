@@ -21,11 +21,12 @@ const smil = (svg) => (svg.match(/<(animate|animateTransform|set)\b[^>]*>/g) || 
 
 test.beforeEach(async ({ page }) => {
   await load(page, SCENE, 200, 200);
-  await page.click('[data-tab="props"]');
+  await page.click('[data-tab="animation"]');
 });
 
 test('add, edit and remove an animation; the layer row shows it', async ({ page }) => {
   await expect(page.locator('#sc-anim-props')).toBeHidden();
+  await expect(page.locator('#sc-anim-none')).toBeVisible();
   await pick(page, 'r');
   await expect(page.locator('#sc-anim-props')).toBeVisible();
   await add(page, 'spin');
@@ -137,7 +138,7 @@ test('a group animates as one; reopening regenerates from the layer data', async
 test('▶ Play previews in the editor; editing, Esc or a click stops it', async ({ page }) => {
   await pick(page, 'r');
   await add(page, 'spin');
-  const play = page.locator('#sc-anim-props [data-action="toggleAnimations"]');
+  const play = page.locator('[data-pane="animation"] [data-action="toggleAnimations"]');
   await play.click();
   await expect(play).toHaveText('■ Stop');
   await expect(page.locator('#sc-doc [data-sc-preview]')).toHaveCount(1);

@@ -35,7 +35,9 @@ The layout follows Photoshop:
 - **Document tabs** above the canvas, one per open drawing, showing the
   file name and zoom (see Documents below).
 - **Docked panels**: Color / Swatches / Gradients / Patterns, Properties
-  (stroke width, document size, grid and snap) and Layers (see below).
+  (stroke width, document size, grid and snap), Character / Paragraph,
+  Symbols, Animation and Layers (see below). As in Photoshop, each tab is
+  an icon; the open tab also shows its name, and hovering any tab names it.
 - **Auto-Select** on the Move tool's options bar: **Group** makes a canvas
   click pick the whole top-level item. **Layer** picks the exact shape
   under the cursor, even deep inside groups.
@@ -275,7 +277,7 @@ stroke="currentColor"` (common in icon sets) is pushed down so it
   and markers run. A closed path keeps its starting point. Rectangles,
   circles and ellipses become paths (a live rectangle's corners stop being
   editable as corners).
-- **Animate** (Properties, when one layer or group is selected). Add
+- **Animate** (the Animation tab, when one layer or group is selected). Add
   animations from presets: entrances (Fade, Slide, Pop and Zoom in), exits
   (Fade, Slide and Zoom out), loops (Spin, Pulse, Bounce, Shake, Float,
   Blink), line effects (Draw on, Draw off, Dash march) and Colour cycle.

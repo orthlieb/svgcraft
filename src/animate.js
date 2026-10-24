@@ -452,6 +452,7 @@ function syncAnimUI() {
   }
   const el = animTarget();
   $('#sc-anim-props').hidden = !el;
+  $('#sc-anim-none').hidden = !!el;
   if (!el) return;
   const list = readAnims(el);
   animUI.edit = clamp(animUI.edit, 0, Math.max(0, list.length - 1));

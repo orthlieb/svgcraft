@@ -913,8 +913,13 @@ kbd {
   background: var(--shell);
   border-bottom: 1px solid var(--line);
 }
+/* Each tab has its panel's icon; only the open one shows its name (the
+   others' names are their tooltips), so a group of five fits. */
 .sc-ptabs [role='tab'],
 .sc-ptitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   flex: 0 1 auto;
   min-width: 0;
   overflow: hidden;
@@ -3118,4 +3123,36 @@ body.sc-no-right .sc-main {
   .sc-tr-preview {
     height: 200px;
   }
+}
+
+.sc-ptabs [role='tab'] i,
+.sc-ptitle i {
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.sc-ptabs [role='tab'] svg,
+.sc-ptitle svg {
+  width: 13px;
+  height: 13px;
+  fill: currentColor;
+}
+.sc-ptabs [role='tab'][aria-selected='false'] span {
+  display: none;
+}
+.sc-ptabs [role='tab'][aria-selected='false'] {
+  padding: 0 9px;
+}
+.sc-ptabs [role='tab'][aria-selected='false']:hover {
+  color: var(--text);
+}
+.sc-anim-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.sc-anim-top .sc-subhead {
+  margin: 0;
 }

@@ -1321,10 +1321,42 @@
       <aside class="sc-panel" id="sc-panel" aria-label="Panels">
         <section class="sc-pgroup" data-tabs>
           <div class="sc-ptabs" role="tablist">
-            <button role="tab" aria-selected="true" data-tab="color">Color</button>
-            <button role="tab" aria-selected="false" data-tab="swatches">Swatches</button>
-            <button role="tab" aria-selected="false" data-tab="gradients">Gradients</button>
-            <button role="tab" aria-selected="false" data-tab="patterns">Patterns</button>
+            <button
+              role="tab"
+              aria-selected="true"
+              data-tab="color"
+              aria-label="Color"
+              data-tip="Color"
+            >
+              <i data-icon="palette"></i><span>Color</span>
+            </button>
+            <button
+              role="tab"
+              aria-selected="false"
+              data-tab="swatches"
+              aria-label="Swatches"
+              data-tip="Swatches"
+            >
+              <i data-icon="swatchbook"></i><span>Swatches</span>
+            </button>
+            <button
+              role="tab"
+              aria-selected="false"
+              data-tab="gradients"
+              aria-label="Gradients"
+              data-tip="Gradients"
+            >
+              <i data-icon="sc-gradient"></i><span>Gradients</span>
+            </button>
+            <button
+              role="tab"
+              aria-selected="false"
+              data-tab="patterns"
+              aria-label="Patterns"
+              data-tip="Patterns"
+            >
+              <i data-icon="chess-board"></i><span>Patterns</span>
+            </button>
             <button
               class="sc-ibtn sc-ptab-end"
               id="sc-screen-pick"
@@ -1758,10 +1790,134 @@
 
         <section class="sc-pgroup" data-tabs>
           <div class="sc-ptabs" role="tablist">
-            <button role="tab" aria-selected="true" data-tab="props">Properties</button>
-            <button role="tab" aria-selected="false" data-tab="character">Character</button>
-            <button role="tab" aria-selected="false" data-tab="paragraph">Paragraph</button>
-            <button role="tab" aria-selected="false" data-tab="symbols">Symbols</button>
+            <button
+              role="tab"
+              aria-selected="true"
+              data-tab="props"
+              aria-label="Properties"
+              data-tip="Properties"
+            >
+              <i data-icon="sliders"></i><span>Properties</span>
+            </button>
+            <button
+              role="tab"
+              aria-selected="false"
+              data-tab="character"
+              aria-label="Character"
+              data-tip="Character"
+            >
+              <i data-icon="font"></i><span>Character</span>
+            </button>
+            <button
+              role="tab"
+              aria-selected="false"
+              data-tab="paragraph"
+              aria-label="Paragraph"
+              data-tip="Paragraph"
+            >
+              <i data-icon="paragraph"></i><span>Paragraph</span>
+            </button>
+            <button
+              role="tab"
+              aria-selected="false"
+              data-tab="symbols"
+              aria-label="Symbols"
+              data-tip="Symbols"
+            >
+              <i data-icon="clover"></i><span>Symbols</span>
+            </button>
+            <button
+              role="tab"
+              aria-selected="false"
+              data-tab="animation"
+              aria-label="Animation"
+              data-tip="Animation"
+            >
+              <i data-icon="film"></i><span>Animation</span>
+            </button>
+          </div>
+          <div class="sc-pbody" data-pane="animation" hidden>
+            <div class="sc-anim-top">
+              <span class="sc-subhead">Animation</span>
+              <button
+                class="sc-tbtn"
+                data-action="toggleAnimations"
+                aria-pressed="false"
+                data-tip="Play every animation in the drawing (Esc or a click stops)"
+              >
+                ▶ Play
+              </button>
+            </div>
+            <p class="sc-hint" id="sc-anim-none">
+              Select one layer or group to animate it. ▶ Play previews every animation in the
+              drawing.
+            </p>
+            <div class="sc-anim" id="sc-anim-props" hidden>
+              <div class="sc-anim-head">
+                <span class="sc-subhead">Add</span>
+                <select id="sc-anim-add" aria-label="Add an animation">
+                  <option value="">Add animation…</option>
+                </select>
+              </div>
+              <ul class="sc-anim-list" id="sc-anim-list" aria-label="Animations"></ul>
+              <div class="sc-anim-edit" id="sc-anim-edit" hidden>
+                <div class="sc-prop-grid">
+                  <label class="sc-field"
+                    >Length<input
+                      data-anim="dur"
+                      type="number"
+                      min="0.05"
+                      max="600"
+                      step="0.1"
+                      aria-label="Length in seconds"
+                    /><span class="sc-unit">s</span></label
+                  >
+                  <label class="sc-field"
+                    >Delay<input
+                      data-anim="delay"
+                      type="number"
+                      min="0"
+                      max="600"
+                      step="0.1"
+                      aria-label="Delay in seconds"
+                    /><span class="sc-unit">s</span></label
+                  >
+                  <label class="sc-field"
+                    >Times<input
+                      data-anim="rep"
+                      type="number"
+                      min="1"
+                      max="1000"
+                      step="1"
+                      aria-label="Times to play"
+                  /></label>
+                  <label class="sc-check"
+                    ><input data-anim="forever" type="checkbox" /> Forever</label
+                  >
+                  <label class="sc-field"
+                    >Run<select data-anim="dir" aria-label="Direction">
+                      <option value="normal">Normal</option>
+                      <option value="reverse">Reverse</option>
+                      <option value="alternate">Back and forth</option>
+                    </select></label
+                  >
+                  <label class="sc-field"
+                    >Ease<select data-anim="ease" aria-label="Easing">
+                      <option value="linear">Linear</option>
+                      <option value="ease">Ease</option>
+                      <option value="in">Ease in</option>
+                      <option value="out">Ease out</option>
+                      <option value="inout">Ease in-out</option>
+                    </select></label
+                  >
+                </div>
+                <div class="sc-anim-opts" id="sc-anim-opts"></div>
+                <p class="sc-hint">
+                  Saved as SVG animation (SMIL): it plays in browsers, &lt;img&gt; tags included.
+                  PNG and app icons use the still drawing.
+                </p>
+              </div>
+            </div>
           </div>
           <div class="sc-pbody" data-pane="symbols" hidden>
             <div class="sc-seg sc-symview" role="radiogroup" aria-label="Symbols to show">
@@ -2450,80 +2606,6 @@
                 </p>
               </div>
             </div>
-            <div class="sc-anim" id="sc-anim-props" hidden>
-              <div class="sc-anim-head">
-                <span class="sc-subhead">Animate</span>
-                <select id="sc-anim-add" aria-label="Add an animation">
-                  <option value="">Add animation…</option>
-                </select>
-                <button
-                  class="sc-tbtn"
-                  data-action="toggleAnimations"
-                  aria-pressed="false"
-                  data-tip="Play every animation in the drawing (Esc or a click stops)"
-                >
-                  ▶ Play
-                </button>
-              </div>
-              <ul class="sc-anim-list" id="sc-anim-list" aria-label="Animations"></ul>
-              <div class="sc-anim-edit" id="sc-anim-edit" hidden>
-                <div class="sc-prop-grid">
-                  <label class="sc-field"
-                    >Length<input
-                      data-anim="dur"
-                      type="number"
-                      min="0.05"
-                      max="600"
-                      step="0.1"
-                      aria-label="Length in seconds"
-                    /><span class="sc-unit">s</span></label
-                  >
-                  <label class="sc-field"
-                    >Delay<input
-                      data-anim="delay"
-                      type="number"
-                      min="0"
-                      max="600"
-                      step="0.1"
-                      aria-label="Delay in seconds"
-                    /><span class="sc-unit">s</span></label
-                  >
-                  <label class="sc-field"
-                    >Times<input
-                      data-anim="rep"
-                      type="number"
-                      min="1"
-                      max="1000"
-                      step="1"
-                      aria-label="Times to play"
-                  /></label>
-                  <label class="sc-check"
-                    ><input data-anim="forever" type="checkbox" /> Forever</label
-                  >
-                  <label class="sc-field"
-                    >Run<select data-anim="dir" aria-label="Direction">
-                      <option value="normal">Normal</option>
-                      <option value="reverse">Reverse</option>
-                      <option value="alternate">Back and forth</option>
-                    </select></label
-                  >
-                  <label class="sc-field"
-                    >Ease<select data-anim="ease" aria-label="Easing">
-                      <option value="linear">Linear</option>
-                      <option value="ease">Ease</option>
-                      <option value="in">Ease in</option>
-                      <option value="out">Ease out</option>
-                      <option value="inout">Ease in-out</option>
-                    </select></label
-                  >
-                </div>
-                <div class="sc-anim-opts" id="sc-anim-opts"></div>
-                <p class="sc-hint">
-                  Saved as SVG animation (SMIL): it plays in browsers, &lt;img&gt; tags included.
-                  PNG and app icons use the still drawing.
-                </p>
-              </div>
-            </div>
             <span class="sc-subhead">Document</span>
             <div class="sc-docunits">
               <label class="sc-field"
@@ -2589,7 +2671,9 @@
         </section>
 
         <section class="sc-pgroup sc-grow">
-          <div class="sc-ptabs"><span class="sc-ptitle">Layers</span></div>
+          <div class="sc-ptabs">
+            <span class="sc-ptitle"><i data-icon="layer-group"></i><span>Layers</span></span>
+          </div>
           <div class="sc-layers-head">
             <select id="sc-blend" aria-label="Blend mode" data-tip="Blend mode">
               <option value="pass-through">Pass Through</option>

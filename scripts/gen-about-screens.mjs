@@ -129,8 +129,7 @@ const animated = await page.evaluate(() =>
 fs.writeFileSync(path.join(out, 'animated.svg'), animated);
 console.log(`wrote about/animated.svg (${animated.length} bytes)`);
 await clickDoc(page, 613, 338);
-await page.click('[data-tab="props"]');
-await page.locator('#sc-anim-props').scrollIntoViewIfNeeded();
+await page.click('[data-tab="animation"]');
 await shot(page, 'animate');
 await page.close();
 
