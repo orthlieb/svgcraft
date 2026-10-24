@@ -214,10 +214,15 @@ const actionRules = {
   againCopy: () => !!lastT && anySel(),
   clearGuides: () => state.guides.length > 0,
 };
+// Run an action (or `run`) only when its rule allows it: a shortcut for a
+// greyed-out item does nothing, as in Photoshop.
+const actionAllowed = (name) => !actionRules[name] || actionRules[name]();
+function ifAllowed(name, run = actions[name]) {
+  if (actionAllowed(name)) run();
+}
 function syncActions() {
   for (const b of document.querySelectorAll('button[data-action]')) {
-    const ok = actionRules[b.dataset.action];
-    if (ok) b.disabled = !ok();
+    if (actionRules[b.dataset.action]) b.disabled = !actionAllowed(b.dataset.action);
   }
 }
 

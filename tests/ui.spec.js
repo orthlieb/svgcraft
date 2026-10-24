@@ -170,3 +170,23 @@ test('menu items and buttons are greyed out until they can run', async ({ page }
   // The clipping group alone is selected now: one layer again.
   await expect(clip).toBeDisabled();
 });
+
+test('a greyed-out item’s shortcut does nothing', async ({ page }) => {
+  await load(
+    page,
+    '<rect id="a" data-name="A" width="50" height="50"/>' +
+      '<circle id="b" data-name="B" cx="40" cy="40" r="20"/>',
+  );
+  const html = () => page.evaluate(() => document.getElementById('sc-doc').innerHTML);
+  const before = await html();
+  // One layer: no clipping mask, and nothing to bring forward past.
+  await row(page, 'B').click();
+  await page.keyboard.press('Control+Alt+KeyG');
+  await page.keyboard.press('Control+Shift+BracketRight');
+  expect(await html()).toBe(before);
+  await expect(page.locator('#sc-msg')).not.toContainText('Select the art');
+  // Two: Ctrl+Alt+G makes the mask.
+  await row(page, 'A').click({ modifiers: ['Shift'] });
+  await page.keyboard.press('Control+Alt+KeyG');
+  await expect(page.locator('#sc-doc > [data-sc-clip]')).toHaveCount(1);
+});

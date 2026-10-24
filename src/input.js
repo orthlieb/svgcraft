@@ -216,8 +216,8 @@ window.addEventListener('keydown', (e) => {
   // Browsers keep Ctrl+T / Ctrl+Shift+T for tabs, so Alt stands in.
   if (e.altKey && e.code === 'KeyT') {
     e.preventDefault();
-    if (e.shiftKey) transformAgain(mod);
-    else if (!mod) beginTransform('free');
+    if (e.shiftKey) ifAllowed(mod ? 'againCopy' : 'again', () => transformAgain(mod));
+    else if (!mod) ifAllowed('freeTransform', () => beginTransform('free'));
     return;
   }
   if (tools[state.tool].key?.(e)) {
@@ -253,8 +253,8 @@ window.addEventListener('keydown', (e) => {
   }
   if (mod && e.altKey && e.code === 'KeyG') {
     e.preventDefault();
-    if (e.shiftKey) releaseClip();
-    else makeClip();
+    if (e.shiftKey) ifAllowed('clipRelease', releaseClip);
+    else ifAllowed('clipMake', makeClip);
     return;
   }
   if (mod) {
@@ -262,19 +262,19 @@ window.addEventListener('keydown', (e) => {
       z: () => (e.shiftKey ? redo() : undo()),
       y: redo,
       s: exportSvg,
-      o: () => (e.shiftKey ? createOutlines() : openPicker('open')),
+      o: () => (e.shiftKey ? ifAllowed('createOutlines', createOutlines) : openPicker('open')),
       u: toggleSource,
-      j: cmds.duplicate,
+      j: () => ifAllowed('duplicate', cmds.duplicate),
       d: () => setSel([]),
       a: cmds.selectAll,
       ...(e.shiftKey && { i: cmds.invertSelection }),
-      g: () => (e.shiftKey ? cmds.ungroup() : cmds.group()),
+      g: () => (e.shiftKey ? ifAllowed('ungroup', cmds.ungroup) : cmds.group()),
       r: () => toggleView('rulers'),
     };
     // By key position, so Shift and keyboard layouts don't change them.
     const byCode = {
-      BracketRight: () => (e.shiftKey ? cmds.front() : cmds.forward()),
-      BracketLeft: () => (e.shiftKey ? cmds.back() : cmds.backward()),
+      BracketRight: () => ifAllowed(e.shiftKey ? 'front' : 'forward'),
+      BracketLeft: () => ifAllowed(e.shiftKey ? 'back' : 'backward'),
       Semicolon: () => (e.shiftKey ? setSnapOn(!state.snap) : toggleView('guidesOn')),
       Quote: () => setGridOn(!state.grid),
     };
@@ -299,7 +299,7 @@ window.addEventListener('keydown', (e) => {
     nudge(arrows[k][0] * s, arrows[k][1] * s);
   } else if (k === 'delete' || k === 'backspace') {
     e.preventDefault();
-    cmds.delete();
+    ifAllowed('delete');
   } else if (k === 'escape') {
     if (iso) exitIso();
     else setSel([]);

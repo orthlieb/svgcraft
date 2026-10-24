@@ -28,7 +28,7 @@ The layout follows Photoshop:
   Photoshop, an item or button that can't run on the current selection is
   greyed out: Crop to Selection needs a selection, a clipping mask, Combine
   Shapes or Text on Path need two layers, Distribute three, and so on.
-  Its tooltip still shows, and its shortcut still explains what's missing.
+  Its tooltip still shows, and its shortcut does nothing until it can run.
 - **Options bar**: settings for the current tool, such as stroke width and
   smoothing for the pencil, mode and size for the eraser, or the point
   commands for Edit Points. Drag a field's label sideways to scrub its value
