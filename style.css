@@ -942,6 +942,37 @@ kbd {
 .sc-pbody {
   padding: 8px 10px 10px;
 }
+/* The chevron at the end of each tab bar folds the group to its tabs. */
+.sc-pcollapse {
+  margin-left: auto;
+  width: 26px;
+  height: auto;
+  border-radius: 0;
+  color: var(--text-dim);
+}
+.sc-pcollapse svg {
+  width: 10px;
+  height: 10px;
+  fill: currentColor;
+  transition: transform 0.12s ease;
+}
+.sc-pgroup.collapsed .sc-pcollapse svg {
+  transform: rotate(-90deg);
+}
+.sc-pgroup.collapsed > :not(.sc-ptabs) {
+  display: none !important;
+}
+.sc-pgroup.collapsed.sc-grow {
+  flex: none;
+  min-height: 0;
+}
+.sc-pgroup.collapsed .sc-ptabs {
+  border-bottom: 0;
+}
+/* Folded, no tab looks open. */
+.sc-pgroup.collapsed .sc-ptabs [aria-selected='true'] {
+  background: transparent;
+}
 .sc-paint {
   padding: 6px;
   margin-bottom: 4px;

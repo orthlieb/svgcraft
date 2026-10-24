@@ -190,3 +190,47 @@ test('a greyed-out item’s shortcut does nothing', async ({ page }) => {
   await page.keyboard.press('Control+Alt+KeyG');
   await expect(page.locator('#sc-doc > [data-sc-clip]')).toHaveCount(1);
 });
+
+test('panel groups collapse to their tabs, and stay that way', async ({ page }) => {
+  const groups = page.locator('#sc-panel > .sc-pgroup');
+  const colour = groups.nth(0);
+  const props = groups.nth(1);
+  const chevron = (g) => g.locator('.sc-pcollapse');
+  const layersH = () => groups.nth(2).evaluate((g) => g.getBoundingClientRect().height);
+
+  const tall = await layersH();
+  await chevron(colour).click();
+  await expect(colour).toHaveClass(/collapsed/);
+  await expect(chevron(colour)).toHaveAttribute('aria-expanded', 'false');
+  await expect(page.locator('[data-pane="color"]')).toBeHidden();
+  // Layers takes the room.
+  expect(await layersH()).toBeGreaterThan(tall);
+
+  // Clicking a tab opens the group on that tab.
+  await page.click('[data-tab="swatches"]');
+  await expect(colour).not.toHaveClass(/collapsed/);
+  await expect(page.locator('[data-pane="swatches"]')).toBeVisible();
+
+  // Double-clicking the tab bar folds it; selecting text switches to
+  // Character without unfolding it, Type → Character does.
+  await props.locator('.sc-ptabs').dblclick({ position: { x: 200, y: 10 } });
+  await expect(props).toHaveClass(/collapsed/);
+  await load(page, '<text id="t" x="10" y="40">Hi</text>');
+  await page.evaluate(() => {
+    const s = window.svgcraft;
+    s.setTool('select');
+    s.setSel?.([document.getElementById('t')]);
+  });
+  await page.locator('#sc-layers li').first().click();
+  await expect(page.locator('[data-tab="character"]')).toHaveAttribute('aria-selected', 'true');
+  await expect(props).toHaveClass(/collapsed/);
+  await menu(page, 'Type', 'showCharacter');
+  await expect(props).not.toHaveClass(/collapsed/);
+
+  // Remembered after a reload.
+  await chevron(groups.nth(2)).click();
+  await page.reload();
+  await expect(groups.nth(2)).toHaveClass(/collapsed/);
+  await expect(page.locator('#sc-layers')).toBeHidden();
+  await expect(colour).not.toHaveClass(/collapsed/);
+});

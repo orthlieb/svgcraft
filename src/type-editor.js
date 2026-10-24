@@ -783,11 +783,11 @@ $('#sc-type-convert').addEventListener('click', convertTextKind);
 
 // Open the Properties group on its Character tab.
 function showCharacterPanel() {
-  $('[data-tab="character"]').click();
+  showTab('character');
   $('#sc-panel').classList.add('open');
 }
 function showParagraphPanel() {
-  $('[data-tab="paragraph"]').click();
+  showTab('paragraph');
   $('#sc-panel').classList.add('open');
 }
 

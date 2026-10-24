@@ -87,7 +87,7 @@ async function definePattern() {
   lib.patterns.push(item);
   libSel.patterns = item.id;
   saveLibrary();
-  $('[data-tab="patterns"]').click();
+  showTab('patterns');
   say(`Defined “${item.name}”. Click it in the Patterns panel to fill with it.`);
 }
 

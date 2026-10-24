@@ -42,6 +42,9 @@ The layout follows Photoshop:
   (stroke width, document size, grid and snap), Character / Paragraph,
   Symbols, Animation and Layers (see below). As in Photoshop, each tab is
   an icon; the open tab also shows its name, and hovering any tab names it.
+  Double-click a group's tab bar, or click the chevron at its end, to fold
+  it to just its tabs (Layers then gets the room); clicking a tab opens it
+  again. Folded groups stay folded on your next visit.
 - **Auto-Select** on the Move tool's options bar: **Group** makes a canvas
   click pick the whole top-level item. **Layer** picks the exact shape
   under the cursor, even deep inside groups.

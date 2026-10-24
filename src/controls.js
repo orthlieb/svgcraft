@@ -376,6 +376,60 @@ for (const group of document.querySelectorAll('[data-tabs]')) {
   }
 }
 
+// Collapsing a panel group to its tab bar, as in Photoshop: double-click
+// the bar or use its chevron; clicking a tab of a folded group opens it.
+// Remembered between visits.
+const PANELS_KEY = 'svgcraft.panels';
+const pgroups = [...document.querySelectorAll('#sc-panel > .sc-pgroup')];
+function setCollapsed(group, on, save = true) {
+  group.classList.toggle('collapsed', on);
+  const b = group.querySelector('.sc-pcollapse');
+  b.setAttribute('aria-expanded', !on);
+  b.dataset.tip = on ? 'Expand panel' : 'Collapse panel';
+  b.setAttribute('aria-label', b.dataset.tip);
+  if (!save) return;
+  try {
+    localStorage.setItem(
+      PANELS_KEY,
+      JSON.stringify(pgroups.map((g) => g.classList.contains('collapsed'))),
+    );
+  } catch {
+    /* storage blocked: folded for this visit only */
+  }
+}
+// Show a panel because the user asked for it (a menu command): its tab,
+// with its group unfolded.
+function showTab(name) {
+  const t = $(`[data-tab="${name}"]`);
+  t.click();
+  setCollapsed(t.closest('.sc-pgroup'), false);
+}
+let savedPanels = [];
+try {
+  savedPanels = JSON.parse(localStorage.getItem(PANELS_KEY) || '[]');
+} catch {
+  /* unreadable: all open */
+}
+pgroups.forEach((group, i) => {
+  const bar = group.querySelector('.sc-ptabs');
+  const b = document.createElement('button');
+  b.className = 'sc-ibtn sc-pcollapse';
+  b.innerHTML = icon('chevron-down');
+  b.addEventListener('click', () => setCollapsed(group, !group.classList.contains('collapsed')));
+  bar.append(b);
+  bar.addEventListener('dblclick', (e) => {
+    if (e.target.closest('.sc-pcollapse')) return;
+    setCollapsed(group, !group.classList.contains('collapsed'));
+  });
+  // A tab you click opens a folded group; the editor switching tabs on its
+  // own (Character when text is selected) leaves it folded.
+  for (const t of group.querySelectorAll('[data-tab]'))
+    t.addEventListener('click', (e) => {
+      if (e.isTrusted && group.classList.contains('collapsed')) setCollapsed(group, false);
+    });
+  setCollapsed(group, savedPanels[i] === true, false);
+});
+
 // Remaining controls ------------------------------------------------------
 const zoomInput = $('#sc-zoom-input');
 zoomInput.addEventListener('change', () => {
@@ -469,7 +523,7 @@ for (const sel of document.querySelectorAll('select[data-stroke-dash]'))
     state.dash = sel.value;
     styleChanged('dash', true);
     // Custom's dash / gap fields live in the Properties panel.
-    if (state.dash === 'custom') $('[data-tab="props"]').click();
+    if (state.dash === 'custom') showTab('props');
   });
 for (const inp of $('#sc-dash-custom').querySelectorAll('input'))
   inp.addEventListener('change', () => {
