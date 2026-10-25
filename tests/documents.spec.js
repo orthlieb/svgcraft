@@ -161,6 +161,19 @@ test('open tabs, their * and the active one come back after a reload', async ({ 
   await expect(page.locator('#sc-doc circle')).toHaveCount(0);
 });
 
+test('a reload straight after a change still keeps it', async ({ page }) => {
+  await openFile(page, 'a.svg', '<rect width="50" height="50"/>');
+  await settled(page);
+  // No waiting for the save: the reload itself writes it.
+  await drawRect(page);
+  await menu(page, 'File', 'new');
+  await page.click('[data-nd-btn="ok"]');
+  await reload(page);
+  expect(await tabNames(page)).toEqual(['a.svg*', 'Untitled-1.svg']);
+  await tabs(page).first().click();
+  await expect(page.locator('#sc-doc rect')).toHaveCount(2);
+});
+
 test('a reload keeps the zoom of the active tab', async ({ page }) => {
   await load(page, '<rect width="50" height="50"/>');
   await page.fill('#sc-zoom-input', '250');
@@ -273,7 +286,10 @@ test('with every tab closed, only New and Open work until one is made', async ({
 });
 
 test('a drawing autosaved by the previous version is brought over', async ({ page }) => {
-  await page.evaluate(() => {
+  // What the old version left: set up as the next load starts, after this
+  // page has saved its own tabs on the way out.
+  await page.addInitScript(() => {
+    localStorage.removeItem('svgcraft.docs.pending');
     localStorage.setItem(
       'svgcraft.v1',
       JSON.stringify({
@@ -281,10 +297,8 @@ test('a drawing autosaved by the previous version is brought over', async ({ pag
         svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect id="old" width="10" height="10"/></svg>',
       }),
     );
-    return new Promise((resolve) => {
-      const r = indexedDB.deleteDatabase('svgcraft');
-      r.onsuccess = r.onerror = r.onblocked = () => resolve();
-    });
+    // Opening the database waits for this to finish.
+    indexedDB.deleteDatabase('svgcraft');
   });
   await reload(page);
   expect(await tabNames(page)).toEqual(['legacy.svg']);

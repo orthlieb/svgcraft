@@ -39,9 +39,8 @@ const idb = (() => {
 })();
 
 let saveWarned = false;
-function saveDocs() {
-  if (!docsLoaded) return;
-  const data = {
+function docsData() {
+  return {
     active: curDoc?.id,
     docs: docs.map((d) => ({
       id: d.id,
@@ -52,12 +51,36 @@ function saveDocs() {
       view: d === curDoc ? { zoom: state.zoom, panX: state.panX, panY: state.panY } : d.view,
     })),
   };
-  idb.set('docs', data).catch(() => {
+}
+function saveDocs() {
+  if (!docsLoaded) return;
+  idb.set('docs', docsData()).catch(() => {
     if (saveWarned) return;
     saveWarned = true;
     say('Couldn’t keep a copy in this browser: its storage is full or blocked.');
   });
 }
+
+// Saving waits for a pause in the changes (see afterChange). Switching
+// away from the page saves at once. Closing or reloading it does too, and
+// as IndexedDB may not finish writing before the page goes, the tabs are
+// also written to localStorage there, which is immediate; loadDocs takes
+// that copy first. (A drawing too big for localStorage relies on IndexedDB.)
+const PENDING_KEY = 'svgcraft.docs.pending';
+function saveNow() {
+  clearTimeout(saveTimer);
+  saveDocs();
+}
+addEventListener('pagehide', () => {
+  if (!docsLoaded) return;
+  clearTimeout(saveTimer);
+  const data = docsData();
+  idb.set('docs', data).catch(() => {});
+  store(PENDING_KEY, data);
+});
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') saveNow();
+});
 
 function renderTabs() {
   const bar = $('#sc-doctabs');
@@ -293,11 +316,18 @@ function markSaved() {
 // version autosaved).
 async function loadDocs() {
   let data = null;
-  try {
-    data = await idb.get('docs');
-  } catch {
-    /* IndexedDB blocked: tabs just won't survive a reload */
-  }
+  // Written as the page closed: newer than anything in IndexedDB.
+  const pending = stored(PENDING_KEY);
+  store(PENDING_KEY, null);
+  if (Array.isArray(pending?.docs)) {
+    data = pending;
+    idb.set('docs', pending).catch(() => {});
+  } else
+    try {
+      data = await idb.get('docs');
+    } catch {
+      /* IndexedDB blocked: tabs just won't survive a reload */
+    }
   let list = Array.isArray(data?.docs) ? data.docs.filter((d) => typeof d?.svg === 'string') : [];
   if (!list.length) {
     const old = stored(STORE_KEY);

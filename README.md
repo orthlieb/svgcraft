@@ -192,7 +192,9 @@ stroke="currentColor"` (common in icon sets) is pushed down so it
     doesn't count as saving.
   - All open drawings are kept in this browser (IndexedDB) as they
     change, so a reload or a later visit brings back the same tabs, the
-    same `*` marks and the same view. The browser's copy is per browser
+    same `*` marks and the same view. Saving waits for a pause in your
+    changes, but closing or reloading the page saves at once, so even the
+    last change survives. The browser's copy is per browser
     and per machine; Save as SVG to keep a file. A drawing autosaved by an
     older version of SVGCraft is brought over as a tab.
 - **Export**: SVG download (Ctrl+S), PNG at 1× / 2× / 4× with a
