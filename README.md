@@ -24,7 +24,8 @@ slide in from the right (the sliders button).
 The phone toolbar also has:
 
 - ▶ **Play** the drawing's animations (■ or a tap on it stops them).
-- **Layers**: the layer list with an eye on each, to show and hide layers
+- **Layers**: the layer list, each with a preview (on the same backdrop as
+  the canvas) and an eye, to show and hide layers
   while you look. Only the preview changes: nothing is saved, and switching
   tab or moving to a bigger screen shows the drawing as it is again.
   **Hide all** / **Show all** do every layer (Show all includes ones the

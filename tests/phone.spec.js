@@ -158,6 +158,12 @@ test.describe('phone, portrait', () => {
     await tapAt();
     await expect(page.locator('#r0')).toBeVisible();
 
+    // Every row has a preview, a hidden layer's too.
+    await expect(page.locator('#sc-peek-list .sc-thumb')).toHaveCount(21);
+    await tapAt();
+    await expect(page.locator('#sc-peek-list li').last().locator('.sc-thumb rect')).toHaveCount(1);
+    await tapAt();
+
     // Hiding the group dims what's in it.
     await list.evaluate((ul) => (ul.scrollTop = 0));
     await page.locator('#sc-peek-list li').first().locator('.sc-peek-eye').click();

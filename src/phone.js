@@ -29,6 +29,9 @@ function renderPeek() {
   const ul = $('#sc-peek-list');
   const scroll = ul.scrollTop;
   ul.replaceChildren();
+  // Previews sit on the same backdrop as the canvas (white art shows on black).
+  peekDlg.dataset.bg = $('#sc-stage-wrap').dataset.bg || 'checker';
+  let rows = 0;
   const walk = (parent, depth, under) => {
     for (const el of [...parent.children].filter(selectable).reverse()) {
       const li = document.createElement('li');
@@ -43,16 +46,24 @@ function renderPeek() {
         setPeek(el, !peekShown(el));
         renderPeek();
       });
+      // A preview of the layer, as in the Layers panel (the first 150 rows),
+      // drawn whether or not it's hidden here.
+      const thumb = rows++ < 150 ? layerThumb(el) : mk('svg', { class: 'sc-thumb' });
+      for (const n of thumb.querySelectorAll('[data-sc-peek]')) n.removeAttribute('data-sc-peek');
       const name = document.createElement('span');
       name.textContent = layerName(el);
       li.classList.toggle('off', !shown);
       li.classList.toggle('under', under);
-      li.append(b, name);
+      li.append(b, thumb, name);
       ul.append(li);
       if (el.localName === 'g') walk(el, depth + 1, under || !shown);
     }
   };
+  // Hidden layers have no size to frame their previews by, so everything
+  // shows while the list is built (and is hidden again before it's drawn).
+  doc.setAttribute('data-sc-thumbs', '');
   walk(doc, 0, false);
+  doc.removeAttribute('data-sc-thumbs');
   ul.scrollTop = scroll;
   if (!ul.children.length) {
     const li = document.createElement('li');
