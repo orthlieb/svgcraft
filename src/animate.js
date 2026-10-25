@@ -417,7 +417,7 @@ const animPlay = { playing: false, nodes: [] };
 function playAnimations() {
   stopAnimations();
   const els = [...doc.querySelectorAll('[data-sc-anim]')];
-  if (!els.length) return say('Nothing is animated yet: add an animation under Properties.');
+  if (!els.length) return say('Nothing is animated yet: add one in the Animation tab.');
   for (const el of els) {
     const list = readAnims(el);
     const at = animStarts(list);

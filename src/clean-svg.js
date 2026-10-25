@@ -189,11 +189,8 @@ function cleanSvgText(text, o) {
 }
 
 function cleanOptions() {
-  try {
-    return { ...CLEAN_DEFAULTS, ...JSON.parse(localStorage.getItem(CLEAN_KEY) || '{}') };
-  } catch {
-    return { ...CLEAN_DEFAULTS };
-  }
+  const o = stored(CLEAN_KEY, {});
+  return { ...CLEAN_DEFAULTS, ...(o && typeof o === 'object' ? o : {}) };
 }
 const kb = (n) => (n < 1024 ? `${n} B` : `${(n / 1024).toFixed(1)} KB`);
 function exportCleanSvg(o) {
@@ -223,11 +220,7 @@ function closeCleanSvg(ok) {
   for (const el of csDlg.querySelectorAll('[data-cs]'))
     o[el.dataset.cs] =
       el.type === 'checkbox' ? el.checked : clamp(Math.round(+el.value) || 0, 0, 6);
-  try {
-    localStorage.setItem(CLEAN_KEY, JSON.stringify(o));
-  } catch {
-    /* storage blocked: just this export */
-  }
+  store(CLEAN_KEY, o);
   exportCleanSvg(o);
 }
 csDlg.addEventListener('keydown', (e) => {

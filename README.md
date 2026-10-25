@@ -933,6 +933,7 @@ else is refused with a note under the fields.
 | Ctrl+U                    | Show / hide the SVG source                         |
 | Ctrl+Alt+P                | Show / hide the icon preview                       |
 | Alt+Shift+Ctrl+I          | File Info                                          |
+| Alt+↑ · Alt+↓             | Move the animation up · down the list              |
 
 The keys follow Photoshop's. A browser keeps a few for itself, so those
 differ: Free Transform is Alt+T (Ctrl+T opens a tab), Select Inverse is
@@ -941,7 +942,8 @@ New is in the File menu (Ctrl+N opens a window). On a Mac, Cmd+Opt+I may
 open the developer tools instead of Image Size. Tab hides the panels only
 while you're working on the canvas; with a control focused it moves focus
 as usual. Every tooltip ends with its control's shortcut in parentheses,
-taken from the menus, so they always agree.
+taken from the menus, so they always agree. A shortcut for a menu item that's
+greyed out does nothing.
 
 ## SVG source
 
@@ -1035,6 +1037,23 @@ geometry, attributes and rendered pixels. Any page error or console error
 fails a test. GitHub Actions (`.github/workflows/ci.yml`) runs format, lint
 and the tests on every push, and uploads the Playwright report when
 something fails.
+
+**Commands.** A menu item or button runs a command through its
+`data-action` name: `src/actions.js` maps each name to its function. A
+command that only makes sense with the right selection (Crop to Selection,
+Make Clipping Mask…) also gets a rule in `actionRules` there, which greys
+its menu items and buttons out when it can't run; its keyboard shortcut in
+`src/input.js` goes through `ifAllowed(name)` so it does nothing then too.
+With no drawing open, only the `NO_DOC_ACTIONS` work. Settings that live
+in this browser (the theme, folded panels, libraries) go through
+`stored(key, fallback)` and `store(key, value)` in `core.js`, which
+survive blocked storage.
+
+**CSS class names.** Class names are global across `style.css`, so give a
+new component its own prefix and check it isn't taken (`grep -n 'sc-name'
+style.css src index.html`) — reusing one pulls in the other component's
+rules. State classes on `<body>` (`sc-no-doc`, `sc-dock-icons`,
+`sc-no-panels`) must never match a component's class for the same reason.
 
 **The About page.** `about.html` (Help → About SVGCraft, Feature List or
 Keyboard Shortcuts, which open it in its own tab) is a static page with a

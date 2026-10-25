@@ -58,19 +58,11 @@ const ND_BACKGROUNDS = {
 };
 
 function ndLoad() {
-  try {
-    const v = JSON.parse(localStorage.getItem(ND_KEY) || '{}');
-    return v && typeof v === 'object' ? v : {};
-  } catch {
-    return {};
-  }
+  const v = stored(ND_KEY, {});
+  return v && typeof v === 'object' ? v : {};
 }
 function ndSave(v) {
-  try {
-    localStorage.setItem(ND_KEY, JSON.stringify(v));
-  } catch {
-    /* storage blocked: just this time */
-  }
+  store(ND_KEY, v);
 }
 
 const ndDlg = $('#sc-newdoc');

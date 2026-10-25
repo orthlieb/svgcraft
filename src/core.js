@@ -42,6 +42,33 @@ const PALETTE = [
 const $ = (s) => document.querySelector(s);
 const icon = (name) => window.SC_ICONS?.[name] || '';
 const THEME_KEY = 'svgcraft.theme';
+
+// Settings kept in this browser (localStorage). Strings are stored as they
+// are (the theme is read that way before the scripts load), anything else
+// as JSON. Storage can be blocked or full: then a read gives the fallback
+// and a write returns false, lasting for this visit only.
+function stored(key, fallback = null) {
+  try {
+    const raw = localStorage.getItem(key);
+    if (raw == null) return fallback;
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return raw;
+    }
+  } catch {
+    return fallback;
+  }
+}
+function store(key, value) {
+  try {
+    if (value == null) localStorage.removeItem(key);
+    else localStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value));
+    return true;
+  } catch {
+    return false;
+  }
+}
 let previewMode = false; // phone-sized screen: view only (see syncPreview)
 
 // Fill every data-icon="name" placeholder with its Font Awesome snippet.

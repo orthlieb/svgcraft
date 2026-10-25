@@ -298,23 +298,16 @@ for (const [cv, axis] of [
 // ---- view toggles --------------------------------------------------------------------
 const VIEW_KEY = 'svgcraft.view';
 function saveView() {
-  try {
-    localStorage.setItem(
-      VIEW_KEY,
-      JSON.stringify({
-        rulers: state.rulers,
-        guidesOn: state.guidesOn,
-        guidesLocked: state.guidesLocked,
-        snapGuides: state.snapGuides,
-        smart: state.smart,
-        pixelGrid: state.pixelGrid,
-        snapPixel: state.snapPixel,
-        keylines: state.keylines,
-      }),
-    );
-  } catch {
-    /* storage blocked — the settings last for this visit */
-  }
+  store(VIEW_KEY, {
+    rulers: state.rulers,
+    guidesOn: state.guidesOn,
+    guidesLocked: state.guidesLocked,
+    snapGuides: state.snapGuides,
+    smart: state.smart,
+    pixelGrid: state.pixelGrid,
+    snapPixel: state.snapPixel,
+    keylines: state.keylines,
+  });
 }
 function syncViewMenu() {
   const on = {

@@ -3,11 +3,8 @@
 
 // Boot ----------------------------------------------------------------
 hydrateIcons();
-try {
-  Object.assign(state, JSON.parse(localStorage.getItem(VIEW_KEY) || '{}'));
-} catch {
-  /* no saved view settings */
-}
+const savedView = stored(VIEW_KEY, {});
+if (savedView && typeof savedView === 'object') Object.assign(state, savedView);
 $('#sc-stage-wrap').classList.toggle('no-rulers', !state.rulers);
 syncViewMenu();
 syncTheme();

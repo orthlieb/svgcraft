@@ -114,11 +114,13 @@ function cleanLibrary(raw, fresh = false) {
 }
 
 function loadLibrary() {
-  try {
-    const raw = localStorage.getItem(LIB_KEY);
-    if (raw) return cleanLibrary(JSON.parse(raw));
-  } catch {
-    /* unreadable or blocked: start from the built-ins */
+  const saved = stored(LIB_KEY);
+  if (saved && typeof saved === 'object') {
+    try {
+      return cleanLibrary(saved);
+    } catch {
+      /* unreadable: start from the built-ins */
+    }
   }
   return defaultLibrary();
 }
@@ -126,11 +128,8 @@ const lib = loadLibrary();
 const libSel = { swatches: null, gradients: null, patterns: null, symbols: null };
 
 function saveLibrary() {
-  try {
-    localStorage.setItem(LIB_KEY, JSON.stringify(lib));
-  } catch {
+  if (!store(LIB_KEY, lib))
     say('Couldn’t save the library: this browser’s storage is full or blocked.');
-  }
   renderLibraries();
 }
 

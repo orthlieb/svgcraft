@@ -300,13 +300,9 @@ async function loadDocs() {
   }
   let list = Array.isArray(data?.docs) ? data.docs.filter((d) => typeof d?.svg === 'string') : [];
   if (!list.length) {
-    try {
-      const old = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
-      if (old?.svg)
-        list = [{ id: 'restored', name: old.name || 'drawing', svg: old.svg, saved: null }];
-    } catch {
-      /* nothing from the old autosave */
-    }
+    const old = stored(STORE_KEY);
+    if (typeof old?.svg === 'string')
+      list = [{ id: 'restored', name: old.name || 'drawing', svg: old.svg, saved: null }];
   }
   if (!list.length && Array.isArray(data?.docs) && curDoc && !dirty(curDoc) && !items().length) {
     // Closed everything last time: blank again.
@@ -334,11 +330,7 @@ async function loadDocs() {
       say('A drawing saved in this browser couldn’t be reopened.');
     }
   }
-  try {
-    localStorage.removeItem(STORE_KEY);
-  } catch {
-    /* fine */
-  }
+  store(STORE_KEY, null);
   docsLoaded = true;
   renderTabs();
   saveDocs();

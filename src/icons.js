@@ -138,21 +138,12 @@ function buildIconPreview() {
 }
 const IP_BG_KEY = 'svgcraft.iconPreviewBg';
 function iconPreviewBg() {
-  try {
-    const v = localStorage.getItem(IP_BG_KEY);
-    if (v === 'all' || ICON_BGS.some(([k]) => k === v)) return v;
-  } catch {
-    /* storage blocked: follow the theme */
-  }
+  const v = stored(IP_BG_KEY);
+  if (v === 'all' || ICON_BGS.some(([k]) => k === v)) return v;
   return isDark() ? 'dark' : 'light';
 }
 function setIconPreviewBg(bg, save = true) {
-  if (save)
-    try {
-      localStorage.setItem(IP_BG_KEY, bg);
-    } catch {
-      /* storage blocked: just for this visit */
-    }
+  if (save) store(IP_BG_KEY, bg);
   for (const b of ipWin.querySelectorAll('[data-ip-bg]'))
     b.setAttribute('aria-checked', b.dataset.ipBg === bg);
   for (const row of ipWin.querySelectorAll('.sc-ip-row'))
@@ -190,21 +181,12 @@ const maskUrl = (shape) =>
   )}")`;
 const IP_MASK_KEY = 'svgcraft.iconPreviewMask';
 function iconPreviewMask() {
-  try {
-    const [m, crop] = (localStorage.getItem(IP_MASK_KEY) || '').split(' ');
-    if (m in IP_MASKS) return [m, crop === 'crop'];
-  } catch {
-    /* storage blocked */
-  }
+  const [m, crop] = String(stored(IP_MASK_KEY, '')).split(' ');
+  if (m in IP_MASKS) return [m, crop === 'crop'];
   return ['none', false];
 }
 function setIconPreviewMask(mask, crop, save = true) {
-  if (save)
-    try {
-      localStorage.setItem(IP_MASK_KEY, `${mask}${crop ? ' crop' : ''}`);
-    } catch {
-      /* storage blocked: just for this visit */
-    }
+  if (save) store(IP_MASK_KEY, `${mask}${crop ? ' crop' : ''}`);
   for (const b of ipWin.querySelectorAll('[data-ip-mask]'))
     b.setAttribute('aria-checked', b.dataset.ipMask === mask);
   $('#sc-ip-crop').checked = crop;
@@ -251,21 +233,12 @@ function showAtSize(size) {
 // choices and the pane's width are remembered.
 const IP_DOCK_KEY = 'svgcraft.iconPreviewDock';
 const ipSplitter = $('#sc-ip-splitter');
-const ipStore = (k, v) => {
-  try {
-    if (v === undefined) return localStorage.getItem(k);
-    localStorage.setItem(k, v);
-  } catch {
-    /* storage blocked: just for this visit */
-  }
-  return null;
-};
 function ipDockWidth(w) {
   const max = Math.max(220, $('#sc-split').clientWidth * 0.6);
   return Math.round(clamp(w, 200, max));
 }
 function setIconPreviewDocked(docked, save = true) {
-  if (save) ipStore(IP_DOCK_KEY, docked ? 'dock' : 'float');
+  if (save) store(IP_DOCK_KEY, docked ? 'dock' : 'float');
   const btn = $('#sc-ip-dock');
   const label = docked ? 'Float' : 'Dock beside the canvas';
   btn.setAttribute('aria-label', label);
@@ -275,7 +248,7 @@ function setIconPreviewDocked(docked, save = true) {
   if (docked) {
     ipWin.dataset.docked = '';
     $('#sc-split').append(ipWin);
-    const w = +ipStore(`${IP_DOCK_KEY}.width`) || 300;
+    const w = +stored(`${IP_DOCK_KEY}.width`) || 300;
     ipWin.style.width = `${ipDockWidth(w)}px`;
     ipWin.style.left = ipWin.style.top = '';
   } else {
@@ -292,7 +265,7 @@ function setIconPreviewDocked(docked, save = true) {
 function openIconPreview() {
   iconPrev.open = true;
   ipWin.hidden = false;
-  const docked = ipStore(IP_DOCK_KEY) !== 'float';
+  const docked = stored(IP_DOCK_KEY) !== 'float';
   const isDocked = 'docked' in ipWin.dataset;
   if (docked !== isDocked || (!docked && !ipWin.style.left)) setIconPreviewDocked(docked, false);
   ipSplitter.hidden = !docked;
@@ -319,7 +292,7 @@ $('#sc-ip-dock').addEventListener('click', () => {
 function setDockWidth(w) {
   w = ipDockWidth(w);
   ipWin.style.width = `${w}px`;
-  ipStore(`${IP_DOCK_KEY}.width`, w);
+  store(`${IP_DOCK_KEY}.width`, w);
   ipSplitter.setAttribute('aria-valuenow', w);
   applyView();
 }
