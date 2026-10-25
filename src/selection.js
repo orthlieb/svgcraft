@@ -290,12 +290,8 @@ function layerRow(el, depth, open) {
     commit();
   });
 
-  let thumb;
-  if (isGroup) {
-    thumb = document.createElement('span');
-    thumb.className = 'sc-thumb sc-folder';
-    thumb.innerHTML = `<i data-icon="${open ? 'folder-open' : 'folder'}">${icon(open ? 'folder-open' : 'folder')}</i>`;
-  } else thumb = pendingThumb(el);
+  // Groups too show what's in them (the twisty marks them as groups).
+  const thumb = pendingThumb(el);
 
   const name = document.createElement('span');
   name.className = 'sc-layer-name';

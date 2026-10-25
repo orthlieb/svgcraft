@@ -1421,14 +1421,6 @@ button.sc-fx-item.sel {
 .sc-twisty .open > svg {
   transform: rotate(90deg);
 }
-.sc-folder {
-  display: grid;
-  place-items: center;
-  background: none;
-  border-color: transparent;
-  color: var(--text-dim);
-  font-size: 15px;
-}
 .sc-layers li.dragging {
   opacity: 0.45;
 }

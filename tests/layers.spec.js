@@ -291,3 +291,11 @@ test('previews fill in after the rows, every one of them, hidden layers too', as
   // The hidden circle's preview shows the circle.
   await expect(page.locator('#sc-layers li.hidden .sc-thumb circle')).toHaveCount(1);
 });
+
+test('a group’s row previews what’s in it', async ({ page }) => {
+  await placeScene(page);
+  const hills = page.locator('#sc-layers li', {
+    has: page.locator('.sc-layer-name', { hasText: /^Hills$/ }),
+  });
+  await expect(hills.locator('.sc-thumb path')).toHaveCount(2);
+});
