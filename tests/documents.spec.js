@@ -27,7 +27,8 @@ async function reload(page) {
   await page.evaluate(() => window.svgcraft.ready);
 }
 
-// Wait until the debounced save has written the current state.
+// Wait until the debounced save has written the current state: the same
+// tabs, and the active one's drawing.
 const settled = (page) =>
   expect
     .poll(() =>
@@ -38,8 +39,12 @@ const settled = (page) =>
             r.onsuccess = () => {
               const q = r.result.transaction('kv').objectStore('kv').get('docs');
               q.onsuccess = () => {
+                const ids = (q.result?.docs || []).map((d) => d.id).join();
                 const cur = q.result?.docs?.find((d) => d.id === q.result.active);
-                resolve(cur?.svg === window.svgcraft.serialize());
+                resolve(
+                  ids === window.svgcraft.docs.map((d) => d.id).join() &&
+                    cur?.svg === window.svgcraft.serialize(),
+                );
               };
             };
             r.onerror = () => resolve(false);
