@@ -49,7 +49,7 @@ test.describe('Layer Style', () => {
     await openStyle(page);
     await expect(page.locator('#sc-fx [data-fxd="ok"]')).toBeFocused();
     await page.click('#sc-fx [data-fxd="cancel"]');
-    await menu(page, 'Object', 'layerStyle');
+    await menu(page, 'Layer', 'layerStyle');
     await expect(page.locator('#sc-fx')).toBeVisible();
   });
 
@@ -204,7 +204,7 @@ test.describe('Layer Style', () => {
     );
     expect(ids).toHaveLength(2);
     expect(new Set(ids).size).toBe(2);
-    await menu(page, 'Object', 'clearLayerStyle');
+    await menu(page, 'Layer', 'clearLayerStyle');
     await tick(page);
     await expect(page.locator('#sc-doc [data-sc-fx]')).toHaveCount(1);
     await expect(page.locator('#sc-defs filter')).toHaveCount(1);
@@ -332,7 +332,7 @@ test.describe('layer locks', () => {
   });
 
   test('Lock All: no style, delete, point or text edits', async ({ page }) => {
-    await menu(page, 'Object', 'lockAll');
+    await menu(page, 'Layer', 'lockAll');
     expect(await attr(page, 'a', 'data-sc-lock')).toBe('all');
     await page.evaluate(() => {
       document.querySelector('#sc-fill-hex').value = '#ff0000';
@@ -374,12 +374,12 @@ test.describe('layer locks', () => {
   });
 
   test('locks survive export and reopening, and Unlock clears them', async ({ page }) => {
-    await menu(page, 'Object', 'lockPosition');
+    await menu(page, 'Layer', 'lockPosition');
     const svg = await page.evaluate(() => window.svgcraft.serialize());
     await page.evaluate((t) => window.svgcraft.openSvg(t, 're.svg'), svg);
     expect(await attr(page, 'a', 'data-sc-lock')).toBe('position');
     await select(page, 'a');
-    await menu(page, 'Object', 'unlockLayers');
+    await menu(page, 'Layer', 'unlockLayers');
     expect(await attr(page, 'a', 'data-sc-lock')).toBeNull();
   });
 });

@@ -184,7 +184,9 @@ const cmds = {
     state.sel = [];
     commit();
   },
-  duplicate() {
+  // Duplicate Layer offsets the copies by `d` px so they show; Layer via
+  // Copy puts them in place (d = 0).
+  duplicate(d = 10) {
     if (!state.sel.length) return;
     const ids = new Map();
     const clones = inDocOrder(state.sel).map((el) => {
@@ -194,7 +196,7 @@ const cmds = {
         n.removeAttribute('id');
       }
       el.after(c);
-      transformDoc(c, new DOMMatrix().translate(10, 10));
+      if (d) transformDoc(c, new DOMMatrix().translate(d, d));
       return c;
     });
     // Text on a path duplicated with its path follows the new path.

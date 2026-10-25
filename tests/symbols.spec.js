@@ -664,13 +664,13 @@ test.describe('files', () => {
 test.describe('locks and undo', () => {
   test('locked instances refuse what their lock forbids', async ({ page }) => {
     await makeSymbol(page);
-    await menu(page, 'Object', 'lockAll');
+    await menu(page, 'Layer', 'lockAll');
     await menu(page, 'Object', 'breakSymbolLink');
     await expect(page.locator('#sc-msg')).toContainText('is locked');
     await expect(uses(page)).toHaveCount(1);
     await menu(page, 'Object', 'editSymbol');
     await expect(page.locator('#sc-iso')).toBeHidden();
-    await menu(page, 'Object', 'lockPosition');
+    await menu(page, 'Layer', 'lockPosition');
     await page.keyboard.press('ArrowRight');
     expect(
       await page.evaluate(() => document.querySelector('#sc-doc use').getAttribute('transform')),
@@ -681,7 +681,7 @@ test.describe('locks and undo', () => {
     await page.keyboard.press('Escape');
     // Locked artwork can't become a symbol.
     await select(page, 'bg');
-    await menu(page, 'Object', 'lockAll');
+    await menu(page, 'Layer', 'lockAll');
     await menu(page, 'Object', 'makeSymbol');
     await expect(page.locator('#sc-ask')).toBeHidden();
     await expect(symbols(page)).toHaveCount(1);

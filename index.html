@@ -88,9 +88,6 @@
               <i data-icon="rotate-right"></i><span>Redo</span><kbd>Ctrl+Shift+Z</kbd>
             </button>
             <hr />
-            <button role="menuitem" data-action="duplicate">
-              <i data-icon="clone"></i><span>Duplicate</span><kbd>Ctrl+J</kbd>
-            </button>
             <button role="menuitem" data-action="delete">
               <i data-icon="trash-can"></i><span>Delete</span><kbd>Del</kbd>
             </button>
@@ -176,24 +173,25 @@
         </div>
         <div class="sc-menu">
           <button class="sc-menu-btn" role="menuitem" aria-haspopup="menu" aria-expanded="false">
-            Object
+            Layer
           </button>
           <div class="sc-menu-list" role="menu" hidden>
-            <button role="menuitem" data-action="group">
-              <i data-icon="object-group"></i><span>Group</span><kbd>Ctrl+G</kbd>
-            </button>
-            <button role="menuitem" data-action="ungroup">
-              <i data-icon="object-ungroup"></i><span>Ungroup</span><kbd>Ctrl+Shift+G</kbd>
-            </button>
-            <hr />
-            <button role="menuitem" data-action="makeSymbol">
-              <i data-icon="clover"></i><span>Make Symbol…</span>
-            </button>
-            <button role="menuitem" data-action="editSymbol">
-              <i data-icon="pen"></i><span>Edit Symbol</span>
-            </button>
-            <button role="menuitem" data-action="breakSymbolLink">
-              <i data-icon="link-slash"></i><span>Break Link to Symbol</span>
+            <div class="sc-submenu">
+              <button role="menuitem" class="sc-sub-btn" aria-haspopup="menu" aria-expanded="false">
+                <i data-icon="plus"></i><span>New</span
+                ><i data-icon="chevron-right" class="sc-sub-caret"></i>
+              </button>
+              <div class="sc-menu-list sc-sub-list" role="menu" hidden>
+                <button role="menuitem" data-action="layerViaCopy">
+                  <i data-icon="copy"></i><span>Layer via Copy</span><kbd>Ctrl+J</kbd>
+                </button>
+                <button role="menuitem" data-action="layerViaCut">
+                  <i data-icon="scissors"></i><span>Layer via Cut</span><kbd>Alt+Shift+J</kbd>
+                </button>
+              </div>
+            </div>
+            <button role="menuitem" data-action="duplicate">
+              <i data-icon="clone"></i><span>Duplicate Layer</span>
             </button>
             <hr />
             <button role="menuitem" data-action="layerStyle">
@@ -202,6 +200,89 @@
             <button role="menuitem" data-action="clearLayerStyle">
               <i></i><span>Clear Layer Style</span>
             </button>
+            <div class="sc-submenu">
+              <button role="menuitem" class="sc-sub-btn" aria-haspopup="menu" aria-expanded="false">
+                <i data-icon="scissors"></i><span>Clipping Mask</span
+                ><i data-icon="chevron-right" class="sc-sub-caret"></i>
+              </button>
+              <div class="sc-menu-list sc-sub-list" role="menu" hidden>
+                <button role="menuitem" data-action="clipMake">
+                  <i data-icon="scissors"></i><span>Make</span><kbd>Ctrl+Alt+G</kbd>
+                </button>
+                <button role="menuitem" data-action="clipRelease">
+                  <i></i><span>Release</span><kbd>Ctrl+Alt+Shift+G</kbd>
+                </button>
+              </div>
+            </div>
+            <hr />
+            <button role="menuitem" data-action="group">
+              <i data-icon="object-group"></i><span>Group Layers</span><kbd>Ctrl+G</kbd>
+            </button>
+            <button role="menuitem" data-action="ungroup">
+              <i data-icon="object-ungroup"></i><span>Ungroup Layers</span><kbd>Ctrl+Shift+G</kbd>
+            </button>
+            <hr />
+            <div class="sc-submenu">
+              <button role="menuitem" class="sc-sub-btn" aria-haspopup="menu" aria-expanded="false">
+                <i data-icon="layer-group"></i><span>Arrange</span
+                ><i data-icon="chevron-right" class="sc-sub-caret"></i>
+              </button>
+              <div class="sc-menu-list sc-sub-list" role="menu" hidden>
+                <button role="menuitem" data-action="front">
+                  <i data-icon="angles-up"></i><span>Bring to Front</span><kbd>Ctrl+Shift+]</kbd>
+                </button>
+                <button role="menuitem" data-action="forward">
+                  <i data-icon="arrow-up"></i><span>Bring Forward</span><kbd>Ctrl+]</kbd>
+                </button>
+                <button role="menuitem" data-action="backward">
+                  <i data-icon="arrow-down"></i><span>Send Backward</span><kbd>Ctrl+[</kbd>
+                </button>
+                <button role="menuitem" data-action="back">
+                  <i data-icon="angles-down"></i><span>Send to Back</span><kbd>Ctrl+Shift+[</kbd>
+                </button>
+              </div>
+            </div>
+            <div class="sc-submenu">
+              <button role="menuitem" class="sc-sub-btn" aria-haspopup="menu" aria-expanded="false">
+                <i data-icon="align-left"></i><span>Align</span
+                ><i data-icon="chevron-right" class="sc-sub-caret"></i>
+              </button>
+              <div class="sc-menu-list sc-sub-list" role="menu" hidden>
+                <button role="menuitem" data-action="alignLeft">
+                  <i data-icon="align-left"></i><span>Left Edges</span>
+                </button>
+                <button role="menuitem" data-action="alignHCenter">
+                  <i data-icon="align-center"></i><span>Horizontal Centres</span>
+                </button>
+                <button role="menuitem" data-action="alignRight">
+                  <i data-icon="align-right"></i><span>Right Edges</span>
+                </button>
+                <button role="menuitem" data-action="alignTop">
+                  <i data-icon="align-left" class="sc-rot90"></i><span>Top Edges</span>
+                </button>
+                <button role="menuitem" data-action="alignVCenter">
+                  <i data-icon="align-center" class="sc-rot90"></i><span>Vertical Centres</span>
+                </button>
+                <button role="menuitem" data-action="alignBottom">
+                  <i data-icon="align-right" class="sc-rot90"></i><span>Bottom Edges</span>
+                </button>
+              </div>
+            </div>
+            <div class="sc-submenu">
+              <button role="menuitem" class="sc-sub-btn" aria-haspopup="menu" aria-expanded="false">
+                <i data-icon="grip-lines-vertical"></i><span>Distribute</span
+                ><i data-icon="chevron-right" class="sc-sub-caret"></i>
+              </button>
+              <div class="sc-menu-list sc-sub-list" role="menu" hidden>
+                <button role="menuitem" data-action="distributeH">
+                  <i data-icon="grip-lines-vertical"></i><span>Horizontally</span>
+                </button>
+                <button role="menuitem" data-action="distributeV">
+                  <i data-icon="grip-lines"></i><span>Vertically</span>
+                </button>
+              </div>
+            </div>
+            <hr />
             <button role="menuitem" data-action="lockPosition">
               <i data-icon="up-down-left-right"></i><span>Lock Position</span>
             </button>
@@ -211,18 +292,21 @@
             <button role="menuitem" data-action="unlockLayers">
               <i data-icon="lock-open"></i><span>Unlock</span>
             </button>
-            <hr />
-            <button role="menuitem" data-action="front">
-              <i data-icon="angles-up"></i><span>Bring to Front</span><kbd>Ctrl+Shift+]</kbd>
+          </div>
+        </div>
+        <div class="sc-menu">
+          <button class="sc-menu-btn" role="menuitem" aria-haspopup="menu" aria-expanded="false">
+            Object
+          </button>
+          <div class="sc-menu-list" role="menu" hidden>
+            <button role="menuitem" data-action="makeSymbol">
+              <i data-icon="clover"></i><span>Make Symbol…</span>
             </button>
-            <button role="menuitem" data-action="forward">
-              <i data-icon="arrow-up"></i><span>Bring Forward</span><kbd>Ctrl+]</kbd>
+            <button role="menuitem" data-action="editSymbol">
+              <i data-icon="pen"></i><span>Edit Symbol</span>
             </button>
-            <button role="menuitem" data-action="backward">
-              <i data-icon="arrow-down"></i><span>Send Backward</span><kbd>Ctrl+[</kbd>
-            </button>
-            <button role="menuitem" data-action="back">
-              <i data-icon="angles-down"></i><span>Send to Back</span><kbd>Ctrl+Shift+[</kbd>
+            <button role="menuitem" data-action="breakSymbolLink">
+              <i data-icon="link-slash"></i><span>Break Link to Symbol</span>
             </button>
             <hr />
             <div class="sc-submenu">
@@ -239,20 +323,6 @@
                 </button>
                 <button role="menuitem" data-action="fillRuleEvenodd">
                   <i></i><span>Even-Odd Fill Rule</span>
-                </button>
-              </div>
-            </div>
-            <div class="sc-submenu">
-              <button role="menuitem" class="sc-sub-btn" aria-haspopup="menu" aria-expanded="false">
-                <i data-icon="scissors"></i><span>Clipping Mask</span
-                ><i data-icon="chevron-right" class="sc-sub-caret"></i>
-              </button>
-              <div class="sc-menu-list sc-sub-list" role="menu" hidden>
-                <button role="menuitem" data-action="clipMake">
-                  <i data-icon="scissors"></i><span>Make</span><kbd>Ctrl+Alt+G</kbd>
-                </button>
-                <button role="menuitem" data-action="clipRelease">
-                  <i></i><span>Release</span><kbd>Ctrl+Alt+Shift+G</kbd>
                 </button>
               </div>
             </div>
@@ -276,32 +346,6 @@
                 </button>
               </div>
             </div>
-            <hr />
-            <span class="sc-menu-label">Align</span>
-            <button role="menuitem" data-action="alignLeft">
-              <i data-icon="align-left"></i><span>Left Edges</span>
-            </button>
-            <button role="menuitem" data-action="alignHCenter">
-              <i data-icon="align-center"></i><span>Horizontal Centres</span>
-            </button>
-            <button role="menuitem" data-action="alignRight">
-              <i data-icon="align-right"></i><span>Right Edges</span>
-            </button>
-            <button role="menuitem" data-action="alignTop">
-              <i data-icon="align-left" class="sc-rot90"></i><span>Top Edges</span>
-            </button>
-            <button role="menuitem" data-action="alignVCenter">
-              <i data-icon="align-center" class="sc-rot90"></i><span>Vertical Centres</span>
-            </button>
-            <button role="menuitem" data-action="alignBottom">
-              <i data-icon="align-right" class="sc-rot90"></i><span>Bottom Edges</span>
-            </button>
-            <button role="menuitem" data-action="distributeH">
-              <i data-icon="grip-lines-vertical"></i><span>Distribute Horizontally</span>
-            </button>
-            <button role="menuitem" data-action="distributeV">
-              <i data-icon="grip-lines"></i><span>Distribute Vertically</span>
-            </button>
             <hr />
             <button role="menuitem" data-action="flipH">
               <i data-icon="left-right"></i><span>Flip Horizontal</span>
@@ -3909,6 +3953,7 @@
     <script src="src/outlines.js"></script>
     <script src="src/transform.js"></script>
     <script src="src/layer-style.js"></script>
+    <script src="src/layer-via.js"></script>
     <script src="src/import.js"></script>
     <script src="src/export.js"></script>
     <script src="src/file-info.js"></script>

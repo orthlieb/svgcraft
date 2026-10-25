@@ -75,7 +75,7 @@ await clickDoc(page, 400, 200);
 await shot(page, 'workspace');
 
 // 2. Layer Style on the palette's drop shadow.
-await page.click('.sc-menu-btn:text-is("Object")');
+await page.click('.sc-menu-btn:text-is("Layer")');
 await page.click('.sc-menu-list:not([hidden]) [data-action="layerStyle"]');
 await page.click('#sc-fx [data-fx-page="ds"] button');
 await shot(page, 'layer-style');

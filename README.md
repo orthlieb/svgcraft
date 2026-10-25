@@ -23,7 +23,7 @@ slide in from the right (the sliders button).
 
 The layout follows Photoshop:
 
-- **Menu bar**: File, Edit, Image, Object, Type, Select, View and Help menus. Click to open, hover to
+- **Menu bar**: File, Edit, Image, Layer, Object, Type, Select, View and Help menus, in Photoshop's order. Layer holds what works on whole layers (New, Duplicate, Layer Style, Clipping Mask, Group, Arrange, Align, Lock); Object holds symbols and what works on shapes (Path, Combine Shapes, Flip). Click to open, hover to
   switch between them, and use the arrow keys to move around. As in
   Photoshop, an item or button that can't run on the current selection is
   greyed out: Crop to Selection needs a selection, a clipping mask, Combine
@@ -258,8 +258,8 @@ stroke="currentColor"` (common in icon sets) is pushed down so it
   - Browsers reserve Ctrl+T and Ctrl+Shift+T for tabs, so these shortcuts
     use Alt. Distort, Perspective and Warp aren't included, because SVG
     transforms can only express straight-line (affine) changes.
-- **Align / distribute**: from the Move tool's options bar or Object →
-  Align. Align left, centre or right edges, or top, middle or bottom, to
+- **Align / distribute**: from the Move tool's options bar or Layer →
+  Align / Distribute. Align left, centre or right edges, or top, middle or bottom, to
   the selection's bounds. With one object selected, it aligns to the
   artboard instead, as in Photoshop. Distribute spaces three or more
   objects with equal gaps and leaves the outermost two where they are.
@@ -558,7 +558,17 @@ The Layers panel works like Photoshop's:
 - **Grouping**: Ctrl+G, or the folder button at the bottom of the panel,
   puts the selected layers in a new group (Group 1, Group 2 …) where the
   frontmost one was. With nothing selected, it adds an empty group.
-  Object → Ungroup dissolves a group again.
+  Layer → Ungroup Layers dissolves a group again.
+- **Layer via Copy / Cut** (Layer → New, Ctrl+J / Alt+Shift+J), as in
+  Photoshop, put the selected part of a layer on a new layer above it.
+  With layers selected, Layer via Copy copies them in place (Duplicate
+  Layer offsets its copy by 10 px so it shows) and Layer via Cut lifts
+  shapes picked inside a group (Auto-Select: Layer) out onto layers of
+  their own, just above the group and looking the same. With points
+  picked in Edit Points, the segments between them go to a new path drawn
+  like the original: Copy leaves the original whole, Cut takes them out
+  and the original splits where they were. The new layer is selected with
+  the Move tool.
 - **Reordering**: drag a row. Dropping on the top half of a row puts the
   layer in front of it, and the bottom half puts it behind. The middle of a
   folder drops it inside, and the empty space at the bottom of the list
@@ -586,8 +596,8 @@ The Layers panel works like Photoshop's:
   styles, blend mode, point and text edits, deleting and erasing. Locked
   layers can still be selected, and a lock on a group covers everything in
   it. A padlock on the row shows the lock; click it to unlock. The same
-  commands are in Object → Lock Position / Lock All / Unlock.
-- **Layer Style (fx)**: the fx button at the bottom of the panel, Object →
+  commands are in Layer → Lock Position / Lock All / Unlock.
+- **Layer Style (fx)**: the fx button at the bottom of the panel, Layer →
   Layer Style…, or double-clicking a layer's fx badge opens Photoshop's
   Layer Style dialog. Effects are listed down the left: tick one to turn it
   on, or click its name to turn it on and edit it. The canvas previews the
@@ -603,7 +613,7 @@ The Layers panel works like Photoshop's:
   - Angles, distances and sizes are in document pixels, as in Photoshop,
     so a rotated or scaled layer still casts its shadow the same way.
     Each layer gets its own SVG `<filter>`, which follows the layer as it
-    changes and is exported with it. Object → Clear Layer Style removes
+    changes and is exported with it. Layer → Clear Layer Style removes
     the effects.
 - **Everything works at any depth.** Move, scale, rotate, flip, nudge,
   align, distribute, duplicate, copy, colours, the eraser and point editing
@@ -638,7 +648,7 @@ combine shapes.
 
 ## Clipping masks
 
-Object → Clipping Mask → Make (Ctrl+Alt+G), or the scissors button at the bottom
+Layer → Clipping Mask → Make (Ctrl+Alt+G), or the scissors button at the bottom
 of the Layers panel, clips the selected layers to the topmost of them, as
 Illustrator does. The topmost selected layer is the clipping path, and it
 has to be a single shape or a text layer; anything else (a group, an
@@ -655,7 +665,7 @@ art stays put. Moving the whole group moves both together. Drop another
 layer into the group to clip it too. Deleting the clipping path, or
 dragging it out of the group, ends the clip.
 
-Object → Clipping Mask → Release (Ctrl+Alt+Shift+G), with the group or any layer
+Layer → Clipping Mask → Release (Ctrl+Alt+Shift+G), with the group or any layer
 in it selected, turns the clip off: the clipping path shows again with its
 own fill and stroke, and the layers stay grouped. Duplicated clipping
 groups clip on their own. Locked layers can't be clipped, and a locked
@@ -916,7 +926,7 @@ else is refused with a note under the fields.
 | [ ]                       | Stroke width down / up                             |
 | Ctrl+Z / Ctrl+Shift+Z     | Undo / redo (Ctrl+Y redoes too)                    |
 | Ctrl+C / X / V            | Copy / cut / paste (as SVG)                        |
-| Ctrl+J                    | Duplicate                                          |
+| Ctrl+J · Alt+Shift+J      | Layer via Copy · Layer via Cut                     |
 | Ctrl+A · Ctrl+D           | Select all · deselect                              |
 | Shift+F7                  | Select inverse                                     |
 | Alt+T · Alt+Shift+T       | Free Transform · Transform Again                   |
@@ -938,7 +948,8 @@ else is refused with a note under the fields.
 | Alt+↑ · Alt+↓             | Move the animation up · down the list              |
 
 The keys follow Photoshop's. A browser keeps a few for itself, so those
-differ: Free Transform is Alt+T (Ctrl+T opens a tab), Select Inverse is
+differ: Free Transform is Alt+T (Ctrl+T opens a tab), Layer via Cut is
+Alt+Shift+J (Ctrl+Shift+J opens the console in Chrome and Firefox), Select Inverse is
 Shift+F7 (Ctrl+Shift+I opens the developer tools in some browsers), and
 New is in the File menu (Ctrl+N opens a window). On a Mac, Cmd+Opt+I may
 open the developer tools instead of Image Size. Tab hides the panels only

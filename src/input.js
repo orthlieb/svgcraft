@@ -221,6 +221,14 @@ window.addEventListener('keydown', (e) => {
     endTransform(e.key === 'Enter');
     return;
   }
+  // Layer via Cut: Photoshop's Ctrl+Shift+J opens the browser's console in
+  // Chrome and Firefox, so Alt+Shift+J stands in (Ctrl+Shift+J still works
+  // where it reaches the page).
+  if (e.altKey && e.shiftKey && !mod && e.code === 'KeyJ') {
+    e.preventDefault();
+    ifAllowed('layerViaCut');
+    return;
+  }
   // Browsers keep Ctrl+T / Ctrl+Shift+T for tabs, so Alt stands in.
   if (e.altKey && e.code === 'KeyT') {
     e.preventDefault();
@@ -272,7 +280,7 @@ window.addEventListener('keydown', (e) => {
       s: exportSvg,
       o: () => (e.shiftKey ? ifAllowed('createOutlines', createOutlines) : openPicker('open')),
       u: toggleSource,
-      j: () => ifAllowed('duplicate', cmds.duplicate),
+      j: () => ifAllowed(e.shiftKey ? 'layerViaCut' : 'layerViaCopy'),
       d: () => setSel([]),
       a: cmds.selectAll,
       ...(e.shiftKey && { i: cmds.invertSelection }),

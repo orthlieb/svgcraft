@@ -6,6 +6,8 @@
 const actions = {
   ...cmds,
   definePattern,
+  layerViaCopy,
+  layerViaCut,
   makeSymbol,
   editSymbol,
   breakSymbolLink,
@@ -117,6 +119,8 @@ const actionRules = {
   deselect: anySel,
   delete: anySel,
   duplicate: anySel,
+  layerViaCopy: () => anySel() || !!pickedPart(),
+  layerViaCut: () => !!pickedPart() || liftable().length > 0,
   cropToSelection: anySel,
   cropToDrawing: () => items().length > 0,
   selectAll: () => items().length > 0,
