@@ -181,7 +181,10 @@ stroke="currentColor"` (common in icon sets) is pushed down so it
     New Icon. **Open**
     puts a file in a tab of its own, reusing an untouched Untitled tab.
     **Close** (the tab's ✕, a middle-click, or File → Close) asks first
-    if the drawing has unsaved changes.
+    if the drawing has unsaved changes. Closing the last tab leaves a
+    blank workspace, as in Photoshop: only New, Open (or dropping a file
+    on it) and the view settings work until a drawing is open, and it
+    stays blank after a reload.
   - Each tab keeps its own drawing, undo history and zoom.
   - A `*` after the name means the drawing differs from the version last
     opened or saved. **Save as SVG** (Ctrl+S) downloads it and clears the

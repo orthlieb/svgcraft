@@ -120,6 +120,11 @@ function cropTo(box, what) {
 
 // Document tab ("name.svg @ 100%") and the status-bar zoom / size readouts.
 function updateTitle() {
+  if (!curDoc) {
+    document.title = 'SVGCraft';
+    $('#sc-docsize').textContent = '';
+    return;
+  }
   const pct = Math.round(state.zoom * 1000) / 10;
   const t = $('#sc-doc-title');
   if (t)

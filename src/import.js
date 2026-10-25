@@ -398,9 +398,14 @@ function placeImage(dataUrl) {
 
 function importFile(file, mode) {
   if (!file) return;
+  // With nothing open, any file opens as a drawing of its own.
+  if (!curDoc) mode = 'open';
   const r = new FileReader();
   if (file.type.startsWith('image/') && file.type !== 'image/svg+xml') {
-    r.onload = () => placeImage(r.result);
+    r.onload = () => {
+      if (!curDoc) newDoc({ name: file.name.replace(/\.[^.]+$/, '') || nextUntitled() });
+      placeImage(r.result);
+    };
     r.readAsDataURL(file);
     return;
   }

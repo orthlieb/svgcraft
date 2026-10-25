@@ -2618,6 +2618,28 @@ select[data-stroke-dash],
 }
 
 /* Docked, the Icon Preview is a split pane to the right of the canvas. */
+/* Every tab closed: a blank workspace with New and Open. */
+.sc-nodoc {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--text-dim);
+}
+.sc-nodoc[hidden],
+body.sc-no-doc .sc-split,
+body.sc-no-doc .sc-status > * {
+  display: none;
+}
+.sc-nodoc p {
+  margin: 0;
+}
+.sc-nodoc-btns {
+  display: flex;
+  gap: 8px;
+}
 .sc-split {
   display: flex;
   flex: 1;

@@ -199,6 +199,14 @@ window.addEventListener('keydown', (e) => {
   );
   if (typing || e.target.isContentEditable) return;
   const mod = e.ctrlKey || e.metaKey;
+  // Nothing open: only Open (Ctrl+O) means anything.
+  if (!curDoc) {
+    if (mod && e.key.toLowerCase() === 'o' && !e.shiftKey) {
+      e.preventDefault();
+      openPicker('open');
+    }
+    return;
+  }
   const k = e.key.toLowerCase();
   if (e.key === ' ') {
     if (!spaceDown) {
@@ -370,7 +378,9 @@ document.addEventListener('paste', (e) => {
   if (/<svg[\s>]/i.test(text)) {
     e.preventDefault();
     try {
-      placeSvg(text.slice(text.search(/<svg[\s>]/i)));
+      const svg = text.slice(text.search(/<svg[\s>]/i));
+      if (!curDoc) openDoc(svg, `${nextUntitled()}.svg`);
+      else placeSvg(svg);
     } catch (err) {
       say(err.message);
     }

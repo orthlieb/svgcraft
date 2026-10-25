@@ -1238,6 +1238,14 @@
       <div class="sc-workspace">
         <div class="sc-doctabs" id="sc-doctabs" role="tablist" aria-label="Open documents"></div>
         <!-- The canvas, and the Icon Preview when it's docked beside it. -->
+        <div class="sc-nodoc" id="sc-nodoc" hidden>
+          <p>No document open</p>
+          <div class="sc-nodoc-btns">
+            <button class="sc-tbtn sc-primary-btn" data-action="new">New…</button>
+            <button class="sc-tbtn" data-action="open">Open…</button>
+          </div>
+          <p class="sc-hint">or drop an SVG or image here</p>
+        </div>
         <div class="sc-split" id="sc-split">
           <div class="sc-stage-wrap" id="sc-stage-wrap">
             <div class="sc-ruler-corner" aria-hidden="true"></div>

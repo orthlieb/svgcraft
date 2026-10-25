@@ -99,6 +99,7 @@ function renderTabs() {
   add.dataset.tip = 'New document';
   add.addEventListener('click', () => openNewDoc());
   bar.append(add);
+  syncNoDoc();
   updateTitle();
 }
 
@@ -249,7 +250,35 @@ async function closeDoc(d) {
   }
   curDoc = null;
   if (docs.length) showDoc(docs[Math.min(i, docs.length - 1)]);
-  else newDoc();
+  else showNoDoc();
+}
+
+// Every tab closed: a blank workspace until File → New or Open (or a file
+// dropped on it). The drawing underneath is emptied and nothing edits it:
+// the panels, toolbar and options bar go inert and the commands grey out.
+function showNoDoc() {
+  tools[state.tool].leave?.();
+  dropIso();
+  curDoc = null;
+  doc.replaceChildren();
+  defs.replaceChildren();
+  state.sel = [];
+  state.guides = [];
+  state.meta = {};
+  hist.length = 0;
+  hIdx = -1;
+  renderGuides();
+  afterChange();
+  saveDocs();
+}
+function syncNoDoc() {
+  const none = !curDoc;
+  document.body.classList.toggle('sc-no-doc', none);
+  for (const el of document.querySelectorAll(
+    '#sc-panel > .sc-pgroup, .sc-dock-strip, .sc-options, .sc-tools, #sc-split',
+  ))
+    el.inert = none;
+  $('#sc-nodoc').hidden = !none;
 }
 
 // Save marks the drawing as saved: the * goes until it changes again.
@@ -278,6 +307,13 @@ async function loadDocs() {
     } catch {
       /* nothing from the old autosave */
     }
+  }
+  if (!list.length && Array.isArray(data?.docs) && curDoc && !dirty(curDoc) && !items().length) {
+    // Closed everything last time: blank again.
+    docs.length = 0;
+    docsLoaded = true;
+    showNoDoc();
+    return;
   }
   if (list.length) {
     const fresh = curDoc && !dirty(curDoc) && !items().length;

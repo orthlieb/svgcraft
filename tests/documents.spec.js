@@ -192,7 +192,7 @@ test('closing a changed tab asks first; Cancel keeps it, Close drops it', async 
   expect(await tabNames(page)).toEqual(['Untitled-2.svg']);
 });
 
-test('closing a clean tab needs no confirmation; the last one leaves a fresh tab', async ({
+test('closing a clean tab needs no confirmation; the last one leaves a blank workspace', async ({
   page,
 }) => {
   await openFile(page, 'a.svg', '<rect width="50" height="50"/>');
@@ -202,8 +202,69 @@ test('closing a clean tab needs no confirmation; the last one leaves a fresh tab
   await expect(page.locator('#sc-ask')).toBeHidden();
   // Middle-click closes too.
   await tabs(page).first().click({ button: 'middle' });
-  expect(await tabNames(page)).toEqual(['Untitled-1.svg']);
+  await expect(tabs(page)).toHaveCount(0);
   expect(await shapes(page)).toBe(0);
+  await expect(page.locator('#sc-nodoc')).toBeVisible();
+});
+
+test('with every tab closed, only New and Open work until one is made', async ({ page }) => {
+  await load(page, '<rect id="r" width="50" height="50"/>');
+  await page.evaluate(() => window.svgcraft.markSaved?.());
+  await tabs(page).first().locator('.sc-doctab-x').click();
+  const ask = page.locator('#sc-ask');
+  if (await ask.isVisible()) await ask.locator('button', { hasText: 'Close' }).click();
+  await expect(tabs(page)).toHaveCount(0);
+  await expect(page.locator('#sc-nodoc')).toBeVisible();
+  await expect(page.locator('#sc-stage')).toBeHidden();
+  await expect(page).toHaveTitle('SVGCraft');
+  await expect(page.locator('#sc-docsize')).toHaveText('');
+
+  // The menus: New / Open on, everything that needs a drawing off.
+  const item = (act) => page.locator(`.sc-menu-list:not([hidden]) [data-action="${act}"]`);
+  await page.click('.sc-menu-btn:text-is("File")');
+  await expect(item('new')).toBeEnabled();
+  await expect(item('open')).toBeEnabled();
+  await expect(item('exportSvg')).toBeDisabled();
+  await expect(item('closeDoc')).toBeDisabled();
+  await page.keyboard.press('Escape');
+  await page.click('.sc-menu-btn:text-is("Edit")');
+  await expect(item('undo')).toBeDisabled();
+  await page.keyboard.press('Escape');
+  // Panels and tools can't be used, and shortcuts do nothing.
+  expect(await page.evaluate(() => document.querySelector('#sc-panel > .sc-pgroup').inert)).toBe(
+    true,
+  );
+  await page.keyboard.press('Control+a');
+  await page.keyboard.press('r');
+  expect(await page.evaluate(() => window.svgcraft.state.sel.length)).toBe(0);
+
+  // Still blank after a reload.
+  await page.reload();
+  await page.evaluate(() => window.svgcraft.ready);
+  await expect(page.locator('#sc-nodoc')).toBeVisible();
+  await expect(tabs(page)).toHaveCount(0);
+
+  // New… makes a drawing and everything comes back.
+  await page.click('#sc-nodoc [data-action="new"]');
+  await expect(page.locator('#sc-newdoc')).toBeVisible();
+  await page.keyboard.press('Enter');
+  expect(await tabNames(page)).toEqual(['Untitled-1.svg']);
+  await expect(page.locator('#sc-nodoc')).toBeHidden();
+  await expect(page.locator('#sc-stage')).toBeVisible();
+  expect(await page.evaluate(() => document.querySelector('#sc-panel > .sc-pgroup').inert)).toBe(
+    false,
+  );
+  await page.click('.sc-menu-btn:text-is("File")');
+  await expect(item('exportSvg')).toBeEnabled();
+  await expect(item('closeDoc')).toBeEnabled();
+  await page.keyboard.press('Escape');
+
+  // Opening a file from the blank workspace gives it a tab of its own.
+  await tabs(page).first().locator('.sc-doctab-x').click();
+  await expect(page.locator('#sc-nodoc')).toBeVisible();
+  await openFile(page, 'c.svg', '<circle cx="50" cy="50" r="20"/>');
+  expect(await tabNames(page)).toEqual(['c.svg']);
+  await expect(page.locator('#sc-doc circle')).toHaveCount(1);
 });
 
 test('a drawing autosaved by the previous version is brought over', async ({ page }) => {

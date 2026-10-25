@@ -216,19 +216,40 @@ const actionRules = {
 };
 // Run an action (or `run`) only when its rule allows it: a shortcut for a
 // greyed-out item does nothing, as in Photoshop.
-const actionAllowed = (name) => !actionRules[name] || actionRules[name]();
+// With nothing open, only these work.
+const NO_DOC_ACTIONS = new Set([
+  'new',
+  'newIcon',
+  'open',
+  'about',
+  'aboutFeatures',
+  'aboutShortcuts',
+  'themeSystem',
+  'themeDark',
+  'themeLight',
+  'toggleTheme',
+  'togglePanels',
+  'toggleDock',
+]);
+const actionAllowed = (name) =>
+  curDoc ? !actionRules[name] || actionRules[name]() : NO_DOC_ACTIONS.has(name);
 function ifAllowed(name, run = actions[name]) {
   if (actionAllowed(name)) run();
 }
 function syncActions() {
   for (const b of document.querySelectorAll('button[data-action]')) {
-    if (actionRules[b.dataset.action]) b.disabled = !actionAllowed(b.dataset.action);
+    // Ruled actions, and with nothing open every action (marked, so they
+    // come back when a drawing opens).
+    if (actionRules[b.dataset.action] || !curDoc || b.dataset.noDoc)
+      b.disabled = !actionAllowed(b.dataset.action);
+    if (curDoc) delete b.dataset.noDoc;
+    else b.dataset.noDoc = '1';
   }
 }
 
 document.addEventListener('click', (e) => {
   const a = e.target.closest?.('[data-action]');
-  if (!a || a.disabled) return;
+  if (!a || a.disabled || !actionAllowed(a.dataset.action)) return;
   closeMenus();
   actions[a.dataset.action]?.();
 });
