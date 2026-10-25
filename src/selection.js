@@ -172,7 +172,11 @@ function layerName(el) {
 // A small live preview of one layer, framed on its own bounding box.
 function layerThumb(el) {
   const t = mk('svg', { class: 'sc-thumb', 'aria-hidden': 'true' });
+  // A hidden layer has no size to frame it by, so everything shows for
+  // the moment it's measured (style.css; nothing is drawn in between).
+  doc.setAttribute('data-sc-thumbs', '');
   const b = bboxDoc(el, getM(el));
+  doc.removeAttribute('data-sc-thumbs');
   if (!b) return t;
   const pad = Math.max(b.w, b.h) * 0.08 + 1;
   t.setAttribute('viewBox', [b.x - pad, b.y - pad, b.w + 2 * pad, b.h + 2 * pad].map(f).join(' '));
@@ -182,8 +186,45 @@ function layerThumb(el) {
   // A clipping shape is hidden on the canvas, but its row shows it.
   if (el.hasAttribute('data-sc-clipper')) c.removeAttribute('visibility');
   for (const n of [c, ...c.querySelectorAll('[id]')]) n.removeAttribute('id');
+  // Shown or hidden in the phone preview: the preview shows it either way.
+  for (const n of [c, ...c.querySelectorAll('[data-sc-peek]')]) n.removeAttribute('data-sc-peek');
   t.append(c);
   return t;
+}
+
+// Layer previews are drawn after their rows: the list appears at once with
+// blank previews, which fill in as they scroll into view and, a few at a
+// time while the browser is idle, the rest. Rebuilding the list (after an
+// edit, say) drops what was still to draw.
+function pendingThumb(el) {
+  const t = mk('svg', { class: 'sc-thumb', 'aria-hidden': 'true' });
+  t.layerEl = el;
+  return t;
+}
+const idle =
+  window.requestIdleCallback || ((fn) => setTimeout(() => fn({ timeRemaining: () => 8 }), 16));
+function fillThumbs(list) {
+  const job = (list.thumbJob = (list.thumbJob || 0) + 1);
+  const left = new Set([...list.querySelectorAll('.sc-thumb')].filter((t) => t.layerEl));
+  const draw = (t) => {
+    if (!left.delete(t) || !t.isConnected || !t.layerEl.isConnected) return;
+    t.replaceWith(layerThumb(t.layerEl));
+  };
+  const seen = new IntersectionObserver((entries) => {
+    if (list.thumbJob !== job) return seen.disconnect();
+    for (const e of entries) if (e.isIntersecting) draw(e.target);
+  });
+  for (const t of left) seen.observe(t);
+  const step = (deadline) => {
+    if (list.thumbJob !== job) return seen.disconnect();
+    for (const t of left) {
+      if (deadline.timeRemaining() < 2) break;
+      draw(t);
+    }
+    if (left.size) idle(step);
+    else seen.disconnect();
+  };
+  idle(step);
 }
 
 // Groups the user folded in the Layers panel, keyed by tree path.
@@ -205,15 +246,16 @@ function renderLayers() {
     for (const el of [...parent.children].filter(selectable).reverse()) {
       if (rows++ >= 500) return;
       const open = el.localName === 'g' && !folded.has(treePath(el).join('/'));
-      ol.append(layerRow(el, depth, open, rows));
+      ol.append(layerRow(el, depth, open));
       if (open) walk(el, depth + 1);
     }
   };
   walk(doc, 0);
+  fillThumbs(ol);
   syncLayerHead();
 }
 
-function layerRow(el, depth, open, n) {
+function layerRow(el, depth, open) {
   const li = document.createElement('li');
   const hidden = el.getAttribute('display') === 'none';
   const isGroup = el.localName === 'g';
@@ -253,7 +295,7 @@ function layerRow(el, depth, open, n) {
     thumb = document.createElement('span');
     thumb.className = 'sc-thumb sc-folder';
     thumb.innerHTML = `<i data-icon="${open ? 'folder-open' : 'folder'}">${icon(open ? 'folder-open' : 'folder')}</i>`;
-  } else thumb = n <= 150 ? layerThumb(el) : mk('svg', { class: 'sc-thumb' });
+  } else thumb = pendingThumb(el);
 
   const name = document.createElement('span');
   name.className = 'sc-layer-name';

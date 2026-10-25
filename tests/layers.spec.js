@@ -260,3 +260,34 @@ test('copying a nested layer keeps its inherited paint and composed transform', 
   expect(svg).toMatch(/fill="none"/);
   expect(svg).toMatch(/transform="matrix/);
 });
+
+test('previews fill in after the rows, every one of them, hidden layers too', async ({ page }) => {
+  const rects = Array.from(
+    { length: 300 },
+    (_, i) => `<rect x="${(i % 20) * 10}" y="${Math.floor(i / 20) * 10}" width="8" height="8"/>`,
+  ).join('');
+  await page.evaluate(
+    (body) =>
+      window.svgcraft.openSvg(
+        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 150">${body}<circle id="off" cx="9" cy="9" r="5" display="none"/></svg>`,
+        'many.svg',
+      ),
+    rects,
+  );
+  const drawn = () =>
+    page.$$eval('#sc-layers .sc-thumb', (ts) => ts.filter((t) => t.children.length).length);
+  // The rows are there at once, with their previews still to come.
+  const atOnce = await page.evaluate(() => {
+    window.svgcraft.commit();
+    return {
+      rows: document.querySelectorAll('#sc-layers li').length,
+      drawn: [...document.querySelectorAll('#sc-layers .sc-thumb')].filter((t) => t.children.length)
+        .length,
+    };
+  });
+  expect(atOnce).toEqual({ rows: 301, drawn: 0 });
+  // Then all of them, past the 150 that used to be the limit.
+  await expect.poll(drawn, { timeout: 15000 }).toBe(301);
+  // The hidden circle's preview shows the circle.
+  await expect(page.locator('#sc-layers li.hidden .sc-thumb circle')).toHaveCount(1);
+});

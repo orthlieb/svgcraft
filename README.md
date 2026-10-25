@@ -577,7 +577,10 @@ The Layers panel works like Photoshop's:
 - **One row per layer.** Every shape is a layer, including the shapes
   inside a group. Groups show as folders you can expand or collapse, and
   each level is indented. An imported SVG arrives as a folder named after
-  the file, with one layer per shape inside it.
+  the file, with one layer per shape inside it. Each shape's row has a
+  preview, hidden layers' too; previews are drawn just after the list, the
+  rows in view first and the rest while the browser is idle, so a long
+  list appears at once.
 - **Selecting**: click a row to select it, Ctrl/⌘-click to add or remove
   it, and Shift-click to select a run of rows. A group and a layer inside
   it are never selected together.
