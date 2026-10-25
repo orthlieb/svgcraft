@@ -12,10 +12,24 @@ function peekShown(el) {
   const p = el.getAttribute('data-sc-peek');
   return p ? p === 'show' : el.getAttribute('display') !== 'none';
 }
+// The layers the list shows: each level's, and inside groups.
+const peekable = (parent) =>
+  [...parent.children]
+    .filter(selectable)
+    .flatMap((el) => [el, ...(el.localName === 'g' ? peekable(el) : [])]);
+function setPeek(el, show) {
+  // Back to how the file has it: no mark needed.
+  if (show === (el.getAttribute('display') !== 'none')) el.removeAttribute('data-sc-peek');
+  else el.setAttribute('data-sc-peek', show ? 'show' : 'hide');
+}
+// The list is rebuilt after every tap, at the same scroll position (a jump
+// back to the top put the next tap on a different layer). A layer inside a
+// hidden group is dimmed: it can't show until the group does.
 function renderPeek() {
   const ul = $('#sc-peek-list');
+  const scroll = ul.scrollTop;
   ul.replaceChildren();
-  const walk = (parent, depth) => {
+  const walk = (parent, depth, under) => {
     for (const el of [...parent.children].filter(selectable).reverse()) {
       const li = document.createElement('li');
       li.style.paddingLeft = `${8 + depth * 16}px`;
@@ -26,21 +40,20 @@ function renderPeek() {
       b.setAttribute('aria-pressed', shown);
       b.setAttribute('aria-label', `${shown ? 'Hide' : 'Show'} ${layerName(el)}`);
       b.addEventListener('click', () => {
-        const show = !peekShown(el);
-        // Back to how the file has it: no mark needed.
-        if (show === (el.getAttribute('display') !== 'none')) el.removeAttribute('data-sc-peek');
-        else el.setAttribute('data-sc-peek', show ? 'show' : 'hide');
+        setPeek(el, !peekShown(el));
         renderPeek();
       });
       const name = document.createElement('span');
       name.textContent = layerName(el);
       li.classList.toggle('off', !shown);
+      li.classList.toggle('under', under);
       li.append(b, name);
       ul.append(li);
-      if (el.localName === 'g') walk(el, depth + 1);
+      if (el.localName === 'g') walk(el, depth + 1, under || !shown);
     }
   };
-  walk(doc, 0);
+  walk(doc, 0, false);
+  ul.scrollTop = scroll;
   if (!ul.children.length) {
     const li = document.createElement('li');
     li.className = 'sc-hint';
@@ -56,12 +69,15 @@ function peekLayers() {
 function clearPeeks() {
   for (const el of doc.querySelectorAll('[data-sc-peek]')) el.removeAttribute('data-sc-peek');
 }
-peekDlg.querySelector('[data-peek="all"]').addEventListener('click', () => {
-  clearPeeks();
-  for (const el of doc.querySelectorAll('[display="none"]'))
-    if (selectable(el)) el.setAttribute('data-sc-peek', 'show');
-  renderPeek();
-});
+// Show all (including what the file hides) or hide all, every level.
+for (const [what, show] of [
+  ['all', true],
+  ['none', false],
+])
+  peekDlg.querySelector(`[data-peek="${what}"]`).addEventListener('click', () => {
+    for (const el of peekable(doc)) setPeek(el, show);
+    renderPeek();
+  });
 peekDlg.querySelector('[data-peek="close"]').addEventListener('click', () => hideDialog(peekDlg));
 
 // ---- the backdrop behind the artwork: checkerboard, white or black ---------

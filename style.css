@@ -1675,6 +1675,10 @@ button.sc-fx-item.sel {
 .sc-peek-list li.off span {
   color: var(--text-dim);
 }
+/* Inside a hidden group: can't show until the group does. */
+.sc-peek-list li.under {
+  opacity: 0.45;
+}
 .sc-peek-eye {
   display: grid;
   place-items: center;

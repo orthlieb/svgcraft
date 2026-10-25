@@ -27,7 +27,8 @@ The phone toolbar also has:
 - **Layers**: the layer list with an eye on each, to show and hide layers
   while you look. Only the preview changes: nothing is saved, and switching
   tab or moving to a bigger screen shows the drawing as it is again.
-  **Show all** includes layers the file itself hides.
+  **Hide all** / **Show all** do every layer (Show all includes ones the
+  file itself hides); layers inside a hidden group are dimmed.
 - **Background**: the artwork on the checkerboard, white or black
   (remembered).
 - **Share**: the phone's share sheet with the SVG and a PNG of it

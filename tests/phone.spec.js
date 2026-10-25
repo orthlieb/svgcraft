@@ -132,6 +132,45 @@ test.describe('phone, portrait', () => {
     await expect(page.locator('#off')).toBeHidden();
   });
 
+  test('Layers: a long list stays put while you tap down it; Hide all, Show all', async ({
+    page,
+  }) => {
+    const rects = Array.from(
+      { length: 20 },
+      (_, i) => `<rect id="r${i}" x="${i * 10}" y="0" width="8" height="8"/>`,
+    ).join('');
+    await load(page, `<g id="g">${rects}</g>`, 300, 200);
+    await bar(page, 'peekLayers').click();
+    const list = page.locator('#sc-peek-list');
+    await list.evaluate((ul) => (ul.scrollTop = ul.scrollHeight));
+    const scrolled = await list.evaluate((ul) => ul.scrollTop);
+    expect(scrolled).toBeGreaterThan(100);
+    // Tap the same spot twice, as a finger would, without scrolling.
+    const last = await page
+      .locator('#sc-peek-list li')
+      .last()
+      .locator('.sc-peek-eye')
+      .boundingBox();
+    const tapAt = () => page.touchscreen.tap(last.x + last.width / 2, last.y + last.height / 2);
+    await tapAt();
+    expect(await list.evaluate((ul) => ul.scrollTop)).toBe(scrolled);
+    await expect(page.locator('#r0')).toBeHidden();
+    await tapAt();
+    await expect(page.locator('#r0')).toBeVisible();
+
+    // Hiding the group dims what's in it.
+    await list.evaluate((ul) => (ul.scrollTop = 0));
+    await page.locator('#sc-peek-list li').first().locator('.sc-peek-eye').click();
+    await expect(page.locator('#sc-peek-list li.under')).toHaveCount(20);
+
+    await page.click('[data-peek="none"]');
+    await expect(page.locator('#sc-peek-list li.off')).toHaveCount(21);
+    for (const id of ['g', 'r5']) await expect(page.locator(`#${id}`)).toBeHidden();
+    await page.click('[data-peek="all"]');
+    await expect(page.locator('#sc-peek-list li.off')).toHaveCount(0);
+    await expect(page.locator('#r5')).toBeVisible();
+  });
+
   test('Background cycles checkerboard, white and black, and is remembered', async ({ page }) => {
     const fill = () =>
       page.evaluate(() => getComputedStyle(document.getElementById('sc-board-bg')).fill);
