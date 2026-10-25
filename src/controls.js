@@ -401,6 +401,7 @@ function setCollapsed(group, on, save = true) {
 // with its group unfolded.
 function showTab(name) {
   const t = $(`[data-tab="${name}"]`);
+  if (document.body.classList.contains('sc-dock-icons')) return openFlyout(t);
   t.click();
   setCollapsed(t.closest('.sc-pgroup'), false);
 }
@@ -418,7 +419,7 @@ pgroups.forEach((group, i) => {
   b.addEventListener('click', () => setCollapsed(group, !group.classList.contains('collapsed')));
   bar.append(b);
   bar.addEventListener('dblclick', (e) => {
-    if (e.target.closest('.sc-pcollapse')) return;
+    if (e.target.closest('.sc-pcollapse') || group.classList.contains('sc-popout')) return;
     setCollapsed(group, !group.classList.contains('collapsed'));
   });
   // A tab you click opens a folded group; the editor switching tabs on its
@@ -429,6 +430,98 @@ pgroups.forEach((group, i) => {
     });
   setCollapsed(group, savedPanels[i] === true, false);
 });
+
+// The » button: the panels shrink to a strip of their icons, as in
+// Photoshop; an icon pops its panel out beside the strip, and a click
+// elsewhere or Esc puts it away. Desktop only (tablets have the drawer).
+const DOCK_KEY = 'svgcraft.dock';
+const dockStrip = $('.sc-dock-strip');
+const dockTabs = [
+  ...pgroups.flatMap((g) => [...g.querySelectorAll('[data-tab]')]),
+  pgroups.at(-1).querySelector('.sc-ptitle'),
+];
+let flyout = null;
+const dockIcons = () => document.body.classList.contains('sc-dock-icons');
+for (const t of dockTabs) {
+  const b = document.createElement('button');
+  b.className = 'sc-ibtn sc-dock-icon';
+  b.innerHTML = icon(t.querySelector('i').dataset.icon);
+  const name = t.textContent.trim();
+  b.dataset.tip = name;
+  b.setAttribute('aria-label', name);
+  b.setAttribute('aria-pressed', 'false');
+  b.dockTab = t;
+  b.addEventListener('click', () => (flyout?.tab === t ? closeFlyout() : openFlyout(t, b)));
+  t.dockIcon = b;
+  dockStrip.append(b);
+}
+function openFlyout(t, b = t.dockIcon) {
+  closeFlyout();
+  const group = t.closest('.sc-pgroup');
+  if (t.dataset.tab) t.click();
+  setCollapsed(group, false, false);
+  group.classList.add('sc-popout');
+  const r = b.getBoundingClientRect();
+  const panel = $('#sc-panel').getBoundingClientRect();
+  group.style.right = `${innerWidth - panel.left + 2}px`;
+  group.style.maxHeight = `${panel.height}px`;
+  group.style.top = `${Math.max(panel.top, Math.min(r.top, panel.bottom - group.offsetHeight))}px`;
+  b.setAttribute('aria-pressed', 'true');
+  flyout = { tab: t, group, icon: b };
+}
+function closeFlyout() {
+  if (!flyout) return;
+  const { group, icon: b } = flyout;
+  group.classList.remove('sc-popout');
+  group.style.right = group.style.top = group.style.maxHeight = '';
+  b.setAttribute('aria-pressed', 'false');
+  flyout = null;
+  // Back to how the user left it.
+  setCollapsed(group, savedCollapsed(group), false);
+}
+const savedCollapsed = (group) => {
+  try {
+    return JSON.parse(localStorage.getItem(PANELS_KEY) || '[]')[pgroups.indexOf(group)] === true;
+  } catch {
+    return false;
+  }
+};
+function setDockIcons(on, save = true) {
+  closeFlyout();
+  document.body.classList.toggle('sc-dock-icons', on);
+  const b = $('.sc-dock-toggle');
+  b.setAttribute('aria-expanded', !on);
+  b.dataset.tip = on ? 'Expand panels' : 'Collapse to icons';
+  b.setAttribute('aria-label', b.dataset.tip);
+  if (save)
+    try {
+      localStorage.setItem(DOCK_KEY, on ? 'icons' : '');
+    } catch {
+      /* storage blocked: for this visit only */
+    }
+  applyView();
+  drawRulers();
+}
+actions.toggleDock = () => setDockIcons(!dockIcons());
+document.addEventListener('pointerdown', (e) => {
+  if (flyout && !e.target.closest('.sc-popout, .sc-dock-strip, .sc-tip, dialog, .sc-menu-list'))
+    closeFlyout();
+});
+document.addEventListener(
+  'keydown',
+  (e) => {
+    if (e.key === 'Escape' && flyout && !document.querySelector('dialog[open]')) {
+      closeFlyout();
+      e.stopPropagation();
+    }
+  },
+  true,
+);
+try {
+  if (localStorage.getItem(DOCK_KEY) === 'icons') setDockIcons(true, false);
+} catch {
+  /* unreadable: panels open */
+}
 
 // Remaining controls ------------------------------------------------------
 const zoomInput = $('#sc-zoom-input');

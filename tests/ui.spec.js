@@ -234,3 +234,54 @@ test('panel groups collapse to their tabs, and stay that way', async ({ page }) 
   await expect(page.locator('#sc-layers')).toBeHidden();
   await expect(colour).not.toHaveClass(/collapsed/);
 });
+
+test('» collapses the panels to icons that pop each panel out', async ({ page }) => {
+  const panel = page.locator('#sc-panel');
+  const toggle = page.locator('.sc-dock-toggle');
+  const icon = (name) => page.locator(`.sc-dock-icon[data-tip="${name}"]`);
+  const popout = page.locator('#sc-panel > .sc-pgroup.sc-popout');
+  const props = page.locator('#sc-panel > .sc-pgroup').nth(1);
+  // Fold Properties first: a pop-out shows it open, and leaves it folded.
+  await props.locator('.sc-pcollapse').click();
+
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  expect((await panel.boundingBox()).width).toBeLessThan(50);
+  await expect(page.locator('#sc-panel > .sc-pgroup:visible')).toHaveCount(0);
+  await expect(page.locator('.sc-dock-icon')).toHaveCount(10);
+
+  // An icon pops its panel out, on that tab, left of the strip.
+  await icon('Swatches').click();
+  await expect(popout).toHaveCount(1);
+  await expect(page.locator('[data-pane="swatches"]')).toBeVisible();
+  await expect(icon('Swatches')).toHaveAttribute('aria-pressed', 'true');
+  const pb = await popout.boundingBox();
+  expect(pb.x + pb.width).toBeLessThanOrEqual((await panel.boundingBox()).x);
+  // The same icon again puts it away; another icon swaps it.
+  await icon('Swatches').click();
+  await expect(popout).toHaveCount(0);
+  await icon('Properties').click();
+  await expect(page.locator('[data-pane="props"]')).toBeVisible();
+  await expect(popout.locator('.sc-pcollapse')).toBeHidden();
+  // Esc, or a click elsewhere, puts it away.
+  await page.keyboard.press('Escape');
+  await expect(popout).toHaveCount(0);
+  await expect(props).toHaveClass(/collapsed/);
+  await icon('Layers').click();
+  await expect(page.locator('#sc-layers')).toBeVisible();
+  await page.mouse.click(400, 400);
+  await expect(popout).toHaveCount(0);
+
+  // A menu command that shows a panel pops it out.
+  await menu(page, 'Type', 'showCharacter');
+  await expect(page.locator('[data-pane="character"]')).toBeVisible();
+  await expect(icon('Character')).toHaveAttribute('aria-pressed', 'true');
+
+  // Remembered after a reload; « brings the panels back.
+  await page.reload();
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  await toggle.click();
+  await expect(page.locator('[data-pane="color"]')).toBeVisible();
+  expect((await panel.boundingBox()).width).toBeGreaterThan(250);
+  await expect(props).toHaveClass(/collapsed/);
+});

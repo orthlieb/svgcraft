@@ -44,7 +44,10 @@ The layout follows Photoshop:
   an icon; the open tab also shows its name, and hovering any tab names it.
   Double-click a group's tab bar, or click the chevron at its end, to fold
   it to just its tabs (Layers then gets the room); clicking a tab opens it
-  again. Folded groups stay folded on your next visit.
+  again. Folded groups stay folded on your next visit. The » button above
+  the panels shrinks the whole column to a strip of their icons, leaving
+  more room for the canvas; an icon pops its panel out beside the strip
+  (a click elsewhere or Esc puts it away), and « brings the panels back.
 - **Auto-Select** on the Move tool's options bar: **Group** makes a canvas
   click pick the whole top-level item. **Layer** picks the exact shape
   under the cursor, even deep inside groups.

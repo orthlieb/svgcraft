@@ -1832,7 +1832,7 @@ select[data-stroke-dash],
 }
 .sc-dash-custom {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(6, 1fr);
   gap: 4px;
   margin-top: 8px;
 }
@@ -2988,6 +2988,90 @@ select[data-stroke-dash],
 }
 .sc-shapeprops input[type='number'] {
   width: 56px;
+}
+
+/* The » bar above the panels, and the strip of icons they collapse to. */
+.sc-dock-head {
+  display: flex;
+  justify-content: flex-end;
+  flex: none;
+  background: var(--shell);
+}
+.sc-dock-toggle {
+  width: 26px;
+  height: 16px;
+  border-radius: 0;
+  color: var(--text-dim);
+}
+.sc-dock-toggle svg {
+  width: 9px;
+  height: 9px;
+  fill: currentColor;
+  transform: rotate(-90deg); /* » */
+}
+.sc-dock-strip {
+  display: none;
+}
+@media (min-width: 1024px) {
+  body.sc-dock-icons .sc-main {
+    grid-template-columns: 44px minmax(0, 1fr) 38px;
+  }
+  body.sc-dock-icons .sc-dock-toggle svg {
+    transform: rotate(90deg); /* « */
+  }
+  body.sc-dock-icons .sc-dock-strip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    flex: 1 1 auto;
+    padding: 4px 0;
+    background: var(--panel);
+  }
+  .sc-dock-icon {
+    width: 30px;
+    height: 28px;
+    color: var(--text-dim);
+  }
+  .sc-dock-icon svg {
+    width: 15px;
+    height: 15px;
+    fill: currentColor;
+  }
+  .sc-dock-icon[aria-pressed='true'] {
+    background: var(--row-sel);
+    color: var(--text);
+  }
+  /* Separate the groups' icons, as the groups are. */
+  .sc-dock-icon[data-tip='Properties'],
+  .sc-dock-icon[data-tip='Layers'] {
+    margin-top: 6px;
+  }
+  body.sc-dock-icons #sc-panel > .sc-pgroup:not(.sc-popout) {
+    display: none;
+  }
+  body.sc-dock-icons #sc-panel > .sc-pgroup.sc-popout {
+    position: fixed;
+    z-index: 40;
+    width: 272px;
+    max-height: calc(100dvh - 60px);
+    overflow-y: auto;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    box-shadow: 0 6px 20px var(--shadow);
+  }
+  body.sc-dock-icons #sc-panel > .sc-pgroup.sc-popout.sc-grow {
+    height: 520px;
+  }
+  /* A pop-out is open or put away from its icon, not folded. */
+  body.sc-dock-icons .sc-popout .sc-pcollapse {
+    display: none;
+  }
+}
+@media (max-width: 1023px) {
+  .sc-dock-head {
+    display: none;
+  }
 }
 
 /* Tab / Shift+Tab: the panels hidden, as in Photoshop. */
