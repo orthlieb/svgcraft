@@ -197,6 +197,7 @@ const NO_DOC_ACTIONS = new Set([
   'toggleTheme',
   'togglePanels',
   'toggleDock',
+  'installApp',
 ]);
 const actionAllowed = (name) =>
   curDoc ? !actionRules[name] || actionRules[name]() : NO_DOC_ACTIONS.has(name);
@@ -295,7 +296,7 @@ menus.forEach((m, mi) => {
     if (e.target.closest('.sc-sub-list')) return;
     const items = [
       ...list.querySelectorAll(
-        ':scope > button:not(:disabled), :scope > .sc-submenu > .sc-sub-btn',
+        ':scope > button:not(:disabled):not([hidden]), :scope > .sc-submenu > .sc-sub-btn',
       ),
     ];
     const at = items.indexOf(document.activeElement);

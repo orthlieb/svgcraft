@@ -41,6 +41,10 @@ export default [
     rules: { 'no-unused-vars': ['error', { vars: 'local' }] },
   })),
   {
+    files: ['sw.js'],
+    languageOptions: { sourceType: 'script', globals: globals.serviceworker },
+  },
+  {
     files: ['scripts/**/*.mjs', 'eslint.config.mjs'],
     languageOptions: { globals: globals.node },
   },

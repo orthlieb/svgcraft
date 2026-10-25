@@ -18,6 +18,9 @@ SVGCraft edits on tablets and larger screens. A phone (narrower than
 768 px, or a phone held sideways) gets a **preview** instead: open SVGs,
 switch between tabs, pan and pinch-zoom, Fit, and About. The editing tools,
 menus and panels are hidden, and nothing on a phone changes a drawing.
+On tablets in portrait, the toolbar moves to the bottom and the panels
+slide in from the right (the sliders button).
+
 The phone toolbar also has:
 
 - ▶ **Play** the drawing's animations (■ or a tap on it stops them).
@@ -33,8 +36,14 @@ The phone toolbar also has:
 Double-tap the canvas to zoom in on that spot (to 100%, or twice the fit
 for small drawings), and again to fit. Swipe along the tab bar for the next
 or previous drawing (while all the tabs fit).
-On tablets in portrait, the toolbar moves to the bottom and the panels
-slide in from the right (the sliders button).
+
+**Offline, and as an app.** Once SVGCraft has been opened from the web,
+it works offline: a service worker keeps its files. Browsers that can
+install web apps offer to install it (Chrome and Edge: the install icon in
+the address bar, or File → Install SVGCraft…; iPhone and iPad: Share → Add
+to Home Screen). Installed, it opens in a window of its own, and on
+desktop Chrome and Edge it can be chosen to open `.svg` files. Opened
+straight from disk (`file://`), none of this applies.
 
 The layout follows Photoshop:
 
@@ -1082,6 +1091,14 @@ new component its own prefix and check it isn't taken (`grep -n 'sc-name'
 style.css src index.html`) — reusing one pulls in the other component's
 rules. State classes on `<body>` (`sc-no-doc`, `sc-dock-icons`,
 `sc-no-panels`) must never match a component's class for the same reason.
+
+**Offline and install.** `sw.js` is the service worker: network first,
+so a new version is picked up at once, falling back to the copy it keeps
+when offline; it keeps whatever `index.html` loads (read from its `src` /
+`href` attributes), so there's no file list to update. Bump its `CACHE`
+name only to throw the kept copy away. `manifest.webmanifest` describes the
+app; its PNG icons are rendered from `favicon.svg` by
+`node scripts/gen-pwa-icons.mjs`.
 
 **The About page.** `about.html` (Help → About SVGCraft, Feature List or
 Keyboard Shortcuts, which open it in its own tab) is a static page with a

@@ -82,3 +82,37 @@ window.svgcraft = {
     return iso && { symbol: iso.sym.id, instance: iso.inst };
   },
 };
+
+// As an app ------------------------------------------------------------
+// Served over the web (not opened from disk), a service worker keeps the
+// files so SVGCraft works offline, and the browser can install it (see
+// sw.js and manifest.webmanifest). File → Install SVGCraft… shows when the
+// browser offers it; installed, .svg files can be opened with SVGCraft.
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol))
+  navigator.serviceWorker.register('sw.js').catch(() => {
+    /* no offline copy this time */
+  });
+let installPrompt = null;
+const installItem = $('[data-action="installApp"]');
+addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  installPrompt = e;
+  installItem.hidden = false;
+});
+addEventListener('appinstalled', () => {
+  installPrompt = null;
+  installItem.hidden = true;
+  say('SVGCraft is installed: open it from your apps, even offline.');
+});
+actions.installApp = async () => {
+  if (!installPrompt) return;
+  installPrompt.prompt();
+  await installPrompt.userChoice;
+  installPrompt = null;
+  installItem.hidden = true;
+};
+if ('launchQueue' in window)
+  window.launchQueue.setConsumer(async ({ files }) => {
+    await ready;
+    for (const h of files || []) importFile(await h.getFile(), 'open');
+  });
