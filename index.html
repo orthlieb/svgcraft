@@ -497,7 +497,7 @@
         </div>
       </nav>
       <div class="sc-menubar-end">
-        <!-- Phone preview: just open and fit (editing needs a bigger screen). -->
+        <!-- Phone preview: view, don't edit (editing needs a bigger screen). -->
         <button
           class="sc-tbtn sc-preview-only"
           data-action="open"
@@ -511,6 +511,39 @@
           data-tip="Fit the drawing to the screen"
         >
           <i data-icon="expand"></i> Fit
+        </button>
+        <button
+          class="sc-ibtn sc-preview-only"
+          data-action="toggleAnimations"
+          data-play-icon
+          aria-label="Play animations"
+          data-tip="Play animations"
+        >
+          <i data-icon="play"></i>
+        </button>
+        <button
+          class="sc-ibtn sc-preview-only"
+          data-action="peekLayers"
+          aria-label="Layers"
+          data-tip="Layers: show and hide them in the preview"
+        >
+          <i data-icon="layer-group"></i>
+        </button>
+        <button
+          class="sc-ibtn sc-preview-only"
+          data-action="previewBg"
+          aria-label="Background"
+          data-tip="Background: checkerboard, white or black"
+        >
+          <i data-icon="circle-half-stroke"></i>
+        </button>
+        <button
+          class="sc-ibtn sc-preview-only"
+          data-action="shareDoc"
+          aria-label="Share"
+          data-tip="Share the SVG (and a PNG)"
+        >
+          <i data-icon="arrow-up-from-bracket"></i>
         </button>
         <button class="sc-tbtn sc-preview-only" data-action="about" data-tip="About SVGCraft">
           <i data-icon="circle-info"></i> About
@@ -3402,6 +3435,21 @@
 
     <!-- File → File Info… (document title, author, licence: saved as SVG <title>,
          <desc> and RDF <metadata>). -->
+    <!-- Phone preview: the layers, to show and hide while looking (never saved). -->
+    <dialog class="sc-dialog sc-peek" id="sc-peek" aria-labelledby="sc-peek-title">
+      <div class="sc-dialog-title" id="sc-peek-title">Layers</div>
+      <div class="sc-dialog-body">
+        <ul class="sc-peek-list" id="sc-peek-list" aria-label="Layers"></ul>
+        <p class="sc-hint">
+          Hiding a layer here is just for this preview: the drawing isn’t changed.
+        </p>
+      </div>
+      <div class="sc-dialog-foot">
+        <button class="sc-tbtn" data-peek="all">Show all</button>
+        <button class="sc-tbtn sc-primary-btn" data-peek="close">Close</button>
+      </div>
+    </dialog>
+
     <dialog class="sc-dialog sc-info-dialog" id="sc-fileinfo" aria-labelledby="sc-info-title">
       <div class="sc-dialog-title" id="sc-info-title">File Info</div>
       <div class="sc-dialog-body sc-info-body">
@@ -3972,6 +4020,7 @@
     <script src="src/controls.js"></script>
     <script src="src/actions.js"></script>
     <script src="src/panels.js"></script>
+    <script src="src/phone.js"></script>
     <script src="src/tooltips.js"></script>
     <script src="src/boot.js"></script>
   </body>

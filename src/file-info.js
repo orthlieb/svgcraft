@@ -352,7 +352,12 @@ function serialize({ selection = false, fontCss = '', animate = true } = {}) {
   }
   for (const el of layers) {
     const c = el.cloneNode(true);
-    for (const n of [c, ...c.querySelectorAll('[data-sc-iso]')]) n.removeAttribute('data-sc-iso');
+    // Editor marks: the symbol being edited, and layers shown or hidden in
+    // the phone preview.
+    for (const n of [c, ...c.querySelectorAll('[data-sc-iso], [data-sc-peek]')]) {
+      n.removeAttribute('data-sc-iso');
+      n.removeAttribute('data-sc-peek');
+    }
     writeAnimations(el, c, animate);
     // A nested layer copied on its own keeps where it sits and how it looks.
     if (selection && el.parentNode !== doc) {

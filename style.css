@@ -1618,6 +1618,78 @@ button.sc-fx-item.sel {
   align-items: center;
   gap: 6px;
 }
+/* Swiping the tab bar mustn't select the tab names. */
+.sc-preview .sc-doctabs {
+  -webkit-user-select: none;
+  user-select: none;
+}
+/* The backdrop behind the artwork (checkerboard unless set). */
+.sc-preview #sc-stage-wrap[data-bg='white'] #sc-board-bg {
+  fill: #ffffff;
+}
+.sc-preview #sc-stage-wrap[data-bg='black'] #sc-board-bg {
+  fill: #000000;
+}
+/* Phone toolbar: icons only for the extras; Open / Fit / About lose their
+   words when it's tight. */
+.sc-preview .sc-menubar-end .sc-ibtn svg {
+  width: 15px;
+  height: 15px;
+  fill: currentColor;
+}
+@media (max-width: 480px) {
+  .sc-preview .sc-preview-only.sc-tbtn {
+    font-size: 0;
+    gap: 0;
+  }
+  .sc-preview .sc-preview-only.sc-tbtn svg {
+    width: 15px;
+    height: 15px;
+  }
+}
+/* Layers shown or hidden in the preview only (data-sc-peek, never saved). */
+[data-sc-peek='hide'] {
+  display: none !important;
+}
+[data-sc-peek='show'] {
+  display: inline !important;
+}
+.sc-peek {
+  width: min(360px, calc(100vw - 24px));
+}
+.sc-peek-list {
+  max-height: min(50vh, 360px);
+  margin: 0 0 8px;
+  padding: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  list-style: none;
+}
+.sc-peek-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  border-bottom: 1px solid var(--line);
+}
+.sc-peek-list li.off span {
+  color: var(--text-dim);
+}
+.sc-peek-eye {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+}
+.sc-peek-eye svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
 .sc-preview-note {
   min-width: 0;
   overflow: hidden;

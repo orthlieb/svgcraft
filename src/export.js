@@ -41,7 +41,8 @@ async function embeddedFontCss(fonts) {
   return out;
 }
 
-async function exportPng(scale = 2) {
+// The drawing as a PNG blob at `scale`, or null (having said why).
+async function pngBlob(scale = 2) {
   const g = usedGoogleFonts();
   if (g.length) say('Embedding fonts…');
   const fontCss = await embeddedFontCss(g);
@@ -51,23 +52,32 @@ async function exportPng(scale = 2) {
     new Blob([serialize({ fontCss, animate: false })], { type: 'image/svg+xml' }),
   );
   const img = new Image();
-  img.onload = () => {
-    const c = document.createElement('canvas');
-    c.width = Math.round(state.w * scale);
-    c.height = Math.round(state.h * scale);
-    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-    URL.revokeObjectURL(url);
-    try {
-      c.toBlob(
-        (b) => (b ? download(b, `${state.fileName}.png`) : say('PNG export failed')),
-        'image/png',
-      );
-    } catch {
-      say('PNG export blocked — the drawing references an external image.');
-    }
-  };
-  img.onerror = () => say('PNG export failed');
-  img.src = url;
+  const loaded = await new Promise((resolve) => {
+    img.onload = () => resolve(true);
+    img.onerror = () => resolve(false);
+    img.src = url;
+  });
+  URL.revokeObjectURL(url);
+  if (!loaded) {
+    say('PNG export failed');
+    return null;
+  }
+  const c = document.createElement('canvas');
+  c.width = Math.round(state.w * scale);
+  c.height = Math.round(state.h * scale);
+  c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+  try {
+    const b = await new Promise((resolve) => c.toBlob(resolve, 'image/png'));
+    if (!b) say('PNG export failed');
+    return b;
+  } catch {
+    say('PNG export blocked — the drawing references an external image.');
+    return null;
+  }
+}
+async function exportPng(scale = 2) {
+  const b = await pngBlob(scale);
+  if (b) download(b, `${state.fileName}.png`);
 }
 
 async function copySvg() {

@@ -479,7 +479,12 @@ function syncAnimUI() {
   for (const b of document.querySelectorAll('[data-action="toggleAnimations"]')) {
     if (b.getAttribute('role') === 'menuitemcheckbox')
       b.setAttribute('aria-checked', animPlay.playing);
-    else {
+    else if ('playIcon' in b.dataset) {
+      // The phone's icon button.
+      b.innerHTML = icon(animPlay.playing ? 'stop' : 'play');
+      b.setAttribute('aria-label', animPlay.playing ? 'Stop' : 'Play animations');
+      b.setAttribute('aria-pressed', animPlay.playing);
+    } else {
       b.textContent = animPlay.playing ? '■ Stop' : '▶ Play';
       b.setAttribute('aria-pressed', animPlay.playing);
     }

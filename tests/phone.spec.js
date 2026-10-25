@@ -76,6 +76,124 @@ test.describe('phone, portrait', () => {
     await expect(page.locator('#sc-doc-title')).toHaveText(/^poster\.svg @/);
     await expect(page.locator('#sc-doc circle')).toHaveCount(1);
   });
+
+  const bar = (page, act) => page.locator(`.sc-menubar-end [data-action="${act}"]`);
+  const openFile = (page, name, body) =>
+    page.setInputFiles('#sc-file', {
+      name,
+      mimeType: 'image/svg+xml',
+      buffer: Buffer.from(
+        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 200">${body}</svg>`,
+      ),
+    });
+
+  test('the toolbar fits: Play, Layers, Background and Share beside Open and Fit', async ({
+    page,
+  }) => {
+    for (const act of ['open', 'fit', 'toggleAnimations', 'peekLayers', 'previewBg', 'shareDoc'])
+      await expect(bar(page, act)).toBeVisible();
+    const end = await page.locator('.sc-menubar-end').boundingBox();
+    expect(end.x + end.width).toBeLessThanOrEqual(390);
+  });
+
+  test('▶ plays the animations and ■ stops them', async ({ page }) => {
+    await load(
+      page,
+      '<rect id="r" width="50" height="50" data-sc-anim=\'[{"p":"spin","dur":1,"rep":0}]\'/>',
+      300,
+      200,
+    );
+    await bar(page, 'toggleAnimations').click();
+    await expect(page.locator('#sc-doc animateTransform')).toHaveCount(1);
+    await expect(bar(page, 'toggleAnimations')).toHaveAttribute('aria-label', 'Stop');
+    await bar(page, 'toggleAnimations').click();
+    await expect(page.locator('#sc-doc animateTransform')).toHaveCount(0);
+    await expect(bar(page, 'toggleAnimations')).toHaveAttribute('aria-label', 'Play animations');
+  });
+
+  test('Layers shows and hides layers in the preview only', async ({ page }) => {
+    await load(page, DRAWING + '<rect id="off" width="10" height="10" display="none"/>', 300, 200);
+    const saved = await page.evaluate(() => window.svgcraft.serialize());
+    await bar(page, 'peekLayers').click();
+    const rows = page.locator('#sc-peek-list li');
+    await expect(rows).toHaveCount(3);
+    // Top first, as in the Layers panel; the file's hidden layer shows as hidden.
+    await expect(rows.nth(0)).toHaveClass(/off/);
+    await rows.nth(1).locator('.sc-peek-eye').click();
+    await expect(page.locator('#c')).toBeHidden();
+    await rows.nth(0).locator('.sc-peek-eye').click();
+    await expect(page.locator('#off')).toBeVisible();
+    // Nothing of it is saved.
+    expect(await page.evaluate(() => window.svgcraft.serialize())).toBe(saved);
+    await page.click('[data-peek="close"]');
+    // Leaving the preview brings back the drawing as it is.
+    await page.setViewportSize({ width: 1200, height: 800 });
+    await expect(page.locator('#c')).toBeVisible();
+    await expect(page.locator('#off')).toBeHidden();
+  });
+
+  test('Background cycles checkerboard, white and black, and is remembered', async ({ page }) => {
+    const fill = () =>
+      page.evaluate(() => getComputedStyle(document.getElementById('sc-board-bg')).fill);
+    expect(await fill()).toContain('url');
+    await bar(page, 'previewBg').click();
+    expect(await fill()).toBe('rgb(255, 255, 255)');
+    await bar(page, 'previewBg').click();
+    expect(await fill()).toBe('rgb(0, 0, 0)');
+    await page.reload();
+    await page.evaluate(() => window.svgcraft.ready);
+    expect(await fill()).toBe('rgb(0, 0, 0)');
+    await bar(page, 'previewBg').click();
+    expect(await fill()).toContain('url');
+  });
+
+  test('Share sends the SVG and a PNG to the share sheet', async ({ page }) => {
+    await load(page, DRAWING, 300, 200);
+    await page.evaluate(() => {
+      navigator.canShare = () => true;
+      navigator.share = async (d) => {
+        window.shared = d.files.map((f) => `${f.name} ${f.type}`);
+      };
+    });
+    await bar(page, 'shareDoc').click();
+    await expect
+      .poll(() => page.evaluate(() => window.shared))
+      .toEqual(['test.svg image/svg+xml', 'test.png image/png']);
+  });
+
+  test('double-tap zooms in on the spot, and again fits', async ({ page }) => {
+    await load(page, DRAWING, 300, 200);
+    await bar(page, 'fit').click();
+    const zoom = () => page.evaluate(() => window.svgcraft.state.zoom);
+    const fitted = await zoom();
+    const b = await page.locator('#sc-stage').boundingBox();
+    const dbl = async () => {
+      await page.touchscreen.tap(b.x + 150, b.y + 300);
+      await page.touchscreen.tap(b.x + 150, b.y + 300);
+    };
+    await dbl();
+    expect(await zoom()).toBeCloseTo(fitted < 1 ? 1 : fitted * 2);
+    await dbl();
+    expect(await zoom()).toBeCloseTo(fitted);
+  });
+
+  test('swiping along the tab bar changes drawing', async ({ page }) => {
+    await openFile(page, 'a.svg', '<rect width="5" height="5"/>');
+    await openFile(page, 'b.svg', '<circle cx="5" cy="5" r="5"/>');
+    await expect(page.locator('#sc-doc-title')).toHaveText(/^b\.svg/);
+    const t = await page.locator('#sc-doctabs').boundingBox();
+    const swipe = async (from, to) => {
+      await page.mouse.move(t.x + from, t.y + t.height / 2);
+      await page.mouse.down();
+      await page.mouse.move(t.x + to, t.y + t.height / 2, { steps: 4 });
+      await page.mouse.up();
+    };
+    // Right to left: the next one (there is none); left to right: back to a.svg.
+    await swipe(250, 100);
+    await expect(page.locator('#sc-doc-title')).toHaveText(/^b\.svg/);
+    await swipe(100, 250);
+    await expect(page.locator('#sc-doc-title')).toHaveText(/^a\.svg/);
+  });
 });
 
 test.describe('phone, landscape', () => {

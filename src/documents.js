@@ -155,6 +155,7 @@ function stashDoc() {
 // Bring a document onto the canvas: its live history if it has one,
 // otherwise its saved drawing.
 function showDoc(d) {
+  if (typeof clearPeeks === 'function') clearPeeks();
   curDoc = d;
   state.fileName = d.name;
   state.sel = [];

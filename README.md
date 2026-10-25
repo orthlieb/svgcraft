@@ -18,6 +18,21 @@ SVGCraft edits on tablets and larger screens. A phone (narrower than
 768 px, or a phone held sideways) gets a **preview** instead: open SVGs,
 switch between tabs, pan and pinch-zoom, Fit, and About. The editing tools,
 menus and panels are hidden, and nothing on a phone changes a drawing.
+The phone toolbar also has:
+
+- ▶ **Play** the drawing's animations (■ or a tap on it stops them).
+- **Layers**: the layer list with an eye on each, to show and hide layers
+  while you look. Only the preview changes: nothing is saved, and switching
+  tab or moving to a bigger screen shows the drawing as it is again.
+  **Show all** includes layers the file itself hides.
+- **Background**: the artwork on the checkerboard, white or black
+  (remembered).
+- **Share**: the phone's share sheet with the SVG and a PNG of it
+  (downloads the SVG where the browser can't share files).
+
+Double-tap the canvas to zoom in on that spot (to 100%, or twice the fit
+for small drawings), and again to fit. Swipe along the tab bar for the next
+or previous drawing (while all the tabs fit).
 On tablets in portrait, the toolbar moves to the bottom and the panels
 slide in from the right (the sliders button).
 

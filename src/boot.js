@@ -34,6 +34,10 @@ function syncPreview() {
   if (on) {
     if (state.tf) endTransform(true);
     state.sel = [];
+  } else {
+    // Back to editing: what the preview hid comes back.
+    clearPeeks();
+    stopAnimations();
   }
   setTool(on ? 'hand' : 'select');
   requestAnimationFrame(() => fit());
