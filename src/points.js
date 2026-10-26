@@ -370,11 +370,11 @@ const clone = (subs) =>
 tools.node = {
   hint: 'Click a shape to edit its points · Drag points or handles (Alt breaks a smooth point) · Double-click a line to add a point, a point to toggle corner / smooth · Del removes points · Esc ends',
   // Over a shape to pick up: Direct Selection's white arrow. Elsewhere the
-  // marquee's: a cross, or the lasso; + with Shift, − with Alt on a lasso.
+  // marquee's: a cross, or the lasso; + with Shift, − with Alt.
   get cursor() {
     if (this.over || !this.el) return cursorFor.direct;
     const lasso = state.marquee === 'lasso';
-    const badge = keysDown.shift ? '+add' : lasso && keysDown.alt ? '+sub' : '';
+    const badge = keysDown.shift ? '+add' : keysDown.alt ? '+sub' : '';
     return cursorFor[(lasso ? 'lasso' : 'cross') + badge];
   },
   el: null,
@@ -520,9 +520,9 @@ tools.node = {
       return;
     }
     if (!el && !this.el) return;
-    // A lasso begun with Alt takes points away from what's picked; with
-    // Shift, any shape adds to it.
-    const cut = e.altKey && state.marquee === 'lasso';
+    // As in Photoshop, a drag begun with Alt takes points away from what's
+    // picked, and one begun with Shift adds to it.
+    const cut = e.altKey;
     const keep = cut || e.shiftKey;
     this.g = { mode: 'marquee', p0: p, pts: [p], cut, base: keep ? [...this.picked] : [] };
     if (!keep) {
@@ -562,9 +562,13 @@ tools.node = {
       } else {
         const dx = Math.abs(p.x - g.p0.x);
         const dy = Math.abs(p.y - g.p0.y);
-        const [x, y, w, h] = e.altKey
-          ? [g.p0.x - dx, g.p0.y - dy, 2 * dx, 2 * dy]
-          : [Math.min(g.p0.x, p.x), Math.min(g.p0.y, p.y), dx, dy];
+        // Alt pressed during the drag draws from the centre; the Alt that
+        // began a cut has to be let go of first.
+        if (g.cut && !e.altKey) g.altFree = true;
+        const [x, y, w, h] =
+          e.altKey && (!g.cut || g.altFree)
+            ? [g.p0.x - dx, g.p0.y - dy, 2 * dx, 2 * dy]
+            : [Math.min(g.p0.x, p.x), Math.min(g.p0.y, p.y), dx, dy];
         const oval = state.marquee === 'oval';
         if (oval)
           mk('ellipse', { cx: x + w / 2, cy: y + h / 2, rx: w / 2, ry: h / 2, class: cls }, guides);

@@ -243,16 +243,38 @@ test('points can be picked with an oval too, or from the centre with Alt', async
   await expect(page.locator('#sc-stage ellipse.sc-ov-dash')).toHaveCount(0);
   expect(await picked()).toEqual([1, 3, 5, 7]);
 
-  // With Alt it grows from where the drag starts: here, the square's centre.
+  // Alt pressed during the drag grows it from where the drag starts: here,
+  // the square's centre.
   const a = await toScreen(page, 400, 300);
   const b = await toScreen(page, 510, 410);
-  await page.keyboard.down('Alt');
   await page.mouse.move(a.x, a.y);
   await page.mouse.down();
+  await page.keyboard.down('Alt');
   await page.mouse.move(b.x, b.y, { steps: 5 });
   await page.mouse.up();
   await page.keyboard.up('Alt');
   expect(await picked()).toEqual([1, 3, 5, 7]);
+
+  // A drag begun with Alt takes points away: a rectangle round the top
+  // middle drops it; Alt let go and pressed again draws from the centre.
+  await page.keyboard.down('Alt');
+  await drag(page, [380, 180], [420, 220]);
+  await page.keyboard.up('Alt');
+  expect(await picked()).toEqual([3, 5, 7]);
+  await page.click('[data-marquee="rect"]');
+  const c = await toScreen(page, 430, 400);
+  const d = await toScreen(page, 480, 430);
+  await page.keyboard.down('Alt');
+  await page.mouse.move(c.x, c.y);
+  await page.mouse.down();
+  await page.keyboard.up('Alt');
+  await page.mouse.move(c.x + 5, c.y + 5);
+  await page.keyboard.down('Alt');
+  await page.mouse.move(d.x, d.y, { steps: 4 });
+  await page.mouse.up();
+  await page.keyboard.up('Alt');
+  expect(await picked()).toEqual([3, 7]);
+  await page.click('[data-marquee="oval"]');
 
   // The choice is remembered.
   await page.reload();

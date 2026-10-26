@@ -50,6 +50,9 @@ test('Edit Points: white arrow over shapes, the marquee’s cross or lasso with 
   await page.keyboard.down('Shift');
   await expectCursor(page, 'cross+add');
   await page.keyboard.up('Shift');
+  await page.keyboard.down('Alt');
+  await expectCursor(page, 'cross+sub');
+  await page.keyboard.up('Alt');
   await expectCursor(page, 'cross');
   // Another shape, to pick up instead: the white arrow.
   await hover(page, 650, 150);
