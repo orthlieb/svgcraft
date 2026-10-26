@@ -380,3 +380,23 @@ test.describe('Free Transform', () => {
     expect((await corners(page, 'r'))[2][0]).toBeCloseTo(400, 2);
   });
 });
+
+test('the rotate handle shows a circle arrow, held while turning', async ({ page }) => {
+  await load(page, RECT);
+  await page.click('#r');
+  const rot = page.locator('[data-handle="rot"]');
+  await expect(rot).toHaveCount(1);
+  const cursor = (loc) => loc.evaluate((el) => getComputedStyle(el).cursor);
+  expect(await cursor(rot)).toMatch(/^url\(.*\) 12 12, grab$/);
+  // The scale handles keep their resize arrows.
+  expect(await cursor(page.locator('[data-handle="se"]'))).toBe('nwse-resize');
+
+  const h = await rot.boundingBox();
+  await page.mouse.move(h.x + h.width / 2, h.y + h.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(h.x + 120, h.y + 60, { steps: 4 });
+  expect(await cursor(page.locator('#sc-stage'))).toMatch(/^url\(/);
+  await page.mouse.up();
+  expect(await cursor(page.locator('#sc-stage'))).toBe('default');
+  expect(await page.locator('#r').getAttribute('transform')).toContain('matrix');
+});

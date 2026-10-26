@@ -42,6 +42,9 @@ tools.select = {
         box,
         m0: state.sel.map(getM),
       };
+      // The pointer is captured by the stage: it keeps the circle arrow
+      // while turning, wherever the handle goes.
+      if (this.g.mode === 'rot') stage.style.cursor = ROTATE_CURSOR;
       return;
     }
     const el = pickLayer(e.target);
@@ -184,6 +187,7 @@ tools.select = {
     this.g = null;
     guides.replaceChildren();
     if (!g) return;
+    if (g.mode === 'rot') stage.style.cursor = this.cursor;
     if (g.mode === 'marquee') setSel(state.sel);
     else if (g.mode === 'corner') {
       if (g.changed) commit();
@@ -217,6 +221,7 @@ tools.select = {
     if (el) editTextLayer(el);
   },
   cancel() {
+    if (this.g?.mode === 'rot') stage.style.cursor = this.cursor;
     this.g = null;
     guides.replaceChildren();
   },
