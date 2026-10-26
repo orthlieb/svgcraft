@@ -299,3 +299,24 @@ test('a group’s row previews what’s in it', async ({ page }) => {
   });
   await expect(hills.locator('.sc-thumb path')).toHaveCount(2);
 });
+
+test('dragging layers onto New copies them in place; onto the bin deletes them', async ({
+  page,
+}) => {
+  await placeScene(page);
+  const sun = () => page.$$eval('#sc-doc circle', (cs) => cs.map((c) => c.getAttribute('cx')));
+  await row(page, 'Sun').dragTo(page.locator('.sc-layers-foot [data-action="duplicate"]'));
+  // A copy right above it, in the same place, and selected.
+  await expect.poll(sun).toEqual(['50', '50']);
+  expect(
+    await page.evaluate(() => window.svgcraft.state.sel[0].previousElementSibling.localName),
+  ).toBe('circle');
+  await page.keyboard.press('Control+z');
+  await expect.poll(sun).toEqual(['50']);
+
+  await row(page, 'Frame').dragTo(page.locator('.sc-layers-foot [data-action="delete"]'));
+  await expect(row(page, 'Frame')).toHaveCount(0);
+  await expect(page.locator('#sc-doc rect')).toHaveCount(0);
+  await page.keyboard.press('Control+z');
+  await expect(row(page, 'Frame')).toHaveCount(1);
+});

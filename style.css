@@ -1440,6 +1440,10 @@ button.sc-fx-item.sel {
   background: var(--row-sel);
   box-shadow: inset 0 0 0 1px var(--accent);
 }
+.sc-layers-foot .sc-drop-on {
+  background: var(--row-sel);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
 .sc-layers.drop-end {
   box-shadow: inset 0 2px 0 var(--accent);
 }

@@ -402,7 +402,7 @@ function clearDropMarks() {
 function wireLayerDrag(li, el) {
   li.addEventListener('dragstart', (e) => {
     dragEls = state.sel.includes(el) ? normalizeSel(state.sel) : [el];
-    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.effectAllowed = 'copyMove';
     e.dataTransfer.setData('text/plain', layerName(el));
     li.classList.add('dragging');
   });
@@ -426,6 +426,31 @@ function wireLayerDrag(li, el) {
     e.preventDefault();
     e.stopPropagation();
     moveLayers(dragEls, el, zone);
+  });
+}
+
+// As in Photoshop, layers dragged onto the footer's New button are copied
+// in place, and onto the bin deleted.
+for (const [name, effect, run] of [
+  ['duplicate', 'copy', () => actions.duplicate(0)],
+  ['delete', 'move', () => actions.delete()],
+]) {
+  const b = $(`.sc-layers-foot [data-action="${name}"]`);
+  b.addEventListener('dragover', (e) => {
+    if (!dragEls) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = effect;
+    b.classList.add('sc-drop-on');
+  });
+  b.addEventListener('dragleave', () => b.classList.remove('sc-drop-on'));
+  b.addEventListener('drop', (e) => {
+    if (!dragEls) return;
+    e.preventDefault();
+    b.classList.remove('sc-drop-on');
+    state.sel = dragEls;
+    dragEls = null;
+    clearDropMarks();
+    run();
   });
 }
 

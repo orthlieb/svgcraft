@@ -641,6 +641,10 @@ The Layers panel works like Photoshop's:
   Layers never move on screen when they change groups, and paint they
   inherited from their old group (such as an icon's `fill="none"`) goes
   with them.
+- **Copying and deleting by drag**: as in Photoshop, drop rows on the
+  New button (the plus square) at the bottom of the panel to copy them in
+  place, just above themselves, or on the bin to delete them. Clicking
+  New duplicates the selection, a little offset.
 - **Renaming**: double-click a name and type. Enter saves, Esc cancels, and
   an empty name goes back to the automatic one. Names are saved as
   `data-name`, which Illustrator uses too, and Inkscape layer labels are
