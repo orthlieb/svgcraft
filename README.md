@@ -311,8 +311,9 @@ stroke="currentColor"` (common in icon sets) is pushed down so it
   the other paint. In Chromium browsers, the eyedropper button on the Color
   panel can pick a colour from anywhere on screen.
 - **Edit points** (A, or double-click a shape): drag points and Bézier
-  handles, Shift-click or drag a box to pick several, and nudge with the
-  arrow keys. Double-click a segment to add a point, or a point to switch
+  handles, Shift-click or drag round them to pick several (a rectangle or
+  an oval, picked in the options bar; Alt drags it from its centre, Shift
+  adds to what's picked), and nudge with the arrow keys. Double-click a segment to add a point, or a point to switch
   it between corner and smooth. Delete removes points, and Close / open
   toggles the closing segment. Smooth points keep their handles in line;
   Alt-drag a handle to break one. Works on paths with any command (arcs

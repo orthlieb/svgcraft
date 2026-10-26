@@ -215,3 +215,47 @@ test('point markers sit on the shape of a rotated ellipse', async ({ page }) => 
   expect(off[0]).toBeCloseTo(0, 0);
   expect(off[1]).toBeCloseTo(0, 0);
 });
+
+test('points can be picked with an oval too, or from the centre with Alt', async ({ page }) => {
+  // A square with a point at each corner and each side's middle.
+  await page.evaluate(() =>
+    window.svgcraft.openSvg(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">' +
+        '<path id="p" d="M300 200L400 200L500 200L500 300L500 400L400 400L300 400L300 300Z" fill="#2563eb"/></svg>',
+      'square.svg',
+    ),
+  );
+  await page.keyboard.press('a');
+  await page.evaluate(() => window.svgcraft.tools.node.target(document.getElementById('p')));
+  await expect(nodes(page)).toHaveCount(8);
+  const picked = () =>
+    page.evaluate(() => window.svgcraft.tools.node.picked.map(([, n]) => n).sort((a, b) => a - b));
+
+  // A rectangle round the square takes all eight.
+  await expect(page.locator('[data-marquee="rect"]')).toHaveAttribute('aria-checked', 'true');
+  await drag(page, [290, 190], [510, 410]);
+  expect(await picked()).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
+
+  // An oval the same size misses the corners: just the sides' middles.
+  await page.click('[data-marquee="oval"]');
+  await drag(page, [290, 190], [510, 410]);
+  // (Its dashed outline goes when the drag ends.)
+  await expect(page.locator('#sc-stage ellipse.sc-ov-dash')).toHaveCount(0);
+  expect(await picked()).toEqual([1, 3, 5, 7]);
+
+  // With Alt it grows from where the drag starts: here, the square's centre.
+  const a = await toScreen(page, 400, 300);
+  const b = await toScreen(page, 510, 410);
+  await page.keyboard.down('Alt');
+  await page.mouse.move(a.x, a.y);
+  await page.mouse.down();
+  await page.mouse.move(b.x, b.y, { steps: 5 });
+  await page.mouse.up();
+  await page.keyboard.up('Alt');
+  expect(await picked()).toEqual([1, 3, 5, 7]);
+
+  // The choice is remembered.
+  await page.reload();
+  await page.waitForFunction(() => !!window.svgcraft);
+  await expect(page.locator('[data-marquee="oval"]')).toHaveAttribute('aria-checked', 'true');
+});

@@ -115,6 +115,19 @@ for (const b of document.querySelectorAll('[data-eraser]')) {
       x.setAttribute('aria-checked', x === b);
   });
 }
+// Edit Points: select points with a rectangle or an oval (remembered).
+const MARQUEE_KEY = 'svgcraft.pointMarquee';
+function setMarquee(shape) {
+  state.marquee = shape === 'oval' ? 'oval' : 'rect';
+  for (const b of document.querySelectorAll('[data-marquee]'))
+    b.setAttribute('aria-checked', b.dataset.marquee === state.marquee);
+}
+for (const b of document.querySelectorAll('[data-marquee]'))
+  b.addEventListener('click', () => {
+    setMarquee(b.dataset.marquee);
+    store(MARQUEE_KEY, state.marquee === 'oval' ? 'oval' : null);
+  });
+setMarquee(stored(MARQUEE_KEY));
 for (const el of document.querySelectorAll('[data-tf]')) {
   el.addEventListener('input', () =>
     applyTransformField(el.dataset.tf, parseFloat(el.value), false),

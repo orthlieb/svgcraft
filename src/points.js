@@ -523,17 +523,29 @@ tools.node = {
     const g = this.g;
     if (!g || !this.el) return;
     if (g.mode === 'marquee') {
-      const x = Math.min(g.p0.x, p.x);
-      const y = Math.min(g.p0.y, p.y);
-      const w = Math.abs(p.x - g.p0.x);
-      const h = Math.abs(p.y - g.p0.y);
+      // A rectangle or an oval (the options bar), corner to corner, or from
+      // its centre with Alt, as Photoshop's marquees.
+      const dx = Math.abs(p.x - g.p0.x);
+      const dy = Math.abs(p.y - g.p0.y);
+      const [x, y, w, h] = e.altKey
+        ? [g.p0.x - dx, g.p0.y - dy, 2 * dx, 2 * dy]
+        : [Math.min(g.p0.x, p.x), Math.min(g.p0.y, p.y), dx, dy];
+      const oval = state.marquee === 'oval';
+      const cls = 'sc-ov sc-ov-fill sc-ov-dash';
       guides.replaceChildren();
-      mk('rect', { x, y, width: w, height: h, class: 'sc-ov sc-ov-fill sc-ov-dash' }, guides);
+      if (oval)
+        mk('ellipse', { cx: x + w / 2, cy: y + h / 2, rx: w / 2, ry: h / 2, class: cls }, guides);
+      else mk('rect', { x, y, width: w, height: h, class: cls }, guides);
+      const inside = (q) =>
+        oval
+          ? w > 0 &&
+            h > 0 &&
+            ((q.x - x - w / 2) / (w / 2)) ** 2 + ((q.y - y - h / 2) / (h / 2)) ** 2 <= 1
+          : q.x >= x && q.x <= x + w && q.y >= y && q.y <= y + h;
       const hit = [];
       this.subs.forEach((sp, si) =>
         sp.nodes.forEach((n, ni) => {
-          const q = this.toDoc(n);
-          if (q.x >= x && q.x <= x + w && q.y >= y && q.y <= y + h) hit.push([si, ni]);
+          if (inside(this.toDoc(n))) hit.push([si, ni]);
         }),
       );
       const key = ([a, b]) => `${a}:${b}`;
