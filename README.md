@@ -602,6 +602,15 @@ The Layers panel works like Photoshop's:
   puts the selected layers in a new group (Group 1, Group 2 …) where the
   frontmost one was. With nothing selected, it adds an empty group.
   Layer → Ungroup Layers dissolves a group again.
+- **Merge Down** (Ctrl+E) and **Merge Visible** (Ctrl+Shift+E), Layer
+  menu: as in Photoshop, but the result stays vector and nothing on screen
+  changes. Ctrl+E merges the selected layer into the one below (keeping the
+  lower one's name), or the selected layers into one (Merge Layers), or a
+  selected group's contents into one (Merge Group); the menu names which.
+  Merge Visible merges every visible layer and leaves hidden ones alone.
+  Shapes alike in every way that shows become one path (side by side, their
+  outlines joined; overlapping, united, which looks the same only for
+  opaque fills with no stroke); anything else becomes one group.
 - **Group by Colour** (Layer menu) tidies a drawing, an imported one
   say, into one group per colour, named after the colour or its swatch
   (by stroke for shapes with no fill; gradients and patterns by which one).
@@ -980,6 +989,7 @@ else is refused with a note under the fields.
 | Ctrl+Z / Ctrl+Shift+Z     | Undo / redo (Ctrl+Y redoes too)                    |
 | Ctrl+C / X / V            | Copy / cut / paste (as SVG)                        |
 | Ctrl+J · Alt+Shift+J      | Layer via Copy · Layer via Cut                     |
+| Ctrl+E · Ctrl+Shift+E     | Merge Down (Layers, Group) · Merge Visible         |
 | Ctrl+A · Ctrl+D           | Select all · deselect                              |
 | Shift+F7                  | Select inverse                                     |
 | Alt+T · Alt+Shift+T       | Free Transform · Transform Again                   |

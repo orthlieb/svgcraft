@@ -281,6 +281,7 @@ window.addEventListener('keydown', (e) => {
       o: () => (e.shiftKey ? ifAllowed('createOutlines', createOutlines) : openPicker('open')),
       u: toggleSource,
       j: () => ifAllowed(e.shiftKey ? 'layerViaCut' : 'layerViaCopy'),
+      e: () => ifAllowed(e.shiftKey ? 'mergeVisible' : 'mergeDown'),
       d: () => setSel([]),
       a: cmds.selectAll,
       ...(e.shiftKey && { i: cmds.invertSelection }),

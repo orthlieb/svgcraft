@@ -9,6 +9,8 @@ const actions = {
   layerViaCopy,
   layerViaCut,
   groupByColour: () => groupByColour(),
+  mergeDown: () => mergeDown(),
+  mergeVisible: () => mergeVisible(),
   peekLayers: () => peekLayers(),
   previewBg: () => previewBg(),
   shareDoc: () => shareDoc(),
@@ -125,6 +127,8 @@ const actionRules = {
   duplicate: anySel,
   layerViaCopy: () => anySel() || !!pickedPart(),
   groupByColour: () => items().length > 0,
+  mergeDown: () => !!mergeTargets(),
+  mergeVisible: () => visibleLayers().length >= 2,
   layerViaCut: () => !!pickedPart() || liftable().length > 0,
   cropToSelection: anySel,
   cropToDrawing: () => items().length > 0,
@@ -216,6 +220,9 @@ function syncActions() {
     if (curDoc) delete b.dataset.noDoc;
     else b.dataset.noDoc = '1';
   }
+  // Ctrl+E is Merge Down, Merge Layers or Merge Group, as in Photoshop.
+  for (const b of document.querySelectorAll('[data-action="mergeDown"] span'))
+    b.textContent = curDoc ? mergeLabel() : 'Merge Down';
 }
 
 document.addEventListener('click', (e) => {
