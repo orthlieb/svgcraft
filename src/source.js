@@ -57,6 +57,61 @@ function srcParse(s) {
   return root;
 }
 
+// CSS → tokens [class, text]: selectors, at-rules (@media, @import…),
+// property names, values, comments and punctuation. `decls` starts inside a
+// declaration block (a style="" attribute). Whatever it can't make sense
+// of stays text in the colour it's in, so nothing is ever lost or added.
+const CSS_RULE_LISTS = /^@(media|supports|document|layer|container|scope)\b/i;
+function cssTokens(s, decls = false) {
+  const out = [];
+  const push = (c, t) => t && out.push([c, t]);
+  // Block stack: 'rules' (selectors and at-rules) or 'decls'.
+  const stack = [decls ? 'decls' : 'rules'];
+  let prelude = '';
+  let inValue = false;
+  const re =
+    /\/\*[\s\S]*?(?:\*\/|$)|"(?:[^"\\]|\\.)*"?|'(?:[^'\\]|\\.)*'?|[{};:,]|[^{};:,"'/]+|\//g;
+  for (const [t] of s.matchAll(re)) {
+    const mode = stack.at(-1);
+    if (t.startsWith('/*')) push('com', t);
+    else if (t === '{') {
+      push('p', t);
+      stack.push(CSS_RULE_LISTS.test(prelude.trim()) ? 'rules' : 'decls');
+      prelude = '';
+      inValue = false;
+    } else if (t === '}') {
+      push('p', t);
+      if (stack.length > 1) stack.pop();
+      inValue = false;
+    } else if (mode === 'decls') {
+      if (t === ';') {
+        push('p', t);
+        inValue = false;
+      } else if (t === ':' && !inValue) {
+        push('p', t);
+        inValue = true;
+      } else push(inValue ? 'cval' : 'prop', t);
+    } else if (t === ';') {
+      push('p', t);
+      prelude = '';
+    } else if (t === ',') {
+      // Between selectors.
+      push('p', t);
+      prelude += t;
+    } else {
+      // A selector, or an at-rule's keyword and what follows it.
+      const at = !prelude.trim() && t.match(/^(\s*)(@[\w-]+)([\s\S]*)$/);
+      if (at) {
+        push('', at[1]);
+        push('at', at[2]);
+        push('cval', at[3]);
+      } else push(prelude.trimStart().startsWith('@') ? 'cval' : 'sel', t);
+      prelude += t;
+    }
+  }
+  return out;
+}
+
 // Tree → lines of tokens [class, text]. `spans` maps each live element of
 // the document to its [first, last] line; a line whose start tag belongs
 // to a layer carries it as .el (what a click there selects).
@@ -80,6 +135,16 @@ function srcPretty(text) {
     });
   const putNode = (n) =>
     put(n.k === 'comment' ? 'com' : n.k === 'text' ? 'txt' : n.k === 'cdata' ? 'txt' : 'pi', n.s);
+  // A <style> element's content, coloured as CSS (CDATA markers kept).
+  const putCss = (n) => {
+    if (n.k === 'text') for (const [c, t] of cssTokens(n.s)) put(c, t);
+    else if (n.k === 'cdata') {
+      const m = n.s.match(/^(<!\[CDATA\[)([\s\S]*?)(\]\]>)?$/);
+      put('pi', m[1]);
+      for (const [c, t] of cssTokens(m[2])) put(c, t);
+      if (m[3]) put('pi', m[3]);
+    } else putNode(n);
+  };
   const attrW = (a) => 1 + a.n.length + (a.v ? 1 + srcShown(a.v).length : 0);
   function startTag(n, depth, el, raw) {
     const pad = '  '.repeat(depth);
@@ -97,7 +162,11 @@ function srcPretty(text) {
         col = hang.length;
       }
       line.t.push(['', ' '], ['attr', a.n]);
-      if (a.v) line.t.push(['p', '='], ['val', a.v]);
+      if (a.v && a.n === 'style' && a.v.length > 2) {
+        // style="…": its declarations coloured as CSS, inside the quotes.
+        line.t.push(['p', '='], ['val', a.v[0]]);
+        line.t.push(...cssTokens(a.v.slice(1, -1), true), ['val', a.v.at(-1)]);
+      } else if (a.v) line.t.push(['p', '='], ['val', a.v]);
       col += w;
     });
     line.t.push(['p', n.self ? '/>' : '>']);
@@ -141,7 +210,9 @@ function srcPretty(text) {
         n.attrs.some((a) => a.n === 'xml:space');
       let i = 0;
       if (inline) {
-        for (const k of n.kids) raw(k, k.k === 'el' ? live[i++] || null : null);
+        for (const k of n.kids)
+          if (n.name === 'style') putCss(k);
+          else raw(k, k.k === 'el' ? live[i++] || null : null);
         endTag(n);
       } else if (!n.kids.some((k) => k.k !== 'text')) endTag(n);
       else {
@@ -158,7 +229,7 @@ function srcPretty(text) {
 
 // The full text of the view (what Copy and Download give), and what's shown.
 const srcLineText = (ln) => ln.t.map((t) => t[1]).join('');
-const srcCuts = (cls) => cls === 'val' || cls === 'txt' || cls === 'com';
+const srcCuts = (cls) => cls === 'val' || cls === 'txt' || cls === 'com' || cls === 'cval';
 const srcShownText = (ln) => ln.t.map((t) => (srcCuts(t[0]) ? srcShown(t[1]) : t[1])).join('');
 
 // Lines are drawn a block of SRC_CHUNK at a time: the first few straight

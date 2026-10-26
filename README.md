@@ -1018,7 +1018,9 @@ view beside the canvas (see Split view; float it with the button in its
 title bar) with the drawing's SVG, exactly as Save as SVG would write it,
 including the `@import` for any Google Fonts. It's read-only, laid out one
 element per line, indented by nesting, with long attribute lists wrapped,
-and coloured for tags, attributes, values, comments and text. Floated,
+and coloured for tags, attributes, values, comments and text, with CSS
+(in `<style>` and `style=""`) coloured too: selectors, at-rules such as
+`@import`, properties and values. Floated,
 drag the window by its title bar and resize it from its corner.
 
 - **Live.** The source follows your edits, undo and tab switches. It waits

@@ -104,6 +104,57 @@ test('includes the font @import that Save as SVG writes', async ({ page }) => {
   );
 });
 
+test('CSS is coloured: selectors, at-rules, properties and values, nothing lost', async ({
+  page,
+}) => {
+  const css =
+    '@import url(a.css); @media (min-width: 4px) { .a, #b > c { fill: red; stroke: url(#g) } } ' +
+    '/* note */ text { font: 12px "My Font", serif }';
+  const toks = await page.evaluate((s) => window.cssTokens(s), css);
+  // Exactly the text it was given.
+  expect(toks.map((t) => t[1]).join('')).toBe(css);
+  // Neighbouring pieces of one colour read as one.
+  const runs = toks.reduce((rs, [c, t]) => {
+    if (rs.length && rs.at(-1)[0] === c) rs.at(-1)[1] += t;
+    else rs.push([c, t]);
+    return rs;
+  }, []);
+  const of = (cls) =>
+    runs
+      .filter((r) => r[0] === cls)
+      .map((r) => r[1].trim())
+      .filter(Boolean);
+  expect(of('at')).toEqual(['@import', '@media']);
+  expect(of('sel')).toEqual(['.a', '#b > c', 'text']);
+  expect(of('prop')).toEqual(['fill', 'stroke', 'font']);
+  expect(of('cval')).toEqual([
+    'url(a.css)',
+    '(min-width: 4px)',
+    'red',
+    'url(#g)',
+    '12px "My Font", serif',
+  ]);
+  expect(of('com')).toEqual(['/* note */']);
+
+  // In the view: the font @import in <style>, and a style="" attribute.
+  await load(
+    page,
+    '<text id="t" x="10" y="50" font-family="Lobster" font-size="30">Hi</text>' +
+      '<rect id="m" width="9" height="9" style="mix-blend-mode:multiply;opacity:0.5"/>',
+  );
+  await openSource(page);
+  const code = page.locator('#sc-src-code');
+  await expect(code.locator('.sc-syn-at')).toHaveText(['@import']);
+  await expect(code.locator('.sc-syn-prop')).toHaveText(['mix-blend-mode', 'opacity']);
+  await expect(code.locator('.sc-syn-cval').filter({ hasText: 'multiply' })).toHaveCount(1);
+  // And the text itself is unchanged, apart from the font @import that
+  // Save as SVG adds (and the test's save leaves out).
+  const view = flat(await viewText(page))
+    .replace(/<defs><style>[^<]*<\/style><\/defs>/, '')
+    .replace(/<style>[^<]*<\/style>/, '');
+  expect(view).toBe(flat(await saved(page)));
+});
+
 test('follows edits to the document', async ({ page }) => {
   await load(page, BODY);
   await openSource(page);
