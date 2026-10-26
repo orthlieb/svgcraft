@@ -786,6 +786,10 @@ kbd {
 #sc-nodes [data-hnd] {
   pointer-events: all;
 }
+#sc-nodes [data-node],
+#sc-nodes [data-hnd] {
+  cursor: var(--cursor-direct);
+}
 .sc-ov {
   fill: none;
   stroke: var(--sel);

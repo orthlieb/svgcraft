@@ -91,7 +91,7 @@ tools.hand = {
 tools.zoom = {
   hint: 'Click to zoom in · Alt-click to zoom out · drag left / right to zoom',
   get cursor() {
-    return state.zoomOut !== altDown ? 'zoom-out' : 'zoom-in';
+    return state.zoomOut !== keysDown.alt ? 'zoom-out' : 'zoom-in';
   },
   down(e) {
     const r = stage.getBoundingClientRect();

@@ -8,7 +8,8 @@ const tools = {};
 
 tools.select = {
   hint: 'Click to select · Shift-click adds · Drag to move · Handles scale (Shift keeps ratio, Alt from centre) · Arrows nudge · Double-click a shape to edit its points, or text to edit it',
-  cursor: 'default',
+  // Photoshop's Move tool: the arrow with its four-way cross.
+  cursor: cursorFor['move+move'],
   down(e, p) {
     const ch = e.target.closest?.('[data-corner-h]');
     if (ch && cornerTarget()) {
@@ -44,7 +45,7 @@ tools.select = {
       };
       // The pointer is captured by the stage: it keeps the circle arrow
       // while turning, wherever the handle goes.
-      if (this.g.mode === 'rot') stage.style.cursor = ROTATE_CURSOR;
+      if (this.g.mode === 'rot') stage.style.cursor = cursorFor.rotate;
       return;
     }
     const el = pickLayer(e.target);
@@ -229,7 +230,7 @@ tools.select = {
 
 tools.pencil = {
   hint: 'Drag to draw freehand · Smoothing lives in the panel',
-  cursor: 'crosshair',
+  cursor: cursorFor.pencil,
   down(e, p) {
     this.pts = [p];
     this.el = mk('path', { ...newStyle('open'), d: smoothD(this.pts) }, doc);
@@ -258,7 +259,14 @@ tools.pencil = {
 
 tools.pen = {
   hint: 'Click for corners · Drag for curves · Click the first point to close · Enter or double-click finishes · Backspace removes the last point · Esc ends',
-  cursor: 'crosshair',
+  // A * to start a path, an o over its first point to close it.
+  get cursor() {
+    const pts = this.pts;
+    if (!pts.length) return cursorFor['pen+new'];
+    const g = this.ghost;
+    const closing = pts.length >= 2 && g && dist(g, pts[0]) < 8 / state.zoom;
+    return cursorFor[closing ? 'pen+close' : 'pen'];
+  },
   pts: [],
   down(e, p) {
     p = snapPt(p);
@@ -290,7 +298,7 @@ tools.pen = {
         a.hin = { x: 2 * a.x - p.x, y: 2 * a.y - p.y };
       }
     } else {
-      this.cursor =
+      this.ghost =
         this.pts.length && e.shiftKey ? constrain45(this.pts.at(-1), snapPt(p)) : snapPt(p);
     }
     this.render();
@@ -322,12 +330,12 @@ tools.pen = {
     if (!pts.length) return;
     const z = state.zoom;
     const last = pts.at(-1);
-    if (this.cursor && !this.dragging) {
+    if (this.ghost && !this.dragging) {
       const c1 = last.hout || last;
       mk(
         'path',
         {
-          d: `M${last.x} ${last.y}C${c1.x} ${c1.y} ${this.cursor.x} ${this.cursor.y} ${this.cursor.x} ${this.cursor.y}`,
+          d: `M${last.x} ${last.y}C${c1.x} ${c1.y} ${this.ghost.x} ${this.ghost.y} ${this.ghost.x} ${this.ghost.y}`,
           class: 'sc-ov sc-ov-dash',
         },
         guides,
@@ -376,7 +384,7 @@ tools.pen = {
   reset() {
     this.el = null;
     this.pts = [];
-    this.cursor = null;
+    this.ghost = null;
     this.dragging = false;
     guides.replaceChildren();
   },

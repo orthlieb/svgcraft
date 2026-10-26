@@ -62,6 +62,11 @@ The layout follows Photoshop:
 - **Toolbar**: the tools, with the fill and stroke chips at the bottom.
   Click a chip to make it the active paint, and click it again to pick a
   colour. Below the chips are swap (X) and "none".
+- **Pointers** are Photoshop's: the Move tool's arrow and cross, Edit
+  Points' white arrow, a cross or lasso for picking points (with + while
+  Shift adds, − while Alt takes away), the pen's nib (\* to start a path, o
+  over its first point to close it), the pencil, the eyedropper, the type
+  I-beam and the curved arrow on the rotate handle.
 - **Document tabs** above the canvas, one per open drawing, showing the
   file name and zoom (see Documents below).
 - **Docked panels**: Color / Swatches / Gradients / Patterns, Properties

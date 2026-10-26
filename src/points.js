@@ -369,7 +369,14 @@ const clone = (subs) =>
 
 tools.node = {
   hint: 'Click a shape to edit its points · Drag points or handles (Alt breaks a smooth point) · Double-click a line to add a point, a point to toggle corner / smooth · Del removes points · Esc ends',
-  cursor: 'default',
+  // Over a shape to pick up: Direct Selection's white arrow. Elsewhere the
+  // marquee's: a cross, or the lasso; + with Shift, − with Alt on a lasso.
+  get cursor() {
+    if (this.over || !this.el) return cursorFor.direct;
+    const lasso = state.marquee === 'lasso';
+    const badge = keysDown.shift ? '+add' : lasso && keysDown.alt ? '+sub' : '';
+    return cursorFor[(lasso ? 'lasso' : 'cross') + badge];
+  },
   el: null,
   subs: [],
   picked: [],
@@ -525,6 +532,10 @@ tools.node = {
   },
   move(e, p) {
     const g = this.g;
+    if (!g) {
+      const el = editableFrom(e.target) || topLevel(e.target);
+      this.over = !!el && el !== this.el;
+    }
     if (!g || !this.el) return;
     if (g.mode === 'marquee') {
       // A rectangle or an oval (the options bar), corner to corner, or from

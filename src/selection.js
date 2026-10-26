@@ -37,15 +37,6 @@ function toggleSel(el) {
 }
 
 const HANDLES = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'];
-// The rotate handle's cursor: a clockwise circle arrow, outlined in white
-// to show on any colour, centred on the pointer.
-const ROTATE_ARC = 'M15.5 5.94A7 7 0 1 0 18.06 15.5';
-const ROTATE_CURSOR = `url("data:image/svg+xml,${encodeURIComponent(
-  '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">' +
-    `<g fill="none" stroke-linecap="round"><path d="${ROTATE_ARC}" stroke="#fff" stroke-width="4"/>` +
-    `<path d="${ROTATE_ARC}" stroke="#000" stroke-width="1.75"/></g>` +
-    '<path d="M20.3 8.7 16.1 3.6 13.9 7.6Z" fill="#000" stroke="#fff" stroke-width="1.2" stroke-linejoin="round"/></svg>',
-)}") 12 12, grab`;
 
 function handlePos(box, k) {
   const x = k.includes('w') ? box.x : k.includes('e') ? box.x + box.w : box.x + box.w / 2;
@@ -120,7 +111,7 @@ function drawSelection() {
         r: 5 / z,
         class: 'sc-handle',
         'data-handle': 'rot',
-        style: `cursor:${ROTATE_CURSOR}`,
+        style: `cursor:${cursorFor.rotate}`,
       },
       selLayer,
     );
@@ -129,7 +120,7 @@ function drawSelection() {
     const p = handlePos(box, k);
     const cursor =
       mode === 'rotate'
-        ? ROTATE_CURSOR
+        ? cursorFor.rotate
         : mode === 'skew' && k.length === 1
           ? { n: 'ew', s: 'ew', e: 'ns', w: 'ns' }[k] + '-resize'
           : {

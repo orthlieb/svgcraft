@@ -381,13 +381,13 @@ test.describe('Free Transform', () => {
   });
 });
 
-test('the rotate handle shows a circle arrow, held while turning', async ({ page }) => {
+test('the rotate handle shows Photoshop’s curved arrow, held while turning', async ({ page }) => {
   await load(page, RECT);
   await page.click('#r');
   const rot = page.locator('[data-handle="rot"]');
   await expect(rot).toHaveCount(1);
   const cursor = (loc) => loc.evaluate((el) => getComputedStyle(el).cursor);
-  expect(await cursor(rot)).toMatch(/^url\(.*\) 12 12, grab$/);
+  expect(await cursor(rot)).toMatch(/^url\(.*\) 11 11, grab$/);
   // The scale handles keep their resize arrows.
   expect(await cursor(page.locator('[data-handle="se"]'))).toBe('nwse-resize');
 
@@ -397,6 +397,6 @@ test('the rotate handle shows a circle arrow, held while turning', async ({ page
   await page.mouse.move(h.x + 120, h.y + 60, { steps: 4 });
   expect(await cursor(page.locator('#sc-stage'))).toMatch(/^url\(/);
   await page.mouse.up();
-  expect(await cursor(page.locator('#sc-stage'))).toBe('default');
+  expect(await cursor(page.locator('#sc-stage'))).toMatch(/^url\(.*\) 3 1, default$/);
   expect(await page.locator('#r').getAttribute('transform')).toContain('matrix');
 });

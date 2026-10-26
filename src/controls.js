@@ -250,16 +250,18 @@ $('#sc-scrubby').addEventListener('change', (e) => {
 });
 // Double-clicking the Zoom tool goes to 100%, as in Photoshop.
 $('[data-tool="zoom"]').addEventListener('dblclick', () => zoomAt(1));
-// Holding Alt flips the Zoom tool's cursor between in and out.
+// Shift and Alt change the pointer: the Zoom tool's in / out, the
+// selection badges (src/cursors.js).
 for (const type of ['keydown', 'keyup'])
   window.addEventListener(type, (e) => {
-    if (e.key !== 'Alt' || altDown === (type === 'keydown')) return;
-    altDown = type === 'keydown';
-    if (state.tool === 'zoom' && !gesture?.pan) stage.style.cursor = tools.zoom.cursor;
+    const k = { Shift: 'shift', Alt: 'alt' }[e.key];
+    if (!k || keysDown[k] === (type === 'keydown')) return;
+    keysDown[k] = type === 'keydown';
+    syncCursor();
   });
 window.addEventListener('blur', () => {
-  altDown = false;
-  if (state.tool === 'zoom') stage.style.cursor = tools.zoom.cursor;
+  keysDown.shift = keysDown.alt = false;
+  syncCursor();
 });
 syncZoomOpts();
 document.querySelector('[data-eraser="object"]').setAttribute('aria-checked', 'true');

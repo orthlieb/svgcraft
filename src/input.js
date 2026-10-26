@@ -5,7 +5,6 @@
 let gesture = null;
 let pinch = null;
 let spaceDown = false;
-let altDown = false; // flips the Zoom tool's direction while held
 const pointers = new Map();
 
 function abortGesture() {
@@ -80,7 +79,10 @@ stage.addEventListener('pointermove', (e) => {
     state.panY = gesture.py + e.clientY - gesture.sy;
     applyView();
   } else if (gesture?.tool) gesture.tool.move?.(e, p);
-  else if (!pointers.size || e.pointerType !== 'touch') tools[state.tool].move?.(e, p);
+  else if (!pointers.size || e.pointerType !== 'touch') {
+    tools[state.tool].move?.(e, p);
+    syncCursor();
+  }
 });
 
 function endPointer(e) {

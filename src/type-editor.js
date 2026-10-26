@@ -354,7 +354,7 @@ function finishTypeEdit(keep) {
 // ---- Type tool ------------------------------------------------------------
 tools.text = {
   hint: 'Click to add point text, or drag a box for paragraph text · Click text to edit it · Ctrl+Enter or click away finishes, Esc cancels',
-  cursor: 'text',
+  cursor: cursorFor.text,
   down(e, p) {
     // As in Photoshop, a click while typing only commits the text (the
     // editor's blur does that); the next click starts a new layer.
@@ -839,7 +839,7 @@ async function samplePixel(p) {
 
 tools.eyedropper = {
   hint: 'Style: click a shape to copy its fill, stroke and opacity (onto the selection too) · Colour: click to take the exact pixel colour into the active paint · Alt-click sends it to the other paint',
-  cursor: 'crosshair',
+  cursor: cursorFor.eyedropper,
   async down(e, p) {
     if (state.eyedropMode === 'style') {
       const el = topLevel(e.target);
