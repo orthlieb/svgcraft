@@ -513,7 +513,7 @@ tools.node = {
       return;
     }
     if (!el && !this.el) return;
-    this.g = { mode: 'marquee', p0: p, base: e.shiftKey ? [...this.picked] : [] };
+    this.g = { mode: 'marquee', p0: p, pts: [p], base: e.shiftKey ? [...this.picked] : [] };
     if (!e.shiftKey) {
       this.picked = [];
       this.redraw();
@@ -524,24 +524,43 @@ tools.node = {
     if (!g || !this.el) return;
     if (g.mode === 'marquee') {
       // A rectangle or an oval (the options bar), corner to corner, or from
-      // its centre with Alt, as Photoshop's marquees.
-      const dx = Math.abs(p.x - g.p0.x);
-      const dy = Math.abs(p.y - g.p0.y);
-      const [x, y, w, h] = e.altKey
-        ? [g.p0.x - dx, g.p0.y - dy, 2 * dx, 2 * dy]
-        : [Math.min(g.p0.x, p.x), Math.min(g.p0.y, p.y), dx, dy];
-      const oval = state.marquee === 'oval';
+      // its centre with Alt, as Photoshop's marquees; or freeform, a lasso
+      // drawn round the points.
       const cls = 'sc-ov sc-ov-fill sc-ov-dash';
       guides.replaceChildren();
-      if (oval)
-        mk('ellipse', { cx: x + w / 2, cy: y + h / 2, rx: w / 2, ry: h / 2, class: cls }, guides);
-      else mk('rect', { x, y, width: w, height: h, class: cls }, guides);
-      const inside = (q) =>
-        oval
-          ? w > 0 &&
-            h > 0 &&
-            ((q.x - x - w / 2) / (w / 2)) ** 2 + ((q.y - y - h / 2) / (h / 2)) ** 2 <= 1
-          : q.x >= x && q.x <= x + w && q.y >= y && q.y <= y + h;
+      let inside;
+      if (state.marquee === 'lasso') {
+        const pts = g.pts;
+        pts.push(p);
+        mk('polygon', { points: pts.map((q) => `${q.x},${q.y}`).join(' '), class: cls }, guides);
+        // Even-odd: a ray from the point crosses the outline an odd number of times.
+        inside = (q) => {
+          let odd = false;
+          for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+            const a = pts[i];
+            const b = pts[j];
+            if (a.y > q.y !== b.y > q.y && q.x < ((b.x - a.x) * (q.y - a.y)) / (b.y - a.y) + a.x)
+              odd = !odd;
+          }
+          return odd;
+        };
+      } else {
+        const dx = Math.abs(p.x - g.p0.x);
+        const dy = Math.abs(p.y - g.p0.y);
+        const [x, y, w, h] = e.altKey
+          ? [g.p0.x - dx, g.p0.y - dy, 2 * dx, 2 * dy]
+          : [Math.min(g.p0.x, p.x), Math.min(g.p0.y, p.y), dx, dy];
+        const oval = state.marquee === 'oval';
+        if (oval)
+          mk('ellipse', { cx: x + w / 2, cy: y + h / 2, rx: w / 2, ry: h / 2, class: cls }, guides);
+        else mk('rect', { x, y, width: w, height: h, class: cls }, guides);
+        inside = (q) =>
+          oval
+            ? w > 0 &&
+              h > 0 &&
+              ((q.x - x - w / 2) / (w / 2)) ** 2 + ((q.y - y - h / 2) / (h / 2)) ** 2 <= 1
+            : q.x >= x && q.x <= x + w && q.y >= y && q.y <= y + h;
+      }
       const hit = [];
       this.subs.forEach((sp, si) =>
         sp.nodes.forEach((n, ni) => {

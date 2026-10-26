@@ -259,3 +259,55 @@ test('points can be picked with an oval too, or from the centre with Alt', async
   await page.waitForFunction(() => !!window.svgcraft);
   await expect(page.locator('[data-marquee="oval"]')).toHaveAttribute('aria-checked', 'true');
 });
+
+test('points can be picked freeform, with a lasso drawn round them', async ({ page }) => {
+  // The same square: a point at each corner and each side's middle.
+  await page.evaluate(() =>
+    window.svgcraft.openSvg(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">' +
+        '<path id="p" d="M300 200L400 200L500 200L500 300L500 400L400 400L300 400L300 300Z" fill="#2563eb"/></svg>',
+      'square.svg',
+    ),
+  );
+  await page.keyboard.press('a');
+  await page.evaluate(() => window.svgcraft.tools.node.target(document.getElementById('p')));
+  await expect(nodes(page)).toHaveCount(8);
+  const picked = () =>
+    page.evaluate(() => window.svgcraft.tools.node.picked.map(([, n]) => n).sort((a, b) => a - b));
+  const lasso = async (pts, shift = false) => {
+    const [first, ...rest] = await Promise.all(pts.map(([x, y]) => toScreen(page, x, y)));
+    if (shift) await page.keyboard.down('Shift');
+    await page.mouse.move(first.x, first.y);
+    await page.mouse.down();
+    for (const q of rest) await page.mouse.move(q.x, q.y, { steps: 4 });
+    await page.mouse.up();
+    if (shift) await page.keyboard.up('Shift');
+  };
+
+  // A triangle round the top-left corner takes it and its two neighbours.
+  await page.click('[data-marquee="lasso"]');
+  await lasso([
+    [280, 180],
+    [450, 180],
+    [280, 350],
+  ]);
+  await expect(page.locator('#sc-stage polygon.sc-ov-dash')).toHaveCount(0);
+  expect(await picked()).toEqual([0, 1, 7]);
+
+  // Shift adds: a loop round the bottom-right corner.
+  await lasso(
+    [
+      [480, 380],
+      [520, 380],
+      [520, 420],
+      [480, 420],
+    ],
+    true,
+  );
+  expect(await picked()).toEqual([0, 1, 4, 7]);
+
+  // The choice is remembered.
+  await page.reload();
+  await page.waitForFunction(() => !!window.svgcraft);
+  await expect(page.locator('[data-marquee="lasso"]')).toHaveAttribute('aria-checked', 'true');
+});
