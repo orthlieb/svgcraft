@@ -274,14 +274,14 @@ test('points can be picked freeform, with a lasso drawn round them', async ({ pa
   await expect(nodes(page)).toHaveCount(8);
   const picked = () =>
     page.evaluate(() => window.svgcraft.tools.node.picked.map(([, n]) => n).sort((a, b) => a - b));
-  const lasso = async (pts, shift = false) => {
+  const lasso = async (pts, mod) => {
     const [first, ...rest] = await Promise.all(pts.map(([x, y]) => toScreen(page, x, y)));
-    if (shift) await page.keyboard.down('Shift');
+    if (mod) await page.keyboard.down(mod);
     await page.mouse.move(first.x, first.y);
     await page.mouse.down();
     for (const q of rest) await page.mouse.move(q.x, q.y, { steps: 4 });
     await page.mouse.up();
-    if (shift) await page.keyboard.up('Shift');
+    if (mod) await page.keyboard.up(mod);
   };
 
   // A triangle round the top-left corner takes it and its two neighbours.
@@ -302,9 +302,21 @@ test('points can be picked freeform, with a lasso drawn round them', async ({ pa
       [520, 420],
       [480, 420],
     ],
-    true,
+    'Shift',
   );
   expect(await picked()).toEqual([0, 1, 4, 7]);
+
+  // Alt takes away: a loop round the top-middle point drops just it.
+  await lasso(
+    [
+      [380, 180],
+      [420, 180],
+      [420, 220],
+      [380, 220],
+    ],
+    'Alt',
+  );
+  expect(await picked()).toEqual([0, 4, 7]);
 
   // The choice is remembered.
   await page.reload();

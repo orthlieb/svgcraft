@@ -513,8 +513,12 @@ tools.node = {
       return;
     }
     if (!el && !this.el) return;
-    this.g = { mode: 'marquee', p0: p, pts: [p], base: e.shiftKey ? [...this.picked] : [] };
-    if (!e.shiftKey) {
+    // A lasso begun with Alt takes points away from what's picked; with
+    // Shift, any shape adds to it.
+    const cut = e.altKey && state.marquee === 'lasso';
+    const keep = cut || e.shiftKey;
+    this.g = { mode: 'marquee', p0: p, pts: [p], cut, base: keep ? [...this.picked] : [] };
+    if (!keep) {
       this.picked = [];
       this.redraw();
     }
@@ -569,7 +573,10 @@ tools.node = {
       );
       const key = ([a, b]) => `${a}:${b}`;
       const seen = new Set(g.base.map(key));
-      this.picked = [...g.base, ...hit.filter((k) => !seen.has(key(k)))];
+      if (g.cut) {
+        const gone = new Set(hit.map(key));
+        this.picked = g.base.filter((k) => !gone.has(key(k)));
+      } else this.picked = [...g.base, ...hit.filter((k) => !seen.has(key(k)))];
       this.redraw();
       return;
     }
