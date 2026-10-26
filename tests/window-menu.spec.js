@@ -90,3 +90,16 @@ test('Reset Workspace puts panels, docked windows and dialogs back', async ({ pa
   await page.waitForFunction(() => !!window.svgcraft);
   await expect(page.locator('#sc-panel > .sc-pgroup.collapsed')).toHaveCount(0);
 });
+
+test('a pop-out from the icon strip shows over docked SVG Source', async ({ page }) => {
+  await page.evaluate(() => window.svgcraft.actions.toggleSource());
+  await expect(page.locator('#sc-dock .sc-src:not([hidden])')).toHaveCount(1);
+  await page.evaluate(() => window.svgcraft.actions.toggleDock());
+  await page.click('.sc-dock-icon[data-tip="Layers"]');
+  const onTop = await page.evaluate(() => {
+    const g = document.querySelector('.sc-popout');
+    const b = g.getBoundingClientRect();
+    return g.contains(document.elementFromPoint(b.left + 30, b.top + 30));
+  });
+  expect(onTop).toBe(true);
+});

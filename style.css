@@ -2790,6 +2790,9 @@ body.sc-no-doc .sc-status > * {
 }
 .sc-src[data-docked] {
   position: static;
+  /* A flex item keeps its z-index even when static: without this a docked
+     pane would sit over the icon strip's pop-outs. */
+  z-index: auto;
   flex: 1 1 0;
   width: auto;
   height: auto;
