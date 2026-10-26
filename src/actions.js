@@ -200,6 +200,7 @@ const NO_DOC_ACTIONS = new Set([
   'togglePanels',
   'toggleDock',
   'installApp',
+  'resetWorkspace',
 ]);
 const actionAllowed = (name) =>
   curDoc ? !actionRules[name] || actionRules[name]() : NO_DOC_ACTIONS.has(name);
@@ -270,6 +271,7 @@ function closeMenus() {
 function showMenu(m, focusFirst) {
   closeMenus();
   syncActions();
+  if (typeof syncWindowMenu === 'function') syncWindowMenu();
   const btn = m.querySelector('.sc-menu-btn');
   const list = m.querySelector('.sc-menu-list');
   list.hidden = false;

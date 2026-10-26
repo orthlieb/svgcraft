@@ -49,7 +49,7 @@ straight from disk (`file://`), none of this applies.
 
 The layout follows Photoshop:
 
-- **Menu bar**: File, Edit, Image, Layer, Object, Type, Select, View and Help menus, in Photoshop's order. Layer holds what works on whole layers (New, Duplicate, Layer Style, Clipping Mask, Group, Arrange, Align, Lock); Object holds symbols and what works on shapes (Path, Combine Shapes, Flip). Click to open, hover to
+- **Menu bar**: File, Edit, Image, Layer, Object, Type, Select, View, Window and Help menus, in Photoshop's order. Layer holds what works on whole layers (New, Duplicate, Layer Style, Clipping Mask, Group, Arrange, Align, Lock); Object holds symbols and what works on shapes (Path, Combine Shapes, Flip). Click to open, hover to
   switch between them, and use the arrow keys to move around. As in
   Photoshop, an item or button that can't run on the current selection is
   greyed out: Crop to Selection needs a selection, a clipping mask, Combine
@@ -74,6 +74,20 @@ The layout follows Photoshop:
   the panels shrinks the whole column to a strip of their icons, leaving
   more room for the canvas; an icon pops its panel out beside the strip
   (a click elsewhere or Esc puts it away), and « brings the panels back.
+- **Window menu**: every panel by name, ticked while it shows. Choosing one
+  opens it on its tab (bringing the panels back if Tab hid them, or popping
+  it out of the icon strip), and choosing a ticked one folds it away. Then
+  SVG Source and Icon Preview, Collapse Panels to Icons, Hide Panels (Tab),
+  and **Reset Workspace**: every panel open on its first tab, the icon
+  strip and hiding undone, SVG Source and Icon Preview docked at the
+  standard width, and dialogs back where they first open.
+- **Split view**: SVG Source and Icon Preview dock in a column beside the
+  canvas. Drag the divider at its left (or focus it and use the arrow keys)
+  to resize it; with both open they stack, Icon Preview above SVG Source,
+  with a divider between them. The button in each one's title bar floats it
+  as a window of its own and docks it back. Whether each is docked, the
+  column's width and the split are remembered. Below 1024 px wide they
+  float.
 - **Auto-Select** on the Move tool's options bar: **Group** makes a canvas
   click pick the whole top-level item. **Layer** picks the exact shape
   under the cursor, even deep inside groups.
@@ -782,10 +796,9 @@ Features):
   The live area is inside the guides nearest each edge, so moving a margin
   guide moves the keylines (without guides it's a twelfth in from each
   edge). Keylines aren't part of the drawing.
-- **View → Icon Preview** (Ctrl+Alt+P) shows the drawing at 16, 24, 32,
-  48, 64 and 128 px in a pane docked beside the canvas: drag the divider
-  (or focus it and use the arrow keys) to resize it. The button in its title
-  bar floats it as a window of its own and docks it back. The previews are
+- **Window → Icon Preview** (Ctrl+Alt+P) shows the drawing at 16, 24, 32,
+  48, 64 and 128 px in a pane docked beside the canvas (see Split view):
+  the button in its title bar floats it and docks it back. The previews are
   drawn by the browser just as a web page would draw the SVG. They update
   as you work, and clicking a size
   shows the canvas at that size. Its options (and whether it's docked, and
@@ -1000,12 +1013,13 @@ greyed out does nothing.
 
 ## SVG source
 
-View → SVG Source (Ctrl+U, as in a browser's view-source) opens a floating
-window with the drawing's SVG, exactly as Save as SVG would write it,
+Window → SVG Source (Ctrl+U, as in a browser's view-source) opens a split
+view beside the canvas (see Split view; float it with the button in its
+title bar) with the drawing's SVG, exactly as Save as SVG would write it,
 including the `@import` for any Google Fonts. It's read-only, laid out one
 element per line, indented by nesting, with long attribute lists wrapped,
-and coloured for tags, attributes, values, comments and text. Drag the
-window by its title bar and resize it from its corner.
+and coloured for tags, attributes, values, comments and text. Floated,
+drag the window by its title bar and resize it from its corner.
 
 - **Live.** The source follows your edits, undo and tab switches. It waits
   while you're selecting text in it, and keeps its scroll position.

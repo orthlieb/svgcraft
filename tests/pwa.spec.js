@@ -64,7 +64,7 @@ test('once opened, SVGCraft loads offline', async ({ page, context, origin }) =>
   await page.waitForFunction(() => !!window.svgcraft);
   await page.evaluate(() => window.svgcraft.ready);
   // Every script ran: the editor is all there, and edits work.
-  await expect(page.locator('.sc-menu-btn')).toHaveCount(9);
+  await expect(page.locator('.sc-menu-btn')).toHaveCount(10);
   await page.evaluate(() =>
     window.svgcraft.openSvg(
       '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><rect id="r" width="5" height="5"/></svg>',

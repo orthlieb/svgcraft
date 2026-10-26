@@ -140,3 +140,75 @@ document.addEventListener(
   true,
 );
 if (stored(DOCK_KEY) === 'icons') setDockIcons(true, false);
+
+// ---- Window menu -------------------------------------------------------------
+// Each panel by name (ticked when it's showing), the floating / docked
+// windows, and the workspace: collapse to icons, hide the panels, reset.
+const PANEL_TABS = {
+  Color: 'color',
+  Swatches: 'swatches',
+  Gradients: 'gradients',
+  Patterns: 'patterns',
+  Properties: 'props',
+  Character: 'character',
+  Paragraph: 'paragraph',
+  Symbols: 'symbols',
+  Animation: 'animation',
+};
+const layersGroup = pgroups.at(-1);
+const panelsHidden = () =>
+  document.body.classList.contains('sc-no-panels') ||
+  document.body.classList.contains('sc-no-right');
+// Bring a panel into view: the panels back if Tab hid them, then its tab,
+// unfolded (or popped out of the icon strip).
+function showPanel(tab) {
+  if (panelsHidden()) togglePanels(false);
+  if (tab) return showTab(tab);
+  if (dockIcons()) return openPopout(layersGroup.querySelector('.sc-ptitle'));
+  setCollapsed(layersGroup, false);
+}
+// Chosen again while it's showing, a panel puts its group away, as
+// Photoshop's Window menu closes it.
+function togglePanel(tab) {
+  if (!panelShowing(tab)) return showPanel(tab);
+  if (dockIcons()) return closePopout();
+  const t = tab ? $(`[data-tab="${tab}"]`) : layersGroup.querySelector('.sc-ptitle');
+  setCollapsed(t.closest('.sc-pgroup'), true);
+}
+for (const [name, tab] of Object.entries(PANEL_TABS))
+  actions[`panel${name}`] = () => togglePanel(tab);
+actions.panelLayers = () => togglePanel(null);
+function panelShowing(tab) {
+  if (panelsHidden()) return false;
+  const t = tab ? $(`[data-tab="${tab}"]`) : layersGroup.querySelector('.sc-ptitle');
+  const group = t.closest('.sc-pgroup');
+  if (tab && t.getAttribute('aria-selected') !== 'true') return false;
+  return dockIcons() ? popout?.group === group : !group.classList.contains('collapsed');
+}
+function syncWindowMenu() {
+  for (const [name, tab] of [...Object.entries(PANEL_TABS), ['Layers', null]])
+    $(`[data-action="panel${name}"]`).setAttribute('aria-checked', panelShowing(tab));
+  $('.sc-menu-list [data-action="toggleDock"]').setAttribute('aria-checked', dockIcons());
+}
+
+// Window → Reset Workspace: every panel open on its first tab, the icon
+// strip and Tab's hiding undone, Icon Preview and SVG Source docked at the
+// standard size, and dialogs back where they open.
+actions.resetWorkspace = () => {
+  if (panelsHidden()) togglePanels(false);
+  setDockIcons(false);
+  for (const g of pgroups) {
+    setCollapsed(g, false, false);
+    g.querySelector('[data-tab]')?.click();
+  }
+  store(PANELS_KEY, null);
+  for (const k of [DOCK_W_KEY, DOCK_SPLIT_KEY]) store(k, null);
+  for (const d of dockables) {
+    store(d.key, null);
+    if (dockRoomQuery.matches) setDocked(d, true, false);
+  }
+  for (const dlg of document.querySelectorAll('dialog.sc-dialog'))
+    dlg.style.left = dlg.style.top = dlg.style.transform = '';
+  syncDock();
+  say('Workspace reset.');
+};

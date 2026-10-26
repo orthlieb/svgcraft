@@ -92,7 +92,7 @@ function drawKeylines() {
   line(a.x, cy, a.x + a.w, cy);
 }
 
-// View → Icon Preview: the drawing at icon sizes on a light, dark or
+// Window → Icon Preview: the drawing at icon sizes on a light, dark or
 // checkerboard background (or all three). Each is an <img> of the exported
 // SVG at that many CSS pixels, so the browser draws it the way a page would.
 // The background starts on the app's theme; a choice is remembered.
@@ -228,49 +228,17 @@ function showAtSize(size) {
   state.panY = (r.height - state.h * state.zoom) / 2;
   applyView();
 }
-// Docked (the default), the preview is a split pane beside the canvas,
-// resized by dragging the divider; floating, a window of its own. Both
-// choices and the pane's width are remembered.
-const IP_DOCK_KEY = 'svgcraft.iconPreviewDock';
-const ipSplitter = $('#sc-ip-splitter');
-function ipDockWidth(w) {
-  const max = Math.max(220, $('#sc-split').clientWidth * 0.6);
-  return Math.round(clamp(w, 200, max));
-}
-function setIconPreviewDocked(docked, save = true) {
-  if (save) store(IP_DOCK_KEY, docked ? 'dock' : 'float');
-  const btn = $('#sc-ip-dock');
-  const label = docked ? 'Float' : 'Dock beside the canvas';
-  btn.setAttribute('aria-label', label);
-  btn.dataset.tip = label;
-  const name = docked ? 'up-right-from-square' : 'table-columns';
-  btn.innerHTML = `<i data-icon="${name}">${icon(name)}</i>`;
-  if (docked) {
-    ipWin.dataset.docked = '';
-    $('#sc-split').append(ipWin);
-    const w = +stored(`${IP_DOCK_KEY}.width`) || 300;
-    ipWin.style.width = `${ipDockWidth(w)}px`;
-    ipWin.style.left = ipWin.style.top = '';
-  } else {
-    delete ipWin.dataset.docked;
-    document.body.append(ipWin);
-    ipWin.style.width = '';
-    ipWin.style.left = `${Math.max(8, innerWidth - 460 - 320)}px`;
-    ipWin.style.top = '96px';
-    if (!ipWin.hidden) winClamp(ipWin);
-  }
-  ipSplitter.hidden = !docked || ipWin.hidden;
-  applyView();
-}
+// Docked (the default), the preview is a split pane beside the canvas
+// (src/dock.js); floating, a window of its own.
+const ipDock = makeDockable(ipWin, {
+  key: 'svgcraft.iconPreviewDock',
+  btn: $('#sc-ip-dock'),
+  order: 0,
+});
 function openIconPreview() {
   iconPrev.open = true;
   ipWin.hidden = false;
-  const docked = stored(IP_DOCK_KEY) !== 'float';
-  const isDocked = 'docked' in ipWin.dataset;
-  if (docked !== isDocked || (!docked && !ipWin.style.left)) setIconPreviewDocked(docked, false);
-  ipSplitter.hidden = !docked;
-  if (!docked) winClamp(ipWin);
-  else applyView();
+  dockOnOpen(ipDock);
   $('[data-action="toggleIconPreview"]').setAttribute('aria-checked', 'true');
   renderIconPreview();
 }
@@ -279,49 +247,10 @@ function closeIconPreview() {
   iconPrev.open = false;
   clearTimeout(iconPrev.timer);
   ipWin.hidden = true;
-  ipSplitter.hidden = true;
-  if ('docked' in ipWin.dataset) applyView();
+  syncDock();
   $('[data-action="toggleIconPreview"]').setAttribute('aria-checked', 'false');
   if (ipWin.contains(document.activeElement)) document.activeElement.blur();
 }
-$('#sc-ip-dock').addEventListener('click', () => {
-  setIconPreviewDocked(!('docked' in ipWin.dataset));
-  $('#sc-ip-dock').focus();
-});
-// The divider: drag it, or use the arrow keys (Shift for bigger steps).
-function setDockWidth(w) {
-  w = ipDockWidth(w);
-  ipWin.style.width = `${w}px`;
-  store(`${IP_DOCK_KEY}.width`, w);
-  ipSplitter.setAttribute('aria-valuenow', w);
-  applyView();
-}
-ipSplitter.addEventListener('pointerdown', (e) => {
-  if (e.button !== 0) return;
-  e.preventDefault();
-  const x0 = e.clientX;
-  const w0 = ipWin.offsetWidth;
-  ipSplitter.setPointerCapture(e.pointerId);
-  ipSplitter.classList.add('dragging');
-  const move = (ev) => setDockWidth(w0 - (ev.clientX - x0));
-  const up = () => {
-    ipSplitter.classList.remove('dragging');
-    ipSplitter.removeEventListener('pointermove', move);
-    ipSplitter.removeEventListener('pointerup', up);
-    ipSplitter.removeEventListener('pointercancel', up);
-  };
-  ipSplitter.addEventListener('pointermove', move);
-  ipSplitter.addEventListener('pointerup', up);
-  ipSplitter.addEventListener('pointercancel', up);
-});
-ipSplitter.addEventListener('keydown', (e) => {
-  const step = e.shiftKey ? 50 : 10;
-  const d = { ArrowLeft: step, ArrowRight: -step }[e.key];
-  if (!d) return;
-  e.preventDefault();
-  e.stopPropagation();
-  setDockWidth(ipWin.offsetWidth + d);
-});
 const toggleIconPreview = () => (iconPrev.open ? closeIconPreview() : openIconPreview());
 dragWindow(ipWin, $('#sc-ip-titlebar'));
 $('#sc-ip-close').addEventListener('click', closeIconPreview);

@@ -284,7 +284,7 @@ test.describe('Icon Preview', () => {
     await expect(win(page)).toBeHidden();
     await page.reload();
     await page.waitForFunction(() => !!window.svgcraft);
-    await menu(page, 'View', 'toggleIconPreview');
+    await menu(page, 'Window', 'toggleIconPreview');
     await expect(rows(page)).toHaveAttribute('data-bg', 'light');
     // Esc in the window closes it.
     await win(page).locator('[data-ip-bg="dark"]').focus();
@@ -295,15 +295,15 @@ test.describe('Icon Preview', () => {
 
 test('Icon Preview docks beside the canvas as a split pane, or floats', async ({ page }) => {
   const win = page.locator('#sc-iconprev');
-  const splitter = page.locator('#sc-ip-splitter');
+  const splitter = page.locator('#sc-dock-splitter');
   const stageW = () => page.locator('#sc-stage').evaluate((s) => s.clientWidth);
   const full = await stageW();
-  await menu(page, 'View', 'toggleIconPreview');
+  await menu(page, 'Window', 'toggleIconPreview');
   // Docked by default: inside the workspace, beside the canvas, which narrows.
-  expect(await win.evaluate((w) => w.parentNode.id)).toBe('sc-split');
+  expect(await win.evaluate((w) => w.parentNode.id)).toBe('sc-dock');
   await expect(splitter).toBeVisible();
   const paneW = await win.evaluate((w) => w.offsetWidth);
-  expect(paneW).toBe(300);
+  expect(paneW).toBe(380);
   expect(full - (await stageW())).toBeGreaterThanOrEqual(paneW);
   // Drag the divider left to widen the pane; the arrow keys work too.
   const sb = await splitter.boundingBox();
@@ -311,10 +311,10 @@ test('Icon Preview docks beside the canvas as a split pane, or floats', async ({
   await page.mouse.down();
   await page.mouse.move(sb.x - 98, sb.y + 200, { steps: 4 });
   await page.mouse.up();
-  expect(await win.evaluate((w) => w.offsetWidth)).toBe(400);
+  expect(await win.evaluate((w) => w.offsetWidth)).toBe(480);
   await splitter.focus();
   await page.keyboard.press('ArrowRight');
-  expect(await win.evaluate((w) => w.offsetWidth)).toBe(390);
+  expect(await win.evaluate((w) => w.offsetWidth)).toBe(470);
   // Float it: a window of its own; the canvas gets its width back.
   await page.click('#sc-ip-dock');
   expect(await win.evaluate((w) => w.parentNode === document.body)).toBe(true);
@@ -325,10 +325,10 @@ test('Icon Preview docks beside the canvas as a split pane, or floats', async ({
   // Remembered: it opens floating after a reload, and docks back at its width.
   await page.reload();
   await page.waitForFunction(() => !!window.svgcraft);
-  await menu(page, 'View', 'toggleIconPreview');
+  await menu(page, 'Window', 'toggleIconPreview');
   expect(await win.evaluate((w) => w.parentNode === document.body)).toBe(true);
   await page.click('#sc-ip-dock');
-  expect(await win.evaluate((w) => [w.parentNode.id, w.offsetWidth])).toEqual(['sc-split', 390]);
+  expect(await win.evaluate((w) => [w.parentNode.id, w.offsetWidth])).toEqual(['sc-dock', 470]);
   // Closing the pane gives the canvas its room back.
   await page.click('#sc-ip-close');
   await expect(splitter).toBeHidden();
@@ -343,7 +343,7 @@ test.describe('Icon Preview masks', () => {
 
   test('a mask per platform, and the adaptive crop, remembered', async ({ page }) => {
     await load(page, '<rect width="108" height="108" fill="#0b6e4f"/>', 108, 108);
-    await menu(page, 'View', 'toggleIconPreview');
+    await menu(page, 'Window', 'toggleIconPreview');
     await expect(win(page).locator('[data-ip-mask="none"]')).toHaveAttribute(
       'aria-checked',
       'true',
@@ -371,7 +371,7 @@ test.describe('Icon Preview masks', () => {
     expect(i.y - b.y).toBeCloseTo(-16, 0);
     await page.reload();
     await page.waitForFunction(() => !!window.svgcraft);
-    await menu(page, 'View', 'toggleIconPreview');
+    await menu(page, 'Window', 'toggleIconPreview');
     await expect(win(page).locator('[data-ip-mask="rounded"]')).toHaveAttribute(
       'aria-checked',
       'true',

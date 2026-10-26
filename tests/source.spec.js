@@ -29,7 +29,7 @@ const BODY =
   '<ellipse id="e" cx="300" cy="100" rx="30" ry="20"/></g>';
 
 async function openSource(page) {
-  await menu(page, 'View', 'toggleSource');
+  await menu(page, 'Window', 'toggleSource');
   await expect(win(page)).toBeVisible();
 }
 
@@ -266,12 +266,13 @@ test('keys inside the window do not edit the drawing', async ({ page }) => {
   expect(await page.evaluate(() => getSelection().toString())).toContain('<rect id="a"');
 });
 
-test('Wrap toggles line wrapping; the title bar drags the window', async ({ page }) => {
+test('Wrap toggles line wrapping; floated, the title bar drags the window', async ({ page }) => {
   await load(page, BODY);
   await openSource(page);
   await page.click('#sc-src-wrap');
   await expect(page.locator('#sc-src-wrap')).toHaveAttribute('aria-pressed', 'true');
   await expect(win(page)).toHaveClass(/sc-src-wrap/);
+  await page.click('#sc-src-dock');
   const before = await win(page).boundingBox();
   const bar = await page.locator('#sc-src-title').boundingBox();
   await page.mouse.move(bar.x + 5, bar.y + 5);
@@ -309,4 +310,42 @@ test('a large drawing draws its lines as they come into view', async ({ page }) 
   await page.fill('#sc-src-find', 'id="r1100"');
   await expect(page.locator('#sc-src-count')).toHaveText('1 of 1');
   await expect(rows.filter({ hasText: 'id="r1100"' })).toBeInViewport();
+});
+
+test('docked beside the canvas by default: a split view, sharing the column', async ({ page }) => {
+  await load(page, BODY);
+  const stageW = () => page.locator('#sc-stage').evaluate((s) => s.clientWidth);
+  const full = await stageW();
+  await openSource(page);
+  // A pane in the dock column, and the canvas narrows to make room.
+  expect(await win(page).evaluate((w) => w.parentNode.id)).toBe('sc-dock');
+  expect(full - (await stageW())).toBeGreaterThanOrEqual(380);
+  await expect(page.locator('#sc-src-dock')).toHaveAttribute('aria-label', 'Float');
+  // Still live and linked to the canvas.
+  await page.evaluate(() => window.svgcraft.state.sel.splice(0));
+  await expect(page.locator('#sc-src-code')).toContainText('<svg');
+
+  // With Icon Preview docked too, they stack: preview above, source below,
+  // with a divider between them that moves the split.
+  await menu(page, 'Window', 'toggleIconPreview');
+  const order = () => page.$$eval('#sc-dock > :not([hidden])', (els) => els.map((e) => e.id));
+  expect(await order()).toEqual(['sc-iconprev', 'sc-dock-divider', 'sc-source']);
+  const h = () => page.locator('#sc-iconprev').evaluate((e) => e.offsetHeight);
+  const h0 = await h();
+  const d = await page.locator('#sc-dock-divider').boundingBox();
+  await page.mouse.move(d.x + 50, d.y + 2);
+  await page.mouse.down();
+  await page.mouse.move(d.x + 50, d.y + 102, { steps: 4 });
+  await page.mouse.up();
+  expect(Math.abs((await h()) - (h0 + 100))).toBeLessThan(3);
+
+  // Floated, the source leaves the column to the preview alone.
+  await page.click('#sc-src-dock');
+  expect(await win(page).evaluate((w) => w.parentNode === document.body)).toBe(true);
+  expect(await order()).toEqual(['sc-iconprev']);
+  // Remembered: it opens floating after a reload.
+  await page.reload();
+  await page.waitForFunction(() => !!window.svgcraft);
+  await openSource(page);
+  expect(await win(page).evaluate((w) => getComputedStyle(w).position)).toBe('fixed');
 });

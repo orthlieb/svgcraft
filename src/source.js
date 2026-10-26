@@ -1,8 +1,8 @@
-// SVGCraft — View → SVG Source.
+// SVGCraft — Window → SVG Source.
 'use strict';
 
 // ---------------------------------------------------------------------
-// View → SVG Source: a floating, read-only window showing the document's
+// Window → SVG Source: a read-only pane (docked) or window showing the document's
 // SVG exactly as Save as SVG writes it, pretty-printed and highlighted.
 //
 // The markup is tokenized here (no libraries), re-indented one element per
@@ -400,12 +400,8 @@ function openSource() {
   v.open = true;
   srcReturnFocus = document.activeElement;
   srcWin.hidden = false;
-  // First time: beside the right-hand panels; afterwards where it was left.
-  if (!srcWin.style.left) {
-    srcWin.style.left = `${Math.max(8, innerWidth - srcWin.offsetWidth - 320)}px`;
-    srcWin.style.top = '96px';
-  }
-  srcClamp();
+  // Docked beside the canvas, unless it was floated (src/dock.js).
+  dockOnOpen(srcDock);
   $('[data-action="toggleSource"]').setAttribute('aria-checked', 'true');
   v.text = null;
   v.sel = [...state.sel];
@@ -419,6 +415,7 @@ function closeSource() {
   v.open = false;
   clearTimeout(v.timer);
   srcWin.hidden = true;
+  syncDock();
   $('[data-action="toggleSource"]').setAttribute('aria-checked', 'false');
   if (srcHL) {
     CSS.highlights.delete('sc-src-find');
@@ -433,8 +430,12 @@ function closeSource() {
 }
 const toggleSource = () => (srcView.open ? closeSource() : openSource());
 
-// Keep at least the title bar on screen.
-const srcClamp = () => winClamp(srcWin);
+// A split pane beside the canvas, or (floated) a window of its own.
+const srcDock = makeDockable(srcWin, {
+  key: 'svgcraft.sourceDock',
+  btn: $('#sc-src-dock'),
+  order: 1,
+});
 
 async function copySource() {
   srcRender();

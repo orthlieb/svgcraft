@@ -249,7 +249,7 @@ test('Photoshop’s keys: P B, D, Ctrl+D, Ctrl+J, brackets, rulers, guides, grid
   await page.keyboard.press('Shift+Tab');
   await expect(page.locator('#sc-panel')).toBeHidden();
   await expect(page.locator('.sc-tools')).toBeVisible();
-  await menu(page, 'View', 'togglePanels');
+  await menu(page, 'Window', 'togglePanels');
   await expect(page.locator('#sc-panel')).toBeVisible();
 });
 

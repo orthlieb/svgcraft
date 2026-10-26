@@ -490,7 +490,7 @@ test('File Info survives a reload and shows in the SVG source', async ({ page })
     'data-tip',
     'Kept · test.svg',
   );
-  await menu(page, 'View', 'toggleSource');
+  await menu(page, 'Window', 'toggleSource');
   await expect(page.locator('#sc-source')).toBeVisible();
   const text = await page.evaluate(() =>
     [...document.querySelectorAll('#sc-src-code .sc-src-c')].map((c) => c.textContent).join('\n'),

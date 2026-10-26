@@ -29,7 +29,9 @@ const pickPoints = (page, id, picked) =>
     [id, picked],
   );
 
-test('the Layer menu sits between Image and Object', async ({ page }) => {
+test('the menus in Photoshop’s order: Layer between Image and Object, Window before Help', async ({
+  page,
+}) => {
   await expect(page.locator('.sc-menu-btn')).toHaveText([
     'File',
     'Edit',
@@ -39,6 +41,7 @@ test('the Layer menu sits between Image and Object', async ({ page }) => {
     'Type',
     'Select',
     'View',
+    'Window',
     'Help',
   ]);
 });
