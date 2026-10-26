@@ -588,6 +588,17 @@ The Layers panel works like Photoshop's:
   puts the selected layers in a new group (Group 1, Group 2 …) where the
   frontmost one was. With nothing selected, it adds an empty group.
   Layer → Ungroup Layers dissolves a group again.
+- **Group by Colour** (Layer menu) tidies a drawing, an imported one
+  say, into one group per colour, named after the colour or its swatch
+  (by stroke for shapes with no fill; gradients and patterns by which one).
+  It asks first, as it takes every group in the drawing apart and reorders
+  the layers. The drawing looks the same afterwards: a layer only joins its
+  colour's group when nothing of another colour that overlaps it is
+  stacked in between, otherwise its colour gets a second group ("Red 2").
+  Groups whose look depends on being a group (a clipping mask, layer
+  style, filter, blend mode, opacity below 100%, an animation) and locked
+  ones stay whole and are grouped as one layer ("Mixed" if they hold more
+  than one colour). One undo puts everything back.
 - **Layer via Copy / Cut** (Layer → New, Ctrl+J / Alt+Shift+J), as in
   Photoshop, put the selected part of a layer on a new layer above it.
   With layers selected, Layer via Copy copies them in place (Duplicate

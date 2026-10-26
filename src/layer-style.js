@@ -163,6 +163,32 @@ function openAbout(hash) {
   window.open('about.html' + hash, 'svgcraft-about', 'noopener');
 }
 
+// Take a group apart where it is, its transform, opacity and inherited
+// attributes passed down to what was in it; its layers, or null when it
+// carries a clip / mask / filter it can't hand down.
+function dissolveGroup(g) {
+  if (['clip-path', 'mask', 'filter'].some((a) => g.hasAttribute(a) || g.style?.[a])) return null;
+  const out = [];
+  const Mg = getM(g);
+  const gOpacity = parseFloat(g.getAttribute('opacity') ?? 1);
+  const inherit = [...g.attributes].filter(
+    (a) => !['transform', 'opacity', 'id', 'class', 'style'].includes(a.name),
+  );
+  for (const c of [...g.childNodes]) {
+    if (c.nodeType !== 1) continue;
+    if (!NON_GRAPHIC.has(c.localName)) {
+      setM(c, Mg.multiply(getM(c)));
+      for (const a of inherit) if (!c.hasAttribute(a.name)) c.setAttribute(a.name, a.value);
+      if (gOpacity < 1)
+        c.setAttribute('opacity', f(gOpacity * parseFloat(c.getAttribute('opacity') ?? 1)));
+      out.push(c);
+    }
+    g.before(c);
+  }
+  g.remove();
+  return out;
+}
+
 const cmds = {
   textOnPath: () => textOnPath(),
   releaseTextOnPath: () => releaseTextOnPath(),
@@ -281,32 +307,12 @@ const cmds = {
     const out = [];
     let blocked = 0;
     for (const g of inDocOrder(state.sel)) {
-      if (g.localName !== 'g') {
-        out.push(g);
-        continue;
-      }
-      if (['clip-path', 'mask', 'filter'].some((a) => g.hasAttribute(a) || g.style?.[a])) {
+      const kids = g.localName === 'g' ? dissolveGroup(g) : [g];
+      if (kids) out.push(...kids);
+      else {
         blocked++;
         out.push(g);
-        continue;
       }
-      const Mg = getM(g);
-      const gOpacity = parseFloat(g.getAttribute('opacity') ?? 1);
-      const inherit = [...g.attributes].filter(
-        (a) => !['transform', 'opacity', 'id', 'class', 'style'].includes(a.name),
-      );
-      for (const c of [...g.childNodes]) {
-        if (c.nodeType !== 1) continue;
-        if (!NON_GRAPHIC.has(c.localName)) {
-          setM(c, Mg.multiply(getM(c)));
-          for (const a of inherit) if (!c.hasAttribute(a.name)) c.setAttribute(a.name, a.value);
-          if (gOpacity < 1)
-            c.setAttribute('opacity', f(gOpacity * parseFloat(c.getAttribute('opacity') ?? 1)));
-          out.push(c);
-        }
-        g.before(c);
-      }
-      g.remove();
     }
     if (blocked) say(`${blocked} group(s) carry a clip / mask / filter and were left grouped.`);
     state.sel = out;
