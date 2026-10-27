@@ -94,10 +94,10 @@ new MutationObserver(() => {
 function makeClip() {
   const els = normalizeSel(state.sel);
   if (els.length < 2)
-    return say('Select the art and, on top of it, the shape or text to clip it with.');
+    return warn('Select the art and, on top of it, the shape or text to clip it with.');
   const top = els.at(-1);
   if (!CLIP_SHAPES.includes(top.localName))
-    return say(
+    return warn(
       `The topmost selected layer (${layerName(top)}) must be a single shape or text to clip with.`,
     );
   if (refuseLocked(els, 'edit')) return;
@@ -117,7 +117,7 @@ function releaseClip() {
     const g = el.closest?.('[data-sc-clip]');
     if (g && doc.contains(g)) groups.add(g);
   }
-  if (!groups.size) return say('Select a clipping group, or a layer in one, to release.');
+  if (!groups.size) return warn('Select a clipping group, or a layer in one, to release.');
   if (
     refuseLocked(
       [...groups].map((g) => clipperOf(g) || g),

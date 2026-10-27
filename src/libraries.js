@@ -129,7 +129,7 @@ const libSel = { swatches: null, gradients: null, patterns: null, symbols: null 
 
 function saveLibrary() {
   if (!store(LIB_KEY, lib))
-    say('Couldn’t save the library: this browser’s storage is full or blocked.');
+    warn('Couldn’t save the library: this browser’s storage is full or blocked.');
   renderLibraries();
 }
 
@@ -297,7 +297,7 @@ const libItem = (kind, id) => lib[kind].find((x) => x.id === id);
 
 async function renameLibItem(kind, id = libSel[kind]) {
   const item = libItem(kind, id);
-  if (!item) return say(`Click a ${LIB_NOUN[kind]} first, then rename it.`);
+  if (!item) return warn(`Click a ${LIB_NOUN[kind]} first, then rename it.`);
   const name = await ask(`Rename ${LIB_NOUN[kind]}`, { value: item.name });
   if (!name) return;
   item.name = name.slice(0, 80);
@@ -305,7 +305,7 @@ async function renameLibItem(kind, id = libSel[kind]) {
 }
 function removeLibItem(kind, id = libSel[kind]) {
   const i = lib[kind].findIndex((x) => x.id === id);
-  if (i < 0) return say(`Click a ${LIB_NOUN[kind]} first, then delete it.`);
+  if (i < 0) return warn(`Click a ${LIB_NOUN[kind]} first, then delete it.`);
   const [gone] = lib[kind].splice(i, 1);
   if (libSel[kind] === id) libSel[kind] = null;
   saveLibrary();
@@ -324,7 +324,7 @@ async function addLibItem(kind) {
     item = { c, a, name: a < 1 ? `${c} ${Math.round(a * 100)}%` : c };
   } else {
     const g = activeGrad();
-    if (!g) return say('Set the fill or stroke to a gradient first, then save it.');
+    if (!g) return warn('Set the fill or stroke to a gradient first, then save it.');
     item = { type: g.type, angle: g.angle, stops: g.stops.map((x) => ({ ...x })) };
     item.name = `Gradient ${lib.gradients.length + 1}`;
   }
@@ -352,7 +352,7 @@ async function importLibrary(file) {
   try {
     raw = await readLibraryFile(file.name || '', await file.arrayBuffer());
   } catch {
-    return say(
+    return warn(
       'That file isn’t a library, GIMP palette (.gpl) or gradient (.ggr), or SVG SVGCraft can read.',
     );
   }

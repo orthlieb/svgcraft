@@ -397,7 +397,7 @@ function pasteData(file, text) {
     if (!curDoc) openDoc(svg, `${nextUntitled()}.svg`);
     else placeSvg(svg);
   } catch (err) {
-    say(err.message);
+    warn(err.message);
   }
   return true;
 }
@@ -413,7 +413,7 @@ function copySelection(cut) {
   const svg = serialize({ selection: true });
   navigator.clipboard.writeText(svg).then(
     () => cut && cmds.delete(),
-    () => say(`Couldn’t reach the clipboard: press Ctrl+${cut ? 'X' : 'C'} instead.`),
+    () => warn(`Couldn’t reach the clipboard: press Ctrl+${cut ? 'X' : 'C'} instead.`),
   );
 }
 async function pasteClipboard() {
@@ -428,9 +428,9 @@ async function pasteClipboard() {
       for (const t of ['image/svg+xml', 'text/plain'])
         if (item.types.includes(t) && pasteData(null, await (await item.getType(t)).text())) return;
     }
-    say('Nothing to paste: copy some SVG or an image first.');
+    warn('Nothing to paste: copy some SVG or an image first.');
   } catch {
-    say('Couldn’t read the clipboard: press Ctrl+V instead.');
+    warn('Couldn’t read the clipboard: press Ctrl+V instead.');
   }
 }
 

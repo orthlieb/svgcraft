@@ -261,6 +261,11 @@ const srcView = {
   pointer: false,
 };
 
+// Messages. say() is news (done, saved, now on landscape): a line in the
+// status bar for a few seconds. warn() is an error, or a refusal to do
+// something: it shows above the status bar in red with a warning sign and
+// stays until it's dismissed (✕) or a newer one replaces it, so it can't be
+// missed. With `details` (an unexpected bug's report) it adds Copy details.
 let msgTimer = 0;
 function say(text) {
   const m = $('#sc-msg');
@@ -268,3 +273,56 @@ function say(text) {
   clearTimeout(msgTimer);
   msgTimer = setTimeout(() => (m.textContent = ''), 3500);
 }
+let alertDetails = '';
+function warn(text, { details = '' } = {}) {
+  clearTimeout(msgTimer);
+  $('#sc-msg').textContent = '';
+  const a = $('#sc-alert');
+  $('#sc-alert-text').textContent = text;
+  alertDetails = details;
+  $('#sc-alert-copy').hidden = !details;
+  a.hidden = false;
+  // A repeat of the same message pulses, so it's seen to be new.
+  a.classList.remove('sc-alert-new');
+  void a.offsetWidth;
+  a.classList.add('sc-alert-new');
+}
+$('#sc-alert-close').addEventListener('click', () => ($('#sc-alert').hidden = true));
+$('#sc-alert-copy').addEventListener('click', () =>
+  navigator.clipboard.writeText(alertDetails).then(
+    () => say('Copied the details: paste them into your report.'),
+    () => {
+      // No clipboard: show them in the console to copy from there.
+      console.info(alertDetails);
+      say('Couldn’t reach the clipboard: the details are in the console.');
+    },
+  ),
+);
+
+// Unexpected bugs: an exception nothing caught, or a promise that failed
+// with nothing waiting for it, would otherwise just leave a command
+// half-done with nothing on screen. Say so, with a report to copy (the
+// console has it too). A run of them shows only the first few.
+let bugsShown = 0;
+function reportBug(err, how) {
+  const e = err instanceof Error ? err : null;
+  const text = String(e?.message ?? err?.message ?? err ?? 'unknown error');
+  if (++bugsShown > 5) return;
+  const details = [
+    `SVGCraft ${typeof APP_VERSION === 'string' ? APP_VERSION : '(version unknown)'}`,
+    `${new Date().toISOString()} · ${how}`,
+    navigator.userAgent,
+    '',
+    e?.stack || text,
+  ].join('\n');
+  warn(`Something went wrong: ${text}. What you were doing may not have finished.`, {
+    details,
+  });
+}
+addEventListener('error', (e) => {
+  // Not ours to report: "Script error." from another origin's script, and
+  // the browser's harmless ResizeObserver notice.
+  if (!e.error && /^Script error|ResizeObserver loop/.test(e.message || '')) return;
+  reportBug(e.error || e.message, 'uncaught exception');
+});
+addEventListener('unhandledrejection', (e) => reportBug(e.reason, 'unhandled promise rejection'));

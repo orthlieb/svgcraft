@@ -10,7 +10,8 @@ const SCENE =
 const attr = (page, id, a) =>
   page.evaluate(([id, a]) => document.getElementById(id).getAttribute(a), [id, a]);
 const fxOf = (page, id) => attr(page, id, 'data-sc-fx').then((v) => (v ? JSON.parse(v) : null));
-const msg = (page) => page.locator('#sc-msg');
+// Refusals (a locked layer) show as an error above the status bar.
+const msg = (page) => page.locator('#sc-alert-text');
 
 async function openStyle(page) {
   await page.click('.sc-layers-foot [data-action="layerStyle"]');

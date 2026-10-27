@@ -10,7 +10,6 @@ const SCENE =
   '<rect id="other" x="360" y="20" width="30" height="30" fill="#00ff00"/>' +
   '<circle id="c" cx="200" cy="150" r="60" fill="#0000ff"/>';
 
-const msg = (page) => page.locator('#sc-msg');
 const attr = (page, id, a) =>
   page.evaluate(([id, a]) => document.getElementById(id)?.getAttribute(a) ?? null, [id, a]);
 // The clipping syncs in a microtask after each change.
@@ -149,7 +148,9 @@ test('the topmost selected layer is the clipper, and must be one shape or text',
   await load(page, SCENE, 400, 300);
   await select(page, 'c');
   await action(page, 'clipMake');
-  await expect(msg(page)).toContainText('Select the art and, on top of it, the shape or text');
+  await expect(page.locator('#sc-alert-text')).toContainText(
+    'Select the art and, on top of it, the shape or text',
+  );
   expect((await clipState(page)).group).toBe(false);
 
   // A group on top can't clip.
@@ -161,7 +162,9 @@ test('the topmost selected layer is the clipper, and must be one shape or text',
     s.state.sel = [document.getElementById('art'), document.querySelector('#sc-doc > g')];
   });
   await action(page, 'clipMake');
-  await expect(msg(page)).toContainText('must be a single shape or text to clip with');
+  await expect(page.locator('#sc-alert-text')).toContainText(
+    'must be a single shape or text to clip with',
+  );
   expect((await clipState(page)).group).toBe(false);
   expect(await page.locator('#sc-doc > g').count()).toBe(1);
 });
@@ -310,7 +313,7 @@ test('Release restores the clipper and keeps the group', async ({ page }) => {
   // Nothing to release.
   await select(page, 'other');
   await action(page, 'clipRelease');
-  await expect(msg(page)).toContainText('Select a clipping group');
+  await expect(page.locator('#sc-alert-text')).toContainText('Select a clipping group');
 });
 
 test('deleting the clipper or moving it out of the group ends the clip', async ({ page }) => {
@@ -431,7 +434,7 @@ test('locks are honoured', async ({ page }) => {
   await action(page, 'lockAll');
   await select(page, 'art', 'c');
   await action(page, 'clipMake');
-  await expect(msg(page)).toContainText('is locked');
+  await expect(page.locator('#sc-alert-text')).toContainText('is locked');
   expect((await clipState(page)).group).toBe(false);
 
   await action(page, 'unlockLayers');
@@ -441,6 +444,6 @@ test('locks are honoured', async ({ page }) => {
   // A locked clipping group can't be released.
   await action(page, 'lockAll');
   await action(page, 'clipRelease');
-  await expect(msg(page)).toContainText('is locked');
+  await expect(page.locator('#sc-alert-text')).toContainText('is locked');
   expect((await clipState(page)).clipper).toBe('c');
 });

@@ -115,7 +115,7 @@ function setSize(w, h) {
 // included, shifts by the box's corner; the view shifts with it so nothing
 // jumps on screen. Anything left outside is kept but not exported.
 function cropTo(box, what) {
-  if (!box || box.w <= 0 || box.h <= 0) return say(`There’s nothing visible to crop to.`);
+  if (!box || box.w <= 0 || box.h <= 0) return warn(`There’s nothing visible to crop to.`);
   const x = Math.floor(box.x);
   const y = Math.floor(box.y);
   const w = Math.ceil(box.x + box.w) - x;

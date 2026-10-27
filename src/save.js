@@ -55,9 +55,9 @@ async function saveDoc() {
   if (!isFileHandle(h)) return saveDocAs();
   try {
     if (await writeToFile(h)) savedTo(d, h);
-    else say(`SVGCraft wasn’t allowed to change ${h.name}. Save As… saves it somewhere else.`);
+    else warn(`SVGCraft wasn’t allowed to change ${h.name}. Save As… saves it somewhere else.`);
   } catch (err) {
-    if (err.name !== 'NotFoundError') return say(`Couldn’t save ${h.name}: ${err.message}`);
+    if (err.name !== 'NotFoundError') return warn(`Couldn’t save ${h.name}: ${err.message}`);
     // Moved or deleted since it was opened: somewhere new.
     d.handle = null;
     say(`${h.name} isn’t where it was: choose where to save it.`);
@@ -77,14 +77,14 @@ async function saveDocAs() {
       ...(isFileHandle(d.handle) && { startIn: d.handle }),
     });
   } catch (err) {
-    if (err.name !== 'AbortError') say(`Couldn’t save: ${err.message}`);
+    if (err.name !== 'AbortError') warn(`Couldn’t save: ${err.message}`);
     return;
   }
   try {
     if (await writeToFile(h)) savedTo(d, h);
-    else say(`SVGCraft wasn’t allowed to write ${h.name}.`);
+    else warn(`SVGCraft wasn’t allowed to write ${h.name}.`);
   } catch (err) {
-    say(`Couldn’t save ${h.name}: ${err.message}`);
+    warn(`Couldn’t save ${h.name}: ${err.message}`);
   }
 }
 
@@ -95,7 +95,7 @@ async function openWithHandle() {
   try {
     [h] = await showOpenFilePicker({ types: OPEN_TYPES });
   } catch (err) {
-    if (err.name !== 'AbortError') say(`Couldn’t open: ${err.message}`);
+    if (err.name !== 'AbortError') warn(`Couldn’t open: ${err.message}`);
     return;
   }
   importFile(await h.getFile(), 'open', h);

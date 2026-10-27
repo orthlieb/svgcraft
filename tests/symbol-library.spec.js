@@ -291,7 +291,7 @@ test.describe('Save to Library', () => {
   }) => {
     await openLibrary(page);
     await page.click('[data-lib="symbols"] [data-lib-act="add"]');
-    await expect(page.locator('#sc-msg')).toContainText('Click a symbol in This drawing');
+    await expect(page.locator('#sc-alert-text')).toContainText('Click a symbol in This drawing');
     await tile(page, 'Circle').dblclick();
     await page.click('[data-lib="symbols"] [data-lib-act="add"]');
     await answer(page, null);
@@ -324,7 +324,7 @@ test.describe('managing the library', () => {
     await tile(page, 'Tree').click({ modifiers: ['Alt'] });
     await expect(tiles(page)).toHaveCount(n - 2);
     await page.click('[data-lib="symbols"] [data-lib-act="rename"]');
-    await expect(page.locator('#sc-msg')).toContainText('Click a symbol first');
+    await expect(page.locator('#sc-alert-text')).toContainText('Click a symbol first');
 
     await reload(page);
     await openLibrary(page);

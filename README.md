@@ -451,7 +451,8 @@ Turn a bitmap (a logo, icon, scan or line drawing) into vector shapes you
 can edit.
 
 1. Place the image (File → Import…, or drop it on the canvas) and select it.
-2. Choose **Image → Image Trace…**.
+2. Choose **Image → Image Trace…**. It's greyed out until one image layer
+   (or a group holding just one image) is selected.
 3. Pick the **Preset** closest to your image, then adjust the settings while
    you watch the preview. The line under the preview gives the result's
    colours, shapes and size.

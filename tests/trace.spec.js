@@ -1,4 +1,4 @@
-import { test, expect, load, menu } from './fixtures.js';
+import { test, expect, load, menu, menuOff, action } from './fixtures.js';
 
 // Image → Image Trace…: a placed bitmap traced into one layer per colour,
 // stacked (each layer also covers the colours above it, so there are no
@@ -193,16 +193,20 @@ test('abutting, black and white, presets and Cancel', async ({ page }) => {
   await expect(page.locator('#sc-doc g[data-name="Image Trace"]')).toHaveCount(1);
 });
 
-test('needs an image selected, and says what’s wrong with the selection', async ({ page }) => {
+test('is off without an image selected, and says what’s wrong with the selection', async ({
+  page,
+}) => {
   await load(page, '<rect id="r" width="10" height="10"/>');
   const why = async (ids) => {
     await page.evaluate(
       (ids) => (window.svgcraft.state.sel = ids.map((id) => document.getElementById(id))),
       ids,
     );
-    await menu(page, 'Image', 'imageTrace');
+    await page.evaluate(() => window.svgcraft.syncActions());
+    await menuOff(page, 'Image', 'imageTrace');
+    await action(page, 'imageTrace');
     await expect(page.locator('#sc-trace')).toBeHidden();
-    return page.locator('#sc-msg').textContent();
+    return page.locator('#sc-alert-text').textContent();
   };
   expect(await why([])).toContain('select an image layer first (File → Import… places one)');
   expect(await why(['r'])).toContain('isn’t an image layer');
@@ -246,7 +250,7 @@ test('an image it can’t read says why, in the status bar and the console', asy
     }, href);
     await menu(page, 'Image', 'imageTrace');
     await expect(page.locator('#sc-trace')).toBeHidden();
-    return page.locator('#sc-msg').textContent();
+    return page.locator('#sc-alert-text').textContent();
   };
   expect(await why('')).toContain('has no picture in it');
   expect(await why('https://example.com/logo.png')).toContain('linked from elsewhere');

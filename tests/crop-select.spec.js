@@ -27,7 +27,12 @@ const info = (page) =>
       a: corner('a'),
       b: corner('b'),
       sel: s.sel.map((e) => e.id).join(','),
-      msg: document.getElementById('sc-msg').textContent,
+      // The status bar's news, or an error shown above it.
+      msg:
+        document.getElementById('sc-msg').textContent ||
+        (!document.getElementById('sc-alert').hidden &&
+          document.getElementById('sc-alert-text').textContent) ||
+        '',
       guides: s.guides.map((g) => g.axis + g.pos).join(' '),
     };
   });

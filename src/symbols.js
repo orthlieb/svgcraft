@@ -157,7 +157,7 @@ function panelSymbol() {
 // Object → Make Symbol…
 async function makeSymbol() {
   const els = normalizeSel(state.sel);
-  if (!els.length) return say('Select the artwork to turn into a symbol.');
+  if (!els.length) return warn('Select the artwork to turn into a symbol.');
   if (refuseLocked(els, 'edit')) return;
   const name = await ask('Make Symbol', {
     value: `Symbol ${symList().length + 1}`,
@@ -194,8 +194,8 @@ const viewCentre = () => {
 // A new instance, centred on `at` (the middle of the view by default);
 // `attrs` go on the instance.
 function placeSymbol(sym = panelSymbol(), at = viewCentre(), attrs = {}) {
-  if (!sym) return say('Click a symbol in the Symbols panel first.');
-  if (iso && symUses(sym, iso.sym)) return say('A symbol can’t hold an instance of itself.');
+  if (!sym) return warn('Click a symbol in the Symbols panel first.');
+  if (iso && symUses(sym, iso.sym)) return warn('A symbol can’t hold an instance of itself.');
   const u = mk('use', { href: `#${sym.id}`, 'data-name': symName(sym), ...attrs }, doc);
   const b = bboxDoc(u);
   if (b) setM(u, new DOMMatrix().translate(at.x - (b.x + b.w / 2), at.y - (b.y + b.h / 2)));
@@ -224,7 +224,7 @@ function breakOne(u) {
 }
 function breakSymbolLink() {
   const els = normalizeSel(state.sel).filter(symbolOf);
-  if (!els.length) return say('Select a symbol instance to break its link.');
+  if (!els.length) return warn('Select a symbol instance to break its link.');
   if (refuseLocked(els, 'edit')) return;
   const out = new Map(els.map((u) => [u, breakOne(u)]));
   setSel(state.sel.map((el) => out.get(el) || el));
@@ -233,7 +233,7 @@ function breakSymbolLink() {
 }
 
 async function renameSymbol(sym = panelSymbol()) {
-  if (!sym) return say('Click a symbol in the Symbols panel first, then rename it.');
+  if (!sym) return warn('Click a symbol in the Symbols panel first, then rename it.');
   const old = symName(sym);
   const name = (await ask('Rename symbol', { value: old, ok: 'Rename' }))?.slice(0, 80);
   if (!name || name === old || !sym.isConnected) return;
@@ -248,7 +248,7 @@ async function renameSymbol(sym = panelSymbol()) {
 // Delete a symbol; its instances (if any) either become ordinary groups
 // or go with it.
 async function deleteSymbol(sym = panelSymbol()) {
-  if (!sym) return say('Click a symbol in the Symbols panel first, then delete it.');
+  if (!sym) return warn('Click a symbol in the Symbols panel first, then delete it.');
   const uses = allUses(sym).filter((u) => !sym.contains(u));
   let how = 'delete';
   if (uses.length) {
@@ -294,15 +294,15 @@ function editSymbol() {
   const inst = state.sel.find(symbolOf);
   if (inst) return enterIso(inst);
   const sym = panelSymbol();
-  if (!sym) return say('Select an instance, or click a symbol in the Symbols panel, to edit it.');
-  if (iso) return say('Finish editing this symbol first: Done, or Esc.');
+  if (!sym) return warn('Select an instance, or click a symbol in the Symbols panel, to edit it.');
+  if (iso) return warn('Finish editing this symbol first: Done, or Esc.');
   enterIso([...doc.querySelectorAll('use')].find((u) => symbolOf(u) === sym) || placeSymbol(sym));
 }
 
 function enterIso(inst, quiet = false) {
   const sym = symbolOf(inst);
   if (!sym || !doc.contains(inst)) return;
-  if (iso) return say('Finish editing this symbol first: Done, or Esc.');
+  if (iso) return warn('Finish editing this symbol first: Done, or Esc.');
   if (!quiet) {
     if (refuseLocked([inst], 'edit')) return;
     tools[state.tool].leave?.();
@@ -564,9 +564,9 @@ function libSymbolFor(item) {
 
 // Place a library symbol: an instance centred on `at`, in the fill colour.
 function placeLibSymbol(item = libItem('symbols', libSel.symbols), at = viewCentre()) {
-  if (!item) return say('Click a symbol in the library first.');
+  if (!item) return warn('Click a symbol in the library first.');
   const sym = libSymbolFor(item);
-  if (!sym) return say(`Couldn’t read the library symbol “${item.name}”.`);
+  if (!sym) return warn(`Couldn’t read the library symbol “${item.name}”.`);
   const paint =
     state.fillOn && !state.fillGrad && !state.fillPat
       ? { fill: state.fill, 'fill-opacity': state.fillA < 1 ? f(state.fillA) : null }
@@ -578,16 +578,17 @@ function placeLibSymbol(item = libItem('symbols', libSel.symbols), at = viewCent
 // Save to Library: the panel's symbol (or the selected instance's), as it
 // looks, in a box the size of what it paints.
 async function saveSymbolToLib(sym = panelSymbol()) {
-  if (!sym) return say('Click a symbol in This drawing (or select an instance) to save it.');
+  if (!sym) return warn('Click a symbol in This drawing (or select an instance) to save it.');
   const probe = mk('use', { href: `#${sym.id}` }, doc);
   const box = paintBox([probe]);
   probe.remove();
-  if (!box || box.w < 0.5 || box.h < 0.5) return say('That symbol has nothing visible to save.');
+  if (!box || box.w < 0.5 || box.h < 0.5) return warn('That symbol has nothing visible to save.');
   const x = Math.floor(box.x);
   const y = Math.floor(box.y);
   const w = Math.ceil(box.x + box.w) - x;
   const h = Math.ceil(box.y + box.h) - y;
-  if (w > 4096 || h > 4096) return say('That symbol is too big for the library (4096 px at most).');
+  if (w > 4096 || h > 4096)
+    return warn('That symbol is too big for the library (4096 px at most).');
   const T = new DOMMatrix().translate(-x, -y);
   const parts = [...sym.children].map((c) => {
     const k = c.cloneNode(true);

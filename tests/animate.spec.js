@@ -118,7 +118,7 @@ test('entrances, loops and line presets write what they need', async ({ page }) 
   // Not every preset fits every layer.
   await pick(page, 'c');
   await add(page, 'drawOn');
-  await expect(page.locator('#sc-msg')).toHaveText('Draw on needs a stroke.');
+  await expect(page.locator('#sc-alert-text')).toHaveText('Draw on needs a stroke.');
   expect((await anims(page, 'c')).map((a) => a.p)).toEqual(['float']);
 });
 
@@ -180,7 +180,9 @@ test('▶ Play previews in the editor; editing, Esc or a click stops it', async 
 test('still images leave the animation out; Clean SVG keeps it', async ({ page }) => {
   await pick(page, 'g');
   await add(page, 'colourCycle');
-  await expect(page.locator('#sc-msg')).toHaveText('Colour cycle needs a shape with a solid fill.');
+  await expect(page.locator('#sc-alert-text')).toHaveText(
+    'Colour cycle needs a shape with a solid fill.',
+  );
   await add(page, 'zoomIn');
   await pick(page, 'c');
   await add(page, 'colourCycle');
@@ -214,7 +216,7 @@ test('a locked layer can’t be given an animation', async ({ page }) => {
   await page.evaluate(() => document.getElementById('r').setAttribute('data-sc-lock', 'all'));
   await pick(page, 'r');
   await add(page, 'spin');
-  await expect(page.locator('#sc-msg')).toContainText('is locked');
+  await expect(page.locator('#sc-alert-text')).toContainText('is locked');
   expect(await anims(page, 'r')).toEqual([]);
 });
 

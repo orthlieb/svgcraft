@@ -17,13 +17,19 @@ const selectAll = (page) =>
 const msg = (page) => page.locator('#sc-msg');
 const layerCount = (page) => page.locator('#sc-doc > *').count();
 
-// Click an options-bar combine button and wait until the operation reports.
+// Click an options-bar combine button and wait until the operation reports
+// (in the status bar, or as an error above it).
 async function combine(page, act) {
   await page.evaluate((a) => {
     document.getElementById('sc-msg').textContent = '';
+    document.getElementById('sc-alert-text').textContent = '';
     document.querySelector(`.sc-options [data-action="${a}"]`).click();
   }, act);
-  await expect(msg(page)).not.toBeEmpty();
+  await page.waitForFunction(
+    () =>
+      document.getElementById('sc-msg').textContent ||
+      document.getElementById('sc-alert-text').textContent,
+  );
 }
 
 // The selected result: its doc-space area (sampled with isPointInFill on a
@@ -204,7 +210,9 @@ test('intersecting disjoint shapes leaves everything alone', async ({ page }) =>
   );
   await selectAll(page);
   await combine(page, 'combineIntersect');
-  await expect(msg(page)).toHaveText('The shapes don’t overlap, so there’s nothing to keep.');
+  await expect(page.locator('#sc-alert-text')).toHaveText(
+    'The shapes don’t overlap, so there’s nothing to keep.',
+  );
   expect(await layerCount(page)).toBe(2);
 });
 

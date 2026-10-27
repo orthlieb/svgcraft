@@ -139,7 +139,9 @@ test('distributing fewer than three objects explains why nothing happened', asyn
   await open(page);
   await selectIds(page, ['a', 'b']);
   await run(page, 'distributeH');
-  await expect(page.locator('#sc-msg')).toHaveText('Select three or more objects to distribute.');
+  await expect(page.locator('#sc-alert-text')).toHaveText(
+    'Select three or more objects to distribute.',
+  );
 });
 
 test('the options-bar Align Top button works and its rotated icons render rotated', async ({
@@ -257,6 +259,8 @@ test.describe('eyedropper pixel mode', () => {
 
   test('clicking a transparent spot says there is nothing to sample', async ({ page }) => {
     await clickDoc(page, 780, 20);
-    await expect(page.locator('#sc-msg')).toHaveText('Nothing there to sample (transparent).');
+    await expect(page.locator('#sc-alert-text')).toHaveText(
+      'Nothing there to sample (transparent).',
+    );
   });
 });

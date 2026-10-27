@@ -754,7 +754,7 @@ async function copySource() {
     await navigator.clipboard.writeText(srcView.full);
     say('Copied the SVG source');
   } catch {
-    say('Clipboard unavailable');
+    warn('Clipboard unavailable');
   }
 }
 function downloadSource() {

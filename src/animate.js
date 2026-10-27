@@ -417,7 +417,7 @@ const animPlay = { playing: false, nodes: [] };
 function playAnimations() {
   stopAnimations();
   const els = [...doc.querySelectorAll('[data-sc-anim]')];
-  if (!els.length) return say('Nothing is animated yet: add one in the Animation tab.');
+  if (!els.length) return warn('Nothing is animated yet: add one in the Animation tab.');
   for (const el of els) {
     const list = readAnims(el);
     const at = animStarts(list);
@@ -660,7 +660,7 @@ function addAnimation(p) {
   const el = animTarget();
   if (!el || !ANIM_PRESETS[p]) return;
   const why = animUnfit(el, p);
-  if (why) return say(why);
+  if (why) return warn(why);
   const def = ANIM_PRESETS[p];
   const a = { p, dur: def.dur, delay: 0, rep: def.rep, dir: def.dir || 'normal', ease: def.ease };
   for (const k of ['from', 'dist', 'turns', 'scale', 'to']) if (k in def) a[k] = def[k];

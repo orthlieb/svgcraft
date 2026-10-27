@@ -121,7 +121,7 @@ function setPage(k) {
 }
 // Turn the page: width and height swap.
 function turnPage() {
-  if (state.w === state.h) return say('A square page looks the same either way.');
+  if (state.w === state.h) return warn('A square page looks the same either way.');
   setSize(state.h, state.w);
   fit();
   commit();

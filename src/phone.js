@@ -212,7 +212,7 @@ async function shareDoc() {
   try {
     await navigator.share({ files, title: state.meta.title || `${name}.svg` });
   } catch (err) {
-    if (err.name !== 'AbortError') say(`Couldn’t share: ${err.message}`);
+    if (err.name !== 'AbortError') warn(`Couldn’t share: ${err.message}`);
   }
 }
 

@@ -501,8 +501,8 @@ function changeType(patch, final = true) {
 
 function convertTextKind() {
   const els = selectedTexts();
-  if (!els.length) return say('Select a text layer first.');
-  if (els.some(isTP)) return say('Text on a path is always one line — release it first.');
+  if (!els.length) return warn('Select a text layer first.');
+  if (els.some(isTP)) return warn('Text on a path is always one line — release it first.');
   for (const el of els) {
     const t = typeFrom(el);
     const text = rawRuns(el);
@@ -721,7 +721,7 @@ async function loadLocalFonts() {
     $('#sc-local-fonts').hidden = true;
     renderFontList();
   } catch {
-    say('The browser did not allow access to installed fonts.');
+    warn('The browser did not allow access to installed fonts.');
   }
 }
 $('#sc-local-fonts').addEventListener('pointerdown', (e) => {
@@ -843,7 +843,7 @@ tools.eyedropper = {
   async down(e, p) {
     if (state.eyedropMode === 'style') {
       const el = topLevel(e.target);
-      if (!el) return say('Click a shape to copy its style.');
+      if (!el) return warn('Click a shape to copy its style.');
       const targets = state.sel.filter((x) => x !== el);
       const hit = e.target.closest?.(SHAPE_SEL);
       readStyle(hit && doc.contains(hit) ? hit : el);
@@ -854,7 +854,7 @@ tools.eyedropper = {
       return say(`Style applied to ${targets.length} object${targets.length > 1 ? 's' : ''}.`);
     }
     const c = await samplePixel(p);
-    if (typeof c === 'string') return say(c);
+    if (typeof c === 'string') return warn(c);
     const k = e.altKey ? (state.active === 'fill' ? 'stroke' : 'fill') : state.active;
     state[k] = c.hex;
     state[k + 'On'] = true;

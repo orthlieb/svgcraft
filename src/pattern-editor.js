@@ -59,15 +59,15 @@ function wirePatEditor() {
 // it uses travel inside the tile under ids of their own.
 async function definePattern() {
   const els = normalizeSel(state.sel).filter(isShown);
-  if (!els.length) return say('Select the artwork to turn into a pattern.');
+  if (!els.length) return warn('Select the artwork to turn into a pattern.');
   const box = paintBox(els);
   if (!box || box.w < 0.5 || box.h < 0.5)
-    return say('There’s nothing visible to make a pattern from.');
+    return warn('There’s nothing visible to make a pattern from.');
   const x = Math.floor(box.x);
   const y = Math.floor(box.y);
   const w = Math.ceil(box.x + box.w) - x;
   const h = Math.ceil(box.y + box.h) - y;
-  if (w > 4096 || h > 4096) return say('That’s too big for a pattern tile (4096 px at most).');
+  if (w > 4096 || h > 4096) return warn('That’s too big for a pattern tile (4096 px at most).');
   const T = new DOMMatrix().translate(-x, -y);
   const parts = els.map((el) => {
     const c = el.cloneNode(true);

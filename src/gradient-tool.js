@@ -7,7 +7,7 @@ tools.gradient = {
   cursor: 'crosshair',
   down(e, p) {
     const targets = gradTargets();
-    if (!targets.length) return say('Select the shapes to fill first.');
+    if (!targets.length) return warn('Select the shapes to fill first.');
     if (refuseLocked(targets, 'edit')) return;
     const k = state.active;
     state[k + 'Pat'] = null;

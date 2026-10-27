@@ -151,6 +151,7 @@ const actionRules = {
   mergeVisible: () => visibleLayers().length >= 2,
   layerViaCut: () => !!pickedPart() || liftable().length > 0,
   cropToSelection: anySel,
+  imageTrace: () => !!traceImage().el,
   cropToDrawing: () => items().length > 0,
   selectAll: () => items().length > 0,
   front: anySel,

@@ -188,7 +188,7 @@ test('nothing picked: nothing exported; Esc cancels', async ({ page }) => {
   for (const k of ['web', 'ios', 'android', 'macos'])
     await dialog(page).locator(`[data-ai="${k}"]`).uncheck();
   await dialog(page).locator('[data-ai-btn="ok"]').click();
-  await expect(page.locator('#sc-msg')).toHaveText('Pick at least one platform.');
+  await expect(page.locator('#sc-alert-text')).toHaveText('Pick at least one platform.');
   await menu(page, 'File', 'exportAppIcons');
   await page.keyboard.press('Escape');
   await expect(dialog(page)).toBeHidden();

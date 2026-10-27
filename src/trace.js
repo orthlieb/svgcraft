@@ -936,41 +936,35 @@ async function imagePixels(el) {
 }
 
 // The image layer to trace: the one selected, or the one inside a selected
-// group. Otherwise it says why there isn't one and gives null.
-function traceTarget() {
+// group, as { el }; otherwise { why } there isn't one. The menu item is off
+// without one (actionRules.imageTrace).
+function traceImage() {
   const sel = state.sel;
-  if (!sel.length)
-    return (say('Image Trace: select an image layer first (File → Import… places one).'), null);
-  if (sel.length > 1) return (say('Image Trace: select just one image layer.'), null);
+  if (!sel.length) return { why: 'select an image layer first (File → Import… places one).' };
+  if (sel.length > 1) return { why: 'select just one image layer.' };
   const el = sel[0];
-  if (el.localName === 'image') return el;
-  const inside = [...el.querySelectorAll('image')];
+  if (el.localName === 'image') return { el };
   if (el.localName === 'use')
-    return (
-      say('Image Trace: that’s a symbol instance. Edit the symbol to trace the image in it.'),
-      null
-    );
-  if (inside.length === 1) return inside[0];
+    return { why: 'that’s a symbol instance. Edit the symbol to trace the image in it.' };
+  const inside = [...el.querySelectorAll('image')];
+  if (inside.length === 1) return { el: inside[0] };
   if (inside.length > 1)
-    return (
-      say(
-        `Image Trace: “${layerName(el)}” holds ${inside.length} images. Select one of them in the Layers panel.`,
-      ),
-      null
-    );
-  return (say(`Image Trace: “${layerName(el)}” isn’t an image layer.`), null);
+    return {
+      why: `“${layerName(el)}” holds ${inside.length} images. Select one of them in the Layers panel.`,
+    };
+  return { why: `“${layerName(el)}” isn’t an image layer.` };
 }
 
 async function openTrace() {
-  const el = traceTarget();
-  if (!el) return;
+  const { el, why } = traceImage();
+  if (!el) return warn(`Image Trace: ${why}`);
   if (refuseLocked([el], 'edit')) return;
   let px;
   try {
     px = await imagePixels(el);
   } catch (e) {
     console.warn('Image Trace:', e.message, e.cause || '');
-    return say(`Image Trace can’t read “${layerName(el)}”: ${e.message}.`);
+    return warn(`Image Trace can’t read “${layerName(el)}”: ${e.message}.`);
   }
   Object.assign(tr, { img: el, pixels: px.data, w: px.w, h: px.h, M: px.M, layers: null });
   trField('preview').setAttribute('viewBox', `0 0 ${px.w} ${px.h}`);
@@ -1031,7 +1025,7 @@ function closeTrace(ok) {
   if (!ok || !el?.isConnected || !layers) return;
   const paths = tracePaths(layers, traceOptions().smooth);
   if (!paths.length)
-    return say('Nothing to trace: lower Ignore specks under, or turn off Ignore background.');
+    return warn('Nothing to trace: lower Ignore specks under, or turn off Ignore background.');
   const g = mk('g', { 'data-name': 'Image Trace' });
   setM(g, tr.M);
   // The top layer first in the Layers panel: SVG paints later children on top.
