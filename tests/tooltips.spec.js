@@ -98,7 +98,7 @@ test('an options-bar tip near the top shows below, inside the viewport', async (
 test('a tip at the right edge is clamped into the viewport', async ({ page }) => {
   await hoverAndWait(page, page.locator('.sc-menubar-end [data-tip]').last());
   const s = await tipState(page);
-  expect(s.text).toBe('Download SVG (Ctrl+S)');
+  expect(s.text).toBe('Download SVG');
   expect(s.x + s.w).toBeLessThanOrEqual(VW - 4);
 });
 

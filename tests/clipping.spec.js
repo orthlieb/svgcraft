@@ -393,7 +393,7 @@ test('undo and redo restore everything', async ({ page }) => {
 
 test('Save as SVG → Open keeps the clip live and editable', async ({ page }) => {
   await makeIt(page);
-  const [dl] = await Promise.all([page.waitForEvent('download'), page.keyboard.press('Control+s')]);
+  const [dl] = await Promise.all([page.waitForEvent('download'), page.click('.sc-export')]);
   const file = fs.readFileSync(await dl.path(), 'utf8');
   expect(file).toContain('data-sc-clip');
   expect(file).toContain('data-sc-clipper');

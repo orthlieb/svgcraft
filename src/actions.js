@@ -30,6 +30,8 @@ const actions = {
   open: () => openPicker('open'),
   place: () => openPicker('place'),
   exportSvg,
+  save: () => saveDoc(),
+  saveAs: () => saveDocAs(),
   exportCleanSvg: openCleanSvg,
   exportPng1: () => exportPng(1),
   exportPng2: () => exportPng(2),

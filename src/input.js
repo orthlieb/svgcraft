@@ -280,7 +280,7 @@ window.addEventListener('keydown', (e) => {
     const map = {
       z: () => (e.shiftKey ? redo() : undo()),
       y: redo,
-      s: exportSvg,
+      s: () => (e.shiftKey ? saveDocAs() : saveDoc()),
       o: () => (e.shiftKey ? ifAllowed('createOutlines', createOutlines) : openPicker('open')),
       u: toggleSource,
       j: () => ifAllowed(e.shiftKey ? 'layerViaCut' : 'layerViaCopy'),
@@ -444,16 +444,24 @@ window.addEventListener('dragleave', () => {
   }
 });
 window.addEventListener('dragover', (e) => e.preventDefault());
-window.addEventListener('drop', (e) => {
+window.addEventListener('drop', async (e) => {
   e.preventDefault();
   dragDepth = 0;
   drop.classList.remove('on');
-  for (const file of e.dataTransfer?.files || []) importFile(file, previewMode ? 'open' : 'auto');
+  // Chromium hands over the dropped files themselves too, which Save can
+  // write back to; they have to be asked for before the event ends.
+  const files = [...(e.dataTransfer?.files || [])];
+  const handles = [...(e.dataTransfer?.items || [])]
+    .filter((i) => i.kind === 'file')
+    .map((i) => i.getAsFileSystemHandle?.().catch(() => null));
+  for (const [i, file] of files.entries())
+    importFile(file, previewMode ? 'open' : 'auto', await handles[i]);
 });
 
 // Files -------------------------------------------------------------
 let pickMode = 'open';
 function openPicker(mode) {
+  if (mode === 'open' && 'showOpenFilePicker' in window) return openWithHandle();
   pickMode = mode;
   $('#sc-file').click();
 }

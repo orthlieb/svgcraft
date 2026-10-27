@@ -3,7 +3,7 @@
 
 // ---------------------------------------------------------------------
 // Window → SVG Source: a read-only pane (docked) or window showing the document's
-// SVG exactly as Save as SVG writes it, pretty-printed and highlighted.
+// SVG exactly as Save writes it, pretty-printed and highlighted.
 //
 // The markup is tokenized here (no libraries), re-indented one element per
 // line and drawn with createElement / text nodes only, so imported text

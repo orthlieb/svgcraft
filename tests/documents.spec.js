@@ -125,11 +125,11 @@ test('Open puts a file in its own tab, reusing an untouched Untitled one', async
   await expect(page.locator('#sc-doc circle')).toHaveCount(0);
 });
 
-test('Save as SVG clears the * and downloads under the tab name', async ({ page }) => {
+test('Export (a download) clears the * and is named after the tab', async ({ page }) => {
   await openFile(page, 'logo.svg', '<rect width="50" height="50"/>');
   await drawRect(page);
   expect(await tabNames(page)).toEqual(['logo.svg*']);
-  const [dl] = await Promise.all([page.waitForEvent('download'), page.keyboard.press('Control+s')]);
+  const [dl] = await Promise.all([page.waitForEvent('download'), page.click('.sc-export')]);
   expect(dl.suggestedFilename()).toBe('logo.svg');
   expect(fs.readFileSync(await dl.path(), 'utf8')).toContain('<rect');
   expect(await tabNames(page)).toEqual(['logo.svg']);
@@ -242,7 +242,7 @@ test('with every tab closed, only New and Open work until one is made', async ({
   await page.click('.sc-menu-btn:text-is("File")');
   await expect(item('new')).toBeEnabled();
   await expect(item('open')).toBeEnabled();
-  await expect(item('exportSvg')).toBeDisabled();
+  await expect(item('save')).toBeDisabled();
   await expect(item('closeDoc')).toBeDisabled();
   await page.keyboard.press('Escape');
   await page.click('.sc-menu-btn:text-is("Edit")');
@@ -273,7 +273,7 @@ test('with every tab closed, only New and Open work until one is made', async ({
     false,
   );
   await page.click('.sc-menu-btn:text-is("File")');
-  await expect(item('exportSvg')).toBeEnabled();
+  await expect(item('save')).toBeEnabled();
   await expect(item('closeDoc')).toBeEnabled();
   await page.keyboard.press('Escape');
 

@@ -49,6 +49,7 @@ function docsData() {
       // The last-saved version is only stored while it differs.
       saved: dirty(d) ? d.saved : null,
       view: d === curDoc ? currentView() : d.view,
+      handle: d.handle || null,
     })),
   };
 }
@@ -76,7 +77,8 @@ addEventListener('pagehide', () => {
   clearTimeout(saveTimer);
   const data = docsData();
   idb.set('docs', data).catch(() => {});
-  store(PENDING_KEY, data);
+  // (A file handle can only be kept in IndexedDB.)
+  store(PENDING_KEY, { ...data, docs: data.docs.map((d) => ({ ...d, handle: null })) });
 });
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden') saveNow();
@@ -251,9 +253,11 @@ function newDoc({
   renderTabs();
 }
 
-// File → Open (and dropping a file on an empty canvas): a tab of its own.
-function openDoc(text, name) {
+// File → Open (and dropping a file on an empty canvas): a tab of its own,
+// keeping the file to save back to when the browser gives it (save.js).
+function openDoc(text, name, handle) {
   if (!pristine(curDoc)) addDoc(name.replace(/\.svg$/i, ''));
+  curDoc.handle = isFileHandle(handle) ? handle : null;
   openSvg(text, name);
   hist.splice(0, hist.length - 1);
   hIdx = 0;
@@ -321,18 +325,22 @@ function markSaved() {
 // version autosaved).
 async function loadDocs() {
   let data = null;
-  // Written as the page closed: newer than anything in IndexedDB.
+  let kept = null;
+  try {
+    kept = await idb.get('docs');
+  } catch {
+    /* IndexedDB blocked: tabs just won't survive a reload */
+  }
+  // Written as the page closed: newer than anything in IndexedDB, but
+  // without the files to save back to, which only IndexedDB keeps.
   const pending = stored(PENDING_KEY);
   store(PENDING_KEY, null);
   if (Array.isArray(pending?.docs)) {
+    const handles = new Map((kept?.docs || []).map((d) => [d?.id, d?.handle]));
+    for (const d of pending.docs) d.handle = handles.get(d.id) || null;
     data = pending;
     idb.set('docs', pending).catch(() => {});
-  } else
-    try {
-      data = await idb.get('docs');
-    } catch {
-      /* IndexedDB blocked: tabs just won't survive a reload */
-    }
+  } else data = kept;
   let list = Array.isArray(data?.docs) ? data.docs.filter((d) => typeof d?.svg === 'string') : [];
   if (!list.length) {
     const old = stored(STORE_KEY);
@@ -354,6 +362,7 @@ async function loadDocs() {
       svg: d.svg,
       saved: d.saved ?? d.svg,
       view: d.view,
+      handle: isFileHandle(d.handle) ? d.handle : null,
     }));
     // Anything done before the stored drawings arrived stays as a tab too.
     if (fresh) docs.length = 0;

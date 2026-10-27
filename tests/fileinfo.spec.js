@@ -21,7 +21,7 @@ const layerRows = (page) =>
   );
 
 async function saveFile(page) {
-  const [dl] = await Promise.all([page.waitForEvent('download'), page.keyboard.press('Control+s')]);
+  const [dl] = await Promise.all([page.waitForEvent('download'), page.click('.sc-export')]);
   return fs.readFileSync(await dl.path(), 'utf8');
 }
 

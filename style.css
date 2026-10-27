@@ -293,6 +293,11 @@ kbd {
   background: transparent;
   text-align: left;
 }
+/* A hidden item (Install SVGCraft…, Save As… where files can't be written)
+   stays hidden despite the grid above. */
+.sc-menu-list button[hidden] {
+  display: none;
+}
 .sc-menu-list button:hover,
 .sc-menu-list button:focus-visible {
   background: var(--accent);

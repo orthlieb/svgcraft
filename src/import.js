@@ -397,7 +397,8 @@ function placeImage(dataUrl) {
   img.src = dataUrl;
 }
 
-function importFile(file, mode) {
+// `handle`: the file itself, where the browser gives it, for Save (save.js).
+function importFile(file, mode, handle) {
   if (!file) return;
   // With nothing open, any file opens as a drawing of its own.
   if (!curDoc) mode = 'open';
@@ -413,7 +414,7 @@ function importFile(file, mode) {
   r.onload = () => {
     try {
       const replace = mode === 'open' || (mode === 'auto' && !items().length);
-      if (replace) openDoc(r.result, file.name);
+      if (replace) openDoc(r.result, file.name, handle);
       else placeSvg(r.result, file.name);
       say(`${replace ? 'Opened' : 'Imported'} ${file.name}`);
     } catch (err) {

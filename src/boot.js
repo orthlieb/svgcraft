@@ -114,5 +114,5 @@ actions.installApp = async () => {
 if ('launchQueue' in window)
   window.launchQueue.setConsumer(async ({ files }) => {
     await ready;
-    for (const h of files || []) importFile(await h.getFile(), 'open');
+    for (const h of files || []) importFile(await h.getFile(), 'open', h);
   });

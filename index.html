@@ -52,8 +52,11 @@
               <i data-icon="download"></i><span>Install SVGCraft…</span>
             </button>
             <hr />
-            <button role="menuitem" data-action="exportSvg">
-              <i data-icon="file-export"></i><span>Save as SVG</span><kbd>Ctrl+S</kbd>
+            <button role="menuitem" data-action="save">
+              <i data-icon="file-export"></i><span>Save</span><kbd>Ctrl+S</kbd>
+            </button>
+            <button role="menuitem" data-action="saveAs">
+              <i></i><span>Save As…</span><kbd>Ctrl+Shift+S</kbd>
             </button>
             <button role="menuitem" data-action="exportCleanSvg">
               <i></i><span>Export Clean SVG…</span>
@@ -3021,7 +3024,7 @@
         <p class="sc-hint sc-cs-note">
           Plain SVG for the web or another app. It looks the same, but drops what SVGCraft keeps to
           reopen it editable: layer names, locks, effect settings, guides, unused definitions. Keep
-          Save as SVG for your working copy.
+          Save for your working copy.
         </p>
         <label class="sc-field"
           >Decimal places <input type="number" data-cs="decimals" min="0" max="6" step="1"
@@ -4159,6 +4162,7 @@
     <script src="src/import.js"></script>
     <script src="src/export.js"></script>
     <script src="src/file-info.js"></script>
+    <script src="src/save.js"></script>
     <script src="src/clean-svg.js"></script>
     <script src="src/trace.js"></script>
     <script src="src/app-icons.js"></script>

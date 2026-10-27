@@ -259,17 +259,27 @@ stroke="currentColor"` (common in icon sets) is pushed down so it
     resized, a phone turned) until you zoom or pan it yourself. A fitted
     drawing comes back fitted, whatever size the window is then.
   - A `*` after the name means the drawing differs from the version last
-    opened or saved. **Save as SVG** (Ctrl+S) downloads it and clears the
-    `*`. Undoing back to the saved version clears it too. PNG export
+    opened or saved. **Save** (Ctrl+S) clears the `*`, as does the Export
+    download. Undoing back to the saved version clears it too. PNG export
     doesn't count as saving.
+  - **Save** (Ctrl+S) and **Save As…** (Ctrl+Shift+S), as in Photoshop. In
+    Chrome, Edge and other Chromium browsers, a drawing opened from a file
+    (File → Open, dropped on the window, or opened with the installed app)
+    saves straight back to that file; the browser asks once a session
+    before letting the page change it. A new drawing asks where to save the
+    first time, and Save As… saves to a new file and carries on there. The
+    link to the file is kept with the drawing in this browser, so Save
+    still goes back to it after a reload. Browsers that can't write to
+    files (Firefox, Safari, phones) download the SVG instead, and the menu
+    says **Download SVG**.
   - All open drawings are kept in this browser (IndexedDB) as they
     change, so a reload or a later visit brings back the same tabs, the
     same `*` marks and the same view. Saving waits for a pause in your
     changes, but closing or reloading the page saves at once, so even the
     last change survives. The browser's copy is per browser
-    and per machine; Save as SVG to keep a file. A drawing autosaved by an
+    and per machine; Save to keep a file. A drawing autosaved by an
     older version of SVGCraft is brought over as a tab.
-- **Export**: SVG download (Ctrl+S), PNG at 1× / 2× / 4× with a
+- **Export**: SVG download (the Export button), PNG at 1× / 2× / 4× with a
   transparent background, and Copy, which puts the drawing (or the
   selection) on the clipboard as SVG markup.
 - **Export Clean SVG…** (File menu) saves `<name>.min.svg`: plain SVG for
@@ -288,7 +298,7 @@ stroke="currentColor"` (common in icon sets) is pushed down so it
   - **Solid colours as currentColor**, for one-colour icons a page can
     recolour with CSS.
 
-  Keep Save as SVG for your working copy: a clean SVG reopens as plain
+  Keep Save for your working copy: a clean SVG reopens as plain
   shapes.
 
 - **Shape tools** (U), Photoshop's group: **Rectangle**, **Ellipse**,
@@ -615,7 +625,7 @@ the Properties panel.
   pointing at a copy of the path's shape in `<defs>` (SVG ignores the
   referenced path's own transform, so the copy is kept in the text's
   coordinates), plus `data-sc-textpath` naming the path layer's id. The
-  path layer gets an id if it had none. The link survives Save as SVG →
+  path layer gets an id if it had none. The link survives Save →
   reopen, Import and paste (ids that clash are renamed and the link
   follows), undo and Duplicate: duplicating the text with its path links
   the copy to the copied path.
@@ -1049,7 +1059,8 @@ else is refused with a note under the fields.
 | Ctrl+Shift+; · Ctrl+Alt+; | Snap to grid · lock guides                         |
 | Ctrl+Alt+I · Ctrl+Alt+C   | Image Size · Canvas Size                           |
 | Tab · Shift+Tab           | Hide all panels · hide the right-hand panels       |
-| Ctrl+S · Ctrl+O           | Save as SVG · open                                 |
+| Ctrl+S · Ctrl+Shift+S     | Save · Save As…                                    |
+| Ctrl+O                    | Open                                               |
 | Ctrl+U                    | Show / hide the SVG source                         |
 | Ctrl+Alt+P                | Show / hide the icon preview                       |
 | Alt+Shift+Ctrl+I          | File Info                                          |
@@ -1070,7 +1081,7 @@ greyed out does nothing.
 
 Window → SVG Source (Ctrl+U, as in a browser's view-source) opens a split
 view beside the canvas (see Split view; float it with the button in its
-title bar) with the drawing's SVG, exactly as Save as SVG would write it,
+title bar) with the drawing's SVG, exactly as Save would write it,
 including the `@import` for any Google Fonts. It's read-only, and
 beautified as Prettier would lay it out: one element per line, indented by
 nesting; a tag too long for its line gets one attribute per line; and long
@@ -1107,7 +1118,7 @@ drag the window by its title bar and resize it from its corner.
 
 ## What the saved SVG keeps
 
-Save as SVG writes everything you set in SVGCraft into the file itself, so
+Save writes everything you set in SVGCraft into the file itself, so
 opening it again, or importing it into another drawing, gives back the
 same editable drawing:
 
