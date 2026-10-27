@@ -300,11 +300,15 @@ function parseSvg(text, { dedupe = true } = {}) {
   // text's letters, the letters' own <tspan>s), rebuilt from the settings.
   for (const n of [...root.querySelectorAll('[data-sc-gen]')]) {
     if (!n.isConnected) continue;
-    if (n.localName === 'tspan') {
+    if (n.localName === 'tspan' || n.localName === 'g') {
       const p = n.parentNode;
       n.replaceWith(...n.childNodes);
       p.normalize();
     } else n.remove();
+  }
+  for (const n of root.querySelectorAll('[data-sc-gen-id]')) {
+    n.removeAttribute('id');
+    n.removeAttribute('data-sc-gen-id');
   }
   sanitize(root, { smil: true });
   // Paths that Save hid because layers move along them: shown again.

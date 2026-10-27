@@ -350,6 +350,7 @@ function serialize({ selection = false, fontCss = '', animate = true } = {}) {
     for (const c of defs.childNodes) if (!unused.has(c)) d.append(c.cloneNode(true));
     root.append(nl(), d);
   }
+  const genDefs = [];
   for (const el of layers) {
     const c = el.cloneNode(true);
     // Editor marks: the symbol being edited, and layers shown or hidden in
@@ -358,13 +359,22 @@ function serialize({ selection = false, fontCss = '', animate = true } = {}) {
       n.removeAttribute('data-sc-iso');
       n.removeAttribute('data-sc-peek');
     }
-    writeAnimations(el, c, animate);
+    const top = writeAnimations(el, c, animate, (d) => genDefs.push(d));
     // A nested layer copied on its own keeps where it sits and how it looks.
     if (selection && el.parentNode !== doc) {
       setM(c, fullM(el));
       bakeInherited(el, c);
     }
-    root.append(nl(), c);
+    root.append(nl(), top);
+  }
+  // Clips, filters and gradients the animations made.
+  if (genDefs.length) {
+    let d = [...root.children].find((n) => n.localName === 'defs');
+    if (!d) {
+      d = document.createElementNS(NS, 'defs');
+      root.firstElementChild ? root.firstElementChild.before(d) : root.append(d);
+    }
+    d.append(...genDefs);
   }
   // Paths layers move along (Move along path), out of sight in the file;
   // marked, so reopening it shows them again for editing.

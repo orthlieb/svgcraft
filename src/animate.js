@@ -28,6 +28,36 @@ const ANIM_PRESETS = {
   },
   popIn: { name: 'Pop in', group: 'Entrances', dur: 0.5, rep: 1, ease: 'out', enter: true },
   zoomIn: { name: 'Zoom in', group: 'Entrances', dur: 0.6, rep: 1, ease: 'out', enter: true },
+  // Uncovered from a side, or from the middle out; and out of a blur.
+  wipeIn: {
+    name: 'Wipe in',
+    group: 'Entrances',
+    dur: 0.8,
+    rep: 1,
+    ease: 'out',
+    enter: true,
+    wrap: true,
+    from: 'left',
+  },
+  irisIn: {
+    name: 'Iris in',
+    group: 'Entrances',
+    dur: 0.8,
+    rep: 1,
+    ease: 'out',
+    enter: true,
+    wrap: true,
+  },
+  blurIn: {
+    name: 'Blur in',
+    group: 'Entrances',
+    dur: 0.8,
+    rep: 1,
+    ease: 'out',
+    enter: true,
+    wrap: true,
+    size: 12,
+  },
   fadeOut: { name: 'Fade out', group: 'Exits', dur: 0.6, rep: 1, ease: 'in', exit: true },
   slideOut: {
     name: 'Slide out',
@@ -54,6 +84,19 @@ const ANIM_PRESETS = {
     dist: 6,
   },
   blink: { name: 'Blink', group: 'Loops', dur: 1, rep: 0, ease: 'linear' },
+  glowPulse: {
+    name: 'Glow pulse',
+    group: 'Loops',
+    dur: 1.2,
+    rep: 0,
+    ease: 'inout',
+    dir: 'alternate',
+    wrap: true,
+    size: 8,
+    to: '#facc15',
+  },
+  // A highlight sweeping across the layer.
+  shine: { name: 'Shine', group: 'Loops', dur: 1.6, rep: 0, ease: 'inout', wrap: true },
   // Back and forth about a point (the top: a hanging sign).
   swing: {
     name: 'Swing',
@@ -128,6 +171,7 @@ const ANIM_OPTS = {
   turns: [-100, 100],
   scale: [1, 1000],
   angle: [-360, 360],
+  size: [0, 200],
   pivot: ['centre', 'top', 'bottom', 'left', 'right'],
   axis: ['vertical', 'horizontal'],
 };
@@ -167,7 +211,7 @@ function readAnims(el) {
     if ('from' in def) a.from = ANIM_OPTS.from.includes(r.from) ? r.from : def.from;
     for (const k of ['pivot', 'axis'])
       if (k in def) a[k] = ANIM_OPTS[k].includes(r[k]) ? r[k] : def[k];
-    for (const k of ['dist', 'turns', 'scale', 'angle'])
+    for (const k of ['dist', 'turns', 'scale', 'angle', 'size'])
       if (k in def) a[k] = num(r[k], ...ANIM_OPTS[k], def[k]);
     if ('to' in def) a.to = /^#[0-9a-f]{6}$/i.test(r.to || '') ? r.to.toLowerCase() : def.to;
     if ('path' in def)
@@ -693,6 +737,191 @@ function animEmit(el, a, preview, start) {
   }
   return [{ at: null, nodes: animNodes(el, a, preview, start) }];
 }
+// ---- Effects round a layer (Wipe in, Iris in, Blur in, Glow pulse, Shine) ----------
+// These need a clip, filter or mask from <defs>, on a group wrapped round the
+// layer (Shine also puts its highlight in that group). Save and ▶ Play make
+// them, all marked data-sc-gen, so reopening the file takes them off again.
+let genSeq = 0;
+function genId() {
+  let id;
+  do id = `sc-gen-${++genSeq}`;
+  while (document.getElementById(id));
+  return id;
+}
+const genEl = (tag, attrs = {}, kids = []) => {
+  const n = mk(tag, { ...attrs, 'data-sc-gen': '' });
+  n.append(...kids);
+  return n;
+};
+// What wraps the layer for animation a: { defs, attrs (for the wrapping
+// group), overlay? (Shine's highlight), use? (a <use> to point at the layer) }.
+function wrapParts(el, a, preview, start) {
+  const m = fullM(el);
+  const k = Math.hypot(m.a, m.b) || 1;
+  const nodes = (channels) => chanNodes(a, channels, preview, start, []);
+  const anim = (name, values) => ({ tag: 'animate', attrs: { attributeName: name }, values });
+  // An entrance waiting for its delay starts as it will begin.
+  const waitAs = (name, value) => {
+    if (!(start > 0 && ANIM_PRESETS[a.p].enter)) return [];
+    const n = mk('set', { attributeName: name, to: value, begin: preview ? 'indefinite' : '0s' });
+    n.dataset.scBegin = 0;
+    return [n];
+  };
+  switch (a.p) {
+    case 'wipeIn': {
+      // A clip box (in the layer's bounding-box units, a little larger, for
+      // strokes) growing from one side.
+      const grow = {
+        left: { width: ['0', '1.2'] },
+        right: { x: ['1.1', '-0.1'], width: ['0', '1.2'] },
+        top: { height: ['0', '1.2'] },
+        bottom: { y: ['1.1', '-0.1'], height: ['0', '1.2'] },
+      }[a.from];
+      const rect = genEl('rect', { x: '-0.1', y: '-0.1', width: '1.2', height: '1.2' });
+      rect.append(
+        ...waitAs('width' in grow ? 'width' : 'height', '0'),
+        ...nodes(Object.entries(grow).map(([n, v]) => anim(n, v))),
+      );
+      const clip = genEl('clipPath', { id: genId(), clipPathUnits: 'objectBoundingBox' }, [rect]);
+      return { defs: [clip], attrs: { 'clip-path': `url(#${clip.id})` } };
+    }
+    case 'irisIn': {
+      const c = genEl('circle', { cx: '0.5', cy: '0.5', r: '0.75' });
+      c.append(...waitAs('r', '0'), ...nodes([anim('r', ['0', '0.75'])]));
+      const clip = genEl('clipPath', { id: genId(), clipPathUnits: 'objectBoundingBox' }, [c]);
+      return { defs: [clip], attrs: { 'clip-path': `url(#${clip.id})` } };
+    }
+    case 'blurIn': {
+      const sd = f(a.size / k);
+      const blur = genEl('feGaussianBlur', { stdDeviation: '0' });
+      blur.append(...waitAs('stdDeviation', sd), ...nodes([anim('stdDeviation', [sd, '0'])]));
+      const filter = genEl(
+        'filter',
+        { id: genId(), x: '-50%', y: '-50%', width: '200%', height: '200%' },
+        [blur],
+      );
+      return { defs: [filter], attrs: { filter: `url(#${filter.id})` } };
+    }
+    case 'glowPulse': {
+      // A blur of its outline, in the glow colour, under the layer; only the
+      // colour's opacity moves.
+      const flood = genEl('feFlood', {
+        'flood-color': a.to,
+        'flood-opacity': '0',
+        result: 'colour',
+      });
+      flood.append(...nodes([anim('flood-opacity', ['0', '1'])]));
+      const filter = genEl(
+        'filter',
+        { id: genId(), x: '-50%', y: '-50%', width: '200%', height: '200%' },
+        [
+          genEl('feGaussianBlur', {
+            in: 'SourceAlpha',
+            stdDeviation: f(a.size / k),
+            result: 'soft',
+          }),
+          flood,
+          genEl('feComposite', { in: 'colour', in2: 'soft', operator: 'in', result: 'glow' }),
+          genEl('feMerge', {}, [
+            genEl('feMergeNode', { in: 'glow' }),
+            genEl('feMergeNode', { in: 'SourceGraphic' }),
+          ]),
+        ],
+      );
+      return { defs: [filter], attrs: { filter: `url(#${filter.id})` } };
+    }
+    case 'shine': {
+      // A soft white band, off to the left at rest, swept across a box over
+      // the layer; masked by the layer itself, so it only lights the layer.
+      const grad = genEl(
+        'linearGradient',
+        {
+          id: genId(),
+          x1: '0',
+          y1: '0',
+          x2: '1',
+          y2: '0.35',
+          gradientTransform: 'translate(-1 0)',
+        },
+        [
+          genEl('stop', { offset: '0.3', 'stop-color': '#ffffff', 'stop-opacity': '0' }),
+          genEl('stop', { offset: '0.5', 'stop-color': '#ffffff', 'stop-opacity': '0.65' }),
+          genEl('stop', { offset: '0.7', 'stop-color': '#ffffff', 'stop-opacity': '0' }),
+        ],
+      );
+      grad.append(
+        ...nodes([
+          {
+            tag: 'animateTransform',
+            attrs: { attributeName: 'gradientTransform', type: 'translate' },
+            values: ['-1 0', '1 0'],
+          },
+        ]),
+      );
+      const use = genEl('use');
+      const mask = genEl('mask', { id: genId(), style: 'mask-type:alpha' }, [use]);
+      // The layer's box, in the space it sits in.
+      const b = el.getBBox();
+      const own = getM(el);
+      const pts = [
+        [b.x, b.y],
+        [b.x + b.width, b.y],
+        [b.x, b.y + b.height],
+        [b.x + b.width, b.y + b.height],
+      ].map(([x, y]) => new DOMPoint(x, y).matrixTransform(own));
+      const xs = pts.map((p) => p.x);
+      const ys = pts.map((p) => p.y);
+      const overlay = genEl('rect', {
+        x: f(Math.min(...xs)),
+        y: f(Math.min(...ys)),
+        width: f(Math.max(...xs) - Math.min(...xs)),
+        height: f(Math.max(...ys) - Math.min(...ys)),
+        fill: `url(#${grad.id})`,
+        mask: `url(#${mask.id})`,
+        'pointer-events': 'none',
+      });
+      return { defs: [grad, mask], attrs: {}, overlay, use };
+    }
+  }
+  return null;
+}
+// Wrap host (layer el itself, or its copy being saved) for animation a: the
+// parts' defs go to addDef, a group goes round host. { top, nodes, undo }:
+// the group, the SMIL in it all, and how to take it off again (the preview).
+function wrapLayer(el, host, a, preview, start, addDef) {
+  const parts = wrapParts(el, a, preview, start);
+  if (!parts) return null;
+  const g = genEl('g', parts.attrs);
+  if (host.parentNode) host.before(g);
+  g.append(host);
+  if (parts.overlay) g.append(parts.overlay);
+  let madeId = false;
+  if (parts.use) {
+    if (!host.id) {
+      host.id = genId();
+      host.setAttribute('data-sc-gen-id', '');
+      madeId = true;
+    }
+    parts.use.setAttribute('href', `#${host.id}`);
+  }
+  for (const d of parts.defs) addDef(d);
+  const nodes = parts.defs.flatMap((d) =>
+    [...d.querySelectorAll('*')].filter((n) => ANIM_KEY_TAGS.includes(n.localName)),
+  );
+  return {
+    top: g,
+    nodes,
+    undo: () => {
+      if (g.parentNode) g.replaceWith(host);
+      for (const d of parts.defs) d.remove();
+      if (madeId) {
+        host.removeAttribute('id');
+        host.removeAttribute('data-sc-gen-id');
+      }
+    },
+  };
+}
+
 // Where `at` points under root (the layer, live or a copy being saved).
 function animHost(root, at, letters) {
   if (!at) return root;
@@ -702,8 +931,10 @@ function animHost(root, at, letters) {
 }
 
 // Saving: each animated layer's copy gets its SMIL. `live` is the layer in
-// the drawing (for its geometry), `copy` the clone being written out.
-function writeAnimations(live, copy, on) {
+// the drawing (for its geometry), `copy` the clone being written out;
+// addDef takes what goes in the file's <defs>. Returns what to write in
+// copy's place (a group wrapped round it, for Wipe in and the like).
+function writeAnimations(live, copy, on, addDef = () => {}) {
   for (const n of copy.querySelectorAll('[data-sc-preview]')) n.remove();
   if (!on) return;
   const pick = (root) =>
@@ -717,6 +948,11 @@ function writeAnimations(live, copy, on) {
     const list = readAnims(el);
     const at = animStarts(list);
     list.forEach((a, j) => {
+      if (ANIM_PRESETS[a.p].wrap) {
+        const w = copies[i] && wrapLayer(el, copies[i], a, false, at[j], addDef);
+        for (const n of w?.nodes || []) delete n.dataset.scBegin;
+        return;
+      }
       for (const { at: where, nodes } of animEmit(el, a, false, at[j])) {
         const host = copies[i] && animHost(copies[i], where, letters);
         for (const n of nodes) {
@@ -728,6 +964,9 @@ function writeAnimations(live, copy, on) {
       }
     });
   });
+  let top = copy;
+  while (top.parentNode?.hasAttribute?.('data-sc-gen')) top = top.parentNode;
+  return top;
 }
 
 // ---- animations in opened files ------------------------------------------------
@@ -1156,7 +1395,7 @@ function reportSmil({ kept, lost }) {
 }
 
 // ---- preview ---------------------------------------------------------------------
-const animPlay = { playing: false, nodes: [], texts: [] };
+const animPlay = { playing: false, nodes: [], texts: [], undos: [] };
 function playAnimations() {
   stopAnimations();
   const els = [...doc.querySelectorAll('[data-sc-anim]')];
@@ -1166,6 +1405,14 @@ function playAnimations() {
     const list = readAnims(el);
     const at = animStarts(list);
     list.forEach((a, j) => {
+      if (ANIM_PRESETS[a.p].wrap) {
+        const w = wrapLayer(el, el, a, true, at[j], (d) => defs.append(d));
+        if (w) {
+          animPlay.nodes.push(...w.nodes);
+          animPlay.undos.push(w.undo);
+        }
+        return;
+      }
       for (const { at: where, nodes } of animEmit(el, a, true, at[j])) {
         // Letters are split for the preview and put back when it stops.
         if (where?.letter != null && !letters.has(el)) animPlay.texts.push([el, el.innerHTML]);
@@ -1187,8 +1434,10 @@ function stopAnimations() {
   if (!animPlay.playing) return;
   for (const n of animPlay.nodes) n.remove();
   for (const [el, html] of animPlay.texts) el.innerHTML = html;
+  for (const undo of animPlay.undos.reverse()) undo();
   animPlay.nodes = [];
   animPlay.texts = [];
+  animPlay.undos = [];
   animPlay.playing = false;
   syncAnimUI();
 }
@@ -1348,12 +1597,14 @@ function syncAnimUI() {
         }),
       );
     s.value = a.from;
-    kids.push(field(a.p === 'slideIn' ? 'From ' : 'To ', s));
+    kids.push(field(a.p === 'slideOut' ? 'To ' : 'From ', s));
   }
   if ('dist' in a) kids.push(field('Distance ', number('dist', 'px')));
   if ('turns' in a) kids.push(field('Turns ', number('turns', '(− = anticlockwise)', 0.25)));
   if ('scale' in a) kids.push(field('Grow to ', number('scale', '%')));
   if ('angle' in a) kids.push(field('Angle ', number('angle', '°')));
+  if ('size' in a)
+    kids.push(field(a.p === 'blurIn' ? 'Blur ' : 'Glow size ', number('size', 'px')));
   const choose = (k, label, names) => {
     const s = document.createElement('select');
     s.dataset.animOpt = k;
@@ -1390,7 +1641,7 @@ function syncAnimUI() {
     c.type = 'color';
     c.dataset.animOpt = 'to';
     c.value = a.to;
-    kids.push(field('To colour ', c));
+    kids.push(field(a.p === 'glowPulse' ? 'Glow colour ' : 'To colour ', c));
   }
   if ('path' in a) {
     // Every outline it could follow, by name.
@@ -1511,6 +1762,7 @@ function addAnimation(p) {
     'angle',
     'pivot',
     'axis',
+    'size',
   ])
     if (k in def) a[k] = def[k];
   const pair = animPair();
@@ -1560,7 +1812,8 @@ function wireAnimations() {
       else if (k === 'stagger') {
         if (+t.value > 0) a.stagger = +t.value;
         else delete a.stagger;
-      } else if (['dur', 'delay', 'dist', 'turns', 'scale', 'angle'].includes(k)) a[k] = +t.value;
+      } else if (['dur', 'delay', 'dist', 'turns', 'scale', 'angle', 'size'].includes(k))
+        a[k] = +t.value;
       else if (k === 'orient' || k === 'hide') a[k] = t.checked;
       else if (k === 'path') {
         // A layer without an id gets one now it's pointed at.
