@@ -112,13 +112,21 @@ test('Shine sweeps a highlight over the layer, masked by it', async ({ page }) =
     const use = document.querySelector('mask use');
     const target = document.getElementById(use.getAttribute('href').slice(1));
     const b = over.getBBox();
-    return { tx: m ? m.e : 0, target: target.localName, box: [b.x, b.y, b.width, b.height] };
+    return {
+      tx: m ? m.e : 0,
+      target: target.localName,
+      box: [b.x, b.y, b.width, b.height],
+      // An SVG attribute, not CSS: the layer's shape, whatever its colour.
+      maskType: getComputedStyle(use.parentNode).maskType,
+    };
   };
   expect(await at(page, svg, 0, state)).toEqual({
     tx: -1,
     target: 'circle',
     box: [410, 110, 80, 80],
+    maskType: 'alpha',
   });
+  expect(svg).not.toMatch(/style="mask-type/);
   expect((await at(page, svg, 1, state)).tx).toBeCloseTo(0, 1);
 });
 
