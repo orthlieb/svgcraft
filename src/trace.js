@@ -708,23 +708,42 @@ function traceStart(data, w, h, o) {
       );
       traceW = new Worker(url);
       traceW.onmessage = (e) => {
-        traceJobs.get(e.data.id)?.(e.data);
+        traceJobs.get(e.data.id)?.resolve(e.data);
         traceJobs.delete(e.data.id);
+      };
+      // A worker that fails (blocked, or out of memory) hands its jobs to
+      // the page, so tracing still finishes.
+      traceW.onerror = (e) => {
+        e.preventDefault?.();
+        console.warn('Image Trace: the background thread failed; tracing on the page.', e.message);
+        traceW.terminate();
+        traceW = false;
+        for (const [, job] of traceJobs) onPage(job.args, job.resolve, job.reject);
+        traceJobs.clear();
       };
     } catch {
       traceW = false;
     }
   }
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
+    const args = { id, data, w, h, o };
     if (traceW) {
-      traceJobs.set(id, resolve);
-      traceW.postMessage({ id, data, w, h, o }, [data.buffer]);
-    } else {
-      // No workers: the same code on the page.
-      traceRun ??= traceWorker({});
-      setTimeout(() => resolve(traceRun({ id, data, w, h, o })), 0);
-    }
+      // The worker gets a copy, so the job can still run here if it fails.
+      traceJobs.set(id, { args, resolve, reject });
+      traceW.postMessage({ ...args, data: data.slice() });
+    } else onPage(args, resolve, reject);
   });
+}
+// No worker: the same code on the page.
+function onPage(args, resolve, reject) {
+  setTimeout(() => {
+    try {
+      traceRun ??= traceWorker({});
+      resolve(traceRun(args));
+    } catch (e) {
+      reject(e);
+    }
+  }, 0);
 }
 
 // One loop as path data: straight between corners, curves elsewhere
@@ -858,13 +877,24 @@ function setTracePreset(k) {
 
 // The image's pixels at tracing size, and the matrix from tracing pixels
 // to the drawing (its placement, aspect ratio and transform).
+// Each failure is an Error whose message says why, for the status bar.
 async function imagePixels(el) {
-  const href = el.getAttribute('href') || el.getAttribute('xlink:href') || '';
+  const href = (el.getAttribute('href') || el.getAttribute('xlink:href') || '').trim();
+  const why = (text, cause) => Object.assign(new Error(text), { cause });
+  if (!href) throw why('the image layer has no picture in it');
+  if (!/^data:image\//i.test(href))
+    throw why('it’s linked from elsewhere, not embedded in the drawing, so it can’t be read');
   const img = new Image();
   img.src = href;
-  await img.decode();
-  const nw = img.naturalWidth || 1;
-  const nh = img.naturalHeight || 1;
+  try {
+    await img.decode();
+  } catch (e) {
+    throw why('its picture data is damaged, or in a format this browser can’t read', e);
+  }
+  // An SVG picture may have no size of its own: take the layer's.
+  const num = (a) => parseFloat(el.getAttribute(a)) || 0;
+  const nw = img.naturalWidth || num('width') || 300;
+  const nh = img.naturalHeight || num('height') || 150;
   // 400–1000 px on the long side: big enough for detail, small enough to be quick.
   const long = Math.max(nw, nh);
   const k = clamp(long, 400, 1000) / long;
@@ -876,9 +906,15 @@ async function imagePixels(el) {
   const ctx = c.getContext('2d', { willReadFrequently: true });
   ctx.imageSmoothingQuality = 'high';
   ctx.drawImage(img, 0, 0, w, h);
-  const data = ctx.getImageData(0, 0, w, h).data;
+  let data;
+  try {
+    data = ctx.getImageData(0, 0, w, h).data;
+  } catch (e) {
+    throw why('the browser won’t let SVGCraft read its pixels', e);
+  }
+  if (!data.some((v, i) => i % 4 === 3 && v))
+    throw why('it’s completely transparent: there’s nothing to trace');
   // Where the image is drawn (preserveAspectRatio: meet, or none).
-  const num = (a) => parseFloat(el.getAttribute(a)) || 0;
   const W = num('width') || nw;
   const H = num('height') || nh;
   const par = el.getAttribute('preserveAspectRatio') || '';
@@ -899,16 +935,42 @@ async function imagePixels(el) {
   return { data, w, h, M };
 }
 
+// The image layer to trace: the one selected, or the one inside a selected
+// group. Otherwise it says why there isn't one and gives null.
+function traceTarget() {
+  const sel = state.sel;
+  if (!sel.length)
+    return (say('Image Trace: select an image layer first (File → Import… places one).'), null);
+  if (sel.length > 1) return (say('Image Trace: select just one image layer.'), null);
+  const el = sel[0];
+  if (el.localName === 'image') return el;
+  const inside = [...el.querySelectorAll('image')];
+  if (el.localName === 'use')
+    return (
+      say('Image Trace: that’s a symbol instance. Edit the symbol to trace the image in it.'),
+      null
+    );
+  if (inside.length === 1) return inside[0];
+  if (inside.length > 1)
+    return (
+      say(
+        `Image Trace: “${layerName(el)}” holds ${inside.length} images. Select one of them in the Layers panel.`,
+      ),
+      null
+    );
+  return (say(`Image Trace: “${layerName(el)}” isn’t an image layer.`), null);
+}
+
 async function openTrace() {
-  const el = state.sel.length === 1 && state.sel[0].localName === 'image' ? state.sel[0] : null;
-  if (!el)
-    return say('Select a placed image to trace it (File → Place, or drop one on the canvas).');
+  const el = traceTarget();
+  if (!el) return;
   if (refuseLocked([el], 'edit')) return;
   let px;
   try {
     px = await imagePixels(el);
-  } catch {
-    return say('Couldn’t read that image’s pixels to trace it.');
+  } catch (e) {
+    console.warn('Image Trace:', e.message, e.cause || '');
+    return say(`Image Trace can’t read “${layerName(el)}”: ${e.message}.`);
   }
   Object.assign(tr, { img: el, pixels: px.data, w: px.w, h: px.h, M: px.M, layers: null });
   trField('preview').setAttribute('viewBox', `0 0 ${px.w} ${px.h}`);
@@ -926,7 +988,15 @@ function retrace(wait = 250) {
   trDlg.querySelector('[data-tr-btn="ok"]').disabled = true;
   tr.timer = setTimeout(async () => {
     const o = traceOptions();
-    const r = await traceStart(new Uint8ClampedArray(tr.pixels), tr.w, tr.h, o);
+    let r;
+    try {
+      r = await traceStart(new Uint8ClampedArray(tr.pixels), tr.w, tr.h, o);
+    } catch (e) {
+      if (id !== tr.busy || !trDlg.open) return;
+      console.error('Image Trace failed:', e);
+      trField('status').textContent = `Tracing failed: ${e.message || e}`;
+      return;
+    }
     if (id !== tr.busy || !trDlg.open) return;
     tr.layers = r.layers;
     const paths = tracePaths(r.layers, o.smooth);
@@ -943,10 +1013,11 @@ function retrace(wait = 250) {
       count(6) && plural(count(6), 'ellipse'),
       count(7) && plural(count(7), 'rectangle'),
     ].filter(Boolean);
-    trField('status').textContent =
-      `${paths.length} colour${paths.length === 1 ? '' : 's'} · ${shapes} shape${shapes === 1 ? '' : 's'}` +
-      (found.length ? ` (${found.join(', ')})` : '') +
-      ` · ${kb(bytes)}`;
+    trField('status').textContent = !paths.length
+      ? 'Nothing left to trace with these settings: lower Ignore specks under, or turn off Ignore background.'
+      : `${paths.length} colour${paths.length === 1 ? '' : 's'} · ${shapes} shape${shapes === 1 ? '' : 's'}` +
+        (found.length ? ` (${found.join(', ')})` : '') +
+        ` · ${kb(bytes)}`;
     trDlg.querySelector('[data-tr-btn="ok"]').disabled = !paths.length;
   }, wait);
 }
@@ -960,7 +1031,7 @@ function closeTrace(ok) {
   if (!ok || !el?.isConnected || !layers) return;
   const paths = tracePaths(layers, traceOptions().smooth);
   if (!paths.length)
-    return say('Nothing to trace: try fewer colours or turn off Ignore background.');
+    return say('Nothing to trace: lower Ignore specks under, or turn off Ignore background.');
   const g = mk('g', { 'data-name': 'Image Trace' });
   setM(g, tr.M);
   // The top layer first in the Layers panel: SVG paints later children on top.

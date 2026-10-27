@@ -193,11 +193,88 @@ test('abutting, black and white, presets and Cancel', async ({ page }) => {
   await expect(page.locator('#sc-doc g[data-name="Image Trace"]')).toHaveCount(1);
 });
 
-test('needs an image selected', async ({ page }) => {
+test('needs an image selected, and says what’s wrong with the selection', async ({ page }) => {
   await load(page, '<rect id="r" width="10" height="10"/>');
-  await menu(page, 'Image', 'imageTrace');
-  await expect(page.locator('#sc-trace')).toBeHidden();
-  await expect(page.locator('#sc-msg')).toContainText('Select a placed image');
+  const why = async (ids) => {
+    await page.evaluate(
+      (ids) => (window.svgcraft.state.sel = ids.map((id) => document.getElementById(id))),
+      ids,
+    );
+    await menu(page, 'Image', 'imageTrace');
+    await expect(page.locator('#sc-trace')).toBeHidden();
+    return page.locator('#sc-msg').textContent();
+  };
+  expect(await why([])).toContain('select an image layer first (File → Import… places one)');
+  expect(await why(['r'])).toContain('isn’t an image layer');
+  await placeTestImage(page);
+  await page.evaluate(() => {
+    const doc = document.getElementById('sc-doc');
+    doc.querySelector('image').id = 'i1';
+    doc.querySelector('image').after(doc.querySelector('image').cloneNode());
+    doc.querySelectorAll('image')[1].id = 'i2';
+    // eslint-disable-next-line no-undef -- the editor's own global
+    const g = mk('g', { id: 'g', 'data-name': 'Photos' });
+    doc.append(g);
+    g.append(...doc.querySelectorAll('image'));
+  });
+  expect(await why(['i1', 'i2'])).toContain('select just one image layer');
+  expect(await why(['g'])).toContain('“Photos” holds 2 images');
+});
+
+test('a group holding one image traces that image', async ({ page }) => {
+  await placeTestImage(page);
+  await page.evaluate(() => {
+    const doc = document.getElementById('sc-doc');
+    // eslint-disable-next-line no-undef -- the editor's own global
+    const g = mk('g', { 'data-name': 'Logo' });
+    doc.append(g);
+    g.append(doc.querySelector('image'));
+    window.svgcraft.state.sel = [g];
+  });
+  await openTrace(page);
+});
+
+test('an image it can’t read says why, in the status bar and the console', async ({ page }) => {
+  await placeTestImage(page);
+  const warnings = [];
+  page.on('console', (m) => m.type() === 'warning' && warnings.push(m.text()));
+  const why = async (href) => {
+    await page.evaluate((href) => {
+      const img = document.querySelector('#sc-doc image');
+      img.setAttribute('href', href);
+      window.svgcraft.state.sel = [img];
+    }, href);
+    await menu(page, 'Image', 'imageTrace');
+    await expect(page.locator('#sc-trace')).toBeHidden();
+    return page.locator('#sc-msg').textContent();
+  };
+  expect(await why('')).toContain('has no picture in it');
+  expect(await why('https://example.com/logo.png')).toContain('linked from elsewhere');
+  expect(await why('data:image/png;base64,AAAA')).toContain('damaged');
+  // A fully transparent PNG: nothing to trace.
+  const clear = await page.evaluate(() => {
+    const c = document.createElement('canvas');
+    c.width = c.height = 20;
+    return c.toDataURL();
+  });
+  expect(await why(clear)).toContain('completely transparent');
+  expect(warnings.filter((w) => w.startsWith('Image Trace:'))).toHaveLength(4);
+});
+
+test('a background thread that fails hands the trace to the page', async ({ page }) => {
+  await page.addInitScript(() => {
+    // A worker that errors as soon as it's given work.
+    window.Worker = class {
+      postMessage() {
+        setTimeout(() => this.onerror?.({ message: 'boom', preventDefault() {} }), 10);
+      }
+      terminate() {}
+    };
+  });
+  await page.reload();
+  await page.waitForFunction(() => !!window.svgcraft);
+  await placeTestImage(page);
+  await openTrace(page);
 });
 
 test.describe('without workers', () => {

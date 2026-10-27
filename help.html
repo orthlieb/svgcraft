@@ -1231,6 +1231,44 @@
                 hidden, instead of replacing it.
               </li>
             </ul>
+            <h4>When it won't trace</h4>
+            <p>
+              When Image Trace can't run, it says why in the status bar at the bottom of the window
+              (and in the browser's console, for an image it can't read):
+            </p>
+            <ul>
+              <li>
+                <strong>"select an image layer first"</strong>,
+                <strong>"select just one image layer"</strong> or
+                <strong>"isn't an image layer"</strong>: select the image itself. A group holding
+                one image traces that image; a group holding several asks you to pick one in the
+                Layers panel. Inside a symbol, edit the symbol first.
+              </li>
+              <li>
+                <strong>"linked from elsewhere"</strong>: the picture isn't embedded in the drawing.
+                Import the image file itself (File → Import…).
+              </li>
+              <li>
+                <strong>"damaged, or in a format this browser can't read"</strong>: the picture data
+                doesn't decode. Re-export it as PNG or JPEG and import that.
+              </li>
+              <li>
+                <strong>"completely transparent"</strong>: there are no visible pixels to trace.
+              </li>
+              <li>
+                <strong>Locked</strong>: an image locked with Lock all is refused; unlock it first.
+              </li>
+              <li>
+                <strong>"Nothing left to trace with these settings"</strong> in the dialog: lower
+                <strong>Ignore specks under</strong>, or turn off
+                <strong>Ignore background</strong> (on a picture that's mostly one colour, that
+                colour is the background).
+              </li>
+              <li>
+                If the background thread fails, tracing carries on in the page (a note goes to the
+                console), just a little slower.
+              </li>
+            </ul>
             <h4>Good to know</h4>
             <ul>
               <li>
