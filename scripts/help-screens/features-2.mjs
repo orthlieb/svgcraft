@@ -53,6 +53,23 @@ async function tall(h, group) {
   }, group);
 }
 
+// The clip for a panel group, from its tabs down to the last thing showing
+// in it, so the empty space a tall group leaves isn't in the shot.
+async function panel(h, group, pad = 10) {
+  const clip = await h.page.evaluate((sel) => {
+    const g = document.querySelector(sel);
+    const r = g.getBoundingClientRect();
+    let bottom = r.top;
+    for (const e of g.querySelectorAll('*')) {
+      const b = e.getBoundingClientRect();
+      if (b.height && e.checkVisibility()) bottom = Math.max(bottom, b.bottom);
+    }
+    return { x: r.left, y: r.top, width: r.width, height: Math.min(r.height, bottom - r.top) };
+  }, group);
+  clip.height = Math.min(clip.height + pad, h.page.viewportSize().height - clip.y);
+  return { clip };
+}
+
 // A drawing of a few plain shapes for the tool shots.
 const SHAPES = `
   <rect data-name="Box" x="80" y="90" width="220" height="160" fill="#2563eb"/>
@@ -86,7 +103,10 @@ export default [
       await h.page.evaluate(() => window.svgcraft.setTool('pencil'));
       await stroke(h, wave(60, 560, 130, 60));
       await stroke(h, wave(60, 560, 300, 40, 30));
-      await h.shot(null, await around(h, { doc: [[0, 0, 600, 400]], bars: true }));
+      await h.shot(
+        null,
+        await around(h, { doc: [[0, 0, 600, 400]], els: ['.sc-opt[data-for="pencil"]'], bars: true }),
+      );
     },
   },
   {
@@ -111,7 +131,7 @@ export default [
       await h.page.press('[aria-label="Angle"]', 'Enter');
       await h.shot(
         null,
-        await around(h, { doc: [[0, 0, 340, 300]], els: ['#sc-options'], bars: true, pad: 0 }),
+        await around(h, { doc: [[0, 0, 340, 300]], els: ['.sc-opt[data-for="transform"]'], bars: true }),
       );
     },
   },
@@ -175,7 +195,7 @@ export default [
       await h.page.selectOption('#sc-anim-add', 'popIn');
       await h.page.selectOption('#sc-anim-add', 'float');
       await h.page.waitForSelector('#sc-anim-list li');
-      await h.shot(PROPS_GROUP, { pad: 0 });
+      await h.shot(null, await panel(h, PROPS_GROUP));
     },
   },
   {
@@ -230,7 +250,9 @@ export default [
       await tall(h, COLOR_GROUP);
       await h.page.click('[aria-label="Fill type"] [data-kind="linear"]');
       await h.page.waitForSelector('#sc-grad-preset:visible');
-      await h.shot(COLOR_GROUP, { pad: 0 });
+      const preset = await h.page.locator('#sc-grad-preset option').nth(3).getAttribute('value');
+      await h.page.selectOption('#sc-grad-preset', preset);
+      await h.shot(null, await panel(h, COLOR_GROUP));
     },
   },
   {
@@ -239,7 +261,7 @@ export default [
       await h.select('Frame');
       await tall(h, COLOR_GROUP);
       await h.page.selectOption('.sc-pbody[data-pane="color"] [data-stroke-dash]', 'custom');
-      await h.shot(COLOR_GROUP, { pad: 0 });
+      await h.shot(null, await panel(h, COLOR_GROUP));
     },
   },
   {
@@ -268,7 +290,7 @@ export default [
       await h.tab('patterns');
       await tall(h, COLOR_GROUP);
       await h.page.locator('#sc-patlib > *').nth(5).click();
-      await h.shot(COLOR_GROUP, { pad: 0 });
+      await h.shot(null, await panel(h, COLOR_GROUP));
     },
   },
   {
@@ -276,7 +298,7 @@ export default [
     async shoot(h) {
       await h.tab('swatches');
       await tall(h, COLOR_GROUP);
-      await h.shot(COLOR_GROUP, { pad: 0 });
+      await h.shot(null, await panel(h, COLOR_GROUP));
     },
   },
   {
@@ -284,7 +306,7 @@ export default [
     async shoot(h) {
       await h.select('Red paint');
       await tall(h, COLOR_GROUP);
-      await h.shot(COLOR_GROUP, { pad: 0 });
+      await h.shot(null, await panel(h, COLOR_GROUP));
     },
   },
   {

@@ -31,23 +31,31 @@ const STARS = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 560">
 
 // Pick the Symbols tab, with room to show it in full (as if its splitter
 // had been dragged down).
-async function symbolsTab(h) {
+async function symbolsTab(h, height = '330px') {
   await h.tab('symbols');
-  await h.page.evaluate(() =>
-    document
-      .querySelector('[data-tab="symbols"]')
-      .closest('.sc-pgroup')
-      .style.setProperty('--h', '330px'),
+  await h.page.evaluate(
+    (height) =>
+      document
+        .querySelector('[data-tab="symbols"]')
+        .closest('.sc-pgroup')
+        .style.setProperty('--h', height),
+    height,
   );
 }
 
 // Drop the symbol stars in and pick the Symbols tab.
-async function stars(h) {
+async function stars(h, height) {
   await h.open(STARS, 'stars.svg');
-  await symbolsTab(h);
+  await symbolsTab(h, height);
 }
 
 const panelGroup = (h, tab) => h.page.locator(`.sc-pgroup:has([data-tab="${tab}"])`);
+
+// The docked SVG Source pane and the part of the canvas next to it.
+async function sourceShot(h) {
+  const b = await h.page.locator('#sc-source').boundingBox();
+  await h.shot(null, { clip: { x: 0, y: b.y, width: b.x + b.width, height: 520 } });
+}
 
 export default [
   {
@@ -126,13 +134,19 @@ export default [
       await h.redraw();
       // The Symbols panel and the canvas beside it.
       const g = await panelGroup(h, 'symbols').boundingBox();
-      await h.shot(null, { clip: { x: 520, y: g.y, width: 1280 - 520, height: g.height } });
+      await h.shot(null, { clip: { x: 360, y: g.y, width: 1280 - 360, height: g.height } });
     },
   },
   {
     id: 'symbol-instances',
     async shoot(h) {
-      await stars(h);
+      await stars(h, '90px');
+      await h.page.evaluate(() =>
+        document
+          .querySelector('[data-tab="props"]')
+          .closest('.sc-pgroup')
+          .style.setProperty('--h', '90px'),
+      );
       await h.page.evaluate(() => {
         const s = window.svgcraft;
         s.state.sel = [document.querySelectorAll('#sc-doc use')[3]];
@@ -141,7 +155,9 @@ export default [
       await h.redraw();
       // The canvas's right half and the Layers panel.
       const l = await h.page.locator('.sc-pgroup.sc-grow').boundingBox();
-      await h.shot(null, { clip: { x: 520, y: l.y, width: 1280 - 520, height: 330 } });
+      await h.shot(null, {
+        clip: { x: 520, y: l.y - 160, width: 1280 - 520, height: l.height + 160 },
+      });
     },
   },
   {
@@ -157,7 +173,7 @@ export default [
   {
     id: 'the-symbols-library',
     async shoot(h) {
-      await symbolsTab(h);
+      await symbolsTab(h, '400px');
       await h.page.click('[data-symview="lib"]');
       await h.page.waitForSelector('#sc-libsyms > *');
       await h.page.selectOption('#sc-libsym-cat', { label: 'Weather' }).catch(() => {});
@@ -197,11 +213,12 @@ export default [
   {
     id: 'window-svg-source',
     async shoot(h) {
+      await h.open(STARS, 'stars.svg');
       await h.menu('Window', 'toggleSource');
       await h.page.waitForSelector('#sc-source:not([hidden]) #sc-src-code');
-      await h.select('Title');
+      await h.select('Badge');
       await h.page.waitForTimeout(300);
-      await h.shot(['#sc-source', '#sc-stage'], { pad: 0 });
+      await sourceShot(h);
     },
   },
   {
@@ -227,8 +244,9 @@ export default [
       await h.redraw();
       await h.menu('Window', 'toggleSource');
       await h.page.waitForSelector('#sc-source:not([hidden]) #sc-src-code');
+      await h.select('Card');
       await h.page.waitForTimeout(300);
-      await h.shot(['#sc-source', '#sc-stage'], { pad: 0 });
+      await sourceShot(h);
     },
   },
 ];
