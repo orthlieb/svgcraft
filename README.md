@@ -213,6 +213,19 @@ stroke="currentColor"` (common in icon sets) is pushed down so it
   view follows, so nothing jumps on screen. Whatever ends up outside is
   kept, just not exported. (Properties → Document's W and H also resize
   the artboard, anchored top-left.)
+- **Grayscale and black & white** (Image menu), as in Photoshop, changing
+  the colours themselves, so the saved SVG really is grey: **Adjustments →
+  Desaturate** (Shift+Ctrl+U, every colour to the same-lightness grey),
+  **Black & White…** (Alt+Shift+Ctrl+B, Photoshop's six hue sliders and
+  defaults, previewed live), **Threshold…** (pure black and white at a
+  level you set, previewed) and **Mode → Grayscale** (the brightness the
+  eye sees). They change the selected layers, or the whole drawing with
+  nothing selected: fills, strokes, gradient stops, patterns, symbols and
+  markers in use, Layer Style colours and embedded images, pixel by
+  pixel. A gradient, pattern or symbol shared with layers outside the
+  selection gets a copy of its own first, so only the selection changes.
+  Each is one undo step; layers locked against all edits and linked
+  (not embedded) images are left as they are.
 - **Crop** (Image menu): **Crop to Selection** and **Crop to Drawing** fit
   the artboard tightly around the selected layers, or around everything
   visible, rounded out to whole pixels. The box is what's actually

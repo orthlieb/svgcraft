@@ -179,6 +179,35 @@
               <i data-icon="image"></i><span>Image Trace…</span>
             </button>
             <hr />
+            <div class="sc-submenu">
+              <button role="menuitem" class="sc-sub-btn" aria-haspopup="menu" aria-expanded="false">
+                <i></i><span>Mode</span><i data-icon="chevron-right" class="sc-sub-caret"></i>
+              </button>
+              <div class="sc-menu-list sc-sub-list" role="menu" hidden>
+                <button role="menuitem" data-action="modeGrayscale">
+                  <i></i><span>Grayscale</span>
+                </button>
+              </div>
+            </div>
+            <div class="sc-submenu">
+              <button role="menuitem" class="sc-sub-btn" aria-haspopup="menu" aria-expanded="false">
+                <i data-icon="circle-half-stroke"></i><span>Adjustments</span
+                ><i data-icon="chevron-right" class="sc-sub-caret"></i>
+              </button>
+              <div class="sc-menu-list sc-sub-list" role="menu" hidden>
+                <button role="menuitem" data-action="adjBlackWhite">
+                  <i></i><span>Black &amp; White…</span><kbd>Alt+Shift+Ctrl+B</kbd>
+                </button>
+                <button role="menuitem" data-action="adjThreshold">
+                  <i></i><span>Threshold…</span>
+                </button>
+                <hr />
+                <button role="menuitem" data-action="adjDesaturate">
+                  <i></i><span>Desaturate</span><kbd>Shift+Ctrl+U</kbd>
+                </button>
+              </div>
+            </div>
+            <hr />
             <button role="menuitem" data-action="cropToSelection">
               <i data-icon="crop-simple"></i><span>Crop to Selection</span>
             </button>
@@ -3302,6 +3331,102 @@
       </div>
     </dialog>
 
+    <!-- Image → Adjustments → Black & White…: Photoshop's six hue sliders. -->
+    <dialog
+      class="sc-dialog sc-adjust"
+      id="sc-bw"
+      data-name="Black & White"
+      aria-labelledby="sc-bw-title"
+    >
+      <div class="sc-dialog-title" id="sc-bw-title">Black &amp; White</div>
+      <div class="sc-dialog-body">
+        <div class="sc-adj-rows">
+          <label class="sc-adj-row" data-adj="r"
+            ><span>Reds</span><input type="range" min="-200" max="300" aria-label="Reds" /><input
+              type="number"
+              min="-200"
+              max="300"
+              aria-label="Reds %"
+            /><span>%</span></label
+          ><label class="sc-adj-row" data-adj="y"
+            ><span>Yellows</span
+            ><input type="range" min="-200" max="300" aria-label="Yellows" /><input
+              type="number"
+              min="-200"
+              max="300"
+              aria-label="Yellows %"
+            /><span>%</span></label
+          ><label class="sc-adj-row" data-adj="g"
+            ><span>Greens</span
+            ><input type="range" min="-200" max="300" aria-label="Greens" /><input
+              type="number"
+              min="-200"
+              max="300"
+              aria-label="Greens %"
+            /><span>%</span></label
+          ><label class="sc-adj-row" data-adj="c"
+            ><span>Cyans</span><input type="range" min="-200" max="300" aria-label="Cyans" /><input
+              type="number"
+              min="-200"
+              max="300"
+              aria-label="Cyans %"
+            /><span>%</span></label
+          ><label class="sc-adj-row" data-adj="b"
+            ><span>Blues</span><input type="range" min="-200" max="300" aria-label="Blues" /><input
+              type="number"
+              min="-200"
+              max="300"
+              aria-label="Blues %"
+            /><span>%</span></label
+          ><label class="sc-adj-row" data-adj="m"
+            ><span>Magentas</span
+            ><input type="range" min="-200" max="300" aria-label="Magentas" /><input
+              type="number"
+              min="-200"
+              max="300"
+              aria-label="Magentas %"
+            /><span>%</span></label
+          >
+        </div>
+        <label class="sc-check"><input type="checkbox" data-adj-preview checked /> Preview</label>
+        <p class="sc-hint" data-adj-what></p>
+      </div>
+      <div class="sc-dialog-foot">
+        <button class="sc-tbtn" data-adj-btn="default">Default</button>
+        <span class="sc-src-gap"></span>
+        <button class="sc-tbtn" data-adj-btn="cancel">Cancel</button>
+        <button class="sc-tbtn sc-primary-btn" data-adj-btn="ok">OK</button>
+      </div>
+    </dialog>
+
+    <!-- Image → Adjustments → Threshold…: black below the level, white above. -->
+    <dialog
+      class="sc-dialog sc-adjust"
+      id="sc-threshold"
+      data-name="Threshold"
+      aria-labelledby="sc-th-title"
+    >
+      <div class="sc-dialog-title" id="sc-th-title">Threshold</div>
+      <div class="sc-dialog-body">
+        <div class="sc-adj-rows">
+          <label class="sc-adj-row" data-adj="t"
+            ><span>Level</span
+            ><input type="range" min="1" max="255" aria-label="Threshold level" /><input
+              type="number"
+              min="1"
+              max="255"
+              aria-label="Threshold level number" /><span></span
+          ></label>
+        </div>
+        <label class="sc-check"><input type="checkbox" data-adj-preview checked /> Preview</label>
+        <p class="sc-hint" data-adj-what></p>
+      </div>
+      <div class="sc-dialog-foot">
+        <button class="sc-tbtn" data-adj-btn="cancel">Cancel</button>
+        <button class="sc-tbtn sc-primary-btn" data-adj-btn="ok">OK</button>
+      </div>
+    </dialog>
+
     <!-- Image → Canvas Size…: the artboard grows or shrinks around an anchor. -->
     <dialog class="sc-dialog sc-docsize" id="sc-canvassize" aria-labelledby="sc-cv-title">
       <div class="sc-dialog-title" id="sc-cv-title">Canvas Size</div>
@@ -4151,6 +4276,7 @@
     <script src="src/fill-rule.js"></script>
     <script src="src/animate.js"></script>
     <script src="src/doc-size.js"></script>
+    <script src="src/adjust.js"></script>
     <script src="src/new-doc.js"></script>
     <script src="src/commands.js"></script>
     <script src="src/outlines.js"></script>

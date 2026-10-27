@@ -3,7 +3,7 @@
 //
 // Google Fonts can't load offline, so font checks assert the attributes and
 // <link>/@import the app writes, never that a web font actually rendered.
-import { test, expect, action, menu, toScreen } from './fixtures.js';
+import { test, expect, action, toScreen } from './fixtures.js';
 import fs from 'node:fs/promises';
 
 const SENTENCE = 'The quick brown fox jumps over the lazy dog and keeps on running far away.';
@@ -326,10 +326,7 @@ test.describe('saving text', () => {
     await selectParagraph(page);
     await page.click('.sc-ptabs [data-tab="character"]');
     await pickFont(page, '.sc-char', 'lobster');
-    const [dl] = await Promise.all([
-      page.waitForEvent('download'),
-      menu(page, 'File', 'exportSvg'),
-    ]);
+    const [dl] = await Promise.all([page.waitForEvent('download'), page.click('.sc-export')]);
     const svg = await fs.readFile(await dl.path(), 'utf8');
     expect(svg).toMatch(/@import url\('https:\/\/fonts\.googleapis\.com\/css2\?family=Lobster/);
   });

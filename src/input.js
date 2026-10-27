@@ -270,6 +270,11 @@ window.addEventListener('keydown', (e) => {
     toggleView('guidesLocked');
     return;
   }
+  if (mod && e.altKey && e.shiftKey && e.code === 'KeyB') {
+    e.preventDefault();
+    ifAllowed('adjBlackWhite');
+    return;
+  }
   if (mod && e.altKey && e.code === 'KeyG') {
     e.preventDefault();
     if (e.shiftKey) ifAllowed('clipRelease', releaseClip);
@@ -282,7 +287,7 @@ window.addEventListener('keydown', (e) => {
       y: redo,
       s: () => (e.shiftKey ? saveDocAs() : saveDoc()),
       o: () => (e.shiftKey ? ifAllowed('createOutlines', createOutlines) : openPicker('open')),
-      u: toggleSource,
+      u: () => (e.shiftKey ? ifAllowed('adjDesaturate') : toggleSource()),
       j: () => ifAllowed(e.shiftKey ? 'layerViaCut' : 'layerViaCopy'),
       e: () => ifAllowed(e.shiftKey ? 'mergeVisible' : 'mergeDown'),
       d: () => setSel([]),

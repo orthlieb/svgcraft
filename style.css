@@ -2916,6 +2916,27 @@ body.sc-no-doc .sc-status > * {
   display: none;
 }
 
+/* ---- Image → Adjustments: Black & White…, Threshold… --------------------------- */
+.sc-adjust {
+  width: min(360px, calc(100vw - 32px));
+}
+.sc-adj-rows {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.sc-adj-row {
+  display: grid;
+  grid-template-columns: 5.5em minmax(0, 1fr) 4.5em 1em;
+  align-items: center;
+  gap: 8px;
+}
+.sc-adj-row input[type='number'] {
+  width: 100%;
+}
+.sc-adjust .sc-dialog-foot {
+  display: flex;
+}
 /* ---- File → Export App Icons… ------------------------------------------------ */
 .sc-appicons {
   width: min(380px, calc(100vw - 32px));
