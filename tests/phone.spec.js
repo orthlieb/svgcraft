@@ -249,6 +249,28 @@ test.describe('phone, portrait', () => {
     for (const [name, d] of off) expect(d, name).toBeLessThan(1);
   });
 
+  test('Layers previews stay on the checkerboard whatever the Background', async ({ page }) => {
+    await load(page, DRAWING);
+    const look = async () => {
+      await page.tap('[data-action="peekLayers"]');
+      const thumb = page.locator('#sc-peek-list .sc-thumb').first();
+      await expect(thumb).toBeVisible();
+      const s = await thumb.evaluate((t) => {
+        const cs = getComputedStyle(t);
+        return `${cs.backgroundColor} ${cs.backgroundImage}`;
+      });
+      await page.tap('[data-peek="close"]');
+      await expect(page.locator('#sc-peek')).toBeHidden();
+      return s;
+    };
+    const checker = await look();
+    for (const bg of ['white', 'black']) {
+      await page.tap('[data-action="previewBg"]');
+      await expect(page.locator('#sc-stage-wrap')).toHaveAttribute('data-bg', bg);
+      expect(await look()).toBe(checker);
+    }
+  });
+
   test('double-tap zooms in on the spot, and again fits', async ({ page }) => {
     await load(page, DRAWING, 300, 200);
     await bar(page, 'fit').click();

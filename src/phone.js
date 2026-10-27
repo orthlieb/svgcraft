@@ -29,8 +29,8 @@ function renderPeek() {
   const ul = $('#sc-peek-list');
   const scroll = ul.scrollTop;
   ul.replaceChildren();
-  // Previews sit on the same backdrop as the canvas (white art shows on black).
-  peekDlg.dataset.bg = $('#sc-stage-wrap').dataset.bg || 'checker';
+  // Previews are always on the checkerboard, as in the Layers panel, whatever
+  // the canvas's Background.
   const walk = (parent, depth, under) => {
     for (const el of [...parent.children].filter(selectable).reverse()) {
       const li = document.createElement('li');

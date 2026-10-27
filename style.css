@@ -1722,12 +1722,6 @@ button.sc-fx-item.sel {
 .sc-peek-list li.off .sc-thumb {
   opacity: 0.4;
 }
-.sc-peek[data-bg='white'] .sc-thumb {
-  background: #ffffff;
-}
-.sc-peek[data-bg='black'] .sc-thumb {
-  background: #000000;
-}
 /* Inside a hidden group: can't show until the group does. */
 .sc-peek-list li.under {
   opacity: 0.45;
