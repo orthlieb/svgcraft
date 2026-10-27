@@ -4160,10 +4160,9 @@
                 older launchers.
               </li>
               <li>
-                A top-level layer named <strong>Background</strong> is never part of the foreground.
-                On artwork drawn on New Icon's Android adaptive template, it becomes the background
-                layer. Otherwise the background is the <strong>Background</strong> colour
-                (<code>values/ic_launcher_background.xml</code>).
+                A top-level layer named <strong>Background</strong> becomes the background layer,
+                and everything else the foreground. Without one, the background is the
+                <strong>Background</strong> colour (<code>values/ic_launcher_background.xml</code>).
               </li>
               <li>
                 Artwork drawn on the Android adaptive template (a 108 dp canvas, recognised by its
@@ -4171,7 +4170,9 @@
                 its middle 72 dp, as a launcher does.
               </li>
               <li>
-                Any other icon is fitted into the 66 dp safe zone, so no launcher mask cuts into it.
+                Any other icon's foreground is fitted into the 66 dp safe zone, so no launcher mask
+                cuts into it, and its Background layer is stretched over the whole 108 dp so it
+                still fills the launcher's shape.
               </li>
             </ul>
             <h4>Good to know</h4>

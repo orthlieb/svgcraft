@@ -2230,15 +2230,15 @@ Each size is drawn from the vector art, not scaled from one big bitmap.
   icons.
 - Legacy square and round `ic_launcher` PNGs (48 to 192 px) are there for
   older launchers.
-- A top-level layer named **Background** is never part of the foreground.
-  On artwork drawn on New Icon's Android adaptive template, it becomes the
-  background layer. Otherwise the background is the **Background** colour
-  (`values/ic_launcher_background.xml`).
+- A top-level layer named **Background** becomes the background layer,
+  and everything else the foreground. Without one, the background is the
+  **Background** colour (`values/ic_launcher_background.xml`).
 - Artwork drawn on the Android adaptive template (a 108 dp canvas,
   recognised by its guides 1/6 in) is used as drawn, edge to edge. The
   legacy and Play Store icons show its middle 72 dp, as a launcher does.
-- Any other icon is fitted into the 66 dp safe zone, so no launcher mask
-  cuts into it.
+- Any other icon's foreground is fitted into the 66 dp safe zone, so no
+  launcher mask cuts into it, and its Background layer is stretched over
+  the whole 108 dp so it still fills the launcher's shape.
 
 #### Good to know
 

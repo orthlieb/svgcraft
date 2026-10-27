@@ -250,6 +250,52 @@ test.describe('Android adaptive icons', () => {
     expect(corner[3]).toBe(0);
   });
 
+  test('any other icon keeps its Background layer, stretched behind the safe zone', async ({
+    page,
+  }) => {
+    // A plain 512 px icon: the foreground shrinks into the 66 dp safe zone,
+    // and the Background layer (two colours, left and right) fills the whole
+    // 108 dp background layer instead of giving way to a flat colour.
+    await load(
+      page,
+      '<g data-name="Background"><rect width="256" height="512" fill="#0b6e4f"/>' +
+        '<rect x="256" width="256" height="512" fill="#118ab2"/></g>' +
+        '<circle cx="256" cy="256" r="150" fill="#ffd166"/>',
+      512,
+      512,
+      'icon.svg',
+    );
+    const z = await exportIcons(page, { off: ['web', 'ios', 'macos'] });
+    expect(xml(z, 'mipmap-anydpi-v26/ic_launcher.xml')).toContain(
+      '<background android:drawable="@mipmap/ic_launcher_background"/>',
+    );
+    expect(z['android/res/values/ic_launcher_background.xml']).toBeUndefined();
+    expect(
+      await pixels(page, layer(z, 'xxxhdpi', 'background'), [
+        [3, 3],
+        [3, 216],
+        [428, 216],
+        [428, 428],
+      ]),
+    ).toEqual([
+      [11, 110, 79, 255],
+      [11, 110, 79, 255],
+      [17, 138, 178, 255],
+      [17, 138, 178, 255],
+    ]);
+    // The circle (150 of 512) is 77 of the safe zone's 264 px: the centre is
+    // yellow, 100 px up is clear, and the background isn't in it.
+    const [centre, above, corner] = await pixels(page, layer(z, 'xxxhdpi', 'foreground'), [
+      [216, 216],
+      [216, 116],
+      [5, 5],
+    ]);
+    expect(centre).toEqual([255, 209, 102, 255]);
+    expect(above[3]).toBe(0);
+    expect(corner[3]).toBe(0);
+    expect(z['README.txt'].toString()).toContain('the Background layer as its background');
+  });
+
   test('a 108 dp canvas with a Background layer', async ({ page }) => {
     // The Android adaptive template's guides mark the visible area.
     await load(

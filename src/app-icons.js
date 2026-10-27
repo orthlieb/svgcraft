@@ -65,7 +65,9 @@ function artSquare() {
 // layer (otherwise it's a solid colour); everything else is the
 // foreground. Artwork on a 108 dp canvas (New Icon's Android adaptive
 // template, recognised by its guides at the visible area, 1/6 in) is
-// used as it is; any other icon is fitted into the safe zone.
+// used as it is. Any other icon's foreground is fitted into the safe
+// zone, and its Background layer stretched over the whole 108 dp, so it
+// still fills the launcher's shape.
 const BG_LAYER = /^\s*background\s*$/i;
 function isAdaptiveArt() {
   if (state.w !== state.h) return false;
@@ -94,7 +96,7 @@ const ANDROID_LAYER_SIZES = [
 async function androidIcons(full, bg) {
   const adaptive = isAdaptiveArt();
   const fgText = layerSvg(full, false);
-  const bgText = adaptive ? layerSvg(full, true) : null;
+  const bgText = layerSvg(full, true);
   const whole = await svgRasterizer(full);
   const fg = fgText ? await svgRasterizer(fgText) : whole;
   const back = bgText && (await svgRasterizer(bgText));
@@ -113,7 +115,10 @@ async function androidIcons(full, bg) {
       await fg(s, { box: canvas, mono: true }),
     ]);
     if (back)
-      files.push([res(`mipmap-${d}/ic_launcher_background.png`), await back(s, { box: canvas })]);
+      files.push([
+        res(`mipmap-${d}/ic_launcher_background.png`),
+        await back(s, { box: adaptive ? canvas : art }),
+      ]);
   }
   // Launchers before Android 8 use these: the visible area as it would
   // look, square and round (an ordinary icon keeps its own square look).
