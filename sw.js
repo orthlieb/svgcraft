@@ -52,7 +52,10 @@ self.addEventListener('fetch', (e) => {
     (async () => {
       const cache = await caches.open(CACHE);
       try {
-        const res = await fetch(req);
+        // Checked with the server each time (a cheap 304 when unchanged),
+        // so a reload after an update never gets old files from the
+        // browser's HTTP cache.
+        const res = await fetch(req, fonts ? undefined : { cache: 'no-cache' });
         if (res.ok || res.type === 'opaque') cache.put(req, res.clone());
         return res;
       } catch (err) {

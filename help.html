@@ -567,6 +567,37 @@
               </li>
               <li>Open it from your apps. It opens in a window of its own.</li>
             </ol>
+            <h4>Updates</h4>
+            <figure>
+              <img
+                src="docs/help/offline-and-as-an-app-update.png"
+                alt="The bar offering a new version, with Update and Later"
+                width="665"
+                height="160"
+                loading="lazy"
+              />
+            </figure>
+            <p>
+              SVGCraft looks for a newer version by itself whenever the internet is there: when it
+              starts, when it comes back online, when you come back to its window, and every hour
+              while it's open.
+            </p>
+            <ol>
+              <li>When there's a newer version, a bar at the bottom of the window says so.</li>
+              <li>
+                Click <strong>Update</strong> to reload SVGCraft with the new version. Your open
+                drawings, their tabs and their <code>*</code> marks are kept.
+              </li>
+              <li>
+                Or click <strong>Later</strong> to carry on. It isn't offered again by itself until
+                there's a newer version still; <strong>Help → Check for Updates…</strong> shows it
+                again.
+              </li>
+            </ol>
+            <p>
+              <strong>Help → Check for Updates…</strong> looks at once and says what it found: up to
+              date (with the version), a new version (the bar), or no connection.
+            </p>
             <h4>Good to know</h4>
             <ul>
               <li>
@@ -579,7 +610,14 @@
               </li>
               <li>
                 Offline use works through a service worker, which keeps SVGCraft's files. Opened
-                straight from disk (<code>file://</code>), none of this applies.
+                straight from disk (<code>file://</code>), none of this applies, and there are no
+                updates.
+              </li>
+              <li>
+                The version is a short code made from SVGCraft's files
+                (<code>src/version.js</code>): any change to the app gives a new one. Online, a page
+                you open always loads the newest files, so the bar matters for a window left open,
+                or one started while offline.
               </li>
             </ul>
           </article>

@@ -57,6 +57,19 @@ export default [
     },
   },
   {
+    id: 'offline-and-as-an-app-update',
+    async shoot(h) {
+      await h.select('Red paint');
+      await h.page.evaluate(() => (document.getElementById('sc-update').hidden = false));
+      const bar = h.page.locator('#sc-update');
+      const box = await bar.boundingBox();
+      // The bar with the canvas and status bar round it.
+      await h.shot(null, {
+        clip: { x: box.x - 120, y: box.y - 90, width: box.width + 240, height: 160 },
+      });
+    },
+  },
+  {
     id: 'the-editor-window',
     async shoot(h) {
       await flatBackdrop(h);

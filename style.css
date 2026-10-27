@@ -1566,6 +1566,42 @@ button.sc-fx-item.sel {
   font-variant-numeric: tabular-nums;
 }
 
+/* A newer version is on the server (src/update.js): a bar along the
+   bottom of the window, above the status bar, until Update or Later. */
+.sc-update {
+  position: fixed;
+  left: 50%;
+  bottom: 40px;
+  z-index: 50;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: calc(100vw - 32px);
+  padding: 8px 10px 8px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: 0 6px 24px rgb(0 0 0 / 35%);
+  font-size: 13px;
+}
+.sc-update[hidden] {
+  display: none;
+}
+.sc-update > i {
+  display: grid;
+  color: var(--accent);
+}
+.sc-update svg {
+  width: 15px;
+  height: 15px;
+  fill: currentColor;
+}
+.sc-update button {
+  flex: none;
+}
+
 /* ---- narrow screens ---------------------------------------------------- */
 /* Tablets (and phones, under the preview rules above): bottom toolbar and
    a slide-in panel drawer. */

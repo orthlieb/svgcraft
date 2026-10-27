@@ -103,6 +103,24 @@ other app.
    iPad, tap **Share → Add to Home Screen**.
 3. Open it from your apps. It opens in a window of its own.
 
+#### Updates
+
+![The bar offering a new version, with Update and Later](docs/help/offline-and-as-an-app-update.png)
+
+SVGCraft looks for a newer version by itself whenever the internet is
+there: when it starts, when it comes back online, when you come back to its
+window, and every hour while it's open.
+
+1. When there's a newer version, a bar at the bottom of the window says so.
+2. Click **Update** to reload SVGCraft with the new version. Your open
+   drawings, their tabs and their `*` marks are kept.
+3. Or click **Later** to carry on. It isn't offered again by itself until
+   there's a newer version still; **Help → Check for Updates…** shows it
+   again.
+
+**Help → Check for Updates…** looks at once and says what it found: up to
+date (with the version), a new version (the bar), or no connection.
+
 #### Good to know
 
 - On desktop Chrome and Edge, the installed app can be chosen to open
@@ -110,7 +128,12 @@ other app.
 - **Install SVGCraft…** only shows in the File menu when the browser
   offers to install it.
 - Offline use works through a service worker, which keeps SVGCraft's
-  files. Opened straight from disk (`file://`), none of this applies.
+  files. Opened straight from disk (`file://`), none of this applies, and
+  there are no updates.
+- The version is a short code made from SVGCraft's files
+  (`src/version.js`): any change to the app gives a new one. Online, a page
+  you open always loads the newest files, so the bar matters for a window
+  left open, or one started while offline.
 
 ### The editor window
 
@@ -2661,6 +2684,12 @@ gets its topic edited (and its screenshot retaken if the UI changed), in
 the same branch; then regenerate `help.html`. `tests/help.spec.js` fails
 while `help.html` is stale, a topic has no screenshot, a screenshot isn't
 used, or a ? points at a topic that isn't there.
+
+**The version.** `src/version.js` is generated: `node scripts/gen-version.mjs`
+hashes every file the app is made of (what the service worker keeps) into
+`APP_VERSION`. A running copy compares it with the server's (`src/update.js`)
+and offers the update. Run it last, after any other generator, whenever an
+app file changes; `tests/update.spec.js` fails while it's stale.
 
 **The code.** The editor is split by area into the scripts in `src/`:
 `core.js` (state and helpers), `guides.js`, `geometry.js`, `paints.js`,

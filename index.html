@@ -600,6 +600,9 @@
             <button role="menuitem" data-action="aboutShortcuts">
               <i data-icon="keyboard"></i><span>Keyboard Shortcuts</span>
             </button>
+            <button role="menuitem" data-action="checkUpdates">
+              <i data-icon="rotate-right"></i><span>Check for Updates…</span>
+            </button>
           </div>
         </div>
       </nav>
@@ -4286,6 +4289,12 @@
     </div>
 
     <!-- ── Status bar ─────────────────────────────────────────────────────── -->
+    <div id="sc-update" class="sc-update" role="alert" hidden>
+      <i data-icon="rotate-right"></i>
+      <span>A new version of SVGCraft is available.</span>
+      <button type="button" id="sc-update-now" class="sc-tbtn sc-primary-btn">Update</button>
+      <button type="button" id="sc-update-later" class="sc-tbtn">Later</button>
+    </div>
     <footer class="sc-status">
       <label class="sc-zoom"
         ><input
@@ -4369,5 +4378,7 @@
     <script src="src/phone.js"></script>
     <script src="src/tooltips.js"></script>
     <script src="src/boot.js"></script>
+    <script src="src/version.js"></script>
+    <script src="src/update.js"></script>
   </body>
 </html>

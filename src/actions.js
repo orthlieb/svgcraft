@@ -218,6 +218,8 @@ const NO_DOC_ACTIONS = new Set([
   'about',
   'aboutFeatures',
   'aboutShortcuts',
+  'help',
+  'checkUpdates',
   'themeSystem',
   'themeDark',
   'themeLight',

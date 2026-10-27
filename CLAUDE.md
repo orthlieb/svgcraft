@@ -34,6 +34,14 @@ Help → SVGCraft Help (F1, and the ? on dialogs and panels) opens
 a topic has no screenshot, a screenshot in `docs/help/` isn't used, or any ?
 points at a topic that doesn't exist.
 
+## The version
+
+`src/version.js` holds SVGCraft's version, a hash of the app's files, which
+a running copy compares with the server's to offer updates (`src/update.js`).
+After changing any app file (and after `gen-help.mjs`, as `help.html` counts),
+run `node scripts/gen-version.mjs` last and commit `src/version.js` with the
+change; `tests/update.spec.js` fails while it's stale.
+
 ## Before pushing
 
 `npx prettier --check .`, `npx eslint .` and the full Playwright suite
