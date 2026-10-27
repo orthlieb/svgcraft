@@ -2230,8 +2230,10 @@ Each size is drawn from the vector art, not scaled from one big bitmap.
   icons.
 - Legacy square and round `ic_launcher` PNGs (48 to 192 px) are there for
   older launchers.
-- A top-level layer named **Background** becomes the background layer,
-  and everything else the foreground. Without one, the background is the
+- A layer named **Background** becomes the background layer, and
+  everything else the foreground. It has to be a layer of its own, not
+  inside a group; it's usually the bottom layer, but its place in the stack
+  doesn't matter. Without one, the background is the
   **Background** colour (`values/ic_launcher_background.xml`).
 - Artwork drawn on the Android adaptive template (a 108 dp canvas,
   recognised by its guides 1/6 in) is used as drawn, edge to edge. The

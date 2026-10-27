@@ -4160,9 +4160,11 @@
                 older launchers.
               </li>
               <li>
-                A top-level layer named <strong>Background</strong> becomes the background layer,
-                and everything else the foreground. Without one, the background is the
-                <strong>Background</strong> colour (<code>values/ic_launcher_background.xml</code>).
+                A layer named <strong>Background</strong> becomes the background layer, and
+                everything else the foreground. It has to be a layer of its own, not inside a group;
+                it's usually the bottom layer, but its place in the stack doesn't matter. Without
+                one, the background is the <strong>Background</strong> colour
+                (<code>values/ic_launcher_background.xml</code>).
               </li>
               <li>
                 Artwork drawn on the Android adaptive template (a 108 dp canvas, recognised by its
