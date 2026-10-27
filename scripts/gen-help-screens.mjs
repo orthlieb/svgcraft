@@ -35,6 +35,17 @@ for (const w of want) if (!ids.includes(w)) throw new Error(`no shot called ${w}
 fs.mkdirSync(OUT, { recursive: true });
 const browser = await chromium.launch();
 
+// Open a drawing in the current tab with a history of just "Open", as
+// File → Open leaves it (runs in the page).
+function openFresh([text, name]) {
+  /* eslint-disable no-undef -- the editor's own globals */
+  openSvg(text, name);
+  hist.splice(0, hist.length - 1);
+  hIdx = 0;
+  afterChange();
+  /* eslint-enable no-undef */
+}
+
 // The helpers a shot gets.
 function helpers(page, id) {
   const h = {
@@ -44,7 +55,7 @@ function helpers(page, id) {
     async open(svg, name = 'drawing.svg', w = 800, h2 = 600) {
       if (!/^\s*<svg/.test(svg))
         svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h2}">${svg}</svg>`;
-      await page.evaluate(([t, n]) => window.svgcraft.openSvg(t, n), [svg, name]);
+      await page.evaluate(openFresh, [svg, name]);
       await page.waitForTimeout(150);
     },
     // A document point → page pixels.
@@ -188,7 +199,7 @@ for (const s of shots) {
   await page.goto(pathToFileURL(path.join(ROOT, 'index.html')).href);
   await page.waitForFunction(() => !!window.svgcraft);
   await page.evaluate(() => window.svgcraft.ready);
-  await page.evaluate((t) => window.svgcraft.openSvg(t, 'palette.svg'), DEMO);
+  await page.evaluate(openFresh, [DEMO, 'palette.svg']);
   try {
     await s.shoot(helpers(page, s.id));
   } catch (e) {

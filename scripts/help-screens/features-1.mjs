@@ -103,7 +103,7 @@ export default [
       await h.menu('Image', 'adjDesaturate');
       await h.tab('history');
       const list = h.page.locator('#sc-history');
-      await list.locator('li').nth(4).waitFor();
+      await list.locator('li').nth(3).waitFor();
       // Go back a step: the one after it dims.
       await list.locator('li').nth(-2).click();
       await h.shot(h.page.locator('.sc-pgroup', { has: list }), { pad: 0 });

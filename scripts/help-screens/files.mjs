@@ -2,10 +2,11 @@
 // SVG source and What the saved SVG keeps sections
 // (see scripts/gen-help-screens.mjs).
 
-// A 24 px Material-style icon: a bell, on New Icon's Material template.
+// A 24 px Material-style icon: an outlined bell.
 const BELL =
-  '<path data-name="Bell" fill="#2563eb" d="M12 3a6 6 0 0 0-6 6v4l-2 3h16l-2-3V9a6 6 0 0 0-6-6z"/>' +
-  '<circle data-name="Clapper" cx="12" cy="19" r="2" fill="#2563eb"/>';
+  '<path data-name="Bell" fill="none" stroke="#2563eb" stroke-width="2" stroke-linejoin="round" ' +
+  'd="M12 4a6 6 0 0 0-6 6v4l-2 3h16l-2-3v-4a6 6 0 0 0-6-6z"/>' +
+  '<circle data-name="Clapper" cx="12" cy="19.5" r="1.5" fill="#2563eb"/>';
 
 // A launcher-style app icon: a background layer and a white glyph.
 const APP =
@@ -23,24 +24,27 @@ const STARS = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 560">
     <circle cx="40" cy="40" r="36" fill="#2563eb"/><path d="M22 40l12 12 24-24" fill="none" stroke="#fff" stroke-width="8"/></symbol></defs>
   <rect data-name="Backdrop" width="800" height="560" fill="#f8fafc"/>
   <use data-name="Star" href="#sc-sym-1" transform="translate(140 180) scale(1.6)"/>
-  <use data-name="Star" href="#sc-sym-1" transform="translate(380 220) scale(1.2) rotate(15 50 50)"/>
+  <use data-name="Star" href="#sc-sym-1" transform="translate(300 380) scale(1.2) rotate(15 50 50)"/>
   <use data-name="Star" href="#sc-sym-1" transform="translate(580 160)"/>
   <use data-name="Badge" href="#sc-sym-2" transform="translate(560 360) scale(1.4)"/>
 </svg>`;
 
-// Open New Icon with a template and confirm it.
-async function newIcon(h, template) {
-  await h.menu('File', 'newIcon');
-  await h.page.waitForSelector('#sc-newicon[open]');
-  await h.page.selectOption('#sc-ni-template', template);
-  await h.page.click('[data-ni="ok"]');
-  await h.page.waitForSelector('#sc-newicon:not([open])');
+// Pick the Symbols tab, with room to show it in full (as if its splitter
+// had been dragged down).
+async function symbolsTab(h) {
+  await h.tab('symbols');
+  await h.page.evaluate(() =>
+    document
+      .querySelector('[data-tab="symbols"]')
+      .closest('.sc-pgroup')
+      .style.setProperty('--h', '330px'),
+  );
 }
 
 // Drop the symbol stars in and pick the Symbols tab.
 async function stars(h) {
   await h.open(STARS, 'stars.svg');
-  await h.tab('symbols');
+  await symbolsTab(h);
 }
 
 const panelGroup = (h, tab) => h.page.locator(`.sc-pgroup:has([data-tab="${tab}"])`);
@@ -59,7 +63,6 @@ export default [
   {
     id: 'view-icon-keylines',
     async shoot(h) {
-      await newIcon(h, 'material');
       await h.open(
         `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">${BELL}</svg>`,
         'icon-24.svg',
@@ -90,7 +93,7 @@ export default [
       await h.page.waitForSelector('#sc-iconprev:not([hidden]) .sc-ip-tile img[src]', {
         state: 'attached',
       });
-      await h.page.click('[data-ip-bg="all"]');
+      await h.page.click('[data-ip-bg="light"]');
       await h.page.click('[data-ip-mask="squircle"]');
       await h.page.waitForTimeout(300);
       await h.shot('#sc-iconprev', { pad: 0 });
@@ -121,7 +124,9 @@ export default [
       await h.page.locator('#sc-symlib > *').first().click();
       await h.page.click('[data-sym-act="place"]');
       await h.redraw();
-      await h.shot([panelGroup(h, 'symbols'), '#sc-stage'], { pad: 0 });
+      // The Symbols panel and the canvas beside it.
+      const g = await panelGroup(h, 'symbols').boundingBox();
+      await h.shot(null, { clip: { x: 520, y: g.y, width: 1280 - 520, height: g.height } });
     },
   },
   {
@@ -130,11 +135,13 @@ export default [
       await stars(h);
       await h.page.evaluate(() => {
         const s = window.svgcraft;
-        s.state.sel = [document.querySelectorAll('#sc-doc use')[1]];
+        s.state.sel = [document.querySelectorAll('#sc-doc use')[3]];
         s.syncActions();
       });
       await h.redraw();
-      await h.shot([panelGroup(h, 'symbols'), '.sc-pgroup.sc-grow'], { pad: 0 });
+      // The canvas's right half and the Layers panel.
+      const l = await h.page.locator('.sc-pgroup.sc-grow').boundingBox();
+      await h.shot(null, { clip: { x: 520, y: l.y, width: 1280 - 520, height: 330 } });
     },
   },
   {
@@ -150,7 +157,7 @@ export default [
   {
     id: 'the-symbols-library',
     async shoot(h) {
-      await h.tab('symbols');
+      await symbolsTab(h);
       await h.page.click('[data-symview="lib"]');
       await h.page.waitForSelector('#sc-libsyms > *');
       await h.page.selectOption('#sc-libsym-cat', { label: 'Weather' }).catch(() => {});

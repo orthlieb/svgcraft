@@ -4,6 +4,12 @@ import path from 'node:path';
 
 const PHONE = { viewport: { width: 390, height: 844 }, touch: true };
 const ROOT = path.resolve(import.meta.dirname, '../..');
+// The demo's backdrop is a gradient, which makes a big PNG of a whole
+// window: a flat one keeps it small.
+const flatBackdrop = (h) =>
+  h.page.evaluate(() =>
+    document.querySelector('#sc-doc [data-name="Backdrop"]').setAttribute('fill', '#123d63'),
+  );
 
 export default [
   {
@@ -31,9 +37,11 @@ export default [
     viewport: { width: 820, height: 1180 },
     touch: true,
     async shoot(h) {
+      await flatBackdrop(h);
       await h.page.click('#sc-panel-toggle');
       await h.page.waitForTimeout(400);
-      await h.shot();
+      // The lower half: the panels slid in, and the toolbar along the bottom.
+      await h.shot(null, { clip: { x: 0, y: 560, width: 820, height: 620 } });
     },
   },
   {
@@ -51,6 +59,7 @@ export default [
   {
     id: 'the-editor-window',
     async shoot(h) {
+      await flatBackdrop(h);
       await h.select('Red paint');
       await h.shot();
     },
@@ -115,6 +124,7 @@ export default [
   {
     id: 'split-view',
     async shoot(h) {
+      await flatBackdrop(h);
       await h.page.evaluate(() => {
         window.svgcraft.actions.toggleIconPreview();
         window.svgcraft.actions.toggleSource();
@@ -129,7 +139,7 @@ export default [
       const { page } = h;
       await h.open(
         '<rect data-name="Blue" x="100" y="80" width="200" height="120" fill="#2563eb"/>' +
-          '<circle data-name="Green" cx="650" cy="140" r="60" fill="#16a34a"/>' +
+          '<circle data-name="Green" cx="650" cy="450" r="50" fill="#16a34a"/>' +
           '<rect data-name="Red" x="420" y="260" width="160" height="160" fill="#dc2626"/>',
         'guides.svg',
         800,
@@ -141,8 +151,10 @@ export default [
         s.guidesOn = true;
         s.guides = [
           { axis: 'x', pos: 100 },
-          { axis: 'y', pos: 480 },
+          { axis: 'y', pos: 330 },
         ];
+        // eslint-disable-next-line no-undef -- the editor's own global
+        renderGuides();
       });
       await h.redraw();
       // Drag the red square until its top meets the blue's and its centre
@@ -160,7 +172,7 @@ export default [
       const name = 'rulers-guides-and-smart-guides';
       await page.screenshot({
         path: path.join(ROOT, `docs/help/${name}.png`),
-        clip: { x: wrap.x, y: wrap.y, width: wrap.width, height: wrap.height },
+        clip: { x: wrap.x, y: wrap.y, width: wrap.width, height: 580 },
       });
       console.log(`wrote docs/help/${name}.png`);
       await page.mouse.up();
@@ -178,7 +190,7 @@ export default [
     theme: 'light',
     async shoot(h) {
       await h.menu('View', 'themeLight', { click: false });
-      await h.shot(['.sc-menu-list:not([hidden])', '#sc-theme-btn'], { pad: 6 });
+      await h.shot(['.sc-menu-list:not([hidden])', '.sc-menu-btn:text-is("View")'], { pad: 6 });
     },
   },
 ];

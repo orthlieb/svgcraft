@@ -94,10 +94,11 @@ export default [
   },
   {
     id: 'select-layers',
+    viewport: SMALL,
     async shoot(h) {
       await foldPanels(h);
       await h.select('Red paint', 'Yellow paint', 'Green paint', 'Purple paint');
-      await h.shot(LAYERS, { pad: 0 });
+      await h.shot(['#sc-doc', LAYERS], { pad: 0 });
     },
   },
   {
@@ -262,7 +263,11 @@ export default [
       await h.page.locator('.sc-tip:not([hidden])').waitFor();
       await still(
         h,
-        ['#sc-options > :first-child', '#sc-options [data-action="combineExclude"]', '#sc-doc'],
+        [
+          '#sc-options > :first-child',
+          '#sc-options [data-action="combineExclude"]',
+          '#sc-stage-wrap',
+        ],
         {
           pad: 6,
           name: 'combine-selected-shapes',
@@ -285,14 +290,17 @@ export default [
     async shoot(h) {
       await foldPanels(h);
       await clipArt(h);
+      // Select the clipping path and nudge it 100 px left.
       await h.select('Window');
-      await h.dragDoc([400, 180], [300, 200]);
+      for (let i = 0; i < 10; i++) await h.page.keyboard.press('Shift+ArrowLeft');
+      await h.redraw();
       await h.shot(['#sc-doc', LAYERS], { pad: 0 });
     },
   },
   {
     id: 'release-a-clipping-mask',
     async shoot(h) {
+      await clipArt(h);
       await h.menu('Layer', 'clipRelease', { click: false });
       await still(
         h,
