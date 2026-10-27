@@ -340,6 +340,7 @@ function openSvg(text, name, { keepSaved = false } = {}) {
   if (name) state.fileName = name.replace(/\.svg$/i, '');
   state.sel = [];
   fit();
+  noteStep('Open');
   commit();
   if (curDoc && !keepSaved) {
     curDoc.saved = curDoc.svg;

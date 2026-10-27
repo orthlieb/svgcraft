@@ -215,7 +215,9 @@ const NO_DOC_ACTIONS = new Set([
 const actionAllowed = (name) =>
   curDoc ? !actionRules[name] || actionRules[name]() : NO_DOC_ACTIONS.has(name);
 function ifAllowed(name, run = actions[name]) {
-  if (actionAllowed(name)) run();
+  if (!actionAllowed(name)) return;
+  noteStep(stepName(name));
+  run();
 }
 function syncActions() {
   for (const b of document.querySelectorAll('button[data-action]')) {
@@ -235,6 +237,7 @@ document.addEventListener('click', (e) => {
   const a = e.target.closest?.('[data-action]');
   if (!a || a.disabled || !actionAllowed(a.dataset.action)) return;
   closeMenus();
+  noteStep(stepName(a.dataset.action));
   actions[a.dataset.action]?.();
 });
 

@@ -525,6 +525,9 @@
             <button role="menuitemcheckbox" data-action="panelAnimation" aria-checked="false">
               <i data-icon="film"></i><span>Animation</span>
             </button>
+            <button role="menuitemcheckbox" data-action="panelHistory" aria-checked="false">
+              <i data-icon="clock-rotate-left"></i><span>History</span>
+            </button>
             <hr />
             <button role="menuitemcheckbox" data-action="panelLayers" aria-checked="false">
               <i data-icon="layer-group"></i><span>Layers</span>
@@ -2234,6 +2237,21 @@
             >
               <i data-icon="film"></i><span>Animation</span>
             </button>
+            <button
+              role="tab"
+              aria-selected="false"
+              data-tab="history"
+              aria-label="History"
+              data-tip="History"
+            >
+              <i data-icon="clock-rotate-left"></i><span>History</span>
+            </button>
+          </div>
+          <div class="sc-pbody" data-pane="history" hidden>
+            <ol class="sc-history" id="sc-history" aria-label="History steps"></ol>
+            <p class="sc-hint">
+              Click a step to go back to it. A new change drops the dimmed steps.
+            </p>
           </div>
           <div class="sc-pbody" data-pane="animation" hidden>
             <div class="sc-anim-top">

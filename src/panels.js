@@ -154,6 +154,7 @@ const PANEL_TABS = {
   Paragraph: 'paragraph',
   Symbols: 'symbols',
   Animation: 'animation',
+  History: 'history',
 };
 const layersGroup = pgroups.at(-1);
 const panelsHidden = () =>

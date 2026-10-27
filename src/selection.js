@@ -391,6 +391,7 @@ function layerRow(el, depth, open) {
 // again for the others back as they were.
 let solo = null;
 function soloLayer(el) {
+  noteStep('Show Only This Layer');
   const vis = (n) => n.getAttribute('display');
   if (solo?.el === el && [...solo.was.keys()].every((n) => n.isConnected)) {
     for (const [n, d] of solo.was)
@@ -479,11 +480,13 @@ for (const [name, effect, run] of [
     state.sel = dragEls;
     dragEls = null;
     clearDropMarks();
+    noteStep(stepName(name));
     run();
   });
 }
 
 function moveLayers(els, target, zone) {
+  noteStep('Move Layer');
   els = inDocOrder(els);
   if (zone === 'into') {
     for (const el of els) reparent(el, target);
@@ -529,6 +532,7 @@ function renameLayer(el, span) {
       el.removeAttributeNS(INKSCAPE, 'label');
       if (v) el.setAttribute('data-name', v);
       else el.removeAttribute('data-name');
+      noteStep('Rename Layer');
       commit();
     } else renderLayers();
   };

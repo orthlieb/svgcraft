@@ -15,6 +15,7 @@ tools.select = {
     if (ch && cornerTarget()) {
       const el = cornerTarget();
       if (refuseLocked([el], 'edit')) return;
+      noteStep('Corner Radius');
       this.g = {
         mode: 'corner',
         k: ch.dataset.cornerH,
@@ -43,6 +44,7 @@ tools.select = {
         box,
         m0: state.sel.map(getM),
       };
+      noteStep({ rot: 'Rotate', skew: 'Skew', scale: 'Scale' }[this.g.mode]);
       // The pointer is captured by the stage: it keeps the circle arrow
       // while turning, wherever the handle goes.
       if (this.g.mode === 'rot') stage.style.cursor = cursorFor.rotate;

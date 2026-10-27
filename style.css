@@ -1460,6 +1460,35 @@ button.sc-fx-item.sel {
 .sc-layers .sc-empty:hover {
   background: none;
 }
+/* The History panel: one row per step, the current one highlighted. */
+.sc-history {
+  max-height: 260px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  list-style: none;
+}
+.sc-history button {
+  width: 100%;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 3px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+}
+.sc-history button:hover {
+  background: var(--hover);
+}
+.sc-history button.on {
+  background: var(--row-sel);
+}
+.sc-history button.after {
+  color: var(--text-dim);
+  opacity: 0.6;
+}
 .sc-layers-foot {
   display: flex;
   justify-content: flex-end;

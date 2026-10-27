@@ -39,6 +39,7 @@ stage.addEventListener('pointerdown', (e) => {
     return;
   }
   if (e.button !== 0) return;
+  noteStep(TOOL_META[state.tool]?.[1] || '');
   snapCache = null;
   snapOff = e.ctrlKey || e.metaKey;
   const gh = e.target.closest?.('[data-guide]');
@@ -287,7 +288,7 @@ window.addEventListener('keydown', (e) => {
       d: () => setSel([]),
       a: cmds.selectAll,
       ...(e.shiftKey && { i: cmds.invertSelection }),
-      g: () => (e.shiftKey ? ifAllowed('ungroup', cmds.ungroup) : cmds.group()),
+      g: () => (e.shiftKey ? ifAllowed('ungroup', cmds.ungroup) : ifAllowed('group', cmds.group)),
       r: () => toggleView('rulers'),
     };
     // By key position, so Shift and keyboard layouts don't change them.
@@ -315,6 +316,7 @@ window.addEventListener('keydown', (e) => {
   if (arrows[k]) {
     e.preventDefault();
     const s = e.shiftKey ? 10 : 1;
+    noteStep('Nudge');
     nudge(arrows[k][0] * s, arrows[k][1] * s);
   } else if (k === 'delete' || k === 'backspace') {
     e.preventDefault();
@@ -379,6 +381,7 @@ document.addEventListener('cut', (e) => {
 });
 // Place a pasted image or SVG markup; false when it's neither.
 function pasteData(file, text) {
+  noteStep('Paste');
   if (file) {
     importFile(file, 'place');
     return true;

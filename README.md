@@ -214,6 +214,11 @@ stroke="currentColor"` (common in icon sets) is pushed down so it
   every visible layer that wasn't selected. If the selection includes a
   shape inside a group, Inverse works with individual shapes. Otherwise it
   works with top-level layers.
+- **History panel** (Window → History), as in Photoshop: every step since
+  the drawing was opened, named by what made it (the menu command or
+  shortcut, the tool you dragged with, the panel control you changed).
+  Click a step to go back to it; the steps after it dim, and come back with
+  redo until a new change replaces them.
 - **Documents**: every open drawing gets a tab, as in Photoshop.
   - **File → New…** (or + in the tab bar) opens Photoshop's New Document
     dialog. Pick a preset from **Recent** (the last five sizes you made),
@@ -1182,7 +1187,8 @@ and shortcut table in step with this README.
   so any imported element can be transformed without understanding its
   geometry.
 - History is a stack of `innerHTML` snapshots (150 deep), which keeps undo
-  simple and exact.
+  simple and exact. Each snapshot carries the name the History panel shows,
+  set by whatever started the step (`noteStep`) and used up by `commit()`.
 - Dialogs (New Guide, New Icon, File Info, Layer Style, the export
   dialogs and the name / confirm prompt) are native `<dialog>` elements
   shown modally, so the browser keeps focus inside them, makes the page
