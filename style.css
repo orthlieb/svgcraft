@@ -298,6 +298,9 @@ kbd {
 .sc-menu-list button[hidden] {
   display: none;
 }
+.sc-ctx:focus {
+  outline: none;
+}
 .sc-menu-list button:hover,
 .sc-menu-list button:focus-visible {
   background: var(--accent);
@@ -2144,8 +2147,9 @@ select[data-stroke-dash],
 .sc-prop-rows select {
   justify-self: start;
 }
-.sc-stroke-opts .sc-prop-rows {
-  margin-top: 6px;
+/* Clear of the Type buttons above (and of :first-of-type's 0 below). */
+.sc-stroke-opts > .sc-prop-rows:first-of-type {
+  margin-top: 8px;
 }
 .sc-corners {
   margin-top: 12px;

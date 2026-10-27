@@ -266,6 +266,7 @@
               <li><a href="#offline-and-as-an-app">Offline and as an app</a></li>
               <li><a href="#the-editor-window">The editor window</a></li>
               <li><a href="#the-menu-bar">The menu bar</a></li>
+              <li><a href="#right-click-menus">Right-click menus</a></li>
               <li><a href="#the-options-bar">The options bar</a></li>
               <li><a href="#the-toolbar">The toolbar</a></li>
               <li><a href="#docked-panels">Docked panels</a></li>
@@ -345,6 +346,7 @@
               <li><a href="#group-and-ungroup">Group and ungroup</a></li>
               <li><a href="#reorder-copy-and-delete">Reorder, copy and delete</a></li>
               <li><a href="#show-hide-and-lock">Show, hide and lock</a></li>
+              <li><a href="#right-click-a-layer">Right-click a layer</a></li>
               <li><a href="#rename-a-layer">Rename a layer</a></li>
               <li><a href="#blend-mode-and-opacity">Blend mode and opacity</a></li>
               <li><a href="#merge-layers">Merge layers</a></li>
@@ -701,6 +703,60 @@
                 <strong>Object</strong> holds symbols and what works on shapes: Path, Combine Shapes
                 and Flip.
               </li>
+            </ul>
+          </article>
+          <article id="right-click-menus" data-find>
+            <h3>Right-click menus</h3>
+            <figure>
+              <img
+                src="docs/help/right-click-menus.png"
+                alt="The canvas's right-click menu on the palette, with Layers Here listing the red paint, the board and the backdrop under the pointer"
+                width="533"
+                height="654"
+                loading="lazy"
+              />
+            </figure>
+            <p>Reach what the selection can do without going to the menu bar, as in Photoshop.</p>
+            <ul>
+              <li>
+                <strong>Right-click a layer</strong> on the canvas: it's selected (unless it's
+                already in the selection) and the menu lists what the selection can do: Cut, Copy,
+                Duplicate, Free Transform, Transform, Arrange, Align, Group, Clipping Mask, Combine
+                Shapes, symbols, Layer Style and Lock, then Deselect, Select Inverse and Crop to
+                Selection.
+              </li>
+              <li>
+                <strong>Layers Here</strong> (at the top, when more than one layer is under the
+                pointer) lists them, top first, so you can pick one that's covered by others. The
+                ticked one is selected.
+              </li>
+              <li>
+                <strong>Right-click empty canvas</strong> with nothing selected: Paste, Select All,
+                Crop to Drawing and the zoom commands.
+              </li>
+              <li>
+                <strong>During Free Transform</strong>: Scale, Rotate, Skew, the turns and flips,
+                and Commit or Cancel Transform.
+              </li>
+              <li>
+                <strong>While editing text</strong>: the browser's own menu, for cutting, copying
+                and pasting the text.
+              </li>
+              <li>
+                <strong>In the Layers panel</strong>: see
+                <a href="#right-click-a-layer">Right-click a layer</a>.
+              </li>
+            </ul>
+            <h4>Good to know</h4>
+            <ul>
+              <li>
+                The menu only lists what can run now: Ungroup appears for a group, Create Outlines
+                for text, Image Trace for an image, Distribute for three layers or more.
+              </li>
+              <li>
+                Each item is the menu bar's own, with its shortcut, so the menu teaches the keys.
+              </li>
+              <li>Arrow keys move through it, → opens a submenu, Enter runs, Esc closes.</li>
             </ul>
           </article>
           <article id="the-options-bar" data-find>
@@ -2405,7 +2461,7 @@
                 src="docs/help/gradients.png"
                 alt="The Color panel's gradient editor with a four-stop gradient"
                 width="271"
-                height="605"
+                height="613"
                 loading="lazy"
               />
             </figure>
@@ -2472,7 +2528,7 @@
                 src="docs/help/stroke-options.png"
                 alt="The stroke settings in the Color panel, with Custom dashes"
                 width="271"
-                height="447"
+                height="455"
                 loading="lazy"
               />
             </figure>
@@ -2721,7 +2777,7 @@
                 src="docs/help/colours.png"
                 alt="The Color panel: fill and stroke, each with its switch, colour, hex, alpha and type"
                 width="271"
-                height="368"
+                height="376"
                 loading="lazy"
               />
             </figure>
@@ -3414,7 +3470,8 @@
               <li>
                 <strong>Show just one layer:</strong> Alt-click its eye, as in Photoshop. Every
                 other layer hides (the groups it's in stay shown). Alt-click it again and the others
-                come back as they were.
+                come back as they were. Right-clicking the eye offers Hide All Other Layers and Show
+                All Other Layers too.
               </li>
               <li>
                 <strong>Lock:</strong> select layers and click a <strong>Lock</strong> button at the
@@ -3440,6 +3497,36 @@
             <ul>
               <li>Locked layers can still be selected.</li>
               <li>A lock on a group covers everything in it.</li>
+            </ul>
+          </article>
+          <article id="right-click-a-layer" data-find>
+            <h3>Right-click a layer</h3>
+            <figure>
+              <img
+                src="docs/help/right-click-a-layer.png"
+                alt="The Layers panel's right-click menu on the Title layer"
+                width="374"
+                height="647"
+                loading="lazy"
+              />
+            </figure>
+            <p>Right-click a row in the Layers panel for what you can do with the layer.</p>
+            <ul>
+              <li>
+                <strong>The row</strong>: it's selected (unless it's already in the selection), and
+                the menu offers Rename Layer…, Duplicate, Delete, Arrange, Group, Clipping Mask,
+                Combine Shapes, symbols, Layer Style, Copy / Paste / Clear Layer Style, Lock, Merge
+                Down, Merge Visible and Copy as SVG.
+              </li>
+              <li>
+                <strong>The eye</strong>: Hide (or Show) This Layer, and Hide All Other Layers,
+                which leaves only this one showing (the groups it's in stay shown). Once the others
+                are hidden, the same item reads Show All Other Layers.
+              </li>
+            </ul>
+            <h4>Good to know</h4>
+            <ul>
+              <li>As on the canvas, the menu lists only what can run now.</li>
             </ul>
           </article>
           <article id="rename-a-layer" data-find>
@@ -3678,6 +3765,12 @@
               </li>
             </ol>
             <p>To remove all the effects, choose <strong>Layer → Clear Layer Style</strong>.</p>
+            <p>
+              To give other layers the same look, select the styled layer and choose
+              <strong>Layer → Copy Layer Style</strong>, then select the others and choose
+              <strong>Layer → Paste Layer Style</strong>. It copies the effects, the blend mode and
+              the opacity. Both are in the layer's right-click menu too.
+            </p>
             <h4>Effects</h4>
             <ul>
               <li>

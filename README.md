@@ -177,6 +177,38 @@ Find every command, in Photoshop's order.
 - **Object** holds symbols and what works on shapes: Path, Combine Shapes
   and Flip.
 
+### Right-click menus
+
+![The canvas's right-click menu on the palette, with Layers Here listing the red paint, the board and the backdrop under the pointer](docs/help/right-click-menus.png)
+
+Reach what the selection can do without going to the menu bar, as in
+Photoshop.
+
+- **Right-click a layer** on the canvas: it's selected (unless it's
+  already in the selection) and the menu lists what the selection can do:
+  Cut, Copy, Duplicate, Free Transform, Transform, Arrange, Align, Group,
+  Clipping Mask, Combine Shapes, symbols, Layer Style and Lock, then
+  Deselect, Select Inverse and Crop to Selection.
+- **Layers Here** (at the top, when more than one layer is under the
+  pointer) lists them, top first, so you can pick one that's covered by
+  others. The ticked one is selected.
+- **Right-click empty canvas** with nothing selected: Paste, Select All,
+  Crop to Drawing and the zoom commands.
+- **During Free Transform**: Scale, Rotate, Skew, the turns and flips, and
+  Commit or Cancel Transform.
+- **While editing text**: the browser's own menu, for cutting, copying and
+  pasting the text.
+- **In the Layers panel**: see [Right-click a layer](#right-click-a-layer).
+
+#### Good to know
+
+- The menu only lists what can run now: Ungroup appears for a group,
+  Create Outlines for text, Image Trace for an image, Distribute for three
+  layers or more.
+- Each item is the menu bar's own, with its shortcut, so the menu teaches
+  the keys.
+- Arrow keys move through it, → opens a submenu, Enter runs, Esc closes.
+
 ### The options bar
 
 ![The Move tool's options bar, with Auto-Select set to Group](docs/help/the-options-bar.png)
@@ -1783,7 +1815,8 @@ change by accident.
 - **Hide or show:** click a row's eye.
 - **Show just one layer:** Alt-click its eye, as in Photoshop. Every other
   layer hides (the groups it's in stay shown). Alt-click it again and the
-  others come back as they were.
+  others come back as they were. Right-clicking the eye offers Hide All
+  Other Layers and Show All Other Layers too.
 - **Lock:** select layers and click a **Lock** button at the top of the
   panel, or use **Layer → Lock Position / Lock All**.
 - **Unlock:** click the padlock on the row, or choose **Layer → Unlock**.
@@ -1799,6 +1832,24 @@ change by accident.
 
 - Locked layers can still be selected.
 - A lock on a group covers everything in it.
+
+### Right-click a layer
+
+![The Layers panel's right-click menu on the Title layer](docs/help/right-click-a-layer.png)
+
+Right-click a row in the Layers panel for what you can do with the layer.
+
+- **The row**: it's selected (unless it's already in the selection), and
+  the menu offers Rename Layer…, Duplicate, Delete, Arrange, Group,
+  Clipping Mask, Combine Shapes, symbols, Layer Style, Copy / Paste /
+  Clear Layer Style, Lock, Merge Down, Merge Visible and Copy as SVG.
+- **The eye**: Hide (or Show) This Layer, and Hide All Other Layers, which
+  leaves only this one showing (the groups it's in stay shown). Once the
+  others are hidden, the same item reads Show All Other Layers.
+
+#### Good to know
+
+- As on the canvas, the menu lists only what can run now.
 
 ### Rename a layer
 
@@ -1942,6 +1993,11 @@ Layer Style dialog.
 5. Click **OK** to keep them. **Cancel** or Esc puts everything back.
 
 To remove all the effects, choose **Layer → Clear Layer Style**.
+
+To give other layers the same look, select the styled layer and choose
+**Layer → Copy Layer Style**, then select the others and choose **Layer →
+Paste Layer Style**. It copies the effects, the blend mode and the opacity.
+Both are in the layer's right-click menu too.
 
 #### Effects
 

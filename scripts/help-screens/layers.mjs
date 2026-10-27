@@ -151,6 +151,15 @@ export default [
     },
   },
   {
+    id: 'right-click-a-layer',
+    async shoot(h) {
+      await foldPanels(h);
+      await row(h, 'Title').click({ button: 'right' });
+      await h.page.locator('#sc-ctx').waitFor();
+      await still(h, [LAYERS, '#sc-ctx'], { pad: 4, name: 'right-click-a-layer' });
+    },
+  },
+  {
     id: 'rename-a-layer',
     async shoot(h) {
       await foldPanels(h);
