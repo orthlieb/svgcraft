@@ -285,6 +285,7 @@ function layerRow(el, depth, open) {
   eye.setAttribute('aria-label', hidden ? 'Show layer' : 'Hide layer');
   eye.addEventListener('click', (e) => {
     e.stopPropagation();
+    if (e.altKey) return soloLayer(el);
     if (hidden) el.removeAttribute('display');
     else el.setAttribute('display', 'none');
     commit();
@@ -297,6 +298,10 @@ function layerRow(el, depth, open) {
   name.className = 'sc-layer-name';
   name.textContent = layerName(el);
   name.addEventListener('dblclick', (e) => {
+    // The name's text renames; the empty row after it is the row's.
+    const r = document.createRange();
+    r.selectNodeContents(name);
+    if (e.clientX > r.getBoundingClientRect().right + 4) return;
     e.stopPropagation();
     renameLayer(el, name);
   });
@@ -372,8 +377,41 @@ function layerRow(el, depth, open) {
       setSel([el]);
     }
   });
+  // Double-click a row (not its name): Layer Style, as in Photoshop.
+  li.addEventListener('dblclick', (e) => {
+    if (e.target.closest('.sc-eye, .sc-twisty, input')) return;
+    setSel([el]);
+    ifAllowed('layerStyle');
+  });
   wireLayerDrag(li, el);
   return li;
+}
+
+// Alt-click an eye: show only that layer, as in Photoshop; Alt-click it
+// again for the others back as they were.
+let solo = null;
+function soloLayer(el) {
+  const vis = (n) => n.getAttribute('display');
+  if (solo?.el === el && [...solo.was.keys()].every((n) => n.isConnected)) {
+    for (const [n, d] of solo.was)
+      if (d == null) n.removeAttribute('display');
+      else n.setAttribute('display', d);
+    solo = null;
+  } else {
+    const was = new Map();
+    const set = (n, d) => {
+      was.set(n, vis(n));
+      if (d == null) n.removeAttribute('display');
+      else n.setAttribute('display', d);
+    };
+    // It and the groups it's in show; everything beside them hides.
+    for (let n = el; n && n !== doc; n = n.parentNode) {
+      set(n, null);
+      for (const s of n.parentNode.children) if (s !== n && selectable(s)) set(s, 'none');
+    }
+    solo = { el, was };
+  }
+  commit();
 }
 
 // Drag rows to restack them: the top or bottom half of a row drops in

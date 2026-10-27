@@ -121,7 +121,9 @@ The layout follows Photoshop:
 
 - **Import**: Open… replaces the drawing. Import… places an SVG (as a
   group, scaled to fit) or a PNG / JPEG / WebP / GIF into the drawing. You
-  can also drag and drop files, or paste SVG markup or images.
+  can also drag and drop files, or paste SVG markup or images (Ctrl+V or
+  Edit → Paste; Edit → Cut and Copy put the selection on the clipboard as
+  SVG).
   Imported SVG (opened, imported, pasted, restored from this browser, or
   in a library file) is sanitised with an allowlist, because it goes into
   the editor's own page. Only SVG drawing elements are kept: no script,
@@ -653,6 +655,11 @@ The Layers panel works like Photoshop's:
   New button (the plus square) at the bottom of the panel to copy them in
   place, just above themselves, or on the bin to delete them. Clicking
   New duplicates the selection, a little offset.
+- **Showing just one layer**: Alt-click its eye, as in Photoshop: every
+  other layer hides (the groups it's in stay shown). Alt-click it again and
+  the others come back as they were.
+- **Layer Style by double-click**: double-click a row anywhere but its
+  name (the thumbnail, or the space after the name).
 - **Renaming**: double-click a name and type. Enter saves, Esc cancels, and
   an empty name goes back to the automatic one. Names are saved as
   `data-name`, which Illustrator uses too, and Inkscape layer labels are

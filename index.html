@@ -92,6 +92,15 @@
               <i data-icon="rotate-right"></i><span>Redo</span><kbd>Ctrl+Shift+Z</kbd>
             </button>
             <hr />
+            <button role="menuitem" data-action="cut">
+              <i data-icon="scissors"></i><span>Cut</span><kbd>Ctrl+X</kbd>
+            </button>
+            <button role="menuitem" data-action="copy">
+              <i data-icon="copy"></i><span>Copy</span><kbd>Ctrl+C</kbd>
+            </button>
+            <button role="menuitem" data-action="paste">
+              <i data-icon="paste"></i><span>Paste</span><kbd>Ctrl+V</kbd>
+            </button>
             <button role="menuitem" data-action="delete">
               <i data-icon="trash-can"></i><span>Delete</span><kbd>Del</kbd>
             </button>
@@ -1244,15 +1253,12 @@
           <i data-icon="sc-move"></i>
         </button>
         <button
-          class="sc-tool-group"
-          id="sc-node-btn"
-          data-tool="node"
-          aria-label="Edit points"
-          aria-haspopup="menu"
-          data-tip="Edit points"
-          data-tip-desc="Move, add and delete the points and curve handles of a path. Drag round points to pick them: hold, right-click or Alt-click to pick with a rectangle, an ellipse or a lasso."
+          data-tool="eyedropper"
+          aria-label="Eyedropper"
+          data-tip="Eyedropper"
+          data-tip-desc="Click a shape to copy its style or one of its colours."
         >
-          <i data-icon="sc-direct"></i><span class="sc-tool-more" aria-hidden="true"></span>
+          <i data-icon="eye-dropper"></i>
         </button>
         <span class="sc-sep"></span>
         <button
@@ -1262,14 +1268,6 @@
           data-tip-desc="Draw freehand lines, smoothed as you go."
         >
           <i data-icon="pencil"></i>
-        </button>
-        <button
-          data-tool="pen"
-          aria-label="Pen"
-          data-tip="Pen"
-          data-tip-desc="Click for corners, drag for curves. Click the first point to close."
-        >
-          <i data-icon="pen-nib"></i>
         </button>
         <button
           data-tool="eraser"
@@ -1287,15 +1285,34 @@
         >
           <i data-icon="sc-gradient"></i>
         </button>
-        <button
-          data-tool="eyedropper"
-          aria-label="Eyedropper"
-          data-tip="Eyedropper"
-          data-tip-desc="Click a shape to copy its style or one of its colours."
-        >
-          <i data-icon="eye-dropper"></i>
-        </button>
         <span class="sc-sep"></span>
+        <button
+          data-tool="pen"
+          aria-label="Pen"
+          data-tip="Pen"
+          data-tip-desc="Click for corners, drag for curves. Click the first point to close."
+        >
+          <i data-icon="pen-nib"></i>
+        </button>
+        <button
+          data-tool="text"
+          aria-label="Text"
+          data-tip="Type"
+          data-tip-desc="Click to type a line, or drag to make a text box."
+        >
+          <i data-icon="sc-type"></i>
+        </button>
+        <button
+          class="sc-tool-group"
+          id="sc-node-btn"
+          data-tool="node"
+          aria-label="Edit points"
+          aria-haspopup="menu"
+          data-tip="Edit points"
+          data-tip-desc="Move, add and delete the points and curve handles of a path. Drag round points to pick them: hold, right-click or Alt-click to pick with a rectangle, an ellipse or a lasso."
+        >
+          <i data-icon="sc-direct"></i><span class="sc-tool-more" aria-hidden="true"></span>
+        </button>
         <button
           class="sc-tool-group"
           id="sc-shape-btn"
@@ -1307,14 +1324,6 @@
           data-tip-desc="Drag to draw a shape; click for an exact size. Hold, right-click or Alt-click for the others: ellipse, triangle, polygon or star, line, custom shape."
         >
           <i data-shape-icon></i><span class="sc-tool-more" aria-hidden="true"></span>
-        </button>
-        <button
-          data-tool="text"
-          aria-label="Text"
-          data-tip="Type"
-          data-tip-desc="Click to type a line, or drag to make a text box."
-        >
-          <i data-icon="sc-type"></i>
         </button>
         <span class="sc-sep"></span>
         <button
@@ -2919,9 +2928,6 @@
             >
               <i data-icon="sc-fx"></i>
             </button>
-            <button class="sc-ibtn" data-action="group" aria-label="Group" data-tip="Group">
-              <i data-icon="folder"></i>
-            </button>
             <button
               class="sc-ibtn"
               data-action="clipMake"
@@ -2930,6 +2936,9 @@
             >
               <i data-icon="scissors"></i>
             </button>
+            <button class="sc-ibtn" data-action="group" aria-label="Group" data-tip="Group">
+              <i data-icon="folder"></i>
+            </button>
             <button
               class="sc-ibtn"
               data-action="duplicate"
@@ -2937,22 +2946,6 @@
               data-tip="Duplicate — or drag layers here to copy them in place"
             >
               <i data-icon="square-plus"></i>
-            </button>
-            <button
-              class="sc-ibtn"
-              data-action="forward"
-              aria-label="Bring forward"
-              data-tip="Bring forward"
-            >
-              <i data-icon="arrow-up"></i>
-            </button>
-            <button
-              class="sc-ibtn"
-              data-action="backward"
-              aria-label="Send backward"
-              data-tip="Send backward"
-            >
-              <i data-icon="arrow-down"></i>
             </button>
             <button
               class="sc-ibtn"

@@ -377,27 +377,54 @@ document.addEventListener('cut', (e) => {
   e.preventDefault();
   cmds.delete();
 });
+// Place a pasted image or SVG markup; false when it's neither.
+function pasteData(file, text) {
+  if (file) {
+    importFile(file, 'place');
+    return true;
+  }
+  if (!/<svg[\s>]/i.test(text || '')) return false;
+  try {
+    const svg = text.slice(text.search(/<svg[\s>]/i));
+    if (!curDoc) openDoc(svg, `${nextUntitled()}.svg`);
+    else placeSvg(svg);
+  } catch (err) {
+    say(err.message);
+  }
+  return true;
+}
 document.addEventListener('paste', (e) => {
   if (previewMode) return;
   if (e.target.matches?.('input, textarea') || e.target.isContentEditable) return;
   const file = [...(e.clipboardData?.files || [])][0];
-  if (file) {
-    e.preventDefault();
-    importFile(file, 'place');
-    return;
-  }
-  const text = e.clipboardData?.getData('text/plain') || '';
-  if (/<svg[\s>]/i.test(text)) {
-    e.preventDefault();
-    try {
-      const svg = text.slice(text.search(/<svg[\s>]/i));
-      if (!curDoc) openDoc(svg, `${nextUntitled()}.svg`);
-      else placeSvg(svg);
-    } catch (err) {
-      say(err.message);
-    }
-  }
+  if (pasteData(file, e.clipboardData?.getData('text/plain'))) e.preventDefault();
 });
+// Edit → Cut / Copy / Paste: the same, through the async Clipboard API (the
+// browser may ask first).
+function copySelection(cut) {
+  const svg = serialize({ selection: true });
+  navigator.clipboard.writeText(svg).then(
+    () => cut && cmds.delete(),
+    () => say(`Couldn’t reach the clipboard: press Ctrl+${cut ? 'X' : 'C'} instead.`),
+  );
+}
+async function pasteClipboard() {
+  try {
+    for (const item of await navigator.clipboard.read()) {
+      const img = item.types.find((t) => t.startsWith('image/') && t !== 'image/svg+xml');
+      if (img) {
+        const blob = await item.getType(img);
+        const file = new File([blob], `pasted.${img.split('/')[1]}`, { type: img });
+        if (pasteData(file)) return;
+      }
+      for (const t of ['image/svg+xml', 'text/plain'])
+        if (item.types.includes(t) && pasteData(null, await (await item.getType(t)).text())) return;
+    }
+    say('Nothing to paste: copy some SVG or an image first.');
+  } catch {
+    say('Couldn’t read the clipboard: press Ctrl+V instead.');
+  }
+}
 
 // Drag & drop ---------------------------------------------------------
 const drop = $('#sc-drop');
