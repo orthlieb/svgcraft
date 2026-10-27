@@ -423,9 +423,13 @@ Every SVG that comes in (opened, imported, pasted, restored from this
 browser, or in a library file) is sanitised with an allowlist, because it
 goes into the editor's own page:
 
-- Only SVG drawing elements are kept: no script, `foreignObject`,
-  animation, or elements from other namespaces (such as HTML `<base>`,
-  `<form>` or `<meta>`).
+- Only SVG drawing elements are kept: no script, `foreignObject`, or
+  elements from other namespaces (such as HTML `<base>`, `<form>` or
+  `<meta>`).
+- The file's own animation elements never enter the page either. Those
+  that do what an animation preset does become that preset (see
+  [Animate](#animate)); the others are left out, and a message says how
+  many.
 - Event handlers (`on*`) are removed.
 - Links may only point inside the file, except image `data:` URLs and
   `http(s)` / `mailto` on `<a>`. They're checked as the browser reads them,
@@ -1143,6 +1147,25 @@ in the saved SVG.
 - Export Clean SVG keeps the animation and rounds its coordinates like the
   rest. PNG, app icon and favicon exports use the still drawing.
 - Reopening a saved file rebuilds the animations from their settings.
+
+#### Animations from other files
+
+When you open, import or paste an SVG with its own SMIL animations, each
+one that does what a preset does becomes that preset on its layer, ready to
+edit and play:
+
+- A rotation about the layer's centre becomes **Spin**; opacity from 0 to 1
+  or back becomes **Fade in** or **Fade out**; a fill going to another
+  colour becomes **Colour cycle**; and so on for every preset, with its
+  length, delay, repeats, direction and ease.
+- A file saved by Export Clean SVG (which drops SVGCraft's settings) comes
+  back with the animations it had.
+- What no preset does is left out, and a message says how many: a rotation
+  about another point, a motion path (`<animateMotion>`), an animation that
+  starts on a click or another animation's end, one inside a symbol, and
+  CSS `@keyframes`.
+- An animation that replaces a layer's own transform (SMIL's default) is
+  only kept when the layer has none, since a preset adds to it.
 
 ### Zoom and pan
 
