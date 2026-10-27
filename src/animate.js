@@ -898,7 +898,7 @@ function wrapParts(el, a, preview, start) {
         ]),
       );
       const use = genEl('use');
-      const mask = genEl('mask', { id: genId(), style: 'mask-type:alpha' }, [use]);
+      const mask = genEl('mask', { id: genId(), 'mask-type': 'alpha' }, [use]);
       // The layer's box, in the space it sits in.
       const b = el.getBBox();
       const own = getM(el);
