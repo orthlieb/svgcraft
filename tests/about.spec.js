@@ -30,15 +30,15 @@ test('the Help menu opens the About page, its features and shortcuts', async ({ 
 test.describe('phone preview', () => {
   test.use({ viewport: { width: 390, height: 800 }, hasTouch: true, isMobile: true });
 
-  test('has an About button and still fits', async ({ page }) => {
-    const about = page.locator('.sc-menubar-end [data-action="about"]');
-    await expect(about).toBeVisible();
+  test('reaches About through Info, and still fits', async ({ page }) => {
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
       390,
     );
     await stubOpen(page);
-    await about.click();
+    await page.click('.sc-menubar-end [data-action="phoneInfo"]');
+    await page.click('#sc-pinfo-about');
     expect(await opened(page)).toEqual([['about.html', 'svgcraft-about']]);
+    await expect(page.locator('#sc-pinfo')).toBeHidden();
   });
 });
 
