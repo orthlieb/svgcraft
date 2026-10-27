@@ -296,6 +296,16 @@ function parseSvg(text, { dedupe = true } = {}) {
   const root = xml.documentElement;
   if (xml.querySelector('parsererror') || root.localName !== 'svg')
     throw new Error('Not a valid SVG file');
+  // What Save generated around the layers (SMIL on a group's layers or a
+  // text's letters, the letters' own <tspan>s), rebuilt from the settings.
+  for (const n of [...root.querySelectorAll('[data-sc-gen]')]) {
+    if (!n.isConnected) continue;
+    if (n.localName === 'tspan') {
+      const p = n.parentNode;
+      n.replaceWith(...n.childNodes);
+      p.normalize();
+    } else n.remove();
+  }
   sanitize(root, { smil: true });
   // Paths that Save hid because layers move along them: shown again.
   for (const el of root.querySelectorAll('[data-sc-route]')) {

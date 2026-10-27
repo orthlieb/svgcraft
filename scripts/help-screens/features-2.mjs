@@ -206,6 +206,33 @@ export default [
     },
   },
   {
+    id: 'stagger',
+    async shoot(h) {
+      // The five paints in a group of their own.
+      await h.page.evaluate(() => {
+        /* eslint-disable no-undef -- the editor's own globals */
+        const first = doc.querySelector('[data-name="Red paint"]');
+        const g = mk('g', { 'data-name': 'Paints' });
+        first.before(g);
+        g.append(...doc.querySelectorAll('[data-name$=" paint"]'));
+        afterChange();
+        /* eslint-enable no-undef */
+      });
+      await h.select('Paints');
+      await h.tab('animation');
+      await tall(h, PROPS_GROUP);
+      await h.page.selectOption('#sc-anim-add', 'popIn');
+      const st = h.page.locator('#sc-anim-opts [data-anim-opt="stagger"]');
+      await st.fill('0.15');
+      await st.dispatchEvent('change');
+      await h.page.evaluate(() => document.activeElement.blur());
+      await h.shot(
+        null,
+        await around(h, { doc: [[40, 40, 520, 420]], els: [PROPS_GROUP], pad: 6 }),
+      );
+    },
+  },
+  {
     id: 'move-along-path',
     async shoot(h) {
       // A curve for the brush to fly along, above it.

@@ -161,6 +161,10 @@ const PRESETS = {
   drawOff: {},
   dashMarch: {},
   colourCycle: { to: '#16a34a' },
+  swing: { angle: 20, pivot: 'bottom' },
+  heartbeat: { scale: 125 },
+  jello: { angle: 10 },
+  flip: { axis: 'horizontal' },
 };
 const BASE =
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">' +

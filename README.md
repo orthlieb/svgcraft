@@ -1110,10 +1110,15 @@ in the saved SVG.
 
 - **Entrances**: Fade in, Slide in, Pop in, Zoom in.
 - **Exits**: Fade out, Slide out, Zoom out.
-- **Loops**: Spin, Pulse, Bounce, Shake, Float, Blink.
+- **Loops**: Spin, Pulse, Bounce, Shake, Float, Blink, Swing (back and
+  forth about a point, like a hanging sign), Heartbeat (a double pulse),
+  Jello (a wobble that settles) and Flip (turned over like a card, and
+  back).
 - **Motion**: Move along path (see [Move along path](#move-along-path)).
 - **Line effects**: Draw on, Draw off, Dash march.
 - **Colour cycle**.
+- **Text**: Typewriter: the letters appear one by one over the length.
+  Run backwards, they go one by one.
 
 #### Settings
 
@@ -1126,7 +1131,10 @@ in the saved SVG.
 - **Run**: **Normal**, **Reverse** or **Back and forth**.
 - **Ease**: Linear, Ease, Ease in, Ease out or Ease in-out.
 - Each preset's own options, such as the slide side and distance, turns,
-  how far to grow, or the colour to cycle to.
+  how far to grow, the colour to cycle to, the angle and point a Swing
+  turns about, or which way a Flip turns.
+- **Stagger** (a group, or a text layer's letters): see
+  [Stagger](#stagger).
 
 #### Several on one layer
 
@@ -1169,6 +1177,30 @@ edit and play:
   `@keyframes`.
 - An animation that replaces a layer's own transform (SMIL's default) is
   only kept when the layer has none, since a preset adds to it.
+
+### Stagger
+
+![Three paint layers in a group popping in one after another, with Stagger set in the Animation tab](docs/help/stagger.png)
+
+Run one animation on a group's layers, or a text's letters, one after
+another: paints popping in in turn, letters fading in.
+
+1. Select the group (or the text layer) and open the **Animation** tab.
+2. Add an animation, as for one layer.
+3. Set **Stagger** to the time between one starting and the next.
+
+#### Good to know
+
+- The group's layers go from the bottom of the Layers panel to the top,
+  each after the stagger, with the animation's own delay before the first.
+- Each layer runs it about its own centre, as if you'd added it to each.
+- Letters work with **Fade in**, **Fade out**, **Blink** and **Colour
+  cycle**. Spaces are skipped. For letters appearing at a steady pace, use
+  the **Typewriter** preset instead.
+- A Stagger of 0 runs it on the group (or text) as a whole.
+- In the file, each layer (or letter) gets its own SMIL. Saved by
+  SVGCraft, it reopens as the one animation on the group; Export Clean SVG
+  reopens as an animation on each layer.
 
 ### Move along path
 
