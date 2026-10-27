@@ -124,6 +124,8 @@ const selN = () => normalizeSel(state.sel).length;
 const anySel = () => state.sel.length > 0;
 const someSel = (test) => () => normalizeSel(state.sel).some(test);
 const actionRules = {
+  // Play needs something animated (and Stop stays on while it plays).
+  toggleAnimations: () => animPlay.playing || !!doc.querySelector('[data-sc-anim]'),
   undo: () => !$('#sc-undo').disabled,
   redo: () => !$('#sc-redo').disabled,
   deselect: anySel,

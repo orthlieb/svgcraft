@@ -23,7 +23,8 @@ slide in from the right (the sliders button).
 
 The phone toolbar also has:
 
-- ▶ **Play** the drawing's animations (■ or a tap on it stops them).
+- ▶ **Play** the drawing's animations (■ or a tap on it stops them;
+  greyed out when nothing is animated).
 - **Layers**: the layer list, each with a preview (always on the
   checkerboard, as in the Layers panel) and an eye, to show and hide layers
   while you look. Only the preview changes: nothing is saved, and switching

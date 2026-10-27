@@ -137,8 +137,16 @@ test('a group animates as one; reopening regenerates from the layer data', async
 
 test('▶ Play previews in the editor; editing, Esc or a click stops it', async ({ page }) => {
   await pick(page, 'r');
-  await add(page, 'spin');
   const play = page.locator('[data-pane="animation"] [data-action="toggleAnimations"]');
+  // Nothing animated yet: Play is greyed out, the menu item too.
+  await expect(play).toBeDisabled();
+  await page.click('.sc-menu-btn:text-is("View")');
+  await expect(
+    page.locator('.sc-menu-list:not([hidden]) [data-action="toggleAnimations"]'),
+  ).toBeDisabled();
+  await page.keyboard.press('Escape');
+  await add(page, 'spin');
+  await expect(play).toBeEnabled();
   await play.click();
   await expect(play).toHaveText('■ Stop');
   await expect(page.locator('#sc-doc [data-sc-preview]')).toHaveCount(1);

@@ -97,12 +97,16 @@ test.describe('phone, portrait', () => {
   });
 
   test('▶ plays the animations and ■ stops them', async ({ page }) => {
+    // Nothing animated: nothing to play.
+    await load(page, '<rect id="r" width="50" height="50"/>', 300, 200);
+    await expect(bar(page, 'toggleAnimations')).toBeDisabled();
     await load(
       page,
       '<rect id="r" width="50" height="50" data-sc-anim=\'[{"p":"spin","dur":1,"rep":0}]\'/>',
       300,
       200,
     );
+    await expect(bar(page, 'toggleAnimations')).toBeEnabled();
     await bar(page, 'toggleAnimations').click();
     await expect(page.locator('#sc-doc animateTransform')).toHaveCount(1);
     await expect(bar(page, 'toggleAnimations')).toHaveAttribute('aria-label', 'Stop');
