@@ -84,16 +84,13 @@ export default [
       await h.page.click('#sc-shape-btn', { button: 'right' });
       await h.page.waitForSelector('#sc-shape-menu:not([hidden])');
       await h.shot(['#sc-shape-menu', '#sc-shape-btn'], { pad: 12 });
-    },
-  },
-  {
-    id: 'shape-tools-create',
-    async shoot(h) {
+      // A click without a drag: the Create box.
+      await h.page.keyboard.press('Escape');
       await h.page.evaluate(() => window.svgcraft.setTool('polygon'));
       await h.clickDoc(400, 280, null);
       await h.page.waitForSelector('#sc-createshape[open]');
       await h.page.fill('[data-cs-shape="ratio"]', '50');
-      await h.shot('#sc-createshape', { pad: 0 });
+      await h.shot('#sc-createshape', { pad: 0, name: 'shape-tools-create' });
     },
   },
   {
@@ -105,7 +102,11 @@ export default [
       await stroke(h, wave(60, 560, 300, 40, 30));
       await h.shot(
         null,
-        await around(h, { doc: [[0, 0, 600, 400]], els: ['.sc-opt[data-for="pencil"]'], bars: true }),
+        await around(h, {
+          doc: [[0, 0, 600, 400]],
+          els: ['.sc-opt[data-for="pencil"]'],
+          bars: true,
+        }),
       );
     },
   },
@@ -131,7 +132,12 @@ export default [
       await h.page.press('[aria-label="Angle"]', 'Enter');
       await h.shot(
         null,
-        await around(h, { doc: [[0, 0, 340, 300]], els: ['.sc-opt[data-for="transform"]'], bars: true }),
+        await around(h, {
+          doc: [[0, 0, 340, 300]],
+          els: ['.sc-opt[data-for="transform"]'],
+          bars: true,
+          pad: 4,
+        }),
       );
     },
   },
@@ -250,8 +256,7 @@ export default [
       await tall(h, COLOR_GROUP);
       await h.page.click('[aria-label="Fill type"] [data-kind="linear"]');
       await h.page.waitForSelector('#sc-grad-preset:visible');
-      const preset = await h.page.locator('#sc-grad-preset option').nth(3).getAttribute('value');
-      await h.page.selectOption('#sc-grad-preset', preset);
+      await h.page.selectOption('#sc-grad-preset', { label: 'Sunset' });
       await h.shot(null, await panel(h, COLOR_GROUP));
     },
   },
@@ -304,7 +309,8 @@ export default [
   {
     id: 'colours',
     async shoot(h) {
-      await h.select('Red paint');
+      await h.open(SHAPES, 'shapes.svg', 800, 340);
+      await h.select('Disc');
       await tall(h, COLOR_GROUP);
       await h.shot(null, await panel(h, COLOR_GROUP));
     },

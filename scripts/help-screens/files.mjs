@@ -162,7 +162,7 @@ export default [
     },
   },
   {
-    id: 'edit-symbol',
+    id: 'edit-a-symbol',
     async shoot(h) {
       await stars(h);
       const u = h.page.locator('#sc-doc use').first();
