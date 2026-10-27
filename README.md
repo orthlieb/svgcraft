@@ -173,35 +173,59 @@ stroke="currentColor"` (common in icon sets) is pushed down so it
   in pixels. Opening a file sized in real units shows it in those units;
   one drawn in other units (a viewBox in mm, say) is scaled to pixels,
   keeping its real size. Plain pixel sizes are left as they were.
-- **Image Trace…** (Image menu, with a placed image selected) turns a
-  bitmap into shapes, as Illustrator's does, with a live preview and the
-  result's colours, shapes and size before you commit. It reduces the
-  image to a few colours (k-means in Lab, so similar-looking colours group
-  together), traces each colour's outline, smooths it into curves (real
-  corners stay sharp) and puts each colour on its own layer in an "Image
-  Trace" group, named like "Colour #2563eb · 34%". **Stacked** (the
-  default) puts the largest colour at the bottom and fills each layer with
-  its colour and every colour above it, so the layers overlap and no
-  hairline gaps show (each layer reaches a pixel over the one below); turn
-  it off for abutting shapes, each just its own colour. **Colours** is a
-  maximum: colours that look the same merge, so a flat logo keeps exactly
-  the colours it has, and each colour is taken from its solid inside, not
-  its blended edges, so flat colours come out exact. **Recognise circles, ellipses and rectangles** (on by default): each
-  outline's ellipse comes from its area and moments, and its rectangle
-  is the smallest box round it at any angle, with the corner radius
-  that fits best (square corners unless rounding clearly fits better).
-  An outline within about a pixel of one is written as true elliptical
-  arcs, or four sides with quarter-circle corners; small blobs under
-  12 px aren't taken for boxes. **Presets**: Logo (6 colours, background left out), Illustration
-  (16), Photo (24, posterised) and Sketch (black and white, with a
-  threshold). Also: Greyscale, **Ignore specks** under a size (noise and
-  JPEG artefacts), **Smoothness** (0 gives pixel-exact polygons),
-  **Ignore background** (the colour round the edge, where it touches the
-  edge) and **Keep the image** hidden underneath. Thin slivers of
+### Image Trace…
+
+![The Image Trace dialog, previewing a traced logo](docs/help/image-trace.png)
+
+Turn a bitmap (a logo, icon, scan or line drawing) into vector shapes you
+can edit.
+
+1. Place the image (File → Import…, or drop it on the canvas) and select it.
+2. Choose **Image → Image Trace…**.
+3. Pick the **Preset** closest to your image, then adjust the settings while
+   you watch the preview. The line under the preview gives the result's
+   colours, shapes and size.
+4. Click **Trace**. Each colour becomes its own layer in an "Image Trace"
+   group, named like "Colour #2563eb · 34%".
+
+#### Settings
+
+- **Preset**: Logo (up to 12 colours, background left out), Illustration
+  (16), Photo (24, posterised) or Sketch (black and white). Changing a
+  setting below switches it to Custom.
+- **Colour / Greyscale / B&W**: trace in colour, in greys, or in pure black
+  and white at a **Threshold** you set.
+- **Colours, up to**: a maximum. Colours that look the same merge, so a
+  flat logo keeps exactly the colours it has.
+- **Ignore specks under**: drops shapes smaller than this (noise, JPEG
+  artefacts).
+- **Smoothness**: how much outlines are smoothed into curves. 0 gives
+  pixel-exact polygons; real corners stay sharp at any setting.
+- **Stacked** (on by default): the largest colour goes at the bottom and
+  each layer also covers every colour above it, so the layers overlap and
+  no hairline gaps show. Turn it off for shapes that just touch, each only
+  its own colour.
+- **Recognise circles, ellipses and rectangles** (on by default): an
+  outline within about a pixel of one becomes a true ellipse or a rectangle
+  (with rounded corners when they fit better). Blobs under 12 px aren't
+  taken for boxes.
+- **Ignore background**: leaves out the colour round the edge of the image,
+  where it touches the edge.
+- **Keep the image (hidden)**: keeps the original under the trace, hidden,
+  instead of replacing it.
+
+#### Good to know
+
+- Best for logos, icons, illustrations, scans and line art. Photos come out
+  posterised.
+- Each colour is taken from the solid inside of its areas, not their
+  blended edges, so flat colours come out exact, and thin slivers of
   in-between colour along anti-aliased edges fold into their neighbours.
-  Images are traced at 400–1000 px on the long side, in a background
-  thread, so the page doesn't stall. Best for logos, icons,
-  illustrations, scans and line art.
+- It reduces the image to a few colours (k-means in Lab, so similar-looking
+  colours group together), traces each colour's outline and fits curves to
+  it. Images are traced at 400–1000 px on the long side, in a background
+  thread, so the page doesn't stall.
+
 - **Image Size…** (Image menu) scales the artboard and everything on it,
   guides included, in one undo step: width and height in pixels or
   percent, with Constrain proportions. It's SVG, so nothing is resampled
@@ -1182,11 +1206,17 @@ npm run format:check              # Prettier (npm run format to fix)
 on every dialog and panel) opens `help.html`, which
 `node scripts/gen-help.mjs` builds from this file's user sections
 (Workspace up to Development): every `##` section becomes a help section
-and every top-level bullet that starts with a bold name a topic with its
-own anchor. Every new feature gets its entry here, and every change to a
-feature gets this entry edited, in the same branch; then regenerate
-`help.html`. `tests/help.spec.js` fails while `help.html` is stale or a ?
-points at a topic that isn't there.
+and every `###` heading a topic with its own anchor. A topic opens with a
+screenshot of what it's about, then says how to do it (numbered steps),
+then lists the options (`####` Settings, Tips, Good to know…), with the
+technical detail last. The screenshots (`docs/help/*.png`) are taken by
+`node scripts/gen-help-screens.mjs [topic…]`, which drives the editor with
+Playwright through the steps in `scripts/help-screens/*.mjs`. Every new
+feature gets its topic and screenshot here, and every change to a feature
+gets its topic edited (and its screenshot retaken if the UI changed), in
+the same branch; then regenerate `help.html`. `tests/help.spec.js` fails
+while `help.html` is stale, a topic has no screenshot, a screenshot isn't
+used, or a ? points at a topic that isn't there.
 
 **The code.** The editor is split by area into the scripts in `src/`:
 `core.js` (state and helpers), `guides.js`, `geometry.js`, `paints.js`,

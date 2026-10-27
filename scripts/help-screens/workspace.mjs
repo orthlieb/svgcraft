@@ -1,0 +1,172 @@
+// Help screenshots for the README's Workspace section: the phone preview,
+// installing, and the editor's layout (see scripts/gen-help-screens.mjs).
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
+
+const PHONE = { viewport: { width: 390, height: 844 }, touch: true };
+const ROOT = path.resolve(import.meta.dirname, '../..');
+
+export default [
+  {
+    id: 'on-a-phone',
+    ...PHONE,
+    async shoot(h) {
+      await h.page.waitForSelector('.sc-menubar-end [data-action="peekLayers"]');
+      await h.shot();
+    },
+  },
+  {
+    id: 'on-a-phone-layers',
+    ...PHONE,
+    async shoot(h) {
+      await h.page.click('.sc-menubar-end [data-action="peekLayers"]');
+      await h.page.waitForSelector('#sc-peek-list .sc-thumb');
+      // Hide one layer, as you would while looking.
+      await h.page.locator('#sc-peek-list li:has-text("Title") .sc-peek-eye').click();
+      await h.page.waitForTimeout(300);
+      await h.shot('#sc-peek', { pad: 0 });
+    },
+  },
+  {
+    id: 'on-a-tablet',
+    viewport: { width: 820, height: 1180 },
+    touch: true,
+    async shoot(h) {
+      await h.page.click('#sc-panel-toggle');
+      await h.page.waitForTimeout(400);
+      await h.shot();
+    },
+  },
+  {
+    id: 'offline-and-as-an-app',
+    async shoot(h) {
+      // The item shows once the browser offers to install (it doesn't in the
+      // test browser), so show it as it appears then.
+      await h.page.evaluate(() => {
+        document.querySelector('[data-action="installApp"]').hidden = false;
+      });
+      await h.menu('File', 'installApp', { click: false });
+      await h.shot(['.sc-menu-list:not([hidden])', '.sc-menu-btn:text-is("File")'], { pad: 6 });
+    },
+  },
+  {
+    id: 'the-editor-window',
+    async shoot(h) {
+      await h.select('Red paint');
+      await h.shot();
+    },
+  },
+  {
+    id: 'the-menu-bar',
+    async shoot(h) {
+      await h.select('Red paint');
+      await h.menu('Layer', 'clippingMask', { click: false });
+      await h.shot(['.sc-menu-list:not([hidden])', '.sc-menus'], { pad: 6 });
+    },
+  },
+  {
+    id: 'the-options-bar',
+    async shoot(h) {
+      await h.select('Red paint');
+      const bar = h.page.locator('#sc-options');
+      await bar.waitFor();
+      const b = await bar.boundingBox();
+      await h.shot(null, { clip: { x: b.x, y: b.y, width: 1280, height: b.height } });
+    },
+  },
+  {
+    id: 'the-toolbar',
+    async shoot(h) {
+      await h.shot('.sc-tools', { pad: 4 });
+    },
+  },
+  {
+    id: 'docked-panels',
+    async shoot(h) {
+      await h.select('Red paint');
+      await h.shot('#sc-panel', { pad: 0 });
+    },
+  },
+  {
+    id: 'docked-panels-icons',
+    async shoot(h) {
+      await h.page.evaluate(() => window.svgcraft.actions.toggleDock());
+      await h.page.waitForSelector('.sc-dock-strip button');
+      await h.page.locator('.sc-dock-strip button').first().click();
+      await h.page.waitForTimeout(300);
+      const vp = h.page.viewportSize();
+      await h.shot(null, { clip: { x: vp.width - 340, y: 60, width: 340, height: 520 } });
+    },
+  },
+  {
+    id: 'window-menu',
+    async shoot(h) {
+      await h.menu('Window', 'resetWorkspace', { click: false });
+      await h.shot(['.sc-menu-list:not([hidden])', '.sc-menu-btn:text-is("Window")'], { pad: 6 });
+    },
+  },
+  {
+    id: 'split-view',
+    async shoot(h) {
+      await h.page.evaluate(() => {
+        window.svgcraft.actions.toggleIconPreview();
+        window.svgcraft.actions.toggleSource();
+      });
+      await h.page.waitForSelector('#sc-dock:not([hidden]) #sc-source');
+      await h.shot('.sc-workspace', { pad: 0 });
+    },
+  },
+  {
+    id: 'rulers-guides-and-smart-guides',
+    async shoot(h) {
+      const { page } = h;
+      await page.evaluate(() => {
+        const s = window.svgcraft.state;
+        s.smart = true;
+        s.guidesOn = true;
+        s.guides = [
+          { axis: 'x', pos: 100 },
+          { axis: 'y', pos: 460 },
+        ];
+      });
+      await h.redraw();
+      // Drag a paint blob until it lines up, and hold it there for the shot
+      // (h.shot would move the mouse, ending the drag).
+      await page.evaluate(() => window.svgcraft.setTool('select'));
+      const box = await page.evaluate(() => {
+        const r = document.querySelector('#sc-doc [data-name="Blue paint"]').getBBox();
+        return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+      });
+      const a = await h.at(box.x, box.y);
+      const b = await h.at(box.x + 37, box.y - 23);
+      await page.mouse.move(a.x, a.y);
+      await page.mouse.down();
+      await page.mouse.move(b.x, b.y, { steps: 12 });
+      await page.waitForSelector('#sc-smart line, #sc-smart path');
+      await page.waitForTimeout(200);
+      const wrap = await page.locator('#sc-stage-wrap').boundingBox();
+      await page.screenshot({
+        path: path.join(ROOT, 'docs/help/rulers-guides-and-smart-guides.png'),
+        clip: { x: wrap.x, y: wrap.y, width: Math.min(wrap.width, 760), height: 460 },
+      });
+      console.log('wrote docs/help/rulers-guides-and-smart-guides.png');
+      await page.mouse.up();
+    },
+  },
+  {
+    id: 'svgcraft-help',
+    async shoot(h) {
+      await h.page.goto(pathToFileURL(path.join(ROOT, 'help.html')).href + '#docked-panels');
+      await h.page.waitForTimeout(300);
+      await h.shot(null, { clip: { x: 0, y: 0, width: 1280, height: 600 } });
+    },
+  },
+  {
+    id: 'theme',
+    theme: 'light',
+    async shoot(h) {
+      await h.menu('View', 'themeSystem', { click: false });
+      await h.shot(['.sc-menu-list:not([hidden]) .sc-sub-list:has([data-action="themeSystem"])', '#sc-theme-btn'], { pad: 6 });
+    },
+  },
+];
