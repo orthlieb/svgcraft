@@ -290,6 +290,42 @@ test.describe('phone, portrait', () => {
     }
   });
 
+  test('Info shows the drawing’s details and metadata, read-only', async ({ page }) => {
+    await page.evaluate(() =>
+      window.svgcraft.openSvg(
+        '<svg xmlns="http://www.w3.org/2000/svg" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"' +
+          ' xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" viewBox="0 0 400 300">' +
+          '<title>Sunset</title><metadata><rdf:RDF><cc:Work rdf:about="">' +
+          '<dc:creator><cc:Agent><dc:title>Ada</dc:title></cc:Agent></dc:creator>' +
+          '<cc:license rdf:resource="https://creativecommons.org/licenses/by/4.0/"/>' +
+          '</cc:Work></rdf:RDF></metadata><rect id="r" width="400" height="300"/></svg>',
+        'sunset.svg',
+      ),
+    );
+    const saved = await page.evaluate(() => window.svgcraft.serialize());
+    await bar(page, 'phoneInfo').tap();
+    const sheet = page.locator('#sc-pinfo');
+    await expect(sheet).toBeVisible();
+    const row = (k) => sheet.locator('dt', { hasText: new RegExp(`^${k}$`) }).locator('+ dd');
+    await expect(row('File')).toHaveText('sunset.svg');
+    await expect(row('Dimensions')).toHaveText('400 × 300 px');
+    await expect(row('Title')).toHaveText('Sunset');
+    await expect(row('Author')).toHaveText('Ada');
+    await expect(row('Licence').locator('a')).toHaveAttribute(
+      'href',
+      'https://creativecommons.org/licenses/by/4.0/',
+    );
+    // Empty fields aren't listed.
+    await expect(sheet.locator('dt', { hasText: 'Keywords' })).toHaveCount(0);
+    await page.tap('#sc-pinfo-close');
+    await expect(sheet).toBeHidden();
+    expect(await page.evaluate(() => window.svgcraft.serialize())).toBe(saved);
+    // A drawing with none says so.
+    await load(page, '<rect width="10" height="10"/>');
+    await bar(page, 'phoneInfo').tap();
+    await expect(sheet.locator('.sc-hint')).toContainText('None in this file');
+  });
+
   test('double-tap zooms in on the spot, and again fits', async ({ page }) => {
     await load(page, DRAWING, 300, 200);
     await bar(page, 'fit').click();

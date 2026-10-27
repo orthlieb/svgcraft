@@ -1,6 +1,7 @@
 // SVGCraft — The phone preview's extras: layers to show and hide while
-// looking, the backdrop, sharing, and double-tap / swipe gestures. (▶ Play
-// is the usual toggleAnimations.) None of them changes the drawing.
+// looking, the backdrop, the drawing's info, sharing, and double-tap /
+// swipe gestures. (▶ Play is the usual toggleAnimations.) None of them
+// changes the drawing.
 'use strict';
 
 // ---- Layers: show and hide in the preview, never saved ---------------------
@@ -116,6 +117,82 @@ function previewBg() {
   say(`Background: ${PREVIEW_BG_NAME[next]}.`);
 }
 setPreviewBg(stored(PREVIEW_BG_KEY, 'checker'));
+
+// ---- Info: the drawing's details and its metadata (File Info's), to read ----
+const infoSheet = $('#sc-pinfo');
+const COPYRIGHT = { true: 'Copyrighted', false: 'Public domain' };
+function phoneInfo() {
+  const m = state.meta || {};
+  const svg = serialize({ fontCss: fontImport() });
+  const all = [...doc.querySelectorAll('*')].filter(selectable);
+  const anims = doc.querySelectorAll('[data-sc-anim]').length;
+  const lic = m.license === 'arr' ? 'arr' : licenceKey(m.license);
+  const licName = lic ? $(`#sc-fileinfo option[value="${lic}"]`)?.textContent : m.license || '';
+  const sections = [
+    [
+      'Drawing',
+      [
+        ['File', `${state.fileName}.svg`],
+        ['Size', kb(new Blob([svg]).size)],
+        ['Dimensions', `${inUnits(state.w)} × ${inUnits(state.h)} ${state.units}`],
+        ['Layers', `${items().length} (${all.length} in all)`],
+        ['Animations', anims ? String(anims) : ''],
+        ['Fonts', docFamilies().join(', ')],
+      ],
+    ],
+    [
+      'Metadata',
+      [
+        ['Title', m.title],
+        ['Author', m.creator],
+        ['Description', m.description],
+        ['Keywords', (m.keywords || []).join(', ')],
+        ['Date', m.date],
+        ['Copyright', COPYRIGHT[m.marked] || ''],
+        ['Rights', m.rights],
+        ['Licence', licName, lic === 'arr' ? '' : LICENCES[lic]?.url || m.license],
+        ['Source', m.source, m.source],
+        ['Language', m.language],
+      ],
+    ],
+  ];
+  const body = $('#sc-pinfo-body');
+  body.replaceChildren();
+  for (const [head, rows] of sections) {
+    const h = document.createElement('span');
+    h.className = 'sc-subhead';
+    h.textContent = head;
+    const dl = document.createElement('dl');
+    for (const [k, v, href] of rows) {
+      if (!v) continue;
+      const dt = document.createElement('dt');
+      dt.textContent = k;
+      const dd = document.createElement('dd');
+      if (href && /^https?:\/\//.test(href)) {
+        const a = document.createElement('a');
+        a.href = href;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        a.textContent = v;
+        dd.append(a);
+      } else dd.textContent = v;
+      dl.append(dt, dd);
+    }
+    if (!dl.children.length) {
+      const p = document.createElement('p');
+      p.className = 'sc-hint';
+      p.textContent =
+        'None in this file. File Info on a bigger screen adds a title, author and licence.';
+      body.append(h, p);
+    } else body.append(h, dl);
+  }
+  showDialog(infoSheet, () => hideDialog(infoSheet));
+}
+$('#sc-pinfo-close').addEventListener('click', () => hideDialog(infoSheet));
+$('#sc-pinfo-about').addEventListener('click', () => {
+  hideDialog(infoSheet);
+  actions.about();
+});
 
 // ---- Share: the phone's share sheet, with the SVG and a PNG of it -----------
 async function shareDoc() {

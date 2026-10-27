@@ -54,8 +54,27 @@ function fit() {
   state.zoom = clamp(z, 0.02, 64);
   state.panX = (r.width - state.w * state.zoom) / 2;
   state.panY = (r.height - state.h * state.zoom) / 2;
+  fitView = { zoom: state.zoom, panX: state.panX, panY: state.panY };
   applyView();
 }
+// A drawing fitted to the window stays fitted while the canvas changes
+// size (a pane docking, panels folding, the window resized, a phone
+// turned), until you zoom or pan it yourself.
+let fitView = null;
+const isFitted = () =>
+  !!fitView &&
+  fitView.zoom === state.zoom &&
+  fitView.panX === state.panX &&
+  fitView.panY === state.panY;
+let stageSize = '';
+new ResizeObserver(() => {
+  const r = stage.getBoundingClientRect();
+  const size = `${Math.round(r.width)}x${Math.round(r.height)}`;
+  if (size === stageSize) return;
+  const was = stageSize;
+  stageSize = size;
+  if (was && r.width && r.height && isFitted()) fit();
+}).observe(stage);
 
 // Fill Screen: the artboard covers the whole stage, centred.
 function fillScreen() {

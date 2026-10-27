@@ -16,7 +16,7 @@ and what comes next.
 
 SVGCraft edits on tablets and larger screens. A phone (narrower than
 768 px, or a phone held sideways) gets a **preview** instead: open SVGs,
-switch between tabs, pan and pinch-zoom, Fit, and About. The editing tools,
+switch between tabs, pan and pinch-zoom, Fit, and Info. The editing tools,
 menus and panels are hidden, and nothing on a phone changes a drawing.
 On tablets in portrait, the toolbar moves to the bottom and the panels
 slide in from the right (the sliders button).
@@ -39,6 +39,10 @@ The phone toolbar also has:
   circle, white ringed in black, or black ringed in white). Remembered.
 - **Share**: the phone's share sheet with the SVG and a PNG of it
   (downloads the SVG where the browser can't share files).
+- **Info** (ⓘ): the drawing's details (file, size, dimensions, layers,
+  animations, fonts) and its metadata from File Info (title, author,
+  description, keywords, date, copyright, licence and source, linked),
+  read-only, with About SVGCraft at the bottom.
 
 Double-tap the canvas to zoom in on that spot (to 100%, or twice the fit
 for small drawings), and again to fit. Swipe along the tab bar for the next
@@ -250,6 +254,10 @@ stroke="currentColor"` (common in icon sets) is pushed down so it
     on it) and the view settings work until a drawing is open, and it
     stays blank after a reload.
   - Each tab keeps its own drawing, undo history and zoom.
+  - A drawing opens fitted to the window, and stays fitted while the
+    canvas changes size (a pane docking, panels folding, the window
+    resized, a phone turned) until you zoom or pan it yourself. A fitted
+    drawing comes back fitted, whatever size the window is then.
   - A `*` after the name means the drawing differs from the version last
     opened or saved. **Save as SVG** (Ctrl+S) downloads it and clears the
     `*`. Undoing back to the saved version clears it too. PNG export

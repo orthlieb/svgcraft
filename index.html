@@ -626,8 +626,13 @@
         >
           <i data-icon="arrow-up-from-bracket"></i>
         </button>
-        <button class="sc-tbtn sc-preview-only" data-action="about" data-tip="About SVGCraft">
-          <i data-icon="circle-info"></i> About
+        <button
+          class="sc-ibtn sc-preview-only"
+          data-action="phoneInfo"
+          aria-label="Info"
+          data-tip="Info: the drawing’s details and metadata"
+        >
+          <i data-icon="circle-info"></i>
         </button>
         <button class="sc-ibtn" data-action="undo" aria-label="Undo" data-tip="Undo" id="sc-undo">
           <i data-icon="rotate-left"></i>
@@ -3539,6 +3544,17 @@
     <!-- File → File Info… (document title, author, licence: saved as SVG <title>,
          <desc> and RDF <metadata>). -->
     <!-- Phone preview: the layers, to show and hide while looking (never saved). -->
+    <!-- The phone's Info: the drawing's details and metadata, read-only. -->
+    <dialog class="sc-dialog sc-pinfo" id="sc-pinfo" aria-labelledby="sc-pinfo-title">
+      <div class="sc-dialog-title" id="sc-pinfo-title">Info</div>
+      <div class="sc-dialog-body">
+        <div class="sc-pinfo-body" id="sc-pinfo-body"></div>
+      </div>
+      <div class="sc-dialog-foot">
+        <button class="sc-tbtn" id="sc-pinfo-about">About SVGCraft</button>
+        <button class="sc-tbtn sc-primary-btn" id="sc-pinfo-close">Close</button>
+      </div>
+    </dialog>
     <dialog class="sc-dialog sc-peek" id="sc-peek" aria-labelledby="sc-peek-title">
       <div class="sc-dialog-title" id="sc-peek-title">Layers</div>
       <div class="sc-dialog-body">

@@ -15,6 +15,7 @@ const actions = {
   previewBg: () => previewBg(),
   shareDoc: () => shareDoc(),
   phoneSource: () => toggleSource(),
+  phoneInfo: () => phoneInfo(),
   makeSymbol,
   editSymbol,
   breakSymbolLink,

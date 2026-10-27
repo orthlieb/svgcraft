@@ -1719,6 +1719,28 @@ button.sc-fx-item.sel {
   width: 32px;
   height: 32px;
 }
+.sc-pinfo-body {
+  max-height: 60dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.sc-pinfo-body dl {
+  display: grid;
+  grid-template-columns: 6.5em minmax(0, 1fr);
+  gap: 4px 12px;
+  margin: 6px 0 14px;
+}
+.sc-pinfo-body dt {
+  color: var(--text-dim);
+}
+.sc-pinfo-body dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+.sc-pinfo-body a {
+  color: var(--accent);
+}
 .sc-peek-list li.off .sc-thumb {
   opacity: 0.4;
 }

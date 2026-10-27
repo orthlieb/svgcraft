@@ -48,7 +48,7 @@ function docsData() {
       svg: d.svg,
       // The last-saved version is only stored while it differs.
       saved: dirty(d) ? d.saved : null,
-      view: d === curDoc ? { zoom: state.zoom, panX: state.panX, panY: state.panY } : d.view,
+      view: d === curDoc ? currentView() : d.view,
     })),
   };
 }
@@ -140,6 +140,9 @@ function docTitle(d) {
   return d.title;
 }
 
+// The view to keep with a drawing: where it was, or that it was fitted.
+const currentView = () =>
+  isFitted() ? { fitted: true } : { zoom: state.zoom, panX: state.panX, panY: state.panY };
 // Park the current tab's drawing, history and view.
 function stashDoc() {
   if (!curDoc) return;
@@ -149,7 +152,7 @@ function stashDoc() {
   curDoc.svg = serialize();
   curDoc.hist = hist.slice();
   curDoc.hIdx = hIdx;
-  curDoc.view = { zoom: state.zoom, panX: state.panX, panY: state.panY };
+  curDoc.view = currentView();
 }
 
 // Bring a document onto the canvas: its live history if it has one,
@@ -174,7 +177,8 @@ function showDoc(d) {
     hIdx = 0;
     if (wasClean) d.saved = d.svg = serialize();
   }
-  if (d.view) {
+  // Fitted when it was put away: fitted again, to the window as it is now.
+  if (d.view && !d.view.fitted) {
     Object.assign(state, d.view);
     applyView();
   } else fit();
