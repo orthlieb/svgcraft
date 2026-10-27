@@ -305,6 +305,7 @@
               <li><a href="#edit-points">Edit points</a></li>
               <li><a href="#fill-rule-and-path-direction">Fill rule and path direction</a></li>
               <li><a href="#animate">Animate</a></li>
+              <li><a href="#move-along-path">Move along path</a></li>
               <li><a href="#zoom-and-pan">Zoom and pan</a></li>
               <li><a href="#pixel-grid-and-snap-to-pixel">Pixel grid and Snap to Pixel</a></li>
               <li><a href="#eraser">Eraser</a></li>
@@ -2290,6 +2291,10 @@
               <li><strong>Entrances</strong>: Fade in, Slide in, Pop in, Zoom in.</li>
               <li><strong>Exits</strong>: Fade out, Slide out, Zoom out.</li>
               <li><strong>Loops</strong>: Spin, Pulse, Bounce, Shake, Float, Blink.</li>
+              <li>
+                <strong>Motion</strong>: Move along path (see
+                <a href="#move-along-path">Move along path</a>).
+              </li>
               <li><strong>Line effects</strong>: Draw on, Draw off, Dash march.</li>
               <li><strong>Colour cycle</strong>.</li>
             </ul>
@@ -2354,8 +2359,10 @@
               <li>
                 A rotation about the layer's centre becomes <strong>Spin</strong>; opacity from 0 to
                 1 or back becomes <strong>Fade in</strong> or <strong>Fade out</strong>; a fill
-                going to another colour becomes <strong>Colour cycle</strong>; and so on for every
-                preset, with its length, delay, repeats, direction and ease.
+                going to another colour becomes <strong>Colour cycle</strong>; a motion along a path
+                (<code>&lt;animateMotion&gt;</code>) becomes <strong>Move along path</strong>, its
+                path a new "Motion path" layer; and so on for every preset, with its length, delay,
+                repeats, direction and ease.
               </li>
               <li>
                 A file saved by Export Clean SVG (which drops SVGCraft's settings) comes back with
@@ -2363,13 +2370,84 @@
               </li>
               <li>
                 What no preset does is left out, and a message says how many: a rotation about
-                another point, a motion path (<code>&lt;animateMotion&gt;</code>), an animation that
-                starts on a click or another animation's end, one inside a symbol, and CSS
-                <code>@keyframes</code>.
+                another point, a motion at a fixed angle, an animation that starts on a click or
+                another animation's end, one inside a symbol, and CSS <code>@keyframes</code>.
               </li>
               <li>
                 An animation that replaces a layer's own transform (SMIL's default) is only kept
                 when the layer has none, since a preset adds to it.
+              </li>
+            </ul>
+          </article>
+          <article id="move-along-path" data-find>
+            <h3>Move along path</h3>
+            <figure>
+              <img
+                src="docs/help/move-along-path.png"
+                alt="The brush selected with a dashed flight path above it, and the Animation tab showing Move along path with Orient to path on"
+                width="953"
+                height="649"
+                loading="lazy"
+              />
+            </figure>
+            <p>
+              Send a layer along a line you draw: a car along a road, a plane along its flight path.
+            </p>
+            <ol>
+              <li>
+                Draw the route with the Pen or Pencil, or use any shape (a rectangle, circle,
+                ellipse, line or polygon). It must be above the layer that moves.
+              </li>
+              <li>
+                Select the layer, then Shift-click the route, and open the
+                <strong>Animation</strong> tab.
+              </li>
+              <li>Choose <strong>Add animation… → Move along path</strong>.</li>
+              <li>
+                Click ▶ <strong>Play</strong>: the layer's centre travels the route from its start
+                to its end, then stays there.
+              </li>
+            </ol>
+            <h4>Settings</h4>
+            <ul>
+              <li>
+                <strong>Path</strong>: the layer it follows. Pick another shape here to change the
+                route.
+              </li>
+              <li>
+                <strong>Orient to path</strong>: the layer turns to face the way it's going, like a
+                car on a road. It points along the route the way it's drawn facing (its own
+                rightward direction leads).
+              </li>
+              <li>
+                <strong>Hide the path when saved</strong>: the route is left out of sight in the
+                saved file, so only the moving layer shows. It stays visible while you edit, and
+                comes back when you reopen the file.
+              </li>
+              <li>
+                <strong>Length</strong>, <strong>Delay</strong>, <strong>Times</strong>,
+                <strong>Run</strong> and <strong>Ease</strong> work as for every animation.
+                <strong>Reverse</strong> runs from the end of the route to its start;
+                <strong>Back and forth</strong> goes there and back.
+              </li>
+            </ul>
+            <h4>Good to know</h4>
+            <ul>
+              <li>
+                Reshape or move the route and the animation follows: it's linked, not copied. Delete
+                it and the animation stops, and its <strong>Path</strong> reads "— gone —" until you
+                pick another.
+              </li>
+              <li>
+                A closed shape (a circle, a rectangle) makes a loop: set
+                <strong>Forever</strong> for something that keeps circling.
+              </li>
+              <li>
+                It combines with the other animations: a layer can Pulse or Spin while it travels.
+              </li>
+              <li>
+                In the file it's an <code>&lt;animateMotion&gt;</code> along the route (as seen from
+                the layer), plus a fixed shift that puts the layer's centre on the line.
               </li>
             </ul>
           </article>

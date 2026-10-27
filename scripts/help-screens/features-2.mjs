@@ -206,6 +206,39 @@ export default [
     },
   },
   {
+    id: 'move-along-path',
+    async shoot(h) {
+      // A curve for the brush to fly along, above it.
+      await h.page.evaluate(() => {
+        /* eslint-disable no-undef -- the editor's own globals */
+        mk(
+          'path',
+          {
+            'data-name': 'Flight path',
+            d: 'M660 250C600 60 330 40 250 200',
+            fill: 'none',
+            stroke: '#f5f5f5',
+            'stroke-width': '3',
+            'stroke-dasharray': '10 8',
+          },
+          doc,
+        );
+        afterChange();
+        /* eslint-enable no-undef */
+      });
+      await h.select('Brush', 'Flight path');
+      await h.tab('animation');
+      await tall(h, PROPS_GROUP);
+      await h.page.selectOption('#sc-anim-add', 'followPath');
+      await h.page.check('#sc-anim-opts [data-anim-opt="orient"]');
+      await h.page.waitForSelector('#sc-anim-list li');
+      await h.shot(
+        null,
+        await around(h, { doc: [[200, 20, 800, 400]], els: [PROPS_GROUP], pad: 6 }),
+      );
+    },
+  },
+  {
     id: 'zoom-and-pan',
     async shoot(h) {
       await h.open(SHAPES, 'shapes.svg', 800, 340);

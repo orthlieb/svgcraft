@@ -1111,6 +1111,7 @@ in the saved SVG.
 - **Entrances**: Fade in, Slide in, Pop in, Zoom in.
 - **Exits**: Fade out, Slide out, Zoom out.
 - **Loops**: Spin, Pulse, Bounce, Shake, Float, Blink.
+- **Motion**: Move along path (see [Move along path](#move-along-path)).
 - **Line effects**: Draw on, Draw off, Dash march.
 - **Colour cycle**.
 
@@ -1156,16 +1157,60 @@ edit and play:
 
 - A rotation about the layer's centre becomes **Spin**; opacity from 0 to 1
   or back becomes **Fade in** or **Fade out**; a fill going to another
-  colour becomes **Colour cycle**; and so on for every preset, with its
-  length, delay, repeats, direction and ease.
+  colour becomes **Colour cycle**; a motion along a path
+  (`<animateMotion>`) becomes **Move along path**, its path a new "Motion
+  path" layer; and so on for every preset, with its length, delay,
+  repeats, direction and ease.
 - A file saved by Export Clean SVG (which drops SVGCraft's settings) comes
   back with the animations it had.
 - What no preset does is left out, and a message says how many: a rotation
-  about another point, a motion path (`<animateMotion>`), an animation that
-  starts on a click or another animation's end, one inside a symbol, and
-  CSS `@keyframes`.
+  about another point, a motion at a fixed angle, an animation that starts
+  on a click or another animation's end, one inside a symbol, and CSS
+  `@keyframes`.
 - An animation that replaces a layer's own transform (SMIL's default) is
   only kept when the layer has none, since a preset adds to it.
+
+### Move along path
+
+![The brush selected with a dashed flight path above it, and the Animation tab showing Move along path with Orient to path on](docs/help/move-along-path.png)
+
+Send a layer along a line you draw: a car along a road, a plane along its
+flight path.
+
+1. Draw the route with the Pen or Pencil, or use any shape (a rectangle,
+   circle, ellipse, line or polygon). It must be above the layer that
+   moves.
+2. Select the layer, then Shift-click the route, and open the **Animation**
+   tab.
+3. Choose **Add animation… → Move along path**.
+4. Click ▶ **Play**: the layer's centre travels the route from its start to
+   its end, then stays there.
+
+#### Settings
+
+- **Path**: the layer it follows. Pick another shape here to change the
+  route.
+- **Orient to path**: the layer turns to face the way it's going, like a
+  car on a road. It points along the route the way it's drawn facing (its
+  own rightward direction leads).
+- **Hide the path when saved**: the route is left out of sight in the saved
+  file, so only the moving layer shows. It stays visible while you edit,
+  and comes back when you reopen the file.
+- **Length**, **Delay**, **Times**, **Run** and **Ease** work as for every
+  animation. **Reverse** runs from the end of the route to its start;
+  **Back and forth** goes there and back.
+
+#### Good to know
+
+- Reshape or move the route and the animation follows: it's linked, not
+  copied. Delete it and the animation stops, and its **Path** reads "—
+  gone —" until you pick another.
+- A closed shape (a circle, a rectangle) makes a loop: set **Forever** for
+  something that keeps circling.
+- It combines with the other animations: a layer can Pulse or Spin while it
+  travels.
+- In the file it's an `<animateMotion>` along the route (as seen from the
+  layer), plus a fixed shift that puts the layer's centre on the line.
 
 ### Zoom and pan
 

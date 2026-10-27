@@ -84,7 +84,7 @@ test('fades, colour, reverse, alternate, eases, delays and repeats', async ({ pa
   await expect(alertText(page)).toHaveText('');
 });
 
-test('event starts, motion paths and CSS keyframes are reported', async ({ page }) => {
+test('event starts, a motion at a fixed angle and CSS keyframes are reported', async ({ page }) => {
   await open(
     page,
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">' +
@@ -92,7 +92,7 @@ test('event starts, motion paths and CSS keyframes are reported', async ({ page 
       '<rect id="k" width="10" height="10"/>' +
       '<rect id="a" x="10" y="10" width="50" height="50">' +
       '<animate attributeName="opacity" from="0" to="1" dur="1s" begin="click"/>' +
-      '<animateMotion path="M0 0H100" dur="2s"/>' +
+      '<animateMotion path="M0 0H100" dur="2s" rotate="45"/>' +
       '<animate attributeName="opacity" from="0" to="1" dur="1s"/></rect>' +
       '</svg>',
   );
