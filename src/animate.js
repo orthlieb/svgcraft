@@ -95,6 +95,8 @@ const ANIM_PRESETS = {
     size: 8,
     to: '#facc15',
   },
+  // A group's layers shown one at a time, bottom first: its frames.
+  flipbook: { name: 'Flipbook', group: 'Loops', dur: 1, rep: 0, ease: 'linear', hold: true },
   // A highlight sweeping across the layer.
   shine: { name: 'Shine', group: 'Loops', dur: 1.6, rep: 0, ease: 'inout', wrap: true },
   // Back and forth about a point (the top: a hanging sign).
@@ -547,6 +549,8 @@ function animUnfit(el, p, a = null) {
     if (getComputedStyle(el).stroke === 'none') return `${def.name} needs a stroke.`;
   }
   if (def.text && el.localName !== 'text') return `${def.name} needs a text layer.`;
+  if (p === 'flipbook' && (el.localName !== 'g' || staggerKids(el).length < 2))
+    return 'Flipbook needs a group of two or more layers: its frames, bottom one first.';
   if (p === 'followPath' && !(a && motionRoute(el, a)))
     return 'Move along path needs a path: select the layer, then Shift-click the path above it.';
   // A group's own fill only reaches shapes that don't set one.
@@ -727,6 +731,41 @@ function animEmit(el, a, preview, start) {
       at: { letter: i },
       nodes: chanNodes(a, letterChannels(el, a, i, n), preview, start + i * gap, hide),
     }));
+  }
+  if (a.p === 'flipbook') {
+    // Frame by frame (back and forth: there and back, the ends once each);
+    // each layer is shown for its frames and hidden for the rest.
+    const kids = [...el.children];
+    const frames = staggerKids(el);
+    const n = frames.length;
+    const ids = [...Array(n).keys()];
+    const order = {
+      normal: ids,
+      reverse: [...ids].reverse(),
+      alternate: [...ids, ...ids.slice(1, -1).reverse()],
+    }[a.dir];
+    return frames.map((c, k) => {
+      const values = [];
+      const kt = [];
+      order.forEach((f0, i) => {
+        const v = f0 === k ? 'inline' : 'none';
+        if (values.at(-1) !== v) {
+          values.push(v);
+          kt.push(i / order.length);
+        }
+      });
+      const raw = { values, kt };
+      return {
+        at: { child: kids.indexOf(c) },
+        nodes: chanNodes(
+          a,
+          [{ tag: 'animate', attrs: { attributeName: 'display' }, raw }],
+          preview,
+          start,
+          [],
+        ),
+      };
+    });
   }
   if (a.stagger > 0 && el.localName === 'g') {
     const kids = [...el.children];
@@ -1626,7 +1665,11 @@ function syncAnimUI() {
   if ('axis' in a)
     choose('axis', 'Turn ', { vertical: 'Side to side', horizontal: 'Top over bottom' });
   // Stagger: a group's layers, or a text's letters, one after another.
-  if (el.localName === 'g' || (el.localName === 'text' && LETTER_PRESETS.has(a.p))) {
+  const def = ANIM_PRESETS[a.p];
+  if (
+    (el.localName === 'g' && a.p !== 'flipbook' && !def.wrap) ||
+    (el.localName === 'text' && LETTER_PRESETS.has(a.p))
+  ) {
     const w = number(
       'stagger',
       el.localName === 'g' ? 's between layers' : 's between letters',
