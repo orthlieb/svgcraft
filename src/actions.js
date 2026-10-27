@@ -176,6 +176,8 @@ const actionRules = {
   unlockLayers: anySel,
   layerStyle: anySel,
   clearLayerStyle: someSel((el) => el.hasAttribute('data-sc-fx')),
+  copyLayerStyle: () => state.sel.length === 1,
+  pasteLayerStyle: () => !!copiedStyle && anySel(),
   makeSymbol: anySel,
   definePattern: anySel,
   breakSymbolLink: someSel(symbolOf),

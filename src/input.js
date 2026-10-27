@@ -110,7 +110,7 @@ stage.addEventListener('dblclick', (e) => {
   const { clientX, clientY, timeStamp } = e;
   tools[state.tool].dblclick?.({ target, clientX, clientY, timeStamp });
 });
-stage.addEventListener('contextmenu', (e) => e.preventDefault());
+// Right-click: src/context-menu.js.
 
 stage.addEventListener(
   'wheel',

@@ -93,6 +93,29 @@ export default [
     },
   },
   {
+    id: 'right-click-menus',
+    async shoot(h) {
+      // Right-click the red paint, where it lies on the palette, and point
+      // at Layers Here.
+      const p = await h.page.evaluate(() => {
+        const r = document.querySelector('#sc-doc [data-name="Red paint"]').getBoundingClientRect();
+        return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+      });
+      await h.page.evaluate(() => window.svgcraft.setTool('select'));
+      await h.page.mouse.click(p.x, p.y, { button: 'right' });
+      await h.page.locator('#sc-ctx .sc-sub-btn:has(> span:text-is("Layers Here"))').hover();
+      await h.page.locator('#sc-ctx .sc-sub-list:not([hidden])').waitFor();
+      const boxes = [];
+      for (const t of ['#sc-ctx', '#sc-ctx .sc-sub-list:not([hidden])'])
+        boxes.push(await h.page.locator(t).boundingBox());
+      const x0 = Math.min(p.x, ...boxes.map((b) => b.x)) - 60;
+      const y0 = Math.min(p.y, ...boxes.map((b) => b.y)) - 40;
+      const x1 = Math.max(...boxes.map((b) => b.x + b.width)) + 8;
+      const y1 = Math.max(...boxes.map((b) => b.y + b.height)) + 8;
+      await h.shot(null, { clip: { x: x0, y: y0, width: x1 - x0, height: y1 - y0 } });
+    },
+  },
+  {
     id: 'the-options-bar',
     async shoot(h) {
       await h.select('Red paint');

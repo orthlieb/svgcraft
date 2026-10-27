@@ -189,6 +189,9 @@ function dissolveGroup(g) {
   return out;
 }
 
+// The style Copy Layer Style took, for Paste Layer Style.
+let copiedStyle = null;
+
 const cmds = {
   textOnPath: () => textOnPath(),
   releaseTextOnPath: () => releaseTextOnPath(),
@@ -198,6 +201,30 @@ const cmds = {
     if (!els.length || refuseLocked(els, 'edit')) return;
     for (const el of els) el.removeAttribute('data-sc-fx');
     commit();
+  },
+  // Copy / Paste Layer Style: the effects, blend mode and opacity.
+  copyLayerStyle() {
+    const el = state.sel[0];
+    if (!el) return;
+    copiedStyle = {
+      fx: el.getAttribute('data-sc-fx'),
+      blend: blendOf(el),
+      opacity: parseFloat(getComputedStyle(el).opacity),
+    };
+    say(`Copied the layer style of “${layerName(el)}”.`);
+  },
+  pasteLayerStyle() {
+    const els = normalizeSel(state.sel);
+    if (!copiedStyle || !els.length || refuseLocked(els, 'edit')) return;
+    const { fx, blend, opacity } = copiedStyle;
+    for (const el of els) {
+      if (fx) el.setAttribute('data-sc-fx', fx);
+      else el.removeAttribute('data-sc-fx');
+      setBlend(el, blend === 'pass-through' && !isGroupLayer(el) ? 'normal' : blend);
+      setPaintAttr(el, 'opacity', opacity === 1 || isNaN(opacity) ? null : f(opacity));
+    }
+    commit();
+    if (els[0]) readStyle(els[0]);
   },
   clipMake: () => makeClip(),
   clipRelease: () => releaseClip(),
