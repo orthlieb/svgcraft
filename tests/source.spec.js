@@ -299,10 +299,14 @@ test('long data URIs are cut short on screen but copied in full', async ({ page,
 test('Ctrl+F finds text in the source and Enter steps through matches', async ({ page }) => {
   await load(page, BODY);
   await openSource(page);
+  const steps = page.locator('#sc-src-prev, #sc-src-next');
+  // Nothing to step through yet: previous / next are off.
+  for (const b of await steps.all()) await expect(b).toBeDisabled();
   await page.keyboard.press('Control+f');
   await expect(page.locator('#sc-src-find')).toBeFocused();
   await page.keyboard.type('cx=');
   await expect(page.locator('#sc-src-count')).toHaveText('1 of 2');
+  for (const b of await steps.all()) await expect(b).toBeEnabled();
   await page.keyboard.press('Enter');
   await expect(page.locator('#sc-src-count')).toHaveText('2 of 2');
   await page.keyboard.press('Enter');
@@ -313,6 +317,13 @@ test('Ctrl+F finds text in the source and Enter steps through matches', async ({
   await page.keyboard.press('Control+a');
   await page.keyboard.type('nothing-like-this');
   await expect(page.locator('#sc-src-count')).toHaveText('No matches');
+  for (const b of await steps.all()) await expect(b).toBeDisabled();
+  await page.keyboard.press('Control+a');
+  await page.keyboard.type('rect');
+  for (const b of await steps.all()) await expect(b).toBeEnabled();
+  await page.keyboard.press('Control+a');
+  await page.keyboard.press('Backspace');
+  for (const b of await steps.all()) await expect(b).toBeDisabled();
   // Esc from the find box closes the window too.
   await page.keyboard.press('Escape');
   await expect(win(page)).toBeHidden();

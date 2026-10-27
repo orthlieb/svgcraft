@@ -683,6 +683,8 @@ function srcSearch(step) {
     : v.hits.length
       ? `${v.hit + 1} of ${v.hits.length}${v.hits.length >= SRC_MAX_HITS ? '+' : ''}`
       : 'No matches';
+  // Previous / next only with something to step through.
+  for (const b of [$('#sc-src-prev'), $('#sc-src-next')]) b.disabled = !v.hits.length;
   if (step != null && v.hit >= 0) {
     const row = v.rows[v.hits[v.hit].line];
     row.classList.add('sc-src-cur');

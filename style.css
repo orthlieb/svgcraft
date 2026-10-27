@@ -2519,6 +2519,13 @@ select[data-stroke-dash],
 .sc-src-btn:hover {
   background: var(--hover);
 }
+.sc-src-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.sc-src-btn:disabled:hover {
+  background: var(--panel);
+}
 .sc-src-btn[aria-pressed='true'] {
   background: var(--tool-on);
 }
