@@ -215,6 +215,8 @@ window.SC_ICONS = {
     '<svg viewBox="0 0 512 512" aria-hidden="true"><path d="M256 40 488 456H24Z"/></svg>',
   'sc-lasso':
     '<svg viewBox="0 0 512 512" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="40" stroke-linecap="round"><ellipse cx="272" cy="200" rx="200" ry="136"/><path d="M164 316c-40 40-36 96 4 120s52 40 28 56"/></g></svg>',
+  'sc-wrap':
+    '<svg viewBox="0 0 512 512" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"><path d="M48 96h416M48 256h336a72 72 0 0 1 0 144H272M48 416h112"/><path d="M320 344l-56 56 56 56"/></g></svg>',
   'sc-star':
     '<svg viewBox="0 0 512 512" aria-hidden="true"><path d="M256 24l68 152 164 16-124 110 36 162-144-84-144 84 36-162L24 192l164-16z"/></svg>',
   'sc-custom-shape':

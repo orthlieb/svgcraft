@@ -2488,7 +2488,10 @@ select[data-stroke-dash],
   border-bottom: 1px solid var(--line);
 }
 .sc-src-bar input[type='search'] {
-  width: 150px;
+  /* Takes the room the buttons leave, so the bar stays one row. */
+  flex: 1 1 60px;
+  min-width: 0;
+  max-width: 220px;
   height: 22px;
   padding: 0 5px;
   border: 1px solid var(--line);
