@@ -1108,12 +1108,16 @@ in the saved SVG.
 
 #### Presets
 
-- **Entrances**: Fade in, Slide in, Pop in, Zoom in.
+- **Entrances**: Fade in, Slide in, Pop in, Zoom in, Wipe in (uncovered
+  from a side), Iris in (uncovered from the middle out) and Blur in (comes
+  into focus). Run any of them in **Reverse** to take the layer away the
+  same way.
 - **Exits**: Fade out, Slide out, Zoom out.
 - **Loops**: Spin, Pulse, Bounce, Shake, Float, Blink, Swing (back and
   forth about a point, like a hanging sign), Heartbeat (a double pulse),
-  Jello (a wobble that settles) and Flip (turned over like a card, and
-  back).
+  Jello (a wobble that settles), Flip (turned over like a card, and
+  back), Glow pulse (a coloured glow round it that comes and goes) and
+  Shine (a highlight sweeping across it, as on a button).
 - **Motion**: Move along path (see [Move along path](#move-along-path)).
 - **Line effects**: Draw on, Draw off, Dash march.
 - **Colour cycle**.
@@ -1130,9 +1134,10 @@ in the saved SVG.
   without adding up delays.
 - **Run**: **Normal**, **Reverse** or **Back and forth**.
 - **Ease**: Linear, Ease, Ease in, Ease out or Ease in-out.
-- Each preset's own options, such as the slide side and distance, turns,
-  how far to grow, the colour to cycle to, the angle and point a Swing
-  turns about, or which way a Flip turns.
+- Each preset's own options, such as the slide or wipe side and distance,
+  turns, how far to grow, the colour to cycle to, the angle and point a
+  Swing turns about, which way a Flip turns, how blurred Blur in starts,
+  or a Glow pulse's size and colour.
 - **Stagger** (a group, or a text layer's letters): see
   [Stagger](#stagger).
 
@@ -1155,6 +1160,11 @@ in the saved SVG.
   tag. Each animation adds about 150–300 bytes.
 - Export Clean SVG keeps the animation and rounds its coordinates like the
   rest. PNG, app icon and favicon exports use the still drawing.
+- Wipe in, Iris in, Blur in, Glow pulse and Shine need a clip, filter or
+  mask: the saved file wraps the layer in a group that carries it (Shine's
+  highlight goes in that group too). Reopened in SVGCraft, the group is
+  taken off again; a file from Export Clean SVG reopens with it as a group
+  of its own, and those animations left out.
 - Reopening a saved file rebuilds the animations from their settings.
 
 #### Animations from other files
