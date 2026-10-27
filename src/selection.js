@@ -45,7 +45,7 @@ function handlePos(box, k) {
 }
 
 function drawSelection() {
-  srcSyncSel();
+  if (typeof srcSyncSel === 'function') srcSyncSel();
   selLayer.replaceChildren();
   syncCornerUI();
   syncFillRuleUI();

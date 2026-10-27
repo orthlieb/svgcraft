@@ -173,7 +173,11 @@ test.describe('export', () => {
   });
 
   test('the built-in icons go in the sprite with their credit', async ({ page }) => {
-    const builtins = await page.evaluate(() => window.SC_SYMBOLS);
+    // (The built-in set loads when first needed.)
+    const builtins = await page.evaluate(async () => {
+      await window.need('symbols');
+      return window.SC_SYMBOLS;
+    });
     await setLib(page, { symbols: builtins });
     const sprite = (await exportZip(page))['symbols.svg'];
     expect((sprite.match(/<symbol /g) || []).length).toBe(builtins.length);

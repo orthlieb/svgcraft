@@ -123,7 +123,7 @@ function afterChange() {
   renderTabs();
   clearTimeout(saveTimer);
   saveTimer = setTimeout(saveDocs, 400);
-  srcSchedule();
+  if (typeof srcSchedule === 'function') srcSchedule();
   scheduleIconPreview();
 }
 

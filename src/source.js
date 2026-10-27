@@ -845,3 +845,6 @@ const inSource = (e) => {
   const s = getSelection();
   return !!s && !s.isCollapsed && srcWin.contains(s.anchorNode);
 };
+
+// Loaded on first use (core.js's need): wired as it arrives.
+wireSource();

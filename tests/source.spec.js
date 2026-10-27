@@ -121,7 +121,11 @@ test('CSS is coloured: selectors, at-rules, properties and values, nothing lost'
   const css =
     '@import url(a.css); @media (min-width: 4px) { .a, #b > c { fill: red; stroke: url(#g) } } ' +
     '/* note */ text { font: 12px "My Font", serif }';
-  const toks = await page.evaluate((s) => window.cssTokens(s), css);
+  // (SVG Source loads when first used.)
+  const toks = await page.evaluate(async (s) => {
+    await window.need('source');
+    return window.cssTokens(s);
+  }, css);
   // Exactly the text it was given.
   expect(toks.map((t) => t[1]).join('')).toBe(css);
   // Neighbouring pieces of one colour read as one.

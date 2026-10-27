@@ -287,7 +287,7 @@ window.addEventListener('keydown', (e) => {
       y: redo,
       s: () => (e.shiftKey ? saveDocAs() : saveDoc()),
       o: () => (e.shiftKey ? ifAllowed('createOutlines', createOutlines) : openPicker('open')),
-      u: () => (e.shiftKey ? ifAllowed('adjDesaturate') : toggleSource()),
+      u: () => (e.shiftKey ? ifAllowed('adjDesaturate') : actions.toggleSource()),
       j: () => ifAllowed(e.shiftKey ? 'layerViaCut' : 'layerViaCopy'),
       e: () => ifAllowed(e.shiftKey ? 'mergeVisible' : 'mergeDown'),
       d: () => setSel([]),
@@ -366,7 +366,7 @@ document.addEventListener('copy', (e) => {
     e.target.matches?.('input, textarea') ||
     e.target.isContentEditable ||
     !state.sel.length ||
-    inSource(e)
+    (typeof inSource === 'function' && inSource(e))
   )
     return;
   e.clipboardData.setData('text/plain', serialize({ selection: true }));
@@ -377,7 +377,7 @@ document.addEventListener('cut', (e) => {
     e.target.matches?.('input, textarea') ||
     e.target.isContentEditable ||
     !state.sel.length ||
-    inSource(e)
+    (typeof inSource === 'function' && inSource(e))
   )
     return;
   e.clipboardData.setData('text/plain', serialize({ selection: true }));

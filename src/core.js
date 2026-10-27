@@ -242,6 +242,35 @@ function mk(tag, attrs = {}, parent) {
   return el;
 }
 
+// ---- features loaded when first used --------------------------------------
+// The startup download leaves out what most sessions never open; each is
+// fetched the first time it's needed (index.html prefetches them once the
+// page is up, and the service worker keeps them for offline use).
+const LAZY = {
+  trace: 'src/trace.js',
+  source: 'src/source.js',
+  appIcons: 'src/app-icons.js',
+  symbols: 'symbols-library.js',
+};
+const lazyLoads = {};
+function need(name) {
+  lazyLoads[name] ??= new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = LAZY[name];
+    s.onload = resolve;
+    s.onerror = () => {
+      delete lazyLoads[name];
+      s.remove();
+      reject(new Error(`Couldn’t load ${LAZY[name]}`));
+    };
+    document.body.append(s);
+  });
+  return lazyLoads[name];
+}
+// Run a feature's command once it's loaded (say why not if it can't be).
+const withFeature = (name, run) => () =>
+  need(name).then(run, () => say('That needs a connection the first time: try again once online.'));
+
 // The SVG Source window's state (see openSource); afterChange and
 // drawSelection look at it from the start, so it lives up here.
 const srcView = {

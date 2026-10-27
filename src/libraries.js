@@ -22,7 +22,7 @@ function defaultLibrary(kind) {
       h,
       svg,
     })),
-    // The built-in icon set (symbols-library.js).
+    // The built-in icon set (symbols-library.js, loaded when first needed).
     symbols: (window.SC_SYMBOLS || []).map((x) => ({ ...x })),
   };
   return kind ? all[kind] : all;
@@ -124,11 +124,25 @@ function loadLibrary() {
   }
   return defaultLibrary();
 }
+// The built-in symbols are only fetched for a library that needs them (a
+// first visit, or one kept without them): until they arrive the library has
+// none, and saving leaves them out so they're filled in next time.
+const symbolsPending = () => !window.SC_SYMBOLS && !libHasSymbols;
+let libHasSymbols = Array.isArray(stored(LIB_KEY)?.symbols);
 const lib = loadLibrary();
 const libSel = { swatches: null, gradients: null, patterns: null, symbols: null };
+if (symbolsPending())
+  need('symbols').then(
+    () => {
+      lib.symbols = defaultLibrary('symbols');
+      libHasSymbols = true;
+      renderLibraries();
+    },
+    () => {},
+  );
 
 function saveLibrary() {
-  if (!store(LIB_KEY, lib))
+  if (!store(LIB_KEY, symbolsPending() ? { ...lib, symbols: undefined } : lib))
     say('Couldn’t save the library: this browser’s storage is full or blocked.');
   renderLibraries();
 }
@@ -341,6 +355,7 @@ async function resetLib(kind) {
     ok: 'Reset',
   });
   if (!ok) return;
+  if (kind === 'symbols') await need('symbols');
   lib[kind] = defaultLibrary(kind);
   libSel[kind] = null;
   saveLibrary();

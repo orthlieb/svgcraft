@@ -4243,8 +4243,13 @@
       <span id="sc-pos" class="sc-pos"></span>
     </footer>
 
+    <!-- Loaded when first used (src/core.js: need); fetched quietly once the
+         page is up, and kept by the service worker for offline use. -->
+    <link rel="prefetch" href="symbols-library.js" as="script" />
+    <link rel="prefetch" href="src/trace.js" as="script" />
+    <link rel="prefetch" href="src/source.js" as="script" />
+    <link rel="prefetch" href="src/app-icons.js" as="script" />
     <script src="icons.js"></script>
-    <script src="symbols-library.js"></script>
     <script src="google-fonts.js"></script>
     <!-- The editor: classic scripts sharing one scope, in this order (later
          files use what earlier ones define). Not ES modules, so it still
@@ -4290,9 +4295,6 @@
     <script src="src/file-info.js"></script>
     <script src="src/save.js"></script>
     <script src="src/clean-svg.js"></script>
-    <script src="src/trace.js"></script>
-    <script src="src/app-icons.js"></script>
-    <script src="src/source.js"></script>
     <script src="src/ui.js"></script>
     <script src="src/libraries.js"></script>
     <script src="src/library-exchange.js"></script>

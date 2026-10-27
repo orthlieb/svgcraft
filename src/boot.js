@@ -14,7 +14,6 @@ wirePatEditor();
 wireLibraries();
 wireSymbols();
 wireLayerStyle();
-wireSource();
 wireScrubbers();
 bindNumber('#sc-smooth', 'smoothing');
 bindNumber('#sc-eraser-size', 'eraserSize');

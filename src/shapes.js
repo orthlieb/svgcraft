@@ -144,7 +144,12 @@ function syncCustomPicker() {
 // An instance of the shape, fitted (proportions kept) and centred in box.
 function placeCustom(box) {
   const item = customItem();
-  if (!item) return say('The Symbols library is empty: add a symbol to draw it as a shape.');
+  if (!item)
+    return say(
+      symbolsPending()
+        ? 'The Symbols library is still loading: try again in a moment.'
+        : 'The Symbols library is empty: add a symbol to draw it as a shape.',
+    );
   const sym = libSymbolFor(item);
   if (!sym) return say(`Couldn’t read the library symbol “${item.name}”.`);
   const paint =
