@@ -161,8 +161,9 @@ test('a layer can be renamed; Esc cancels and an empty name restores the automat
   await placeIcon(page);
   const name = page.locator('#sc-layers .sc-layer-name').first();
   await expect(name).toHaveText('Pasted SVG');
+  // On the name's text: the empty row after it opens Layer Style.
 
-  await name.dblclick();
+  await name.dblclick({ position: { x: 8, y: 6 } });
   await page.keyboard.type('Logo');
   await page.keyboard.press('Enter');
   await expect(name).toHaveText('Logo');
@@ -171,12 +172,12 @@ test('a layer can be renamed; Esc cancels and an empty name restores the automat
   ).toBe('Logo');
   expect(await page.evaluate(() => window.svgcraft.serialize())).toContain('data-name="Logo"');
 
-  await name.dblclick();
+  await name.dblclick({ position: { x: 8, y: 6 } });
   await page.keyboard.type('nope');
   await page.keyboard.press('Escape');
   await expect(name).toHaveText('Logo');
 
-  await name.dblclick();
+  await name.dblclick({ position: { x: 8, y: 6 } });
   await page.keyboard.press('Control+a');
   await page.keyboard.press('Backspace');
   await page.keyboard.press('Enter');

@@ -120,7 +120,7 @@ test('a tip shows in the top layer above an open modal dialog', async ({ page })
 
 test('keyboard focus shows the tip', async ({ page }) => {
   await page.mouse.move(700, 450);
-  await page.locator('[data-tool="pencil"]').focus();
+  await page.locator('[data-tool="gradient"]').focus();
   await page.keyboard.press('Tab');
   await page.waitForTimeout(50);
   const s = await tipState(page);
