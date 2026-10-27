@@ -2860,6 +2860,25 @@ body.sc-no-doc .sc-status > * {
 .sc-preview .sc-splitter {
   display: none !important;
 }
+/* The phone's text view: SVG Source fills the screen under the toolbar. */
+.sc-preview .sc-src:not(.sc-iconprev) {
+  inset: 33px 0 0 !important;
+  width: auto !important;
+  height: auto !important;
+  min-width: 0;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  transform: none !important;
+  resize: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.sc-preview .sc-src .sc-src-grip,
+.sc-preview .sc-src #sc-src-dock {
+  display: none;
+}
 
 /* ---- File → Export App Icons… ------------------------------------------------ */
 .sc-appicons {
@@ -3203,6 +3222,39 @@ body.sc-no-doc .sc-status > * {
 }
 .sc-dock-strip {
   display: none;
+}
+/* Group heights (src/panels.js): a tabbed group keeps its height and
+   scrolls inside; Layers takes the rest, never less than its minimum. */
+.sc-psplit {
+  display: none;
+}
+@media (min-width: 1024px) {
+  body:not(.sc-dock-icons):not(.sc-no-panels):not(.sc-no-right) #sc-panel {
+    overflow: hidden;
+  }
+  body:not(.sc-dock-icons) .sc-psplit {
+    display: block;
+    flex: none;
+    z-index: 2;
+  }
+  body:not(.sc-dock-icons) .sc-pgroup.collapsed + .sc-psplit {
+    display: none;
+  }
+  body:not(.sc-dock-icons) .sc-pgroup[data-tabs]:not(.collapsed) {
+    flex: 0 1 var(--h, auto);
+    min-height: 90px;
+    overflow: hidden;
+  }
+  body:not(.sc-dock-icons) .sc-pgroup[data-tabs]:not(.collapsed) > .sc-pbody {
+    flex: 0 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  body:not(.sc-dock-icons) .sc-pgroup.sc-grow:not(.collapsed) {
+    flex: 1 1 0;
+    min-height: 180px;
+  }
 }
 @media (min-width: 1024px) {
   body.sc-dock-icons .sc-main {

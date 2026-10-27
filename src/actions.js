@@ -14,6 +14,7 @@ const actions = {
   peekLayers: () => peekLayers(),
   previewBg: () => previewBg(),
   shareDoc: () => shareDoc(),
+  phoneSource: () => toggleSource(),
   makeSymbol,
   editSymbol,
   breakSymbolLink,

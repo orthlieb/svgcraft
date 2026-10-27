@@ -206,6 +206,35 @@ test.describe('phone, portrait', () => {
       .toEqual(['test.svg image/svg+xml', 'test.png image/png']);
   });
 
+  test('the text view shows the SVG source to copy; the same button goes back', async ({
+    page,
+    context,
+  }) => {
+    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    await load(page, DRAWING);
+    const btn = page.locator('[data-action="phoneSource"]');
+    const src = page.locator('#sc-source');
+    await expect(src).toBeHidden();
+    await btn.tap();
+    await expect(src).toBeVisible();
+    await expect(btn).toHaveAttribute('aria-pressed', 'true');
+    await expect(btn).toHaveAttribute('aria-label', 'Drawing view');
+    // It fills the screen under the toolbar.
+    const box = await src.boundingBox();
+    expect(box.width).toBeGreaterThanOrEqual(389);
+    expect(box.y + box.height).toBeGreaterThanOrEqual(799);
+    await expect(page.locator('#sc-src-code')).toContainText('<circle id="c"');
+    await page.locator('#sc-src-copy').tap();
+    await expect
+      .poll(() => page.evaluate(() => navigator.clipboard.readText()))
+      .toContain('<circle id="c"');
+    // Back to the drawing.
+    await btn.tap();
+    await expect(src).toBeHidden();
+    await expect(btn).toHaveAttribute('aria-label', 'Text view');
+    await expect(page.locator('#sc-stage')).toBeVisible();
+  });
+
   test('double-tap zooms in on the spot, and again fits', async ({ page }) => {
     await load(page, DRAWING, 300, 200);
     await bar(page, 'fit').click();

@@ -30,6 +30,9 @@ The phone toolbar also has:
   tab or moving to a bigger screen shows the drawing as it is again.
   **Hide all** / **Show all** do every layer (Show all includes ones the
   file itself hides); layers inside a hidden group are dimmed.
+- **Text view** (`</>`): the SVG source full-screen, syntax-coloured, to
+  read, search and **Copy** (or download); the same button (now a picture)
+  goes back to the drawing.
 - **Background**: the artwork on the checkerboard, white or black
   (remembered).
 - **Share**: the phone's share sheet with the SVG and a PNG of it
@@ -69,6 +72,12 @@ The layout follows Photoshop:
   I-beam and the curved arrow on the rotate handle.
 - **Document tabs** above the canvas, one per open drawing, showing the
   file name and zoom (see Documents below).
+- **Panel heights**, as in Photoshop: each group keeps its height whatever
+  its tab shows (longer content scrolls inside it), so selecting something
+  never shuffles the panels below. Drag the divider under a group to resize
+  it (double-click it for the group's natural height, or use the arrow
+  keys); Layers takes the rest and always keeps room. Remembered; Reset
+  Workspace puts them back.
 - **Docked panels**: Color (fill and stroke, with the stroke's width,
   alignment, caps, joins and dashes) / Swatches / Gradients / Patterns, Properties
   (shape settings, document size, grid and snap), Character / Paragraph,

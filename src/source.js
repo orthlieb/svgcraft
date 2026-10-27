@@ -474,6 +474,7 @@ function openSource() {
   // Docked beside the canvas, unless it was floated (src/dock.js).
   dockOnOpen(srcDock);
   $('[data-action="toggleSource"]').setAttribute('aria-checked', 'true');
+  syncPhoneSource();
   v.text = null;
   v.sel = [...state.sel];
   srcRender();
@@ -488,6 +489,7 @@ function closeSource() {
   srcWin.hidden = true;
   syncDock();
   $('[data-action="toggleSource"]').setAttribute('aria-checked', 'false');
+  syncPhoneSource();
   if (srcHL) {
     CSS.highlights.delete('sc-src-find');
     CSS.highlights.delete('sc-src-find-cur');
@@ -500,6 +502,16 @@ function closeSource() {
   }
 }
 const toggleSource = () => (srcView.open ? closeSource() : openSource());
+// The phone's text view: the source full-screen under the toolbar, with
+// Copy; the same button goes back to the drawing.
+function syncPhoneSource() {
+  const b = $('[data-action="phoneSource"]');
+  const open = srcView.open;
+  b.setAttribute('aria-pressed', open);
+  b.dataset.tip = open ? 'Drawing view' : 'Text view: the SVG source, to read, search and copy';
+  b.setAttribute('aria-label', open ? 'Drawing view' : 'Text view');
+  b.innerHTML = `<i data-icon="${open ? 'image' : 'code'}">${icon(open ? 'image' : 'code')}</i>`;
+}
 
 // A split pane beside the canvas, or (floated) a window of its own.
 const srcDock = makeDockable(srcWin, {

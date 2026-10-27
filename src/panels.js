@@ -65,6 +65,72 @@ pgroups.forEach((group) => {
   setCollapsed(group, savedCollapsed(group), false);
 });
 
+// Group heights, as in Photoshop: each tabbed group keeps its height
+// whatever its tab shows (more scrolls inside it), so selecting something
+// doesn't shuffle the panels below; drag the divider under a group to
+// resize it (double-click for its natural height). Layers takes the rest,
+// and always keeps room. Desktop only; remembered.
+const PANEL_H_KEY = 'svgcraft.panelHeights';
+const MIN_GROUP_H = 90;
+const tabGroups = pgroups.filter((g) => g.hasAttribute('data-tabs'));
+function naturalHeight(g) {
+  const folded = g.classList.contains('collapsed');
+  g.classList.remove('collapsed');
+  g.style.removeProperty('--h');
+  const h = Math.ceil(g.scrollHeight);
+  g.classList.toggle('collapsed', folded);
+  return h || 300;
+}
+function setGroupHeight(g, h, save = true) {
+  g.style.setProperty('--h', `${Math.round(Math.max(MIN_GROUP_H, h))}px`);
+  if (save)
+    store(
+      PANEL_H_KEY,
+      tabGroups.map((x) => parseFloat(x.style.getPropertyValue('--h')) || null),
+    );
+}
+function applyGroupHeights() {
+  const saved = stored(PANEL_H_KEY, []);
+  tabGroups.forEach((g, i) => {
+    const h = Array.isArray(saved) && saved[i];
+    setGroupHeight(g, h > 0 ? h : naturalHeight(g), false);
+  });
+}
+for (const g of tabGroups) {
+  const split = document.createElement('div');
+  split.className = 'sc-splitter sc-splitter-h sc-psplit';
+  split.tabIndex = 0;
+  split.setAttribute('role', 'separator');
+  split.setAttribute('aria-orientation', 'horizontal');
+  split.setAttribute('aria-label', 'Resize panel');
+  g.after(split);
+  split.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    split.setPointerCapture(e.pointerId);
+    split.classList.add('dragging');
+    const y0 = e.clientY;
+    const h0 = g.getBoundingClientRect().height;
+    const max = $('#sc-panel').clientHeight;
+    const move = (ev) => setGroupHeight(g, Math.min(max, h0 + ev.clientY - y0), false);
+    const up = () => {
+      split.classList.remove('dragging');
+      split.removeEventListener('pointermove', move);
+      setGroupHeight(g, g.getBoundingClientRect().height);
+    };
+    split.addEventListener('pointermove', move);
+    split.addEventListener('pointerup', up, { once: true });
+    split.addEventListener('pointercancel', up, { once: true });
+  });
+  split.addEventListener('dblclick', () => setGroupHeight(g, naturalHeight(g)));
+  split.addEventListener('keydown', (e) => {
+    const d = { ArrowUp: -10, ArrowDown: 10 }[e.key];
+    if (!d) return;
+    e.preventDefault();
+    setGroupHeight(g, g.getBoundingClientRect().height + d);
+  });
+}
+applyGroupHeights();
+
 // The » button: the panels shrink to a strip of their icons, as in
 // Photoshop; an icon pops its panel out beside the strip, and a click
 // elsewhere or Esc puts it away. Desktop only (tablets have the drawer).
@@ -203,6 +269,8 @@ actions.resetWorkspace = () => {
     g.querySelector('[data-tab]')?.click();
   }
   store(PANELS_KEY, null);
+  store(PANEL_H_KEY, null);
+  applyGroupHeights();
   for (const k of [DOCK_W_KEY, DOCK_SPLIT_KEY]) store(k, null);
   for (const d of dockables) {
     store(d.key, null);
