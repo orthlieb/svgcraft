@@ -153,9 +153,10 @@ export default [
   {
     id: 'eyedropper',
     async shoot(h) {
-      await h.select('Yellow paint');
+      await h.open(SHAPES, 'shapes.svg', 800, 340);
+      await h.select('Disc');
       await h.page.evaluate(() => window.svgcraft.setTool('eyedropper'));
-      await h.shot(null, { clip: { x: 0, y: 0, width: 1280, height: 420 } });
+      await h.shot(null, { clip: { x: 0, y: 0, width: 1280, height: 560 } });
     },
   },
   {
@@ -207,6 +208,7 @@ export default [
   {
     id: 'zoom-and-pan',
     async shoot(h) {
+      await h.open(SHAPES, 'shapes.svg', 800, 340);
       await h.page.evaluate(() => window.svgcraft.setTool('zoom'));
       await h.menu('View', 'zoomIn', { click: false });
       await h.shot(
@@ -318,8 +320,9 @@ export default [
   {
     id: 'selecting-moving-and-arranging',
     async shoot(h) {
-      await h.select('Red paint', 'Yellow paint');
-      await h.shot(null, { clip: { x: 0, y: 0, width: 1008, height: 500 } });
+      await h.open(SHAPES, 'shapes.svg', 800, 340);
+      await h.select('Box', 'Disc');
+      await h.shot(null, { clip: { x: 0, y: 0, width: 1008, height: 600 } });
     },
   },
 ];

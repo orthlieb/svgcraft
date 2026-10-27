@@ -332,7 +332,7 @@ export default [
     },
   },
   {
-    id: 'create-outlines-fonts',
+    id: 'fonts-for-outlines',
     async shoot(h) {
       await h.select('Title');
       await h.tab('character');

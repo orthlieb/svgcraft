@@ -231,7 +231,7 @@ tools.select = {
 };
 
 tools.pencil = {
-  hint: 'Drag to draw freehand · Smoothing lives in the panel',
+  hint: 'Drag to draw freehand · Smoothing is in the options bar',
   cursor: cursorFor.pencil,
   down(e, p) {
     this.pts = [p];
