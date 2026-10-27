@@ -50,7 +50,12 @@ export default [
   },
   {
     // These run code in the page through Playwright, too.
-    files: ['tests/**/*.js', '*.config.js', 'scripts/gen-about-screens.mjs'],
+    files: [
+      'tests/**/*.js',
+      '*.config.js',
+      'scripts/gen-*-screens.mjs',
+      'scripts/help-screens/*.mjs',
+    ],
     languageOptions: { globals: { ...globals.node, ...globals.browser } },
   },
 ];

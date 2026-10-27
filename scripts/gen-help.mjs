@@ -5,10 +5,11 @@
 //   node scripts/gen-help.mjs --check  exit 1 if help.html is out of date
 //
 // Every ## section of the README from "Workspace" up to "Development"
-// becomes a section of the help, and every top-level bullet that starts
-// with a bold name becomes a topic with its own anchor (#image-trace,
-// #gradients, …), which the editor's ? buttons link to. Run it after
-// editing the README; tests/help.spec.js fails while help.html is stale.
+// becomes a section of the help, and every ### heading in it a topic with
+// its own anchor (#image-trace, #gradients, …), which the editor's ?
+// buttons link to. A topic opens with its screenshot (docs/help/*.png,
+// taken by scripts/gen-help-screens.mjs). Run it after editing the README;
+// tests/help.spec.js fails while help.html is stale.
 import fs from 'node:fs';
 import path from 'node:path';
 import * as prettier from 'prettier';
@@ -64,59 +65,71 @@ function sections() {
   return out;
 }
 
-// Blocks of a section: paragraphs, ### headings, tables and lists (a list
-// item is its first line plus the more-indented lines after it).
+// Markdown blocks: paragraphs, #### labels, images (a line of its own),
+// tables, and lists, bulleted or numbered, whose items hold blocks of their
+// own (a nested list, a second paragraph) indented under them.
+const indent = (l) => l.match(/^ */)[0].length;
+const ITEM = /^(- |\d+\. )/;
 function blocks(lines) {
   const out = [];
   let i = 0;
-  const indent = (l) => l.match(/^ */)[0].length;
   while (i < lines.length) {
     const l = lines[i];
     if (!l.trim()) {
       i++;
       continue;
     }
-    const h3 = l.match(/^### (.+)$/);
-    if (h3) {
-      out.push({ k: 'h3', text: h3[1] });
+    const h = l.match(/^#### (.+)$/);
+    const img = l.match(/^!\[([^\]]*)\]\(([^)\s]+)\)$/);
+    const item = l.match(ITEM);
+    if (h) {
+      out.push({ k: 'h4', text: h[1] });
+      i++;
+    } else if (img) {
+      out.push({ k: 'img', alt: img[1], src: img[2] });
       i++;
     } else if (l.startsWith('|')) {
       const rows = [];
       while (i < lines.length && lines[i].startsWith('|')) rows.push(lines[i++]);
       out.push({ k: 'table', rows });
-    } else if (/^- /.test(l)) {
+    } else if (item) {
+      const ol = item[1] !== '- ';
       const items = [];
-      while (
-        i < lines.length &&
-        (/^- /.test(lines[i]) ||
-          (lines[i].trim() && indent(lines[i]) > 0) ||
-          (!lines[i].trim() && /^(- | )/.test(lines[i + 1] || '')))
-      ) {
-        if (/^- /.test(lines[i])) items.push([lines[i].slice(2)]);
-        else items.at(-1).push(lines[i].replace(/^ {2}/, ''));
-        i++;
+      while (i < lines.length) {
+        const m = lines[i].match(ITEM);
+        if (m && (m[1] !== '- ') === ol) {
+          items.push({ pad: m[1].length, lines: [lines[i].slice(m[1].length)] });
+          i++;
+        } else if (lines[i].trim() && indent(lines[i]) > 0 && items.length) {
+          items.at(-1).lines.push(lines[i].slice(Math.min(indent(lines[i]), items.at(-1).pad)));
+          i++;
+        } else if (!lines[i].trim() && i + 1 < lines.length && items.length) {
+          const next = lines[i + 1];
+          const n = next.match(ITEM);
+          if (indent(next) > 0 || (n && (n[1] !== '- ') === ol)) {
+            items.at(-1).lines.push('');
+            i++;
+          } else break;
+        } else break;
       }
-      out.push({ k: 'ul', items });
+      out.push({ k: ol ? 'ol' : 'ul', items: items.map((it) => it.lines) });
     } else {
       const para = [];
-      while (i < lines.length && lines[i].trim() && !/^(- |\||### )/.test(lines[i]))
-        para.push(lines[i++]);
+      while (i < lines.length && lines[i].trim() && !/^(- |\d+\. |\||#### |!\[)/.test(lines[i]))
+        para.push(lines[i++].trim());
       out.push({ k: 'p', text: para.join(' ') });
     }
   }
   return out;
 }
 
-// A list item's lines → HTML (a nested list inside it is converted too).
-function itemHtml(lines) {
-  const firstSub = lines.findIndex((l, j) => j > 0 && /^- /.test(l));
-  const text = (firstSub < 0 ? lines : lines.slice(0, firstSub)).map((l) => l.trim()).join(' ');
-  let html = inline(text);
-  if (firstSub >= 0)
-    html += listHtml(blocks(lines.slice(firstSub)).filter((b) => b.k === 'ul')[0].items);
-  return html;
+// PNG size, from its header, so the page doesn't jump as images arrive.
+function pngSize(src) {
+  const f = path.join(ROOT, src);
+  if (!fs.existsSync(f)) throw new Error(`README links a missing image: ${src}`);
+  const b = fs.readFileSync(f);
+  return [b.readUInt32BE(16), b.readUInt32BE(20)];
 }
-const listHtml = (items) => `<ul>${items.map((it) => `<li>${itemHtml(it)}</li>`).join('')}</ul>`;
 
 function tableHtml(rows) {
   const cells = (r) =>
@@ -137,19 +150,48 @@ function tableHtml(rows) {
     .join('')}</tbody></table>`;
 }
 
+// Blocks → HTML. A list item that's one paragraph stays inline.
+function html(bs) {
+  return bs
+    .map((b) => {
+      if (b.k === 'h4') return `<h4>${inline(b.text)}</h4>`;
+      if (b.k === 'p') return `<p>${inline(b.text)}</p>`;
+      if (b.k === 'table') return tableHtml(b.rows);
+      if (b.k === 'img') {
+        const [w, h] = pngSize(b.src);
+        return `<figure><img src="${b.src}" alt="${esc(b.alt)}" width="${w}" height="${h}" loading="lazy" /></figure>`;
+      }
+      return `<${b.k}>${b.items
+        .map((lines) => {
+          const inner = blocks(lines);
+          const body =
+            inner.length && inner[0].k === 'p'
+              ? inline(inner[0].text) + html(inner.slice(1))
+              : html(inner);
+          return `<li>${body}</li>`;
+        })
+        .join('')}</${b.k}>`;
+    })
+    .join('\n');
+}
+
 // ---- the page ---------------------------------------------------------------------
-const secs = sections();
-// Topic anchors: the bold name's slug, or section-prefixed where two
-// sections share a name (Type's "Fonts." and Create Outlines' "Fonts.").
-const topicName = (lines) => lines[0].match(/^(?:[^*\w]*\s)?\*\*(.+?)\*\*/)?.[1];
+// A section is its introduction (before its first ###) and its topics, one
+// per ### heading. Topic anchors are the heading's slug, or prefixed with the
+// section's where two sections share a name (Type's and Create Outlines'
+// "Fonts").
+const secs = sections().map((s) => {
+  const parts = [{ title: null, lines: [] }];
+  for (const l of s.lines) {
+    const h = l.match(/^### (.+)$/);
+    if (h) parts.push({ title: h[1], lines: [] });
+    else parts.at(-1).lines.push(l);
+  }
+  return { title: s.title, intro: parts[0].lines, topics: parts.slice(1) };
+});
 const counts = new Map();
 for (const s of secs)
-  for (const b of blocks(s.lines))
-    if (b.k === 'ul')
-      for (const it of b.items) {
-        const n = topicName(it);
-        if (n) counts.set(slug(n), (counts.get(slug(n)) || 0) + 1);
-      }
+  for (const t of s.topics) counts.set(slug(t.title), (counts.get(slug(t.title)) || 0) + 1);
 const sectionIds = new Set(secs.map((s) => slug(s.title)));
 const used = new Set(sectionIds);
 const topicId = (sec, name) => {
@@ -164,31 +206,23 @@ const nav = [];
 const body = secs
   .map((s) => {
     const sid = slug(s.title);
-    const topics = [];
-    const html = blocks(s.lines)
-      .map((b) => {
-        if (b.k === 'h3') return `<h3 id="${slug(b.text)}">${inline(b.text)}</h3>`;
-        if (b.k === 'p') return `<p data-find>${inline(b.text)}</p>`;
-        if (b.k === 'table') return `<div data-find>${tableHtml(b.rows)}</div>`;
-        return `<ul>${b.items
-          .map((it) => {
-            const n = topicName(it);
-            if (!n) return `<li data-find>${itemHtml(it)}</li>`;
-            const id = topicId(s.title, n);
-            topics.push([id, n.replace(/[.:]$/, '')]);
-            return `<li data-find id="${id}">${itemHtml(it)}</li>`;
-          })
-          .join('')}</ul>`;
-      })
-      .join('\n');
+    const intro = blocks(s.intro);
+    const topics = s.topics.map((t) => ({ id: topicId(s.title, t.title), ...t }));
     nav.push(
       `<li><a href="#${sid}">${inline(s.title)}</a>${
         topics.length
-          ? `<ul>${topics.map(([id, n]) => `<li><a href="#${id}">${inline(n)}</a></li>`).join('')}</ul>`
+          ? `<ul>${topics.map((t) => `<li><a href="#${t.id}">${inline(t.title)}</a></li>`).join('')}</ul>`
           : ''
       }</li>`,
     );
-    return `<section id="${sid}"><h2>${inline(s.title)}</h2>\n${html}</section>`;
+    return `<section id="${sid}"><h2>${inline(s.title)}</h2>
+${intro.length ? `<div class="intro" data-find>${html(intro)}</div>` : ''}
+${topics
+  .map(
+    (t) =>
+      `<article id="${t.id}" data-find><h3>${inline(t.title)}</h3>\n${html(blocks(t.lines))}</article>`,
+  )
+  .join('\n')}</section>`;
   })
   .join('\n');
 
@@ -233,11 +267,19 @@ nav a { display: block; padding: 2px 0; color: var(--text-dim); text-decoration:
 nav a:hover { color: var(--accent); }
 main section { padding: 4px 24px 12px; margin-bottom: 20px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); }
 h2 { margin: 16px 0 8px; font-size: 22px; }
-h3 { margin: 18px 0 6px; font-size: 17px; }
+h3 { margin: 0 0 10px; font-size: 18px; }
+h4 { margin: 14px 0 4px; font-size: 15px; }
 main a { color: var(--accent); }
-main ul { padding-left: 22px; }
-main li { margin: 6px 0; }
-li:target, li.flash { border-radius: 6px; background: var(--mark); box-shadow: 0 0 0 6px var(--mark); }
+main ul, main ol { padding-left: 22px; }
+main li { margin: 5px 0; }
+main li > ul, main li > ol { margin: 4px 0; }
+article { margin: 0 -12px; padding: 18px 12px 8px; border-top: 1px solid var(--line); border-radius: 8px; }
+.intro + article, h2 + article { border-top: 0; }
+article { transition: background-color 0.6s; }
+article:target { box-shadow: inset 3px 0 var(--accent); }
+article.flash { background: var(--mark); }
+figure { margin: 4px 0 14px; }
+figure img { display: block; max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 2px 10px rgb(0 0 0 / 12%); }
 code { padding: 1px 4px; border-radius: 4px; background: var(--kbd); font-size: 13px; }
 table { width: 100%; border-collapse: collapse; font-size: 14px; }
 th, td { padding: 5px 8px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
@@ -259,7 +301,7 @@ ${body}
 </main>
 </div>
 <script>
-// Search: only the paragraphs, topics and tables that hold every word.
+// Search: only the topics (and section introductions) that hold every word.
 const find = document.getElementById('find');
 const blocks = [...document.querySelectorAll('[data-find]')];
 const text = new Map(blocks.map((b) => [b, b.textContent.toLowerCase()]));
@@ -273,8 +315,6 @@ find.addEventListener('input', () => {
   }
   for (const s of document.querySelectorAll('main section'))
     s.hidden = !s.querySelector('[data-find]:not([hidden])');
-  for (const ul of document.querySelectorAll('main ul'))
-    ul.hidden = !ul.querySelector(':scope > li:not([hidden])');
   for (const a of document.querySelectorAll('nav a')) {
     const t = document.getElementById(a.getAttribute('href').slice(1));
     a.parentElement.hidden = !!t && t.hidden;

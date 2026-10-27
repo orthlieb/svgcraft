@@ -74,3 +74,27 @@ test('the help page loads, searches, and lights up a linked topic', async ({ pag
   await page.fill('#find', '');
   await expect(page.locator('#gradients')).toBeVisible();
 });
+
+test('every topic opens with its screenshot, and every screenshot is used', async () => {
+  // Topics are the README's ### headings; each starts with an image of what
+  // it's about (taken by scripts/gen-help-screens.mjs).
+  const topics = [...HELP.matchAll(/<article id="([^"]+)"[^>]*><h3>.*?<\/h3>\s*(<\w+[^>]*>)/g)];
+  expect(topics.length).toBeGreaterThan(40);
+  const bare = topics.filter(([, , first]) => first !== '<figure>').map(([, id]) => id);
+  expect(bare, 'topics without a screenshot first').toEqual([]);
+  // Sections with no topics open with one too.
+  const sections = [
+    ...HELP.matchAll(/<section id="([^"]+)"><h2>.*?<\/h2>\s*([\s\S]*?)<\/section>/g),
+  ];
+  for (const [, id, inner] of sections)
+    if (!inner.includes('<article'))
+      expect(inner, `#${id}`).toMatch(/^<div class="intro" data-find>\s*<figure>/);
+  // Every image is in the repo, and every file in docs/help is used.
+  const used = new Set([...HELP.matchAll(/<img src="([^"]+)"/g)].map((m) => m[1]));
+  for (const src of used) expect(fs.existsSync(path.join(ROOT, src)), src).toBe(true);
+  const files = fs.readdirSync(path.join(ROOT, 'docs/help')).map((f) => `docs/help/${f}`);
+  expect(
+    files.filter((f) => !used.has(f)),
+    'unused screenshots',
+  ).toEqual([]);
+});
