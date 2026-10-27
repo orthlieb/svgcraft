@@ -2,7 +2,7 @@ import { test, expect, load, toScreen } from './fixtures.js';
 
 // Stroke caps, joins, dash presets and rounded rectangle corners.
 
-const props = '[data-pane="props"]';
+const props = '[data-pane="color"]';
 const opt = '.sc-opt.on';
 
 // Drag between two document points.
@@ -317,4 +317,23 @@ test.describe('rect corner radii', () => {
     await expect(page.locator('#sc-doc path')).toHaveCount(0);
     await expect(page.locator('#sc-doc rect')).toHaveAttribute('rx', '20');
   });
+});
+
+test('the stroke settings sit under Stroke in the Color panel, whatever else is open', async ({
+  page,
+}) => {
+  // The Symbols tab shares a group with Properties: the stroke settings
+  // still show.
+  await page.click('[data-tab="symbols"]');
+  for (const sel of [
+    '[data-bind="strokeWidth"]',
+    '[data-stroke-align="center"]',
+    '[data-stroke-cap="round"]',
+    '[data-stroke-join="round"]',
+    'select[data-stroke-dash]',
+  ])
+    await expect(
+      page.locator(`[data-pane="color"] .sc-paint[data-target="stroke"] ${sel}`),
+    ).toBeVisible();
+  await expect(page.locator('[data-pane="props"] [data-bind="strokeWidth"]')).toHaveCount(0);
 });

@@ -102,12 +102,11 @@ test('painted bounds: outside and inside stroke positions', async ({ page }) => 
   );
   await select(page, 's');
   for (const align of ['outside', 'inside', 'center']) {
-    await page.click('[data-tab="props"]');
-    await page.click(`[data-pane="props"] button[data-stroke-align="${align}"]`);
+    await page.click(`[data-pane="color"] button[data-stroke-align="${align}"]`);
     await expectTight(page, 's');
   }
   const outside = async () => {
-    await page.click(`[data-pane="props"] button[data-stroke-align="outside"]`);
+    await page.click(`[data-pane="color"] button[data-stroke-align="outside"]`);
     return computed(page, 's');
   };
   expect(await outside()).toEqual({ x1: 88, y1: 68, x2: 232, y2: 182 });

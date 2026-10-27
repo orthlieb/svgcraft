@@ -1971,6 +1971,9 @@ select[data-stroke-dash],
 .sc-prop-rows select {
   justify-self: start;
 }
+.sc-stroke-opts .sc-prop-rows {
+  margin-top: 6px;
+}
 .sc-corners {
   margin-top: 12px;
   padding-top: 8px;

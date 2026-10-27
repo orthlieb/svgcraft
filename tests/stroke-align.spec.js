@@ -4,7 +4,7 @@ import { test, expect, load, select, action, stageBox } from './fixtures.js';
 // rasterising the exported SVG to a canvas and sampling pixels, since what
 // matters is what the stroke looks like, not how the clip / mask is built.
 
-const props = '[data-pane="props"]';
+const props = '[data-pane="color"]';
 
 // Colour names of the export at doc points (the doc is 300 × 200).
 const px = (page, pts) =>

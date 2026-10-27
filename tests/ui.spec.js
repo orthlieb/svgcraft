@@ -69,7 +69,7 @@ test('dragging a scrubby label changes the stroke width everywhere', async ({ pa
   await page.mouse.move(lb.x + 40, lb.y + 5, { steps: 6 });
   await page.mouse.up();
   expect(await page.evaluate(() => window.svgcraft.state.strokeWidth)).toBe(8);
-  await expect(page.locator('[data-pane="props"] [data-bind=strokeWidth]')).toHaveValue('8');
+  await expect(page.locator('[data-pane="color"] [data-bind=strokeWidth]')).toHaveValue('8');
 });
 
 test.describe('toolbar paint chips', () => {

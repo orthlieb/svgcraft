@@ -3,7 +3,7 @@ import { test, expect, load, select, stageBox } from './fixtures.js';
 // Custom dash / gap fields: data-dash records the pattern in stroke widths,
 // stroke-dasharray holds it scaled by the current stroke width.
 
-const props = '[data-pane="props"]';
+const props = '[data-pane="color"]';
 
 // data-dash and stroke-dasharray of #a.
 const attrs = (page) =>
@@ -22,7 +22,7 @@ async function setField(page, i, v) {
 }
 
 async function openProps(page) {
-  await page.click('[data-tab="props"]');
+  await page.click('[data-tab="color"]');
   await expect(page.locator(`${props} select[data-stroke-dash]`)).toBeVisible();
 }
 
@@ -108,12 +108,12 @@ test.describe('imported dasharray', () => {
   });
 });
 
-test('Custom in the options bar switches to the Properties tab', async ({ page }) => {
-  await page.click('[data-tab="character"]');
-  await expect(page.locator('[data-tab="props"]')).not.toHaveAttribute('aria-selected', 'true');
+test('Custom in the options bar switches to the Color tab', async ({ page }) => {
+  await page.click('[data-tab="swatches"]');
+  await expect(page.locator('[data-tab="color"]')).not.toHaveAttribute('aria-selected', 'true');
   await page.keyboard.press('r');
   await page.selectOption('.sc-opt.on select[data-stroke-dash]', 'custom');
-  await expect(page.locator('[data-tab="props"]')).toHaveAttribute('aria-selected', 'true');
+  await expect(page.locator('[data-tab="color"]')).toHaveAttribute('aria-selected', 'true');
 });
 
 test('a newly drawn shape gets the custom pattern', async ({ page }) => {

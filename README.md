@@ -69,8 +69,9 @@ The layout follows Photoshop:
   I-beam and the curved arrow on the rotate handle.
 - **Document tabs** above the canvas, one per open drawing, showing the
   file name and zoom (see Documents below).
-- **Docked panels**: Color / Swatches / Gradients / Patterns, Properties
-  (stroke width, document size, grid and snap), Character / Paragraph,
+- **Docked panels**: Color (fill and stroke, with the stroke's width,
+  alignment, caps, joins and dashes) / Swatches / Gradients / Patterns, Properties
+  (shape settings, document size, grid and snap), Character / Paragraph,
   Symbols, Animation and Layers (see below). As in Photoshop, each tab is
   an icon; the open tab also shows its name, and hovering any tab names it.
   Double-click a group's tab bar, or click the chevron at its end, to fold
@@ -327,7 +328,7 @@ stroke="currentColor"` (common in icon sets) is pushed down so it
   Alt-drag a handle to break one. Works on paths with any command (arcs
   included) and on rectangles, ellipses, circles, lines, polylines and
   polygons. A basic shape turns into a `<path>` only once you change it.
-- **Fill rule and path direction** (Properties, under Stroke, when a path,
+- **Fill rule and path direction** (Properties, when a path,
   polygon or polyline is selected; also Object → Path). Where a path
   crosses itself or holds another subpath, the fill rule decides what's
   inside: **Non-zero** (SVG's default) fills an area unless the outline's
@@ -401,8 +402,8 @@ stroke="currentColor"` (common in icon sets) is pushed down so it
     Duplicates split off their own copy when edited, unused gradients are
     removed automatically, and gradients in imported files are read,
     including ones that borrow stops from another gradient.
-- **Stroke options**, in the options bar of the drawing tools and in
-  Properties:
+- **Stroke options**, in the options bar of the drawing tools and under
+  Stroke in the Color panel, so they show whatever other panel is open:
   - **Width** (thickness) in px.
   - **Align**: Inside, Center or Outside, as in Photoshop, for closed
     shapes (rectangles, ellipses, polygons and closed paths). SVG strokes
@@ -418,7 +419,7 @@ stroke="currentColor"` (common in icon sets) is pushed down so it
     in multiples of the stroke width, as in Photoshop, so they keep their
     proportions when the width changes. They also allow for round and
     square caps, which extend each dash, so dotted lines come out as round
-    dots. **Custom** opens Photoshop's dash / gap fields in Properties: up
+    dots. **Custom** opens Photoshop's dash / gap fields under them: up
     to three dash-and-gap pairs, in stroke widths. Imported dash patterns
     show up there too.
 - **Rounded rectangles**:
