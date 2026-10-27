@@ -936,7 +936,7 @@ function animHost(root, at, letters) {
 // copy's place (a group wrapped round it, for Wipe in and the like).
 function writeAnimations(live, copy, on, addDef = () => {}) {
   for (const n of copy.querySelectorAll('[data-sc-preview]')) n.remove();
-  if (!on) return;
+  if (!on) return copy;
   const pick = (root) =>
     [root, ...root.querySelectorAll('[data-sc-anim]')].filter((e) =>
       e.hasAttribute?.('data-sc-anim'),

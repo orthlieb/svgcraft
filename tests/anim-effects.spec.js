@@ -159,3 +159,11 @@ test('▶ Play wraps the layers for the preview and unwraps them after', async (
     ),
   ).toBe(before);
 });
+
+test('the still drawing (PNG, app icons) keeps every layer and no effects', async ({ page }) => {
+  await setAnims(page, 'r', [{ p: 'wipeIn' }]);
+  const still = await page.evaluate(() => window.svgcraft.serialize({ animate: false }));
+  expect(still).not.toContain('undefined');
+  expect(still).toMatch(/<rect id="r"/);
+  expect(still).not.toMatch(/data-sc-gen/);
+});
