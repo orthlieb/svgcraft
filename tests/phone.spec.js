@@ -235,6 +235,20 @@ test.describe('phone, portrait', () => {
     await expect(page.locator('#sc-stage')).toBeVisible();
   });
 
+  test('the toolbar’s icons sit in the middle of their buttons', async ({ page }) => {
+    const off = await page.$$eval('.sc-menubar-end button', (bs) =>
+      bs
+        .filter((b) => b.offsetParent && b.querySelector('svg'))
+        .map((b) => {
+          const a = b.getBoundingClientRect();
+          const s = b.querySelector('svg').getBoundingClientRect();
+          return [b.dataset.action, Math.abs(s.left - a.left - (a.right - s.right))];
+        }),
+    );
+    expect(off.length).toBeGreaterThan(5);
+    for (const [name, d] of off) expect(d, name).toBeLessThan(1);
+  });
+
   test('double-tap zooms in on the spot, and again fits', async ({ page }) => {
     await load(page, DRAWING, 300, 200);
     await bar(page, 'fit').click();

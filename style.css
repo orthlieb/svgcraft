@@ -1613,6 +1613,9 @@ button.sc-fx-item.sel {
 }
 .sc-preview .sc-preview-only {
   display: inline-flex;
+  /* Icon buttons keep their icon centred (.sc-ibtn centres it as a grid). */
+  align-items: center;
+  justify-content: center;
 }
 .sc-preview .sc-menus,
 .sc-preview .sc-options,
