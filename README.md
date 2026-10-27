@@ -1061,9 +1061,15 @@ greyed out does nothing.
 Window → SVG Source (Ctrl+U, as in a browser's view-source) opens a split
 view beside the canvas (see Split view; float it with the button in its
 title bar) with the drawing's SVG, exactly as Save as SVG would write it,
-including the `@import` for any Google Fonts. It's read-only, laid out one
-element per line, indented by nesting, with long attribute lists wrapped,
-and coloured for tags, attributes, values, comments and text, with CSS
+including the `@import` for any Google Fonts. It's read-only, and
+beautified as Prettier would lay it out: one element per line, indented by
+nesting; a tag too long for its line gets one attribute per line; and long
+values break where whitespace means nothing (path data at each `M` and
+between whole commands, `points` by pair, animation `values` and key lists
+at each `;`, transforms by function, `style` by declaration), lined up under
+the opening quote. `<style>` CSS gets one rule per block and one
+declaration per line. Ids, links, text and data URIs are left as they are,
+so Copy and Download give the same drawing, just tidier. It's coloured for tags, attributes, values, comments and text, with CSS
 (in `<style>` and `style=""`) coloured too: selectors, at-rules such as
 `@import`, properties and values. Floated,
 drag the window by its title bar and resize it from its corner.

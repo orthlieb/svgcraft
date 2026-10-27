@@ -223,11 +223,11 @@ test.describe('phone, portrait', () => {
     const box = await src.boundingBox();
     expect(box.width).toBeGreaterThanOrEqual(389);
     expect(box.y + box.height).toBeGreaterThanOrEqual(799);
-    await expect(page.locator('#sc-src-code')).toContainText('<circle id="c"');
+    await expect(page.locator('#sc-src-code')).toContainText('<circle');
     await page.locator('#sc-src-copy').tap();
     await expect
       .poll(() => page.evaluate(() => navigator.clipboard.readText()))
-      .toContain('<circle id="c"');
+      .toMatch(/<circle\s+id="c"/);
     // Back to the drawing.
     await btn.tap();
     await expect(src).toBeHidden();

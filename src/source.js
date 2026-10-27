@@ -13,7 +13,7 @@
 // byte for byte. Each element's lines are remembered, so a canvas selection
 // highlights its source and clicking a start tag selects the layer.
 // ---------------------------------------------------------------------
-const SRC_WIDTH = 100; // wrap a start tag's attributes past this column
+const SRC_WIDTH = 100; // the widest the beautified lines get (see srcFitCols)
 const SRC_CHUNK = 200; // lines drawn together (see srcFill)
 const SRC_EAGER = 5; // blocks drawn straight away; the rest as they scroll in
 const SRC_LINE_TOKENS = 4000; // a line with more tokens is drawn unhighlighted
@@ -112,6 +112,174 @@ function cssTokens(s, decls = false) {
   return out;
 }
 
+// ---- Beautifying long values ------------------------------------------------
+// Lines are laid out to the view's width (in characters, between 40 and
+// SRC_WIDTH), and again when it's resized.
+let srcCols = SRC_WIDTH;
+let srcCharW = 0;
+function srcFitCols() {
+  const w = srcCode.clientWidth;
+  if (!w) return srcCols;
+  if (!srcCharW) {
+    const cs = getComputedStyle(srcCode);
+    const ctx = document.createElement('canvas').getContext('2d');
+    ctx.font = `${cs.fontSize} ${cs.fontFamily}`;
+    srcCharW = ctx.measureText('0').width || 7.2;
+  }
+  // Less the line-number gutter (up to five digits) and the padding.
+  return Math.max(40, Math.min(SRC_WIDTH, Math.floor((w - 16 - 12) / srcCharW) - 5));
+}
+
+// A value too long for its line is broken where whitespace means nothing:
+// path data at each subpath and between its commands' coordinate groups,
+// points by pair, animation lists at each ";", transforms by function and
+// style by declaration. Each breaker gives the pieces and where a new line
+// must start; srcPack fits them to the width. Values whose whitespace
+// matters (ids, links, text, data URIs) are never broken.
+const SRC_NUM = /[+-]?(?:\d*\.\d+|\d+\.?)(?:[eE][+-]?\d+)?/g;
+const PATH_ARITY = { m: 2, l: 2, t: 2, h: 1, v: 1, c: 6, s: 4, q: 4, a: 7, z: 0 };
+// The pieces are exact, back-to-back slices of the value, so put together
+// again they give it unchanged; only where a line breaks does whitespace
+// change. A run of numbers, cut before every `arity`-th of them.
+function srcGroups(text, arity) {
+  const nums = [...text.matchAll(SRC_NUM)];
+  const cuts = [0];
+  if (arity) for (let i = arity; i < nums.length; i += arity) cuts.push(nums[i].index);
+  return cuts.map((c, i) => text.slice(c, cuts[i + 1] ?? text.length)).filter(Boolean);
+}
+function srcPathPieces(d) {
+  const cmds = [...d.matchAll(/[MmZzLlHhVvCcSsQqTtAa][^MmZzLlHhVvCcSsQqTtAa]*/g)];
+  if (!cmds.length || d.slice(0, cmds[0].index).trim()) return null;
+  const pieces = [];
+  const breaks = new Set();
+  for (const [cmd] of cmds) {
+    const k = cmd[0];
+    // A closing z stays with the command before it.
+    if (/[Zz]/.test(k) && pieces.length) {
+      pieces[pieces.length - 1] += cmd;
+      continue;
+    }
+    if (k === 'M' && pieces.length) breaks.add(pieces.length);
+    const groups = srcGroups(cmd.slice(1), PATH_ARITY[k.toLowerCase()]);
+    pieces.push(k + (groups[0] || ''), ...groups.slice(1));
+  }
+  pieces[0] = d.slice(0, cmds[0].index) + pieces[0];
+  return { pieces, breaks };
+}
+const srcPointPieces = (v) => {
+  const pieces = srcGroups(v, 2);
+  return pieces.length > 1 ? { pieces, breaks: new Set() } : null;
+};
+// Split after each `sep` outside brackets and quotes.
+function srcSplit(v, sep) {
+  const pieces = [];
+  let cur = '';
+  let depth = 0;
+  let quote = '';
+  for (const ch of v) {
+    cur += ch;
+    if (quote) quote = ch === quote ? '' : quote;
+    else if (ch === '"' || ch === "'") quote = ch;
+    else if (ch === '(') depth++;
+    else if (ch === ')') depth = Math.max(0, depth - 1);
+    else if (ch === sep && !depth) {
+      pieces.push(cur);
+      cur = '';
+    }
+  }
+  if (cur.trim() || !pieces.length) pieces.push(cur);
+  else pieces[pieces.length - 1] += cur;
+  return pieces.length > 1 ? { pieces, breaks: new Set() } : null;
+}
+function srcTransformPieces(v) {
+  const at = [...v.matchAll(/[a-zA-Z]+\s*\(/g)].map((m) => m.index);
+  if (at.length < 2) return null;
+  at[0] = 0;
+  return { pieces: at.map((c, i) => v.slice(c, at[i + 1] ?? v.length)), breaks: new Set() };
+}
+const srcListPieces = (v) => srcSplit(v, ';');
+const SRC_BREAK = {
+  d: srcPathPieces,
+  points: srcPointPieces,
+  values: srcListPieces,
+  keyTimes: srcListPieces,
+  keySplines: srcListPieces,
+  keyPoints: srcListPieces,
+  transform: srcTransformPieces,
+  gradientTransform: srcTransformPieces,
+  patternTransform: srcTransformPieces,
+  style: srcListPieces,
+};
+// (A new line starts at each absolute M; runs of little relative subpaths
+// pack together.)
+// Pieces → lines no wider than the width (a piece longer than a line gets
+// one of its own); `breaks` start new lines.
+function srcPack({ pieces, breaks }, col) {
+  const rows = [];
+  let cur = '';
+  pieces.forEach((p, i) => {
+    if (
+      cur.trim() &&
+      (breaks.has(i) || col + cur.trimEnd().length + p.trimEnd().length > srcCols)
+    ) {
+      rows.push(cur.trimEnd());
+      cur = p.trimStart();
+    } else cur += p;
+  });
+  if (cur) rows.push(cur);
+  return rows;
+}
+
+// A <style> element's CSS, one rule per block and one declaration per
+// line: [depth, text, inside a declaration block]. Strings, comments and
+// url(…) are kept as written.
+function srcCssLines(css) {
+  const out = [];
+  let buf = '';
+  let depth = 0;
+  let paren = 0;
+  const flush = (end, decl) => {
+    let t = buf.replace(/\s+/g, ' ').trim();
+    buf = '';
+    if (!t && !end) return;
+    if (decl && !t.startsWith('@')) t = t.replace(/^([\w-]+)\s*:\s*/, '$1: ');
+    if (end === ' {' && !t.startsWith('@')) t = t.replace(/\s*,\s*/g, ', ');
+    out.push([depth, t + end, decl]);
+  };
+  for (let i = 0; i < css.length; i++) {
+    const ch = css[i];
+    if (ch === '/' && css[i + 1] === '*') {
+      const j = css.indexOf('*/', i + 2);
+      const end = j < 0 ? css.length : j + 2;
+      flush('', depth > 0);
+      out.push([depth, css.slice(i, end), false]);
+      i = end - 1;
+    } else if (ch === '"' || ch === "'") {
+      let j = i + 1;
+      while (j < css.length && css[j] !== ch) j += css[j] === '\\' ? 2 : 1;
+      buf += css.slice(i, j + 1);
+      i = j;
+    } else if (ch === '(') {
+      paren++;
+      buf += ch;
+    } else if (ch === ')') {
+      paren = Math.max(0, paren - 1);
+      buf += ch;
+    } else if (paren) buf += ch;
+    else if (ch === '{') {
+      flush(' {', false);
+      depth++;
+    } else if (ch === ';') flush(';', depth > 0);
+    else if (ch === '}') {
+      if (buf.trim()) flush(';', true);
+      depth = Math.max(0, depth - 1);
+      out.push([depth, '}', false]);
+    } else buf += ch;
+  }
+  if (buf.trim()) flush('', depth > 0);
+  return out;
+}
+
 // Tree → lines of tokens [class, text]. `spans` maps each live element of
 // the document to its [first, last] line; a line whose start tag belongs
 // to a layer carries it as .el (what a click there selects).
@@ -146,28 +314,55 @@ function srcPretty(text) {
     } else putNode(n);
   };
   const attrW = (a) => 1 + a.n.length + (a.v ? 1 + srcShown(a.v).length : 0);
+  // A start tag on one line if it fits; otherwise one attribute per line,
+  // as Prettier does (a lone attribute stays beside the tag), with long
+  // values broken onto lines of their own under the opening quote.
   function startTag(n, depth, el, raw) {
     const pad = '  '.repeat(depth);
     if (!raw) newLine(depth, el);
     line.t.push(['p', '<'], ['tag', n.name]);
     const full = pad.length + 1 + n.name.length + n.attrs.reduce((w, a) => w + attrW(a), 0) + 2;
-    const wrap = !raw && n.attrs.length > 1 && full > SRC_WIDTH;
-    const hang = pad + ' '.repeat(Math.min(n.name.length + 1, 16));
+    const fits = raw || full <= srcCols;
+    const perLine = !fits && n.attrs.length > 1;
     let col = pad.length + 1 + n.name.length;
     n.attrs.forEach((a, i) => {
-      const w = attrW(a);
-      if (wrap && i > 0 && col + w > SRC_WIDTH) {
-        line = { t: [['', hang]], el };
+      if (perLine) {
+        line = { t: [['', `${pad}  `]], el };
         lines.push(line);
-        col = hang.length;
+        col = pad.length + 2;
+      } else {
+        line.t.push(['', ' ']);
+        col++;
       }
-      line.t.push(['', ' '], ['attr', a.n]);
-      if (a.v && a.n === 'style' && a.v.length > 2) {
+      line.t.push(['attr', a.n]);
+      col += a.n.length;
+      if (!a.v) return;
+      line.t.push(['p', '=']);
+      col++;
+      const room = i === n.attrs.length - 1 ? 2 : 0; // the tag's > or />
+      const long = !fits && col + srcShown(a.v).length + room > srcCols;
+      const parts = long && a.v.length > 2 && SRC_BREAK[a.n]?.(a.v.slice(1, -1));
+      const style = a.n === 'style' && a.v.length > 2;
+      if (!parts) {
         // style="…": its declarations coloured as CSS, inside the quotes.
-        line.t.push(['p', '='], ['val', a.v[0]]);
-        line.t.push(...cssTokens(a.v.slice(1, -1), true), ['val', a.v.at(-1)]);
-      } else if (a.v) line.t.push(['p', '='], ['val', a.v]);
-      col += w;
+        if (style) line.t.push(['val', a.v[0]], ...cssTokens(a.v.slice(1, -1), true));
+        line.t.push(['val', style ? a.v.at(-1) : a.v]);
+        col += srcShown(a.v).length;
+        return;
+      }
+      const q = a.v[0];
+      const at = col + 1;
+      const rows = srcPack(parts, at);
+      rows.forEach((r, j) => {
+        if (j) {
+          line = { t: [['', ' '.repeat(at)]], el };
+          lines.push(line);
+        }
+        if (!j) line.t.push(['val', q]);
+        if (style) line.t.push(...cssTokens(r, true));
+        else line.t.push(['val', r]);
+        if (j === rows.length - 1) line.t.push(['val', q]);
+      });
     });
     line.t.push(['p', n.self ? '/>' : '>']);
   }
@@ -209,7 +404,30 @@ function srcPretty(text) {
         n.kids.some((k) => k.k === 'cdata' || (k.k === 'text' && k.s.trim())) ||
         n.attrs.some((a) => a.n === 'xml:space');
       let i = 0;
-      if (inline) {
+      const cssOnly = n.name === 'style' && n.kids.every((k) => k.k === 'text' || k.k === 'cdata');
+      if (cssOnly) {
+        // CSS: one rule per block, one declaration per line, indented.
+        const css = (s, d) => {
+          for (const [cd, t, decl] of srcCssLines(s)) {
+            newLine(d + cd);
+            line.t.push(...cssTokens(t, decl));
+          }
+        };
+        for (const k of n.kids)
+          if (k.k === 'text') css(k.s, depth + 1);
+          else {
+            const m = k.s.match(/^(<!\[CDATA\[)([\s\S]*?)(\]\]>)?$/);
+            newLine(depth + 1);
+            put('pi', m[1]);
+            css(m[2], depth + 2);
+            if (m[3]) {
+              newLine(depth + 1);
+              put('pi', m[3]);
+            }
+          }
+        newLine(depth);
+        endTag(n);
+      } else if (inline) {
         for (const k of n.kids)
           if (n.name === 'style') putCss(k);
           else raw(k, k.k === 'el' ? live[i++] || null : null);
@@ -240,7 +458,9 @@ let srcIO = null;
 function srcRender() {
   const v = srcView;
   const text = serialize({ fontCss: fontImport() });
-  if (text === v.text) return;
+  const cols = srcFitCols();
+  if (text === v.text && cols === srcCols) return;
+  srcCols = cols;
   v.text = text;
   const { lines, spans } = srcPretty(text);
   v.lines = lines;
@@ -551,6 +771,10 @@ function setSrcWrap(on, save) {
 
 const SRC_PASS = new Set(['z', 'y', 's', 'o']);
 function wireSource() {
+  // Resized (dragged, docked, floated, the window): laid out again to fit.
+  new ResizeObserver(() => {
+    if (srcView.open && srcFitCols() !== srcCols) srcSchedule(100);
+  }).observe(srcCode);
   $('#sc-src-close').addEventListener('click', closeSource);
   $('#sc-src-copy').addEventListener('click', copySource);
   $('#sc-src-download').addEventListener('click', downloadSource);

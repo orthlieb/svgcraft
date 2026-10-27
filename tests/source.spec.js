@@ -67,14 +67,25 @@ test('Ctrl+U toggles the window', async ({ page }) => {
 });
 
 test('shows the saved markup, one element per line, indented by nesting', async ({ page }) => {
+  // (The docked pane is narrow: a tag that doesn't fit has one attribute
+  // per line, indented a level under it.)
   await load(page, BODY);
   await openSource(page);
   const text = await viewText(page);
   expect(flat(text)).toBe(flat(await saved(page)));
   const lines = text.split('\n');
-  expect(lines[0]).toMatch(/^<svg /);
-  expect(lines).toContain('  <rect id="a" x="10" y="10" width="100" height="80" fill="#c00"/>');
-  expect(lines.find((l) => l.includes('id="c"'))).toMatch(/^ {4}<circle /);
+  expect(lines[0]).toMatch(/^<svg/);
+  const rect = lines.indexOf('  <rect');
+  expect(lines.slice(rect + 1, rect + 7)).toEqual([
+    '    id="a"',
+    '    x="10"',
+    '    y="10"',
+    '    width="100"',
+    '    height="80"',
+    '    fill="#c00"/>',
+  ]);
+  expect(lines).toContain('    <circle');
+  expect(lines).toContain('      id="c"');
   expect(lines.at(-1)).toBe('</svg>');
   // Highlighted: tags, attribute names and values have their own colours.
   const code = page.locator('#sc-src-code');
@@ -100,7 +111,7 @@ test('includes the font @import that Save as SVG writes', async ({ page }) => {
   await load(page, '<text id="t" x="10" y="50" font-family="Lobster" font-size="30">Hi</text>');
   await openSource(page);
   expect(await viewText(page)).toMatch(
-    /<style>@import url\('https:\/\/fonts\.googleapis\.com\/css2\?family=Lobster/,
+    /<style>\n\s+@import url\('https:\/\/fonts\.googleapis\.com\/css2\?family=Lobster/,
   );
 });
 
@@ -152,7 +163,9 @@ test('CSS is coloured: selectors, at-rules, properties and values, nothing lost'
   const view = flat(await viewText(page))
     .replace(/<defs><style>[^<]*<\/style><\/defs>/, '')
     .replace(/<style>[^<]*<\/style>/, '');
-  expect(view).toBe(flat(await saved(page)));
+  // (Line breaks inside long values add only whitespace.)
+  const noWs = (t) => t.replace(/\s+/g, '');
+  expect(noWs(view)).toBe(noWs(flat(await saved(page))));
 });
 
 test('follows edits to the document', async ({ page }) => {
@@ -193,14 +206,16 @@ test('the selected layer’s lines light up and scroll into view', async ({ page
   await openSource(page);
   await pickLayer(page, 'R140');
   const on = page.locator('#sc-src-code .sc-src-on');
-  await expect(on).toHaveCount(1);
-  await expect(on).toContainText('id="r140"');
-  await expect(on).toBeInViewport();
+  // Its tag's lines, from <rect to />.
+  await expect(on.first()).toHaveText('  <rect');
+  await expect(on.filter({ hasText: 'id="r140"' })).toHaveCount(1);
+  await expect(on.last()).toContainText('/>');
+  await expect(on.first()).toBeInViewport();
   // A group lights up from its start tag to its end tag.
   await load(page, BODY);
   await pickLayer(page, 'Group');
-  await expect(on).toHaveCount(4);
-  await expect(on.first()).toContainText('<g id="g1"');
+  await expect(on.first()).toContainText('<g');
+  await expect(on.filter({ hasText: 'id="e"' })).toHaveCount(1);
   await expect(on.last()).toHaveText('  </g>');
 });
 
@@ -211,7 +226,7 @@ test('clicking a start tag selects that layer on the canvas', async ({ page }) =
   await code.locator('.sc-src-ln', { hasText: '<circle' }).click();
   expect(await selIds(page)).toEqual(['c']);
   await expect(page.locator('#sc-layers li.sel .sc-layer-name')).toHaveText('circle #c');
-  await expect(code.locator('.sc-src-on')).toHaveCount(1);
+  await expect(code.locator('.sc-src-on').first()).toHaveText('    <circle');
   await code.locator('.sc-src-ln', { hasText: '<rect' }).click();
   expect(await selIds(page)).toEqual(['a']);
   // The root <svg> isn't a layer: the selection stays.
@@ -314,7 +329,7 @@ test('keys inside the window do not edit the drawing', async ({ page }) => {
   // Ctrl+A selects the source text, not the layers.
   await page.keyboard.press('Control+a');
   expect(await selIds(page)).toEqual(['a']);
-  expect(await page.evaluate(() => getSelection().toString())).toContain('<rect id="a"');
+  expect(await page.evaluate(() => getSelection().toString())).toMatch(/<rect\s+id="a"/);
 });
 
 test('Wrap is on to start and toggles line wrapping, remembered; floated, the title bar drags the window', async ({
@@ -363,9 +378,8 @@ test('a large drawing draws its lines as they come into view', async ({ page }) 
   // Selecting the topmost layer draws and reveals its line at the end.
   await pickLayer(page, 'R1199');
   const on = page.locator('#sc-src-code .sc-src-on');
-  await expect(on).toHaveCount(1);
-  await expect(on).toContainText('id="r1199"');
-  await expect(on).toBeInViewport();
+  await expect(on.filter({ hasText: 'id="r1199"' })).toHaveCount(1);
+  await expect(on.filter({ hasText: 'id="r1199"' })).toBeInViewport();
   // Find reaches lines that weren't drawn yet.
   await page.keyboard.press('Control+u');
   await openSource(page);
@@ -410,4 +424,43 @@ test('docked beside the canvas by default: a split view, sharing the column', as
   await page.waitForFunction(() => !!window.svgcraft);
   await openSource(page);
   expect(await win(page).evaluate((w) => getComputedStyle(w).position)).toBe('fixed');
+});
+
+test('beautify: long values break where whitespace is free, one attribute per line, same drawing', async ({
+  page,
+}) => {
+  const sub = (x) =>
+    `M${x} 10c5 0 10 5 10 10s-5 10-10 10-10-5-10-10 5-10 10-10zm0 4c3 0 6 3 6 6s-3 6-6 6-6-3-6-6 3-6 6-6z`;
+  const d = Array.from({ length: 12 }, (_, i) => sub(20 + i * 30)).join('');
+  const pts = Array.from({ length: 40 }, (_, i) => `${i * 9},${200 + ((i * 37) % 60)}`).join(' ');
+  await load(
+    page,
+    `<path id="p" d="${d}" fill="#2563eb" stroke="#000" stroke-width="2" stroke-linejoin="round"` +
+      ` transform="translate(10 20) rotate(5 200 100) scale(1.1) skewX(3) translate(-4 -6)"/>` +
+      `<polygon points="${pts}"/>`,
+    420,
+    300,
+  );
+  await page.keyboard.press('0');
+  const before = await page.locator('#sc-stage').screenshot();
+  await openSource(page);
+  const text = await page.evaluate(() => srcView.full); // eslint-disable-line no-undef
+  const lines = text.split('\n');
+  // Nothing past the width.
+  expect(Math.max(...lines.map((l) => l.length))).toBeLessThanOrEqual(100);
+  // A tag that doesn't fit: one attribute per line.
+  expect(lines.filter((l) => /^\s+stroke-linejoin="round"$/.test(l))).toHaveLength(1);
+  // Path data: a line per absolute M (two packed subpaths fit on each).
+  expect(lines.filter((l) => /^\s+M\d/.test(l)).length).toBeGreaterThanOrEqual(11);
+  // Points: the lone attribute stays beside the tag, continued under its quote.
+  const at = lines.findIndex((l) => l.includes('<polygon'));
+  const q = lines[at].indexOf('"') + 1;
+  expect(lines[at + 1].search(/\S/)).toBe(q);
+  // The same drawing, reopened from the beautified text.
+  await page.evaluate((t) => window.svgcraft.openSvg(t, 'again.svg'), text);
+  await page.keyboard.press('Control+u');
+  await expect(win(page)).toBeHidden();
+  await page.keyboard.press('0');
+  const after = await page.locator('#sc-stage').screenshot();
+  expect(after.equals(before)).toBe(true);
 });
