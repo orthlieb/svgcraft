@@ -90,6 +90,8 @@ function cleanSvgText(text, o) {
       if (anim) {
         if (ANIM_NUM_ATTRS.has(n) && ANIM_GEOMETRY.test(el.getAttribute('attributeName') || ''))
           el.setAttribute(n, roundNumbers(a.value, o.decimals));
+        else if (n === 'path' && el.localName === 'animateMotion')
+          el.setAttribute(n, tightPath(roundNumbers(a.value, o.decimals)));
         continue;
       }
       if (n.startsWith('data-') || n === 'xml:space') el.removeAttribute(n);

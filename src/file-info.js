@@ -366,6 +366,15 @@ function serialize({ selection = false, fontCss = '', animate = true } = {}) {
     }
     root.append(nl(), c);
   }
+  // Paths layers move along (Move along path), out of sight in the file;
+  // marked, so reopening it shows them again for editing.
+  const routes = selection ? new Set() : hiddenRoutes();
+  if (routes.size)
+    for (const n of root.querySelectorAll('[id]'))
+      if (routes.has(n.id) && n.getAttribute('display') !== 'none') {
+        n.setAttribute('display', 'none');
+        n.setAttribute('data-sc-route', '');
+      }
   root.append(document.createTextNode('\n'));
   let s = new XMLSerializer().serializeToString(root);
   if (s.includes('xlink:') && !s.includes('xmlns:xlink'))

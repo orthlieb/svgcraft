@@ -118,6 +118,15 @@ function stashSmil(root) {
     const attrs = {};
     for (const a of n.attributes)
       if (a.localName !== 'href' && !a.name.startsWith('on')) attrs[a.localName] = a.value;
+    // A motion along another element's path (<mpath>): that path's data.
+    const mp = n.localName === 'animateMotion' && !attrs.path && n.querySelector('mpath');
+    if (mp) {
+      const m = /^#(.+)$/.exec(
+        (mp.getAttribute('href') ?? mp.getAttributeNS(XLINK, 'href') ?? '').trim(),
+      );
+      const src = m && [...root.querySelectorAll('[id]')].find((e) => e.id === m[1]);
+      if (src?.localName === 'path' && src.getAttribute('d')) attrs.path = src.getAttribute('d');
+    }
     if (!notes.has(t)) notes.set(t, []);
     notes.get(t).push({ tag: n.localName, attrs });
   }
@@ -288,6 +297,11 @@ function parseSvg(text, { dedupe = true } = {}) {
   if (xml.querySelector('parsererror') || root.localName !== 'svg')
     throw new Error('Not a valid SVG file');
   sanitize(root, { smil: true });
+  // Paths that Save hid because layers move along them: shown again.
+  for (const el of root.querySelectorAll('[data-sc-route]')) {
+    el.removeAttribute('data-sc-route');
+    if (el.getAttribute('display') === 'none') el.removeAttribute('display');
+  }
   inheritRootPaint(root);
   // Sprite sheets keep their symbols at the top level: they belong in defs.
   const syms = [...root.children].filter((c) => c.localName === 'symbol');

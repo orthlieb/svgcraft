@@ -73,6 +73,20 @@ const ANIM_PRESETS = {
     line: true,
   },
   dashMarch: { name: 'Dash march', group: 'Line', dur: 1, rep: 0, ease: 'linear' },
+  // Along another layer's outline (its id in `path`), the layer's centre
+  // on the line; `orient` turns it to face the way it goes, `hide` leaves
+  // the path out of sight in the saved file.
+  followPath: {
+    name: 'Move along path',
+    group: 'Motion',
+    dur: 3,
+    rep: 1,
+    ease: 'inout',
+    hold: true,
+    path: '',
+    orient: false,
+    hide: true,
+  },
   colourCycle: {
     name: 'Colour cycle',
     group: 'Colour',
@@ -125,6 +139,10 @@ function readAnims(el) {
     for (const k of ['dist', 'turns', 'scale'])
       if (k in def) a[k] = num(r[k], ...ANIM_OPTS[k], def[k]);
     if ('to' in def) a.to = /^#[0-9a-f]{6}$/i.test(r.to || '') ? r.to.toLowerCase() : def.to;
+    if ('path' in def)
+      a.path = typeof r.path === 'string' && /^[^\s"'<>#]{1,100}$/.test(r.path) ? r.path : '';
+    for (const k of ['orient', 'hide'])
+      if (k in def) a[k] = typeof r[k] === 'boolean' ? r[k] : def[k];
     out.push(a);
   }
   return out;
@@ -146,6 +164,45 @@ function animStarts(list) {
     at.push(a.after && i ? at[i - 1] + animLength(list[i - 1]) + a.delay : a.delay);
   });
   return at;
+}
+
+// ---- Move along path --------------------------------------------------------------
+// Shapes a layer can move along (as text can run along them).
+const ROUTE_SHAPES = new Set(['path', 'rect', 'circle', 'ellipse', 'polygon', 'polyline', 'line']);
+// Can el move along `route`? Not along itself, or what holds it or is in it.
+const routeFits = (el, route) =>
+  !!route &&
+  doc.contains(route) &&
+  ROUTE_SHAPES.has(route.localName) &&
+  !route.contains(el) &&
+  !el.contains(route);
+// The layer a Move along path follows, or null when it's gone.
+function motionRoute(el, a) {
+  const r = a.path && document.getElementById(a.path);
+  return routeFits(el, r) ? r : null;
+}
+// The route's outline in el's parent's coordinates, as path data.
+function motionD(el, route) {
+  const P = el.parentNode && el.parentNode !== doc ? fullM(el.parentNode) : new DOMMatrix();
+  const M = P.inverse().multiply(fullM(route));
+  const T = (p) => {
+    const q = new DOMPoint(p.x, p.y).matrixTransform(M);
+    return { x: q.x, y: q.y };
+  };
+  return nodesD(
+    shapeNodes(route).map((sp) => ({
+      closed: sp.closed,
+      nodes: sp.nodes.map((n) => ({ ...T(n), hin: n.hin && T(n.hin), hout: n.hout && T(n.hout) })),
+    })),
+  );
+}
+// The ids of the routes the saved file leaves out of sight.
+function hiddenRoutes() {
+  const ids = new Set();
+  for (const el of doc.querySelectorAll('[data-sc-anim]'))
+    for (const a of readAnims(el))
+      if (a.p === 'followPath' && a.hide && motionRoute(el, a)) ids.add(a.path);
+  return ids;
 }
 
 // ---- SMIL ------------------------------------------------------------------------
@@ -301,6 +358,37 @@ function animChannels(el, a) {
       });
       return out;
     }
+    case 'followPath': {
+      const route = motionRoute(el, a);
+      if (!route) return [];
+      // The motion moves the layer in its parent's space, outside its own
+      // transform (and turns it about that space's origin), so a fixed
+      // shift inside the transform first puts its centre at the origin:
+      // then the centre rides the line and the layer turns about itself.
+      const own = getM(el);
+      const c = new DOMPoint(cx, cy).matrixTransform(own);
+      const lin = new DOMMatrix([own.a, own.b, own.c, own.d, 0, 0]);
+      const v = new DOMPoint(-c.x, -c.y).matrixTransform(lin.inverse());
+      const at = `${f(v.x)} ${f(v.y)}`;
+      return [
+        {
+          tag: 'animateMotion',
+          attrs: {
+            path: motionD(el, route),
+            calcMode: 'linear',
+            ...(a.orient ? { rotate: a.dir === 'reverse' ? 'auto-reverse' : 'auto' } : {}),
+          },
+          valuesAttr: 'keyPoints',
+          values: ['0', '1'],
+          keyTimes: [0, 1],
+        },
+        {
+          tag: 'animateTransform',
+          attrs: { attributeName: 'transform', type: 'translate', additive: 'sum' },
+          values: [at, at],
+        },
+      ];
+    }
     case 'colourCycle': {
       const from = hex(getComputedStyle(el).fill) || '#000000';
       return [{ tag: 'animate', attrs: { attributeName: 'fill' }, values: [from, a.to] }];
@@ -310,12 +398,14 @@ function animChannels(el, a) {
 }
 
 // Why a preset can't go on a layer, or ''.
-function animUnfit(el, p) {
+function animUnfit(el, p, a = null) {
   const def = ANIM_PRESETS[p];
   if (def.line || p === 'dashMarch') {
     if (typeof el.getTotalLength !== 'function') return `${def.name} needs a path or shape.`;
     if (getComputedStyle(el).stroke === 'none') return `${def.name} needs a stroke.`;
   }
+  if (p === 'followPath' && !(a && motionRoute(el, a)))
+    return 'Move along path needs a path: select the layer, then Shift-click the path above it.';
   // A group's own fill only reaches shapes that don't set one.
   if (p === 'colourCycle' && (el.localName === 'g' || !hex(getComputedStyle(el).fill || '')))
     return 'Colour cycle needs a shape with a solid fill.';
@@ -327,11 +417,11 @@ function animUnfit(el, p) {
 // each node remembers its start in seconds.
 function animNodes(el, a, preview = false, start = a.delay) {
   const def = ANIM_PRESETS[a.p];
-  if (animUnfit(el, a.p)) return [];
+  if (animUnfit(el, a.p, a)) return [];
   const spline = EASES[a.ease][1];
   const forever = a.rep === 0;
   // Entrances and exits hold their last frame; loops go back to rest.
-  const hold = (def.enter || def.exit || def.line) && !forever;
+  const hold = (def.enter || def.exit || def.line || def.hold) && !forever;
   const nodes = [];
   for (const ch of animChannels(el, a)) {
     const attrs = { ...ch.attrs };
@@ -356,7 +446,7 @@ function animNodes(el, a, preview = false, start = a.delay) {
         ];
         dur *= 2;
       }
-      attrs.values = values.join(';');
+      attrs[ch.valuesAttr || 'values'] = values.join(';');
       attrs.dur = `${f(dur)}s`;
       attrs.repeatCount = forever ? 'indefinite' : String(a.rep);
       if (ch.discrete) {
@@ -582,18 +672,124 @@ function smilOptions(chs, dir, el) {
   if (col && fwd(col)) o.to = fwd(col).at(-1);
   return o;
 }
+// An <animateMotion> as Move along path: { anim, used } (used: the fixed
+// shift SVGCraft writes alongside, from the pool), or null. Its path becomes
+// a new layer beside el, in the same space the motion moves it in.
+function smilMotion(el, a, pool) {
+  const t = smilTiming(a);
+  if (!t || a.calcMode === 'discrete') return null;
+  let d = a.path;
+  if (!d && a.values) {
+    const pts = a.values
+      .split(';')
+      .filter((v) => v.trim())
+      .map(smilNums);
+    if (pts.length < 2 || pts.some((p) => p.length < 2 || p.some((x) => !isFinite(x)))) return null;
+    d = `M${pts.map((p) => `${p[0]} ${p[1]}`).join('L')}`;
+  } else if (!d && a.to) {
+    const from = smilNums(a.from || '0 0');
+    d = `M${from[0] || 0} ${from[1] || 0}L${smilNums(a.to).slice(0, 2).join(' ')}`;
+  }
+  let subs;
+  try {
+    subs = d ? parsePathD(d) : [];
+  } catch {
+    return null;
+  }
+  if (!subs.length || !subs.some((sp) => sp.nodes.length > 1)) return null;
+  // Its direction, from keyPoints (fractions of the way along).
+  const kp = a.keyPoints ? smilNums(a.keyPoints.replace(/;/g, ' ')) : [0, 1];
+  const kt = a.keyTimes ? smilNums(a.keyTimes.replace(/;/g, ' ')) : null;
+  const is = (x, y) => x.length === y.length && x.every((v, i) => smilNear(v, y[i]));
+  let dir;
+  let dur = t.dur;
+  if (is(kp, [0, 1])) dir = 'normal';
+  else if (is(kp, [1, 0])) dir = 'reverse';
+  else if (is(kp, [0, 1, 0]) && kt && is(kt, [0, 0.5, 1])) {
+    dir = 'alternate';
+    dur /= 2;
+  } else return null;
+  const turn = (a.rotate || '0').trim();
+  const orient = turn === 'auto' || turn === 'auto-reverse';
+  if (!orient && +turn !== 0) return null;
+  // Where el's centre is, in its parent's space, and the fixed shift
+  // SVGCraft writes to put it on the line (when it's there, the path is
+  // the route itself; otherwise the motion moved el from where it sits).
+  const b = el.getBBox();
+  const own = getM(el);
+  const c = new DOMPoint(b.x + b.width / 2, b.y + b.height / 2).matrixTransform(own);
+  const lin = new DOMMatrix([own.a, own.b, own.c, own.d, 0, 0]);
+  const v = new DOMPoint(-c.x, -c.y).matrixTransform(lin.inverse());
+  const used = pool.find(
+    (ch) =>
+      ch.type === 'translate' &&
+      ch.additive &&
+      smilNear(ch.begin, t.begin) &&
+      smilNear(ch.dur, t.dur) &&
+      ch.rep === t.rep &&
+      ch.values.every((p) => smilNear(p[0], v.x) && smilNear(p[1], v.y)),
+  );
+  // Turning about el's own place only matches when that's its centre.
+  if (!used && orient && Math.hypot(c.x, c.y) > 0.5) return null;
+  const T = used ? (p) => p : (p) => ({ x: p.x + c.x, y: p.y + c.y });
+  const route = mk('path', {
+    d: nodesD(
+      subs.map((sp) => ({
+        closed: sp.closed,
+        nodes: sp.nodes.map((n) => ({
+          ...T(n),
+          hin: n.hin && T(n.hin),
+          hout: n.hout && T(n.hout),
+        })),
+      })),
+    ),
+    fill: 'none',
+    stroke: '#999999',
+    'stroke-width': f(1 / (Math.hypot(parentM(el).a, parentM(el).b) || 1)),
+    'data-name': 'Motion path',
+  });
+  el.before(route);
+  return {
+    anim: {
+      p: 'followPath',
+      dur,
+      delay: t.begin,
+      rep: t.rep,
+      dir,
+      ease:
+        a.calcMode === 'spline'
+          ? smilEase({ calc: 'spline', spline: smilNums((a.keySplines || '').split(';')[0]) })
+          : 'linear',
+      path: ensureId(route, 'motion-path'),
+      orient,
+      hide: true,
+    },
+    used,
+  };
+}
 // A layer's noted SMIL as presets: { anims, lost }.
 function smilToAnims(el, notes, own) {
   let lost = 0;
   const sets = notes.filter((n) => n.tag === 'set');
   let pool = [];
   for (const n of notes) {
-    if (n.tag === 'set') continue;
+    if (n.tag === 'set' || n.tag === 'animateMotion') continue;
     const c = smilChannel(n, el);
     if (c) pool.push(c);
     else lost++;
   }
   const anims = [];
+  // Motion along a path: Move along path, its route a layer of its own.
+  for (const n of notes) {
+    if (n.tag !== 'animateMotion') continue;
+    const m = smilMotion(el, n.attrs, pool);
+    if (!m) {
+      lost++;
+      continue;
+    }
+    if (m.used) pool = pool.filter((c) => c !== m.used);
+    anims.push(m.anim);
+  }
   const setsUsed = new Set();
   while (pool.length) {
     const first = pool[0];
@@ -618,7 +814,7 @@ function smilToAnims(el, notes, own) {
         };
         for (const k of ['from', 'dist', 'turns', 'scale', 'to'])
           if (k in def && opts[k] != null) a[k] = opts[k];
-        if (animUnfit(el, p)) continue;
+        if (animUnfit(el, p, a)) continue;
         const gen = animNodes(el, a, false, a.delay).map((n) => ({
           tag: n.localName,
           attrs: Object.fromEntries([...n.attributes].map((x) => [x.name, x.value])),
@@ -751,7 +947,13 @@ document.addEventListener(
 
 // ---- Properties: the Animate section ----------------------------------------------
 const animUI = { edit: 0 };
-const animTarget = () => (state.sel.length === 1 ? state.sel[0] : null);
+// The layer the tab animates: the one selected, or of a layer and a path
+// above it (for Move along path), the layer.
+function animPair() {
+  const sel = normalizeSel(state.sel);
+  return sel.length === 2 && routeFits(sel[0], sel[1]) ? { el: sel[0], route: sel[1] } : null;
+}
+const animTarget = () => (state.sel.length === 1 ? state.sel[0] : animPair()?.el || null);
 function describeAnim(a, start) {
   const d = ANIM_PRESETS[a.p];
   const reps = a.rep === 0 ? '∞' : `×${a.rep}`;
@@ -787,6 +989,11 @@ function syncAnimUI() {
   $('#sc-anim-props').hidden = !el;
   $('#sc-anim-none').hidden = !!el;
   if (!el) return;
+  const pair = animPair();
+  $('#sc-anim-pair').hidden = !pair;
+  if (pair)
+    $('#sc-anim-pair').textContent =
+      `Animating “${layerName(pair.el)}”. Add Move along path to send it along “${layerName(pair.route)}”.`;
   const list = readAnims(el);
   const at = animStarts(list);
   animUI.edit = clamp(animUI.edit, 0, Math.max(0, list.length - 1));
@@ -892,6 +1099,42 @@ function syncAnimUI() {
     c.value = a.to;
     kids.push(field('To colour ', c));
   }
+  if ('path' in a) {
+    // Every outline it could follow, by name.
+    const s = document.createElement('select');
+    s.dataset.animOpt = 'path';
+    const route = motionRoute(el, a);
+    if (!route)
+      s.append(
+        Object.assign(document.createElement('option'), { value: '', textContent: '— gone —' }),
+      );
+    [...doc.querySelectorAll('*')]
+      .filter((r) => routeFits(el, r) && !r.parentNode.closest('text, clipPath, mask'))
+      .forEach((r, i) =>
+        s.append(
+          Object.assign(document.createElement('option'), {
+            value: r.id || `@${i}`,
+            textContent: layerName(r),
+            selected: r === route,
+          }),
+        ),
+      );
+    kids.push(field('Path ', s));
+  }
+  for (const [k, label] of [
+    ['orient', 'Orient to path'],
+    ['hide', 'Hide the path when saved'],
+  ])
+    if (k in a) {
+      const c = document.createElement('input');
+      c.type = 'checkbox';
+      c.dataset.animOpt = k;
+      c.checked = a[k];
+      const l = document.createElement('label');
+      l.className = 'sc-check';
+      l.append(c, ` ${label}`);
+      kids.push(l);
+    }
   const focused = document.activeElement?.dataset?.animOpt;
   if (!focused) opts.replaceChildren(...kids);
 }
@@ -950,24 +1193,39 @@ function editAnims(fn) {
   syncAnimUI();
   return true;
 }
+// An id for a layer that's pointed at (a path to move along).
+function ensureId(el, stem) {
+  if (!el.id) {
+    let n = 1;
+    while (document.getElementById(`${stem}-${n}`)) n++;
+    el.id = `${stem}-${n}`;
+  }
+  return el.id;
+}
 function addAnimation(p) {
   const el = animTarget();
   if (!el || !ANIM_PRESETS[p]) return;
-  const why = animUnfit(el, p);
-  if (why) return warn(why);
   const def = ANIM_PRESETS[p];
   const a = { p, dur: def.dur, delay: 0, rep: def.rep, dir: def.dir || 'normal', ease: def.ease };
-  for (const k of ['from', 'dist', 'turns', 'scale', 'to']) if (k in def) a[k] = def[k];
+  for (const k of ['from', 'dist', 'turns', 'scale', 'to', 'orient', 'hide'])
+    if (k in def) a[k] = def[k];
+  const pair = animPair();
+  if (p === 'followPath' && pair) a.path = ensureId(pair.route, 'motion-path');
+  const why = animUnfit(el, p, a);
+  if (why) return warn(why);
   const done = editAnims((l) => {
     l.push(a);
     animUI.edit = l.length - 1;
   });
-  if (done) say(`Added ${def.name}. Press ▶ Play to see it.`);
+  if (!done) return;
+  // The layer it animates, on its own, so the tab carries on with it.
+  if (pair) setSel([el]);
+  say(`Added ${def.name}. Press ▶ Play to see it.`);
 }
 
 function wireAnimations() {
   const add = $('#sc-anim-add');
-  for (const group of ['Entrances', 'Exits', 'Loops', 'Line', 'Colour']) {
+  for (const group of ['Entrances', 'Exits', 'Loops', 'Motion', 'Line', 'Colour']) {
     const g = document.createElement('optgroup');
     g.label = group;
     for (const [k, d] of Object.entries(ANIM_PRESETS))
@@ -996,7 +1254,18 @@ function wireAnimations() {
         else delete a.after;
       } else if (k === 'rep') a.rep = Math.max(1, Math.round(+t.value) || 1);
       else if (['dur', 'delay', 'dist', 'turns', 'scale'].includes(k)) a[k] = +t.value;
-      else a[k] = t.value;
+      else if (k === 'orient' || k === 'hide') a[k] = t.checked;
+      else if (k === 'path') {
+        // A layer without an id gets one now it's pointed at.
+        const m = /^@(\d+)$/.exec(t.value);
+        const el = animTarget();
+        const r = m
+          ? [...doc.querySelectorAll('*')].filter(
+              (n) => routeFits(el, n) && !n.parentNode.closest('text, clipPath, mask'),
+            )[+m[1]]
+          : document.getElementById(t.value);
+        if (r) a.path = ensureId(r, 'motion-path');
+      } else a[k] = t.value;
     });
   });
   syncAnimUI();
