@@ -78,7 +78,7 @@ export default [
         fit();
       });
       await h.redraw();
-      await h.page.waitForSelector('#sc-keylines circle');
+      await h.page.waitForSelector('#sc-keylines circle', { state: 'attached' });
       await h.shot('#sc-doc', { pad: 30 });
     },
   },
@@ -87,7 +87,9 @@ export default [
     async shoot(h) {
       await h.open(APP, 'app.svg', 512, 512);
       await h.menu('Window', 'toggleIconPreview');
-      await h.page.waitForSelector('#sc-iconprev:not([hidden]) .sc-ip-tile img[src]');
+      await h.page.waitForSelector('#sc-iconprev:not([hidden]) .sc-ip-tile img[src]', {
+        state: 'attached',
+      });
       await h.page.click('[data-ip-bg="all"]');
       await h.page.click('[data-ip-mask="squircle"]');
       await h.page.waitForTimeout(300);
@@ -126,7 +128,12 @@ export default [
     id: 'symbol-instances',
     async shoot(h) {
       await stars(h);
-      await h.select('use[transform*="380"]');
+      await h.page.evaluate(() => {
+        const s = window.svgcraft;
+        s.state.sel = [document.querySelectorAll('#sc-doc use')[1]];
+        s.syncActions();
+      });
+      await h.redraw();
       await h.shot([panelGroup(h, 'symbols'), '.sc-pgroup.sc-grow'], { pad: 0 });
     },
   },
@@ -137,7 +144,6 @@ export default [
       const u = h.page.locator('#sc-doc use').first();
       await u.dblclick();
       await h.page.waitForSelector('#sc-iso:not([hidden])');
-      await h.select('#sc-doc [data-sc-iso] path, symbol path');
       await h.shot('#sc-stage', { pad: 0 });
     },
   },

@@ -15,7 +15,8 @@ async function foldPanels(h) {
 }
 
 // A layer's row in the Layers panel.
-const row = (h, name) => h.page.locator('#sc-layers li', { has: h.page.getByText(name, { exact: true }) });
+const row = (h, name) =>
+  h.page.locator('#sc-layers li', { has: h.page.getByText(name, { exact: true }) });
 
 // Save a shot without moving the mouse first (h.shot does, which would end
 // a hover or a drag), cropped to the box round the targets.
@@ -153,7 +154,15 @@ export default [
     async shoot(h) {
       await foldPanels(h);
       await h.select('Title');
-      await row(h, 'Title').locator('.sc-layer-name').dblclick();
+      // What double-clicking the name does (a real double-click's first
+      // click redraws the rows under the pointer).
+      await h.page.evaluate(() => {
+        const li = [...document.querySelectorAll('#sc-layers li')].find(
+          (r) => r.layerEl?.getAttribute('data-name') === 'Title',
+        );
+        // eslint-disable-next-line no-undef -- the editor's own global
+        renameLayer(li.layerEl, li.querySelector('.sc-layer-name'));
+      });
       const input = h.page.locator('.sc-layer-input');
       await input.waitFor();
       await input.fill('Logo text');
@@ -212,7 +221,11 @@ export default [
     async shoot(h) {
       await h.select('Red paint');
       await h.menu('Layer', 'layerViaCopy', { click: false });
-      await still(h, '.sc-menu-list:not([hidden])', { pad: 4, name: 'layer-via-copy-cut' });
+      await still(
+        h,
+        [0, 1].map((i) => h.page.locator('.sc-menu-list:not([hidden])').nth(i)),
+        { pad: 4, name: 'layer-via-copy-cut' },
+      );
     },
   },
   {
@@ -230,7 +243,7 @@ export default [
     async shoot(h) {
       await h.page.hover('[data-tool="pen"]');
       await h.page.locator('.sc-tip:not([hidden])').waitFor();
-      await still(h, ['[data-tool="pen"]', '.sc-tip'], { pad: 12, name: 'tooltips' });
+      await still(h, ['[data-tool="pen"]', '.sc-tip'], { pad: 40, name: 'tooltips' });
     },
   },
   {
@@ -247,10 +260,14 @@ export default [
       await h.select('Square', 'Circle');
       await h.page.hover('#sc-options [data-action="combineUnite"]');
       await h.page.locator('.sc-tip:not([hidden])').waitFor();
-      await still(h, ['#sc-options [data-action="combineExclude"]', '#sc-stage-wrap'], {
-        pad: 0,
-        name: 'combine-selected-shapes',
-      });
+      await still(
+        h,
+        ['#sc-options > :first-child', '#sc-options [data-action="combineExclude"]', '#sc-doc'],
+        {
+          pad: 6,
+          name: 'combine-selected-shapes',
+        },
+      );
     },
   },
   {
@@ -259,7 +276,7 @@ export default [
     async shoot(h) {
       await foldPanels(h);
       await clipArt(h);
-      await h.shot();
+      await h.shot(['#sc-doc', LAYERS], { pad: 0 });
     },
   },
   {
@@ -268,16 +285,23 @@ export default [
     async shoot(h) {
       await foldPanels(h);
       await clipArt(h);
-      await row(h, 'Window').click();
+      await h.select('Window');
       await h.dragDoc([400, 180], [300, 200]);
-      await h.shot();
+      await h.shot(['#sc-doc', LAYERS], { pad: 0 });
     },
   },
   {
     id: 'release-a-clipping-mask',
     async shoot(h) {
       await h.menu('Layer', 'clipRelease', { click: false });
-      await still(h, '.sc-menu-list:not([hidden])', { pad: 4, name: 'release-a-clipping-mask' });
+      await still(
+        h,
+        [0, 1].map((i) => h.page.locator('.sc-menu-list:not([hidden])').nth(i)),
+        {
+          pad: 4,
+          name: 'release-a-clipping-mask',
+        },
+      );
     },
   },
   {
@@ -296,7 +320,7 @@ export default [
       await h.select('Hello');
       await h.menu('Type', 'createOutlines');
       await row(h, 'Hello (outlines)').waitFor();
-      await h.shot();
+      await h.shot(['#sc-doc', LAYERS, '#sc-msg'], { pad: 0 });
     },
   },
   {

@@ -1,7 +1,6 @@
 // Help screenshots for the README's Workspace section: the phone preview,
 // installing, and the editor's layout (see scripts/gen-help-screens.mjs).
 import path from 'node:path';
-import { pathToFileURL } from 'node:url';
 
 const PHONE = { viewport: { width: 390, height: 844 }, touch: true };
 const ROOT = path.resolve(import.meta.dirname, '../..');
@@ -60,8 +59,15 @@ export default [
     id: 'the-menu-bar',
     async shoot(h) {
       await h.select('Red paint');
-      await h.menu('Layer', 'clippingMask', { click: false });
-      await h.shot(['.sc-menu-list:not([hidden])', '.sc-menus'], { pad: 6 });
+      await h.menu('Layer', 'clipMake', { click: false });
+      await h.shot(
+        [
+          '.sc-menu-list:not([hidden])',
+          '.sc-submenu:has([data-action="clipMake"]) .sc-sub-list',
+          '.sc-menu-btn:text-is("Layer")',
+        ],
+        { pad: 6 },
+      );
     },
   },
   {
@@ -71,13 +77,14 @@ export default [
       const bar = h.page.locator('#sc-options');
       await bar.waitFor();
       const b = await bar.boundingBox();
-      await h.shot(null, { clip: { x: b.x, y: b.y, width: 1280, height: b.height } });
+      await h.shot(null, { clip: { x: b.x, y: b.y, width: 760, height: b.height } });
     },
   },
   {
     id: 'the-toolbar',
     async shoot(h) {
-      await h.shot('.sc-tools', { pad: 4 });
+      const b = await h.page.locator('.sc-tools').boundingBox();
+      await h.shot(null, { clip: { x: b.x, y: b.y, width: b.width + 4, height: 460 } });
     },
   },
   {
@@ -120,53 +127,58 @@ export default [
     id: 'rulers-guides-and-smart-guides',
     async shoot(h) {
       const { page } = h;
+      await h.open(
+        '<rect data-name="Blue" x="100" y="80" width="200" height="120" fill="#2563eb"/>' +
+          '<circle data-name="Green" cx="650" cy="140" r="60" fill="#16a34a"/>' +
+          '<rect data-name="Red" x="420" y="260" width="160" height="160" fill="#dc2626"/>',
+        'guides.svg',
+        800,
+        560,
+      );
       await page.evaluate(() => {
         const s = window.svgcraft.state;
         s.smart = true;
         s.guidesOn = true;
         s.guides = [
           { axis: 'x', pos: 100 },
-          { axis: 'y', pos: 460 },
+          { axis: 'y', pos: 480 },
         ];
       });
       await h.redraw();
-      // Drag a paint blob until it lines up, and hold it there for the shot
-      // (h.shot would move the mouse, ending the drag).
+      // Drag the red square until its top meets the blue's and its centre
+      // the green's, and hold it there for the shot (h.shot moves the mouse,
+      // which would end the drag).
       await page.evaluate(() => window.svgcraft.setTool('select'));
-      const box = await page.evaluate(() => {
-        const r = document.querySelector('#sc-doc [data-name="Blue paint"]').getBBox();
-        return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
-      });
-      const a = await h.at(box.x, box.y);
-      const b = await h.at(box.x + 37, box.y - 23);
+      const a = await h.at(500, 340);
+      const b = await h.at(653, 163);
       await page.mouse.move(a.x, a.y);
       await page.mouse.down();
       await page.mouse.move(b.x, b.y, { steps: 12 });
-      await page.waitForSelector('#sc-smart line, #sc-smart path');
+      await page.waitForSelector('#sc-smart line', { state: 'attached' });
       await page.waitForTimeout(200);
       const wrap = await page.locator('#sc-stage-wrap').boundingBox();
+      const name = 'rulers-guides-and-smart-guides';
       await page.screenshot({
-        path: path.join(ROOT, 'docs/help/rulers-guides-and-smart-guides.png'),
-        clip: { x: wrap.x, y: wrap.y, width: Math.min(wrap.width, 760), height: 460 },
+        path: path.join(ROOT, `docs/help/${name}.png`),
+        clip: { x: wrap.x, y: wrap.y, width: wrap.width, height: wrap.height },
       });
-      console.log('wrote docs/help/rulers-guides-and-smart-guides.png');
+      console.log(`wrote docs/help/${name}.png`);
       await page.mouse.up();
     },
   },
   {
     id: 'svgcraft-help',
     async shoot(h) {
-      await h.page.goto(pathToFileURL(path.join(ROOT, 'help.html')).href + '#docked-panels');
-      await h.page.waitForTimeout(300);
-      await h.shot(null, { clip: { x: 0, y: 0, width: 1280, height: 600 } });
+      await h.menu('Help', 'help', { click: false });
+      await h.shot(['.sc-menu-list:not([hidden])', '.sc-menu-btn:text-is("Help")'], { pad: 6 });
     },
   },
   {
     id: 'theme',
     theme: 'light',
     async shoot(h) {
-      await h.menu('View', 'themeSystem', { click: false });
-      await h.shot(['.sc-menu-list:not([hidden]) .sc-sub-list:has([data-action="themeSystem"])', '#sc-theme-btn'], { pad: 6 });
+      await h.menu('View', 'themeLight', { click: false });
+      await h.shot(['.sc-menu-list:not([hidden])', '#sc-theme-btn'], { pad: 6 });
     },
   },
 ];
