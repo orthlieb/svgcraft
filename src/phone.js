@@ -89,16 +89,31 @@ peekDlg.querySelector('[data-peek="close"]').addEventListener('click', () => hid
 // ---- the backdrop behind the artwork: checkerboard, white or black ---------
 const PREVIEW_BG_KEY = 'svgcraft.previewBg';
 const PREVIEW_BGS = ['checker', 'white', 'black'];
+// The button shows the backdrop it's on: a checkered circle, a white one
+// ringed in black, or a black one ringed in white.
+const PREVIEW_BG_ICON = {
+  checker:
+    '<defs><pattern id="sc-bg-chk" width="4" height="4" patternUnits="userSpaceOnUse">' +
+    '<rect width="4" height="4" fill="#fff"/><path d="M0 0h2v2H0zM2 2h2v2H2z" fill="#9a9a9a"/>' +
+    '</pattern></defs><circle cx="8" cy="8" r="6.5" fill="url(#sc-bg-chk)" stroke="#9a9a9a"/>',
+  white: '<circle cx="8" cy="8" r="6.5" fill="#fff" stroke="#000" stroke-width="1.5"/>',
+  black: '<circle cx="8" cy="8" r="6.5" fill="#000" stroke="#fff" stroke-width="1.5"/>',
+};
+const PREVIEW_BG_NAME = { checker: 'checkerboard', white: 'white', black: 'black' };
 function setPreviewBg(bg) {
   if (!PREVIEW_BGS.includes(bg)) bg = 'checker';
   $('#sc-stage-wrap').dataset.bg = bg;
   store(PREVIEW_BG_KEY, bg === 'checker' ? null : bg);
+  const b = $('[data-action="previewBg"]');
+  b.innerHTML = `<svg viewBox="0 0 16 16" aria-hidden="true">${PREVIEW_BG_ICON[bg]}</svg>`;
+  b.setAttribute('aria-label', `Background: ${PREVIEW_BG_NAME[bg]}`);
+  b.dataset.tip = `Background: ${PREVIEW_BG_NAME[bg]} (tap for the next)`;
 }
 function previewBg() {
   const now = $('#sc-stage-wrap').dataset.bg || 'checker';
   const next = PREVIEW_BGS[(PREVIEW_BGS.indexOf(now) + 1) % PREVIEW_BGS.length];
   setPreviewBg(next);
-  say(`Background: ${next === 'checker' ? 'checkerboard' : next}.`);
+  say(`Background: ${PREVIEW_BG_NAME[next]}.`);
 }
 setPreviewBg(stored(PREVIEW_BG_KEY, 'checker'));
 

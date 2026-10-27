@@ -180,14 +180,29 @@ test.describe('phone, portrait', () => {
   test('Background cycles checkerboard, white and black, and is remembered', async ({ page }) => {
     const fill = () =>
       page.evaluate(() => getComputedStyle(document.getElementById('sc-board-bg')).fill);
+    // The button shows which: a checkered circle, white ringed in black,
+    // black ringed in white.
+    const btn = bar(page, 'previewBg');
+    const dot = () =>
+      btn.evaluate((b) => {
+        const c = b.querySelector('circle');
+        return `${c.getAttribute('fill')} ${c.getAttribute('stroke')}`;
+      });
     expect(await fill()).toContain('url');
-    await bar(page, 'previewBg').click();
+    await expect(btn).toHaveAttribute('aria-label', 'Background: checkerboard');
+    expect(await dot()).toContain('url(');
+    await btn.click();
     expect(await fill()).toBe('rgb(255, 255, 255)');
-    await bar(page, 'previewBg').click();
+    await expect(btn).toHaveAttribute('aria-label', 'Background: white');
+    expect(await dot()).toBe('#fff #000');
+    await btn.click();
     expect(await fill()).toBe('rgb(0, 0, 0)');
+    await expect(btn).toHaveAttribute('aria-label', 'Background: black');
+    expect(await dot()).toBe('#000 #fff');
     await page.reload();
     await page.evaluate(() => window.svgcraft.ready);
     expect(await fill()).toBe('rgb(0, 0, 0)');
+    await expect(btn).toHaveAttribute('aria-label', 'Background: black');
     await bar(page, 'previewBg').click();
     expect(await fill()).toContain('url');
   });

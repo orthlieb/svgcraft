@@ -33,8 +33,9 @@ The phone toolbar also has:
 - **Text view** (`</>`): the SVG source full-screen, syntax-coloured, to
   read (long lines wrapped), search and **Copy** (or download); the same
   button (now a picture) goes back to the drawing.
-- **Background**: the artwork on the checkerboard, white or black
-  (remembered).
+- **Background**: the artwork on the checkerboard, white or black; each
+  tap moves to the next, and the button shows which it's on (a checkered
+  circle, white ringed in black, or black ringed in white). Remembered.
 - **Share**: the phone's share sheet with the SVG and a PNG of it
   (downloads the SVG where the browser can't share files).
 
