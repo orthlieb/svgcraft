@@ -27,7 +27,7 @@ test('a spin about the shape’s centre becomes Spin, plays, and saves', async (
     { p: 'spin', dur: 5, delay: 0, rep: 0, dir: 'normal', ease: 'linear', turns: 1 },
   ]);
   await expect(page.locator('#sc-msg')).toHaveText(
-    'Kept the file’s 1 animation: edit them in the Animation tab.',
+    'Kept the file’s 1 animation: edit it in the Animation tab.',
   );
   expect(await playOn(page)).toBe(true);
   const out = await page.evaluate(() => window.svgcraft.serialize());
@@ -215,4 +215,34 @@ test('importing a file into a drawing keeps its animations too', async ({ page }
   await page.evaluate((t) => window.svgcraft.placeSvg(t, 'arrow.svg'), ARROW);
   expect((await anims(page, 'path')).map((a) => [a.p, a.dur])).toEqual([['spin', 5]]);
   expect(await playOn(page)).toBe(true);
+});
+
+test('rings of circles turning both ways about their shared centre', async ({ page }) => {
+  const ring = (r, d, dur, fill) =>
+    `<g fill="${fill}" fill-opacity="0.3">` +
+    [0, 90, 180, 270]
+      .map((a) => {
+        const t = (a * Math.PI) / 180;
+        return `<circle cx="${400 + d * Math.cos(t)}" cy="${400 + d * Math.sin(t)}" r="${r}"/>`;
+      })
+      .join('') +
+    `<animateTransform attributeName="transform" type="rotate" ${dur > 0 ? 'from="0 400 400" to="360 400 400"' : 'from="360 400 400" to="0 400 400"'} dur="${Math.abs(dur)}s" repeatCount="indefinite"/></g>`;
+  await open(
+    page,
+    '<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1000">' +
+      ring(90, 180, 24, 'rgb(84,241,127)') +
+      ring(82, 165, -22, 'rgb(22,161,8)') +
+      '</svg>',
+  );
+  expect(
+    await page.evaluate(() =>
+      [...document.querySelectorAll('#sc-doc > g')].map((g) => JSON.parse(g.dataset.scAnim)[0]),
+    ),
+  ).toEqual([
+    { p: 'spin', dur: 24, delay: 0, rep: 0, dir: 'normal', ease: 'linear', turns: 1 },
+    { p: 'spin', dur: 22, delay: 0, rep: 0, dir: 'reverse', ease: 'linear', turns: 1 },
+  ]);
+  await expect(page.locator('#sc-msg')).toHaveText(
+    'Kept the file’s 2 animations: edit them in the Animation tab.',
+  );
 });

@@ -700,7 +700,10 @@ function reportSmil({ kept, lost }) {
       `${n(lost, 'animation')} in this file can’t be edited in SVGCraft, so ${lost === 1 ? 'it was' : 'they were'} left out.` +
         (kept ? ` The other ${kept === 1 ? 'one is' : `${kept} are`} in the Animation tab.` : ''),
     );
-  else if (kept) say(`Kept the file’s ${n(kept, 'animation')}: edit them in the Animation tab.`);
+  else if (kept)
+    say(
+      `Kept the file’s ${n(kept, 'animation')}: edit ${kept === 1 ? 'it' : 'them'} in the Animation tab.`,
+    );
 }
 
 // ---- preview ---------------------------------------------------------------------
