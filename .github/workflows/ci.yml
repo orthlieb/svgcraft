@@ -13,7 +13,13 @@ jobs:
   test:
     name: Lint & test
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # Playwright's own image has Chromium and its system libraries already
+    # installed (its version matches @playwright/test in package.json), so
+    # no run waits on installing them: that took 12 minutes once and timed
+    # the job out.
+    container:
+      image: mcr.microsoft.com/playwright:v1.56.1-noble
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -27,8 +33,6 @@ jobs:
         run: npm run lint
       - name: Generated files are current
         run: node scripts/gen-help.mjs --check && node scripts/gen-version.mjs --check
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
       - name: Playwright tests
         run: npm test
       - name: Upload report
