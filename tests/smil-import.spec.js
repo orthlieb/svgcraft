@@ -60,8 +60,9 @@ test('fades, colour, reverse, alternate, eases, delays and repeats', async ({ pa
       '<animate attributeName="opacity" values="1;0" dur="500ms" begin="0:00:02"/></rect>' +
       '</svg>',
   );
+  // Shown until it starts, as in the file: a Fade in would start hidden.
   expect(await anims(page, '#a')).toEqual([
-    { p: 'fadeIn', dur: 0.8, delay: 1, rep: 1, dir: 'normal', ease: 'linear' },
+    { p: 'fadeOut', dur: 0.8, delay: 1, rep: 1, dir: 'reverse', ease: 'linear' },
   ]);
   expect(await anims(page, '#b')).toEqual([
     {
@@ -208,3 +209,10 @@ for (const [p, opts] of Object.entries(PRESETS))
       }
     });
   });
+
+test('importing a file into a drawing keeps its animations too', async ({ page }) => {
+  await open(page, '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"/>');
+  await page.evaluate((t) => window.svgcraft.placeSvg(t, 'arrow.svg'), ARROW);
+  expect((await anims(page, 'path')).map((a) => [a.p, a.dur])).toEqual([['spin', 5]]);
+  expect(await playOn(page)).toBe(true);
+});

@@ -1129,9 +1129,14 @@
             </p>
             <ul>
               <li>
-                Only SVG drawing elements are kept: no script, <code>foreignObject</code>,
-                animation, or elements from other namespaces (such as HTML
-                <code>&lt;base&gt;</code>, <code>&lt;form&gt;</code> or <code>&lt;meta&gt;</code>).
+                Only SVG drawing elements are kept: no script, <code>foreignObject</code>, or
+                elements from other namespaces (such as HTML <code>&lt;base&gt;</code>,
+                <code>&lt;form&gt;</code> or <code>&lt;meta&gt;</code>).
+              </li>
+              <li>
+                The file's own animation elements never enter the page either. Those that do what an
+                animation preset does become that preset (see <a href="#animate">Animate</a>); the
+                others are left out, and a message says how many.
               </li>
               <li>Event handlers (<code>on*</code>) are removed.</li>
               <li>
@@ -2339,6 +2344,33 @@
                 app icon and favicon exports use the still drawing.
               </li>
               <li>Reopening a saved file rebuilds the animations from their settings.</li>
+            </ul>
+            <h4>Animations from other files</h4>
+            <p>
+              When you open, import or paste an SVG with its own SMIL animations, each one that does
+              what a preset does becomes that preset on its layer, ready to edit and play:
+            </p>
+            <ul>
+              <li>
+                A rotation about the layer's centre becomes <strong>Spin</strong>; opacity from 0 to
+                1 or back becomes <strong>Fade in</strong> or <strong>Fade out</strong>; a fill
+                going to another colour becomes <strong>Colour cycle</strong>; and so on for every
+                preset, with its length, delay, repeats, direction and ease.
+              </li>
+              <li>
+                A file saved by Export Clean SVG (which drops SVGCraft's settings) comes back with
+                the animations it had.
+              </li>
+              <li>
+                What no preset does is left out, and a message says how many: a rotation about
+                another point, a motion path (<code>&lt;animateMotion&gt;</code>), an animation that
+                starts on a click or another animation's end, one inside a symbol, and CSS
+                <code>@keyframes</code>.
+              </li>
+              <li>
+                An animation that replaces a layer's own transform (SMIL's default) is only kept
+                when the layer has none, since a preset adds to it.
+              </li>
             </ul>
           </article>
           <article id="zoom-and-pan" data-find>

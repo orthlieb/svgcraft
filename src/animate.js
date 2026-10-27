@@ -632,16 +632,19 @@ function smilToAnims(el, notes, own) {
           used.push(m);
         }
         if (used.length !== chs.length || !used.includes(first)) continue;
-        // Sets the file lacks don't count against a preset: a hand-made
-        // delayed fade in is still a Fade in (which starts hidden).
+        // The file's <set>s it accounts for, less any it would add: what
+        // plays must stay as it was, so a delayed fade in with no <set> to
+        // start it hidden comes back as a reversed Fade out, which has none.
         const setHits = [];
+        let extra = 0;
         for (const g of gen.filter((x) => x.tag === 'set')) {
           const i = sets.findIndex(
             (x, j) => !setsUsed.has(j) && !setHits.includes(j) && smilSameSet(x, g),
           );
           if (i >= 0) setHits.push(i);
+          else extra++;
         }
-        const score = setHits.length;
+        const score = setHits.length - extra;
         if (!found || score > found.score) found = { a, used, setHits, score };
       }
     }
