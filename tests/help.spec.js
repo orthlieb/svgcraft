@@ -30,7 +30,7 @@ test('every ? in the editor points at a help topic that exists', async ({ page }
     ...[...document.querySelectorAll('dialog[data-help]')].map((d) => d.dataset.help),
     ...Object.values(TAB_HELP), // eslint-disable-line no-undef
     'layers',
-    'workspace',
+    'on-a-phone',
   ]);
   expect(topics.length).toBeGreaterThan(20);
   for (const t of topics) expect(ids, `#${t}`).toContain(t);

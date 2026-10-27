@@ -54,7 +54,8 @@ const panelGroup = (h, tab) => h.page.locator(`.sc-pgroup:has([data-tab="${tab}"
 // The docked SVG Source pane and the part of the canvas next to it.
 async function sourceShot(h) {
   const b = await h.page.locator('#sc-source').boundingBox();
-  await h.shot(null, { clip: { x: 0, y: b.y, width: b.x + b.width, height: 520 } });
+  const x = (await h.page.locator('#sc-stage-wrap').boundingBox()).x;
+  await h.shot(null, { clip: { x, y: b.y, width: b.x + b.width - x, height: 520 } });
 }
 
 export default [

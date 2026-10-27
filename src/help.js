@@ -61,5 +61,5 @@ for (const g of pgroups) {
 // The phone's Info sheet.
 $('#sc-pinfo-help')?.addEventListener('click', () => {
   hideDialog($('#sc-pinfo'));
-  openHelp('workspace');
+  openHelp('on-a-phone');
 });
