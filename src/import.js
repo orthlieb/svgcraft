@@ -47,7 +47,8 @@ const reachesOut = (v) =>
   [...urlOf(v).matchAll(/url\(\s*(['"]?)([^'")]*)\1\s*\)/g)].some((m) => !m[2].startsWith('#')) ||
   /expression\(|-moz-binding|behavior:|@import|javascript:/.test(urlOf(v));
 
-function sanitize(root) {
+function sanitize(root, { smil = false } = {}) {
+  if (smil) stashSmil(root);
   inlineStyles(root);
   const kill = [];
   const walker = root.ownerDocument.createTreeWalker(
@@ -87,6 +88,44 @@ function sanitize(root) {
       else el.removeAttribute('style');
     }
   }
+}
+
+// A file's own SMIL animations can't stay as they are: SVGCraft writes its
+// animations from settings on the layer (src/animate.js). Each one is noted
+// on the element it animates (data-sc-smil, read by adoptSmil() once the
+// drawing is on the page), and those it can't be (on the root, in <defs>,
+// CSS @keyframes) are counted in data-sc-smil-lost. SMIL that SVGCraft
+// wrote itself, on a layer that still has its settings, is just dropped.
+const SMIL_TAGS = new Set(['animate', 'animateTransform', 'animateMotion', 'set']);
+function stashSmil(root) {
+  let lost = 0;
+  for (const st of root.querySelectorAll('style'))
+    lost += (st.textContent.match(/@(-webkit-)?keyframes\b/g) || []).length;
+  const notes = new Map();
+  for (const n of [...root.querySelectorAll('*')]) {
+    if (n.namespaceURI !== NS || !SMIL_TAGS.has(n.localName)) continue;
+    const href = n.getAttribute('href') ?? n.getAttributeNS(XLINK, 'href');
+    let t = n.parentNode;
+    if (href) {
+      const m = /^#(.+)$/.exec(href.trim());
+      t = m ? [...root.querySelectorAll('[id]')].find((e) => e.id === m[1]) : null;
+    }
+    if (t?.hasAttribute?.('data-sc-anim')) continue;
+    if (!t || t === root || t.namespaceURI !== NS || !SVG_ALLOWED.has(t.localName)) {
+      lost++;
+      continue;
+    }
+    const attrs = {};
+    for (const a of n.attributes)
+      if (a.localName !== 'href' && !a.name.startsWith('on')) attrs[a.localName] = a.value;
+    if (!notes.has(t)) notes.set(t, []);
+    notes.get(t).push({ tag: n.localName, attrs });
+  }
+  // Whether the element had a transform of its own: one that replaces it
+  // (SMIL's default) can only be kept when there was none.
+  for (const [t, list] of notes)
+    t.setAttribute('data-sc-smil', JSON.stringify({ own: t.hasAttribute('transform'), list }));
+  if (lost) root.setAttribute('data-sc-smil-lost', lost);
 }
 
 // Bake <style> rules into inline styles so imported CSS can't leak into
@@ -248,7 +287,7 @@ function parseSvg(text, { dedupe = true } = {}) {
   const root = xml.documentElement;
   if (xml.querySelector('parsererror') || root.localName !== 'svg')
     throw new Error('Not a valid SVG file');
-  sanitize(root);
+  sanitize(root, { smil: true });
   inheritRootPaint(root);
   // Sprite sheets keep their symbols at the top level: they belong in defs.
   const syms = [...root.children].filter((c) => c.localName === 'symbol');
@@ -302,6 +341,7 @@ function parseSvg(text, { dedupe = true } = {}) {
     nodes,
     clip: root.getAttribute('data-svgcraft') === 'clip',
     guides: parseGuides(root.getAttribute('data-sc-guides')),
+    smilLost: parseInt(root.getAttribute('data-sc-smil-lost')) || 0,
     meta: readMeta(root),
   };
 }
@@ -333,6 +373,7 @@ function openSvg(text, name, { keepSaved = false } = {}) {
   }
   state.units = s.units;
   setSize(s.w * s.k, s.h * s.k);
+  const smil = adoptSmil([...s.nodes, ...defs.children], s.smilLost);
   state.guides = s.guides;
   state.meta = s.meta;
   renderGuides();
@@ -346,6 +387,7 @@ function openSvg(text, name, { keepSaved = false } = {}) {
     curDoc.saved = curDoc.svg;
     renderTabs();
   }
+  reportSmil(smil);
 }
 
 function placeSvg(text, name = 'Pasted SVG') {
@@ -367,9 +409,11 @@ function placeSvg(text, name = 'Pasted SVG') {
     setM(g, new DOMMatrix().translate(tx, ty).scale(k).translate(-s.minX, -s.minY));
     state.sel = [g];
   }
+  const smil = adoptSmil([...s.nodes, ...defs.children], s.smilLost);
   loadDocFonts();
   setTool('select');
   commit();
+  reportSmil(smil);
 }
 
 function placeImage(dataUrl) {

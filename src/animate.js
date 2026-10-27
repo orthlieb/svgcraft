@@ -412,6 +412,294 @@ function writeAnimations(live, copy, on) {
   });
 }
 
+// ---- animations in opened files ------------------------------------------------
+// A file's own SMIL (noted on each element by stashSmil() in src/import.js)
+// becomes presets where a preset would write the same thing: every preset
+// is tried on the layer, in each direction, with its options read off the
+// file's values, and kept if what it generates matches. SVGCraft's own
+// exports (Export Clean SVG drops the settings) come back exactly, and
+// hand-made animations that do what a preset does (a spin about the
+// layer's centre, a fade) become editable. The rest are counted, and the
+// opener says so.
+
+// Seconds in a SMIL clock value ("5s", "500ms", "1.5", "0:01:02.5"), or NaN.
+function smilClock(v) {
+  v = (v ?? '').trim();
+  let m = /^(\d+(?:\.\d+)?)(h|min|s|ms)?$/.exec(v);
+  if (m) return +m[1] * { h: 3600, min: 60, s: 1, ms: 0.001 }[m[2] || 's'];
+  m = /^(?:(\d+):)?(\d{1,2}):(\d{2}(?:\.\d+)?)$/.exec(v);
+  if (m) return (+m[1] || 0) * 3600 + +m[2] * 60 + +m[3];
+  return NaN;
+}
+// An animation element's timing: { begin, dur, rep } (rep 0 = forever),
+// or null when it starts on an event or repeats a part of a run.
+function smilTiming(a) {
+  const begin = a.begin == null || a.begin.trim() === '' ? 0 : smilClock(a.begin);
+  const dur = smilClock(a.dur);
+  if (!(begin >= 0) || !(dur > 0)) return null;
+  let rep = 1;
+  if (a.repeatCount === 'indefinite' || a.repeatDur === 'indefinite') rep = 0;
+  else if (a.repeatCount != null) rep = +a.repeatCount;
+  else if (a.repeatDur != null) rep = smilClock(a.repeatDur) / dur;
+  if (rep !== 0 && !(Math.abs(rep - Math.round(rep)) < 1e-6 && rep >= 1)) return null;
+  return { begin, dur, rep: Math.round(rep) };
+}
+const smilNums = (v) =>
+  String(v)
+    .trim()
+    .split(/[\s,]+/)
+    .filter(Boolean)
+    .map(Number);
+// Any CSS colour as #rrggbb (canvas does the parsing).
+const smilCtx = document.createElement('canvas').getContext('2d');
+function smilHex(v) {
+  smilCtx.fillStyle = '#000';
+  smilCtx.fillStyle = String(v).trim();
+  return smilCtx.fillStyle;
+}
+// One channel, from a file's element or a generated one, made comparable:
+// its values as number lists (transforms padded: rotate a cx cy, translate
+// x y, scale sx sy; colours as #rrggbb), keyTimes, timing and pacing.
+function smilChannel({ tag, attrs: a }, el) {
+  const name = a.attributeName || '';
+  const type = tag === 'animateTransform' ? a.type || 'translate' : '';
+  const t = smilTiming(a);
+  if (!t || tag === 'set' || tag === 'animateMotion') return null;
+  const base = () => {
+    if (type === 'scale') return '1';
+    if (type) return '0';
+    return el.getAttribute(name) ?? getComputedStyle(el).getPropertyValue(name) ?? '';
+  };
+  let raw;
+  if (a.values != null)
+    raw = a.values
+      .split(';')
+      .map((v) => v.trim())
+      .filter(Boolean);
+  else if (a.to != null) raw = [a.from ?? base(), a.to];
+  else if (a.by != null) {
+    const f0 = smilNums(a.from ?? base());
+    const by = smilNums(a.by);
+    raw = [f0.join(' '), f0.map((x, i) => x + (by[i] ?? by[0] ?? 0)).join(' ')];
+  } else return null;
+  if (raw.length < 2) return null;
+  const colour = /^(fill|stroke|stop-color|color)$/.test(name);
+  const values = raw.map((v) => {
+    if (colour) return smilHex(v);
+    const n = smilNums(v);
+    if (type === 'rotate') return [n[0] ?? 0, n[1] ?? 0, n[2] ?? 0];
+    if (type === 'translate') return [n[0] ?? 0, n[1] ?? 0];
+    if (type === 'scale') return [n[0] ?? 1, n[1] ?? n[0] ?? 1];
+    return n;
+  });
+  if (!colour && values.some((v) => !v.length || v.some((x) => !isFinite(x)))) return null;
+  const kt = a.keyTimes ? smilNums(a.keyTimes.replace(/;/g, ' ')) : null;
+  const calc = a.calcMode === 'discrete' || a.calcMode === 'spline' ? a.calcMode : 'linear';
+  return {
+    tag,
+    name,
+    type,
+    additive: a.additive === 'sum',
+    values,
+    kt: kt?.length === values.length ? kt : values.map((_, i) => i / (values.length - 1)),
+    calc,
+    spline: calc === 'spline' ? smilNums((a.keySplines || '').split(';')[0]) : null,
+    ...t,
+  };
+}
+const smilNear = (x, y) => Math.abs(x - y) <= 0.01 + 0.005 * Math.max(Math.abs(x), Math.abs(y));
+// Does a file's channel g do what generated channel c does? A transform
+// that replaces (SMIL's default) is the same as one added on top when the
+// element had no transform of its own.
+function smilSame(g, c, own) {
+  if (g.tag !== c.tag || g.name !== c.name || g.type !== c.type) return false;
+  if (c.type && !g.additive && own) return false;
+  if (!smilNear(g.begin, c.begin) || !smilNear(g.dur, c.dur) || g.rep !== c.rep) return false;
+  if (g.calc !== c.calc || g.values.length !== c.values.length) return false;
+  for (let i = 0; i < g.values.length; i++) {
+    const [a, b] = [g.values[i], c.values[i]];
+    if (typeof a === 'string' ? a !== b : a.some((x, j) => !smilNear(x, b[j] ?? NaN))) return false;
+    if (Math.abs(g.kt[i] - c.kt[i]) > 0.002) return false;
+  }
+  return true;
+}
+// Do two <set>s set the same thing at the same time?
+function smilSameSet(x, y) {
+  const [a, b] = [x.attrs, y.attrs];
+  if (a.attributeName !== b.attributeName) return false;
+  if (!smilNear(smilClock(a.begin || '0s'), smilClock(b.begin || '0s'))) return false;
+  const [p, q] = [smilNums(a.to ?? ''), smilNums(b.to ?? '')];
+  return p.length === q.length && p.every((v, i) => smilNear(v, q[i]));
+}
+// The ease a spline is closest to.
+function smilEase(ch) {
+  if (ch.calc !== 'spline') return 'linear';
+  let best = 'ease';
+  let d0 = Infinity;
+  for (const [k, [, s]] of Object.entries(EASES)) {
+    if (!s) continue;
+    const d = smilNums(s).reduce((t, x, i) => t + Math.abs(x - (ch.spline[i] ?? 0)), 0);
+    if (d < d0) [best, d0] = [k, d];
+  }
+  return best;
+}
+// One run's values, forward, for a direction (null when they can't be).
+function smilForward(values, dir) {
+  if (dir === 'reverse') return [...values].reverse();
+  if (dir !== 'alternate') return values;
+  const n = values.length;
+  if (n < 3 || n % 2 === 0) return null;
+  const half = values.slice(0, (n + 1) / 2);
+  const same = (a, b) => (typeof a === 'string' ? a === b : a.every((x, i) => smilNear(x, b[i])));
+  return half.every((v, i) => same(v, values[n - 1 - i])) ? half : null;
+}
+// A preset's options read off the file's channels, run forward.
+function smilOptions(chs, dir, el) {
+  const o = {};
+  const fwd = (c) => smilForward(c.values, dir);
+  const rot = chs.find((c) => c.type === 'rotate');
+  if (rot && fwd(rot)) {
+    const v = fwd(rot);
+    o.turns = (v.at(-1)[0] - v[0][0]) / 360;
+  }
+  const sc = chs.find((c) => c.type === 'scale');
+  if (sc && fwd(sc)) o.scale = Math.max(...fwd(sc).map((v) => v[0])) * 100;
+  const mv = chs.find((c) => c.type === 'translate');
+  if (mv && fwd(mv)) {
+    const far = fwd(mv).reduce((p, v) => (Math.hypot(...v) > Math.hypot(...p) ? v : p));
+    const m = fullM(el);
+    o.dist = Math.hypot(...far) * (Math.hypot(m.a, m.b) || 1);
+    o.from =
+      Math.abs(far[0]) >= Math.abs(far[1])
+        ? far[0] < 0
+          ? 'left'
+          : 'right'
+        : far[1] < 0
+          ? 'top'
+          : 'bottom';
+  }
+  const col = chs.find((c) => c.name === 'fill');
+  if (col && fwd(col)) o.to = fwd(col).at(-1);
+  return o;
+}
+// A layer's noted SMIL as presets: { anims, lost }.
+function smilToAnims(el, notes, own) {
+  let lost = 0;
+  const sets = notes.filter((n) => n.tag === 'set');
+  let pool = [];
+  for (const n of notes) {
+    if (n.tag === 'set') continue;
+    const c = smilChannel(n, el);
+    if (c) pool.push(c);
+    else lost++;
+  }
+  const anims = [];
+  const setsUsed = new Set();
+  while (pool.length) {
+    const first = pool[0];
+    const peers = pool.filter(
+      (c) => smilNear(c.begin, first.begin) && smilNear(c.dur, first.dur) && c.rep === first.rep,
+    );
+    // Every preset that writes these channels; the one whose <set>s (an
+    // entrance starting hidden, a line's dashes) are the file's wins, as a
+    // reversed Fade in writes what a Fade out does, but for its <set>.
+    let found = null;
+    for (const dir of ['normal', 'alternate', 'reverse']) {
+      const opts = smilOptions(peers, dir, el);
+      for (const p of Object.keys(ANIM_PRESETS)) {
+        const def = ANIM_PRESETS[p];
+        const a = {
+          p,
+          dur: dir === 'alternate' ? first.dur / 2 : first.dur,
+          delay: first.begin,
+          rep: first.rep,
+          dir,
+          ease: smilEase(first),
+        };
+        for (const k of ['from', 'dist', 'turns', 'scale', 'to'])
+          if (k in def && opts[k] != null) a[k] = opts[k];
+        if (animUnfit(el, p)) continue;
+        const gen = animNodes(el, a, false, a.delay).map((n) => ({
+          tag: n.localName,
+          attrs: Object.fromEntries([...n.attributes].map((x) => [x.name, x.value])),
+        }));
+        const chs = gen.filter((g) => g.tag !== 'set').map((g) => smilChannel(g, el));
+        if (!chs.length || chs.some((c) => !c)) continue;
+        const used = [];
+        for (const c of chs) {
+          const m = peers.find((g) => !used.includes(g) && smilSame(g, c, own));
+          if (!m) break;
+          used.push(m);
+        }
+        if (used.length !== chs.length || !used.includes(first)) continue;
+        // Sets the file lacks don't count against a preset: a hand-made
+        // delayed fade in is still a Fade in (which starts hidden).
+        const setHits = [];
+        for (const g of gen.filter((x) => x.tag === 'set')) {
+          const i = sets.findIndex(
+            (x, j) => !setsUsed.has(j) && !setHits.includes(j) && smilSameSet(x, g),
+          );
+          if (i >= 0) setHits.push(i);
+        }
+        const score = setHits.length;
+        if (!found || score > found.score) found = { a, used, setHits, score };
+      }
+    }
+    if (!found) {
+      lost++;
+      pool = pool.slice(1);
+      continue;
+    }
+    pool = pool.filter((c) => !found.used.includes(c));
+    for (const i of found.setHits) setsUsed.add(i);
+    anims.push(found.a);
+  }
+  lost += sets.length - setsUsed.size;
+  anims.sort((x, y) => x.delay - y.delay);
+  return { anims, lost };
+}
+// After a file is opened or placed: turn the noted SMIL on its layers
+// (under roots) into presets. { kept, lost }, lost starting at the count
+// the importer couldn't note at all.
+function adoptSmil(roots, lost = 0) {
+  let kept = 0;
+  for (const r of roots)
+    for (const el of [r, ...(r.querySelectorAll?.('[data-sc-smil]') || [])]) {
+      if (!el.hasAttribute?.('data-sc-smil')) continue;
+      let note = null;
+      try {
+        note = JSON.parse(el.getAttribute('data-sc-smil'));
+      } catch {
+        /* unreadable: nothing to keep */
+      }
+      el.removeAttribute('data-sc-smil');
+      const notes = Array.isArray(note?.list) ? note.list.slice(0, 50) : [];
+      // Only layers in the drawing animate (not symbols' insides, or runs of text).
+      if (!doc.contains(el) || !selectable(el) || el.parentNode.closest('text')) {
+        lost += notes.length;
+        continue;
+      }
+      const r2 = smilToAnims(el, notes, !!note.own);
+      lost += r2.lost;
+      if (!r2.anims.length) continue;
+      writeAnims(el, [...readAnims(el), ...r2.anims]);
+      // Checked and clamped as any file's settings are.
+      writeAnims(el, readAnims(el));
+      kept += r2.anims.length;
+    }
+  return { kept, lost };
+}
+// Tell the user what became of the file's animations.
+function reportSmil({ kept, lost }) {
+  const n = (k, w) => `${k} ${w}${k === 1 ? '' : 's'}`;
+  if (lost)
+    warn(
+      `${n(lost, 'animation')} in this file can’t be edited in SVGCraft, so ${lost === 1 ? 'it was' : 'they were'} left out.` +
+        (kept ? ` The other ${kept === 1 ? 'one is' : `${kept} are`} in the Animation tab.` : ''),
+    );
+  else if (kept) say(`Kept the file’s ${n(kept, 'animation')}: edit them in the Animation tab.`);
+}
+
 // ---- preview ---------------------------------------------------------------------
 const animPlay = { playing: false, nodes: [] };
 function playAnimations() {
