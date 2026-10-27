@@ -31,8 +31,8 @@ The phone toolbar also has:
   **Hide all** / **Show all** do every layer (Show all includes ones the
   file itself hides); layers inside a hidden group are dimmed.
 - **Text view** (`</>`): the SVG source full-screen, syntax-coloured, to
-  read, search and **Copy** (or download); the same button (now a picture)
-  goes back to the drawing.
+  read (long lines wrapped), search and **Copy** (or download); the same
+  button (now a picture) goes back to the drawing.
 - **Background**: the artwork on the checkerboard, white or black
   (remembered).
 - **Share**: the phone's share sheet with the SVG and a PNG of it
@@ -1078,7 +1078,8 @@ drag the window by its title bar and resize it from its corner.
   keeps its \*. You can also select any part of the text and copy that.
 - **Find** (Ctrl+F in the window) highlights every match. Enter and
   Shift+Enter, or F3, step through them.
-- **Wrap** wraps long lines instead of scrolling sideways.
+- **Wrap** (on to start, remembered when you turn it off) wraps long lines
+  instead of scrolling sideways.
 - Long embedded `data:` URIs (images, fonts) are shortened with an … on
   screen, but Copy and Download give the full text. Copying a selection
   with the mouse copies what you see, so use Copy for those.

@@ -317,11 +317,22 @@ test('keys inside the window do not edit the drawing', async ({ page }) => {
   expect(await page.evaluate(() => getSelection().toString())).toContain('<rect id="a"');
 });
 
-test('Wrap toggles line wrapping; floated, the title bar drags the window', async ({ page }) => {
+test('Wrap is on to start and toggles line wrapping, remembered; floated, the title bar drags the window', async ({
+  page,
+}) => {
   await load(page, BODY);
   await openSource(page);
-  await page.click('#sc-src-wrap');
   await expect(page.locator('#sc-src-wrap')).toHaveAttribute('aria-pressed', 'true');
+  await expect(win(page)).toHaveClass(/sc-src-wrap/);
+  await page.click('#sc-src-wrap');
+  await expect(page.locator('#sc-src-wrap')).toHaveAttribute('aria-pressed', 'false');
+  await expect(win(page)).not.toHaveClass(/sc-src-wrap/);
+  await page.reload();
+  await page.waitForFunction(() => !!window.svgcraft);
+  await load(page, BODY);
+  await openSource(page);
+  await expect(page.locator('#sc-src-wrap')).toHaveAttribute('aria-pressed', 'false');
+  await page.click('#sc-src-wrap');
   await expect(win(page)).toHaveClass(/sc-src-wrap/);
   await page.click('#sc-src-dock');
   const before = await win(page).boundingBox();

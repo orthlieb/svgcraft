@@ -279,6 +279,11 @@ function srcFill(c) {
   const v = srcView;
   const ch = v.chunks[c];
   if (!ch || ch.dataset.filled) return;
+  // Wrapped lines make a block taller than its placeholder: one that starts
+  // above the view scrolls by the difference, so the lines below it (what's
+  // shown, a line just revealed) stay put.
+  const before = ch.offsetHeight;
+  const above = ch.getBoundingClientRect().top < srcCode.getBoundingClientRect().top;
   ch.dataset.filled = '1';
   ch.style.height = '';
   srcIO.unobserve(ch);
@@ -310,6 +315,7 @@ function srcFill(c) {
     ch.append(row);
     v.rows[i] = row;
   }
+  if (above) srcCode.scrollTop += ch.offsetHeight - before;
   if (v.hits.length) srcPaintHits();
 }
 // The row for line i, drawing its block first if need be.
@@ -535,9 +541,12 @@ function downloadSource() {
   download(new Blob([srcView.full], { type: 'image/svg+xml' }), `${state.fileName}.svg`);
   say('Downloaded the SVG source');
 }
-function setSrcWrap(on) {
+// Long lines wrap unless Wrap was turned off (remembered).
+const SRC_WRAP_KEY = 'svgcraft.sourceWrap';
+function setSrcWrap(on, save) {
   srcWin.classList.toggle('sc-src-wrap', on);
   $('#sc-src-wrap').setAttribute('aria-pressed', on);
+  if (save) store(SRC_WRAP_KEY, on ? null : false);
 }
 
 const SRC_PASS = new Set(['z', 'y', 's', 'o']);
@@ -546,8 +555,9 @@ function wireSource() {
   $('#sc-src-copy').addEventListener('click', copySource);
   $('#sc-src-download').addEventListener('click', downloadSource);
   $('#sc-src-wrap').addEventListener('click', () =>
-    setSrcWrap(!srcWin.classList.contains('sc-src-wrap')),
+    setSrcWrap(!srcWin.classList.contains('sc-src-wrap'), true),
   );
+  setSrcWrap(stored(SRC_WRAP_KEY, true) !== false);
   $('#sc-src-prev').addEventListener('click', () => srcSearch(-1));
   $('#sc-src-next').addEventListener('click', () => srcSearch(1));
   srcFind.addEventListener('input', () => srcSearch(0));

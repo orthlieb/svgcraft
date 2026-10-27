@@ -2524,6 +2524,8 @@ select[data-stroke-dash],
   flex: 1;
   min-height: 0;
   overflow: auto;
+  /* src/source.js keeps the view still as blocks fill in (srcFill). */
+  overflow-anchor: none;
   overscroll-behavior: contain;
   background: var(--field);
   font:
