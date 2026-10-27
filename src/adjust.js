@@ -247,9 +247,15 @@ function adjPreview() {
   if (adjDlg.el.querySelector('[data-adj-preview]').checked) {
     const done = recolour(adjustTargets(), adjDlg.map(), () => g === adjDlg.gen);
     syncEffects();
-    done.then(() => g === adjDlg.gen && syncEffects());
+    done.then(() => {
+      if (g !== adjDlg.gen) return;
+      syncEffects();
+      renderLayers();
+    });
   } else syncEffects();
   drawSelection();
+  // The Layers panel's previews follow (only the changed ones redraw).
+  renderLayers();
 }
 function openAdjust(dlg, map) {
   if (refuseLocked(state.sel, 'edit')) return;

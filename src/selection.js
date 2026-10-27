@@ -196,7 +196,24 @@ function layerThumb(el) {
 // blank previews, which fill in as they scroll into view and, a few at a
 // time while the browser is idle, the rest. Rebuilding the list (after an
 // edit, say) drops what was still to draw.
+//
+// Drawn previews are kept, each with a key for what it showed: the layer's
+// markup and what it inherits from its groups. After an edit only the
+// layers whose key changed (the edited ones, and the groups holding them)
+// are dropped and drawn again; the rest come back at once. Gradients,
+// patterns and effects stay live through their url(#…) references.
+const thumbCache = new WeakMap(); // layer → { key, svg }
+function thumbKey(el) {
+  let k = el.outerHTML;
+  for (let p = el.parentNode; p && p !== doc; p = p.parentNode)
+    for (const a of p.attributes) k += `\u0001${a.name}=${a.value}`;
+  return k;
+}
 function pendingThumb(el) {
+  const key = thumbKey(el);
+  const kept = thumbCache.get(el);
+  if (kept?.key === key) return kept.svg.cloneNode(true);
+  thumbCache.delete(el);
   const t = mk('svg', { class: 'sc-thumb', 'aria-hidden': 'true' });
   t.layerEl = el;
   return t;
@@ -208,7 +225,9 @@ function fillThumbs(list) {
   const left = new Set([...list.querySelectorAll('.sc-thumb')].filter((t) => t.layerEl));
   const draw = (t) => {
     if (!left.delete(t) || !t.isConnected || !t.layerEl.isConnected) return;
-    t.replaceWith(layerThumb(t.layerEl));
+    const drawn = layerThumb(t.layerEl);
+    thumbCache.set(t.layerEl, { key: thumbKey(t.layerEl), svg: drawn });
+    t.replaceWith(drawn.cloneNode(true));
   };
   const seen = new IntersectionObserver((entries) => {
     if (list.thumbJob !== job) return seen.disconnect();

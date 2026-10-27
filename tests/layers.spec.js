@@ -266,25 +266,20 @@ test('previews fill in after the rows, every one of them, hidden layers too', as
     { length: 300 },
     (_, i) => `<rect x="${(i % 20) * 10}" y="${Math.floor(i / 20) * 10}" width="8" height="8"/>`,
   ).join('');
-  await page.evaluate(
-    (body) =>
-      window.svgcraft.openSvg(
-        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 150">${body}<circle id="off" cx="9" cy="9" r="5" display="none"/></svg>`,
-        'many.svg',
-      ),
-    rects,
-  );
   const drawn = () =>
     page.$$eval('#sc-layers .sc-thumb', (ts) => ts.filter((t) => t.children.length).length);
   // The rows are there at once, with their previews still to come.
-  const atOnce = await page.evaluate(() => {
-    window.svgcraft.commit();
+  const atOnce = await page.evaluate((body) => {
+    window.svgcraft.openSvg(
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 150">${body}<circle id="off" cx="9" cy="9" r="5" display="none"/></svg>`,
+      'many.svg',
+    );
     return {
       rows: document.querySelectorAll('#sc-layers li').length,
       drawn: [...document.querySelectorAll('#sc-layers .sc-thumb')].filter((t) => t.children.length)
         .length,
     };
-  });
+  }, rects);
   expect(atOnce).toEqual({ rows: 301, drawn: 0 });
   // Then all of them, past the 150 that used to be the limit.
   await expect.poll(drawn, { timeout: 15000 }).toBe(301);
@@ -319,4 +314,36 @@ test('dragging layers onto New copies them in place; onto the bin deletes them',
   await expect(page.locator('#sc-doc rect')).toHaveCount(0);
   await page.keyboard.press('Control+z');
   await expect(row(page, 'Frame')).toHaveCount(1);
+});
+
+test('after an edit only the changed layers’ previews are drawn again', async ({ page }) => {
+  await page.evaluate(() =>
+    window.svgcraft.openSvg(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 100">' +
+        '<rect id="a" data-name="A" width="40" height="40" fill="#ff0000"/>' +
+        '<rect id="b" data-name="B" x="60" width="40" height="40" fill="#0000ff"/></svg>',
+      'two.svg',
+    ),
+  );
+  const thumb = (name) => row(page, name).locator('svg.sc-thumb');
+  await expect(thumb('A').locator('rect')).toHaveCount(1);
+  await expect(thumb('B').locator('rect')).toHaveCount(1);
+  // Count the previews actually drawn from here on.
+  await page.evaluate(() => {
+    const draw = window.layerThumb;
+    window.__drawn = [];
+    window.layerThumb = (el) => {
+      window.__drawn.push(el.id);
+      return draw(el);
+    };
+    document.getElementById('a').setAttribute('fill', '#00ff00');
+    window.svgcraft.commit();
+  });
+  await expect(thumb('A').locator('rect')).toHaveAttribute('fill', '#00ff00');
+  await expect(thumb('B').locator('rect')).toHaveAttribute('fill', '#0000ff');
+  await page.waitForTimeout(200);
+  expect(await page.evaluate(() => window.__drawn)).toEqual(['a']);
+  // Undo brings A's old look back: drawn again to match.
+  await page.keyboard.press('Control+z');
+  await expect(thumb('A').locator('rect')).toHaveAttribute('fill', '#ff0000');
 });
