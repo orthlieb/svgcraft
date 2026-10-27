@@ -70,7 +70,7 @@ const near = (a, b, tol = 1) => {
 test('select a layer and the path above it, add Move along path', async ({ page }) => {
   await select(page, 'c', 'p');
   await expect(page.locator('#sc-anim-pair')).toHaveText(
-    'Animating “circle #c”. Add Move along path to send it along “Route”.',
+    'Animating “circle #c”. Add Move along path to send it along “Route”, or Morph to turn it into that shape.',
   );
   await add(page, 'followPath');
   expect(await anims(page, 'c')).toEqual([

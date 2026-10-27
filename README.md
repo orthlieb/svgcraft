@@ -1121,7 +1121,8 @@ in the saved SVG.
   group's layers shown one at a time, bottom first, as the frames of a
   flipbook or a loading spinner; the length is the whole round, and a set
   number of times ends on the last frame).
-- **Motion**: Move along path (see [Move along path](#move-along-path)).
+- **Motion**: Move along path (see [Move along path](#move-along-path)) and
+  Morph (see [Morph](#morph)).
 - **Line effects**: Draw on, Draw off, Dash march.
 - **Colour cycle**.
 - **Text**: Typewriter: the letters appear one by one over the length.
@@ -1256,6 +1257,43 @@ flight path.
   travels.
 - In the file it's an `<animateMotion>` along the route (as seen from the
   layer), plus a fixed shift that puts the layer's centre on the line.
+
+### Morph
+
+![The red paint selected with a dashed star above it, and the Animation tab showing Morph into the star](docs/help/morph.png)
+
+Turn one shape into another: a play icon into a pause icon, a circle into
+a star, a blob that wobbles between two outlines.
+
+1. Draw the shape it should become, above the layer that changes.
+2. Select the layer, then Shift-click that shape, and open the **Animation**
+   tab.
+3. Choose **Add animation… → Morph**. A rectangle, circle, ellipse, line or
+   polygon becomes a path (only a path can change its outline).
+4. Click ▶ **Play**: the outline turns into the other shape, where that
+   shape is, and stays.
+
+#### Settings
+
+- **Into**: the shape it becomes. Pick another here.
+- **Hide that shape when saved**: the target is left out of sight in the
+  saved file, so only the morphing layer shows. It stays visible while you
+  edit, and comes back when you reopen the file.
+- **Run**: **Back and forth** turns it into the other shape and back, and
+  with **Forever** keeps doing so; **Reverse** starts as the other shape.
+
+#### Good to know
+
+- Any two outlines work. Each is turned into curves; parts pair up
+  biggest with biggest, the one with more points sets how many both have,
+  and the start is chosen to keep the change smooth. A part with no partner
+  (a hole that the other shape doesn't have) grows from or shrinks to a
+  point.
+- Only the outline changes. The fill and stroke stay the layer's own (add
+  Colour cycle to change the colour as well).
+- Reshape the target and the morph follows: it's linked, not copied.
+- In the file it's an `<animate>` of the path's `d`. Opening a file with one
+  gives a Morph, with the outline it ends on as a "Morph target" layer.
 
 ### Zoom and pan
 

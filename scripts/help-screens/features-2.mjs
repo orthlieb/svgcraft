@@ -266,6 +266,39 @@ export default [
     },
   },
   {
+    id: 'morph',
+    async shoot(h) {
+      // A star for the red paint to turn into, above it.
+      await h.page.evaluate(() => {
+        /* eslint-disable no-undef -- the editor's own globals */
+        mk(
+          'polygon',
+          {
+            'data-name': 'Star',
+            points:
+              '640,120 662,170 716,174 675,209 688,262 640,234 592,262 605,209 564,174 618,170',
+            fill: 'none',
+            stroke: '#f5f5f5',
+            'stroke-width': '3',
+            'stroke-dasharray': '8 6',
+          },
+          doc,
+        );
+        afterChange();
+        /* eslint-enable no-undef */
+      });
+      await h.select('Red paint', 'Star');
+      await h.tab('animation');
+      await tall(h, PROPS_GROUP);
+      await h.page.selectOption('#sc-anim-add', 'morph');
+      await h.page.waitForSelector('#sc-anim-list li');
+      await h.shot(
+        null,
+        await around(h, { doc: [[40, 40, 800, 420]], els: [PROPS_GROUP], pad: 6 }),
+      );
+    },
+  },
+  {
     id: 'zoom-and-pan',
     async shoot(h) {
       await h.open(SHAPES, 'shapes.svg', 800, 340);

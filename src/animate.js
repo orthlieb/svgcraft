@@ -156,6 +156,17 @@ const ANIM_PRESETS = {
     orient: false,
     hide: true,
   },
+  // Its outline turning into another layer's (`path`: that layer's id).
+  morph: {
+    name: 'Morph',
+    group: 'Motion',
+    dur: 1,
+    rep: 1,
+    ease: 'inout',
+    hold: true,
+    path: '',
+    hide: true,
+  },
   colourCycle: {
     name: 'Colour cycle',
     group: 'Colour',
@@ -281,8 +292,131 @@ function hiddenRoutes() {
   const ids = new Set();
   for (const el of doc.querySelectorAll('[data-sc-anim]'))
     for (const a of readAnims(el))
-      if (a.p === 'followPath' && a.hide && motionRoute(el, a)) ids.add(a.path);
+      if ((a.p === 'followPath' || a.p === 'morph') && a.hide && motionRoute(el, a))
+        ids.add(a.path);
   return ids;
+}
+
+// ---- Morph ---------------------------------------------------------------------------
+// Two outlines as paths SMIL can blend: the same commands, segment for
+// segment, all curves. Sub-shapes pair up biggest with biggest (one with no
+// partner grows from, or shrinks to, a point at its own centre); segments
+// are split until both have as many; and the target turns and runs the way
+// that lines its points up best with the start's.
+const mLerp = (a, b, t) => ({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t });
+// A subpath as cubic segments [p0, c1, c2, p1], a closed one with its
+// closing segment.
+function cubicSegs(sp) {
+  const n = sp.nodes;
+  const seg = (a, b) =>
+    a.hout || b.hin
+      ? [a, a.hout || a, b.hin || b, b]
+      : [a, mLerp(a, b, 1 / 3), mLerp(a, b, 2 / 3), b];
+  const segs = [];
+  for (let i = 1; i < n.length; i++) segs.push(seg(n[i - 1], n[i]));
+  if (sp.closed && n.length > 1) segs.push(seg(n.at(-1), n[0]));
+  return segs.map((s) => s.map((p) => ({ x: p.x, y: p.y })));
+}
+function splitSeg([p0, c1, c2, p1]) {
+  const a = mLerp(p0, c1, 0.5);
+  const b = mLerp(c1, c2, 0.5);
+  const c = mLerp(c2, p1, 0.5);
+  const d = mLerp(a, b, 0.5);
+  const e = mLerp(b, c, 0.5);
+  const m = mLerp(d, e, 0.5);
+  return [
+    [p0, a, d, m],
+    [m, e, c, p1],
+  ];
+}
+const segLen = (s) =>
+  Math.hypot(s[1].x - s[0].x, s[1].y - s[0].y) +
+  Math.hypot(s[2].x - s[1].x, s[2].y - s[1].y) +
+  Math.hypot(s[3].x - s[2].x, s[3].y - s[2].y);
+// Split the longest segments until there are n.
+function growSegs(segs, n) {
+  const out = [...segs];
+  while (out.length < n) {
+    let k = 0;
+    out.forEach((s, i) => {
+      if (segLen(s) > segLen(out[k])) k = i;
+    });
+    out.splice(k, 1, ...splitSeg(out[k]));
+  }
+  return out;
+}
+const reverseSegs = (segs) => segs.map(([a, b, c, d]) => [d, c, b, a]).reverse();
+const subSize = (segs) => {
+  const xs = segs.flat().map((p) => p.x);
+  const ys = segs.flat().map((p) => p.y);
+  return Math.hypot(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys));
+};
+const subCentre = (segs) => {
+  const pts = segs.map((s) => s[0]);
+  return {
+    x: pts.reduce((t, p) => t + p.x, 0) / pts.length,
+    y: pts.reduce((t, p) => t + p.y, 0) / pts.length,
+  };
+};
+// b turned (if closed) and run the way that puts its points nearest a's.
+function alignSegs(a, b, closed) {
+  let best = b;
+  let cost = Infinity;
+  for (const cand of [b, reverseSegs(b)])
+    for (let r = 0; r < (closed ? cand.length : 1); r++) {
+      const rot = [...cand.slice(r), ...cand.slice(0, r)];
+      const c = rot.reduce(
+        (t, s, i) => t + (s[0].x - a[i][0].x) ** 2 + (s[0].y - a[i][0].y) ** 2,
+        0,
+      );
+      if (c < cost) [best, cost] = [rot, c];
+    }
+  return best;
+}
+// [from, to] path data blending subpaths `from` into `to`, or null.
+function morphD(from, to) {
+  const subs = (list) =>
+    list
+      .map((sp) => ({ closed: sp.closed, segs: cubicSegs(sp) }))
+      .filter((s) => s.segs.length)
+      .sort((x, y) => subSize(y.segs) - subSize(x.segs));
+  const A = subs(from);
+  const B = subs(to);
+  if (!A.length || !B.length) return null;
+  const dot = (s) => {
+    const c = subCentre(s.segs);
+    return { closed: s.closed, segs: [[c, c, c, c]] };
+  };
+  while (A.length < B.length) A.push(dot(B[A.length]));
+  while (B.length < A.length) B.push(dot(A[B.length]));
+  const P = (p) => `${fp(p.x)} ${fp(p.y)}`;
+  const out = ['', ''];
+  A.forEach((a, i) => {
+    const b = B[i];
+    const closed = a.closed && b.closed;
+    const n = Math.max(a.segs.length, b.segs.length);
+    const sa = growSegs(a.segs, n);
+    const sb = alignSegs(sa, growSegs(b.segs, n), closed);
+    [sa, sb].forEach((segs, k) => {
+      out[k] +=
+        `M${P(segs[0][0])}` +
+        segs.map((s) => `C${P(s[1])} ${P(s[2])} ${P(s[3])}`).join('') +
+        (closed ? 'Z' : '');
+    });
+  });
+  return out;
+}
+// The target's outline in el's own coordinates, as subpaths.
+function morphTarget(el, target) {
+  const M = fullM(el).inverse().multiply(fullM(target));
+  const T = (p) => {
+    const q = new DOMPoint(p.x, p.y).matrixTransform(M);
+    return { x: q.x, y: q.y };
+  };
+  return shapeNodes(target).map((sp) => ({
+    closed: sp.closed,
+    nodes: sp.nodes.map((n) => ({ ...T(n), hin: n.hin && T(n.hin), hout: n.hout && T(n.hout) })),
+  }));
 }
 
 // ---- SMIL ------------------------------------------------------------------------
@@ -533,6 +667,12 @@ function animChannels(el, a) {
         },
       ];
     }
+    case 'morph': {
+      const target = motionRoute(el, a);
+      const d =
+        target && el.localName === 'path' && morphD(shapeNodes(el), morphTarget(el, target));
+      return d ? [{ tag: 'animate', attrs: { attributeName: 'd' }, values: d }] : [];
+    }
     case 'colourCycle': {
       const from = hex(getComputedStyle(el).fill) || '#000000';
       return [{ tag: 'animate', attrs: { attributeName: 'fill' }, values: [from, a.to] }];
@@ -551,6 +691,12 @@ function animUnfit(el, p, a = null) {
   if (def.text && el.localName !== 'text') return `${def.name} needs a text layer.`;
   if (p === 'flipbook' && (el.localName !== 'g' || staggerKids(el).length < 2))
     return 'Flipbook needs a group of two or more layers: its frames, bottom one first.';
+  if (p === 'morph') {
+    if (el.localName !== 'path')
+      return 'Morph needs a shape: a path, rectangle, circle, ellipse, line or polygon.';
+    if (!(a && motionRoute(el, a)))
+      return 'Morph needs the shape to become: select the layer, then Shift-click that shape above it.';
+  }
   if (p === 'followPath' && !(a && motionRoute(el, a)))
     return 'Move along path needs a path: select the layer, then Shift-click the path above it.';
   // A group's own fill only reaches shapes that don't set one.
@@ -1203,6 +1349,47 @@ function smilOptions(chs, dir, el) {
   if (col && fwd(col)) o.to = fwd(col).at(-1);
   return o;
 }
+// An <animate> of a path's d as Morph (or null): from the path's own outline
+// to the one it ends on (the middle one, run back and forth), which becomes
+// a layer beside it, in the same place.
+function smilMorph(el, a) {
+  const t = smilTiming(a);
+  if (!t || a.calcMode === 'discrete') return null;
+  let vals = a.values ? a.values.split(';').map((v) => v.trim()) : [a.from, a.to];
+  vals = vals.filter(Boolean);
+  let dir = 'normal';
+  let dur = t.dur;
+  if (vals.length === 3 && vals[0] === vals[2]) {
+    dir = 'alternate';
+    dur /= 2;
+  } else if (vals.length !== 2) return null;
+  const end = vals[1];
+  try {
+    if (!parsePathD(end).length) return null;
+  } catch {
+    return null;
+  }
+  const target = mk('path', {
+    d: end,
+    fill: el.getAttribute('fill') || '#000000',
+    'data-name': 'Morph target',
+  });
+  if (el.hasAttribute('transform')) target.setAttribute('transform', el.getAttribute('transform'));
+  el.before(target);
+  return {
+    p: 'morph',
+    dur,
+    delay: t.begin,
+    rep: t.rep,
+    dir,
+    ease:
+      a.calcMode === 'spline'
+        ? smilEase({ calc: 'spline', spline: smilNums((a.keySplines || '').split(';')[0]) })
+        : 'linear',
+    path: ensureId(target, 'morph-to'),
+    hide: true,
+  };
+}
 // An <animateMotion> as Move along path: { anim, used } (used: the fixed
 // shift SVGCraft writes alongside, from the pool), or null. Its path becomes
 // a new layer beside el, in the same space the motion moves it in.
@@ -1304,12 +1491,20 @@ function smilToAnims(el, notes, own) {
   const sets = notes.filter((n) => n.tag === 'set');
   let pool = [];
   for (const n of notes) {
-    if (n.tag === 'set' || n.tag === 'animateMotion') continue;
+    if (n.tag === 'set' || n.tag === 'animateMotion' || n.attrs.attributeName === 'd') continue;
     const c = smilChannel(n, el);
     if (c) pool.push(c);
     else lost++;
   }
   const anims = [];
+  // An outline changing: Morph, into a layer of its own made from the
+  // outline it ends on.
+  for (const n of notes) {
+    if (n.tag !== 'animate' || n.attrs.attributeName !== 'd') continue;
+    const m = el.localName === 'path' && smilMorph(el, n.attrs);
+    if (m) anims.push(m);
+    else lost++;
+  }
   // Motion along a path: Move along path, its route a layer of its own.
   for (const n of notes) {
     if (n.tag !== 'animateMotion') continue;
@@ -1542,7 +1737,7 @@ function syncAnimUI() {
   $('#sc-anim-pair').hidden = !pair;
   if (pair)
     $('#sc-anim-pair').textContent =
-      `Animating “${layerName(pair.el)}”. Add Move along path to send it along “${layerName(pair.route)}”.`;
+      `Animating “${layerName(pair.el)}”. Add Move along path to send it along “${layerName(pair.route)}”, or Morph to turn it into that shape.`;
   const list = readAnims(el);
   const at = animStarts(list);
   animUI.edit = clamp(animUI.edit, 0, Math.max(0, list.length - 1));
@@ -1706,11 +1901,11 @@ function syncAnimUI() {
           }),
         ),
       );
-    kids.push(field('Path ', s));
+    kids.push(field(a.p === 'morph' ? 'Into ' : 'Path ', s));
   }
   for (const [k, label] of [
     ['orient', 'Orient to path'],
-    ['hide', 'Hide the path when saved'],
+    ['hide', a.p === 'morph' ? 'Hide that shape when saved' : 'Hide the path when saved'],
   ])
     if (k in a) {
       const c = document.createElement('input');
@@ -1810,7 +2005,19 @@ function addAnimation(p) {
     if (k in def) a[k] = def[k];
   const pair = animPair();
   if (p === 'followPath' && pair) a.path = ensureId(pair.route, 'motion-path');
-  const why = animUnfit(el, p, a);
+  if (p === 'morph' && pair) a.path = ensureId(pair.route, 'morph-to');
+  let target = el;
+  // A rectangle, circle… becomes a path, which can change its outline.
+  if (p === 'morph' && pair && el.localName !== 'path' && ROUTE_SHAPES.has(el.localName)) {
+    if (refuseLocked([el], 'edit')) return;
+    const d = nodesD(shapeNodes(el));
+    target = toPath(el);
+    target.removeAttribute('data-rect');
+    target.removeAttribute('data-radii');
+    target.setAttribute('d', d);
+    state.sel = state.sel.map((x) => (x === el ? target : x));
+  }
+  const why = animUnfit(target, p, a);
   if (why) return warn(why);
   const done = editAnims((l) => {
     l.push(a);
@@ -1818,7 +2025,7 @@ function addAnimation(p) {
   });
   if (!done) return;
   // The layer it animates, on its own, so the tab carries on with it.
-  if (pair) setSel([el]);
+  if (pair) setSel([target]);
   say(`Added ${def.name}. Press ▶ Play to see it.`);
 }
 
