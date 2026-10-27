@@ -54,6 +54,30 @@ const ANIM_PRESETS = {
     dist: 6,
   },
   blink: { name: 'Blink', group: 'Loops', dur: 1, rep: 0, ease: 'linear' },
+  // Back and forth about a point (the top: a hanging sign).
+  swing: {
+    name: 'Swing',
+    group: 'Loops',
+    dur: 1.2,
+    rep: 0,
+    ease: 'inout',
+    angle: 15,
+    pivot: 'top',
+  },
+  heartbeat: { name: 'Heartbeat', group: 'Loops', dur: 1.3, rep: 0, ease: 'linear', scale: 120 },
+  jello: { name: 'Jello', group: 'Loops', dur: 0.9, rep: 1, ease: 'linear', angle: 12 },
+  // Turned over like a card, about its centre, and back.
+  flip: { name: 'Flip', group: 'Loops', dur: 1.2, rep: 1, ease: 'inout', axis: 'vertical' },
+  // A text layer's letters shown one by one.
+  typewriter: {
+    name: 'Typewriter',
+    group: 'Text',
+    dur: 2,
+    rep: 1,
+    ease: 'linear',
+    enter: true,
+    text: true,
+  },
   drawOn: {
     name: 'Draw on',
     group: 'Line',
@@ -103,7 +127,12 @@ const ANIM_OPTS = {
   dist: [0, 10000],
   turns: [-100, 100],
   scale: [1, 1000],
+  angle: [-360, 360],
+  pivot: ['centre', 'top', 'bottom', 'left', 'right'],
+  axis: ['vertical', 'horizontal'],
 };
+// Presets a text layer's letters can each run, in turn (Stagger).
+const LETTER_PRESETS = new Set(['fadeIn', 'fadeOut', 'blink', 'colourCycle']);
 const EASES = {
   linear: ['Linear', null],
   ease: ['Ease', '0.25 0.1 0.25 1'],
@@ -136,13 +165,18 @@ function readAnims(el) {
     };
     if (r.after === true && out.length) a.after = true;
     if ('from' in def) a.from = ANIM_OPTS.from.includes(r.from) ? r.from : def.from;
-    for (const k of ['dist', 'turns', 'scale'])
+    for (const k of ['pivot', 'axis'])
+      if (k in def) a[k] = ANIM_OPTS[k].includes(r[k]) ? r[k] : def[k];
+    for (const k of ['dist', 'turns', 'scale', 'angle'])
       if (k in def) a[k] = num(r[k], ...ANIM_OPTS[k], def[k]);
     if ('to' in def) a.to = /^#[0-9a-f]{6}$/i.test(r.to || '') ? r.to.toLowerCase() : def.to;
     if ('path' in def)
       a.path = typeof r.path === 'string' && /^[^\s"'<>#]{1,100}$/.test(r.path) ? r.path : '';
     for (const k of ['orient', 'hide'])
       if (k in def) a[k] = typeof r[k] === 'boolean' ? r[k] : def[k];
+    // Stagger: a group's layers (or a text's letters) each run it in turn.
+    const st = num(r.stagger, 0, 60, 0);
+    if (st > 0) a.stagger = st;
     out.push(a);
   }
   return out;
@@ -243,6 +277,19 @@ function animChannels(el, a) {
       keyTimes,
     },
   ];
+  // Scale about the centre, across and down separately.
+  const growXY = (pairs, keyTimes) => [
+    move(
+      pairs.map(([sx, sy]) => [cx * (1 - sx), cy * (1 - sy)]),
+      keyTimes,
+    ),
+    {
+      tag: 'animateTransform',
+      attrs: { attributeName: 'transform', type: 'scale', additive: 'sum' },
+      values: pairs.map(([sx, sy]) => `${f(sx)} ${f(sy)}`),
+      keyTimes,
+    },
+  ];
   const side = { left: [-1, 0], right: [1, 0], top: [0, -1], bottom: [0, 1] }[a.from] || [0, 0];
   const len = () => (typeof el.getTotalLength === 'function' ? el.getTotalLength() : 0);
   switch (a.p) {
@@ -282,6 +329,57 @@ function animChannels(el, a) {
       ];
     case 'pulse':
       return grow([1, a.scale / 100, 1]);
+    case 'swing': {
+      const [px, py] = {
+        centre: [cx, cy],
+        top: [cx, b.y],
+        bottom: [cx, b.y + b.height],
+        left: [b.x, cy],
+        right: [b.x + b.width, cy],
+      }[a.pivot] || [cx, cy];
+      const r = (deg) => `${f(deg)} ${f(px)} ${f(py)}`;
+      return [
+        {
+          tag: 'animateTransform',
+          attrs: { attributeName: 'transform', type: 'rotate', additive: 'sum' },
+          values: [r(0), r(a.angle), r(0), r(-a.angle), r(0)],
+        },
+      ];
+    }
+    case 'heartbeat': {
+      const s = a.scale / 100;
+      return grow([1, s, 1, s, 1, 1], [0, 0.14, 0.28, 0.42, 0.7, 1]);
+    }
+    case 'jello': {
+      // Skewed both ways, less each time, about the centre: the shift
+      // keeps the centre where the two skews would move it from.
+      const angles = [0, -1, 0.5, -0.25, 0.125, -0.0625, 0].map((t) => t * a.angle);
+      const tan = (deg) => Math.tan((deg * Math.PI) / 180);
+      const skew = (type) => ({
+        tag: 'animateTransform',
+        attrs: { attributeName: 'transform', type, additive: 'sum' },
+        values: angles.map(f),
+      });
+      return [
+        move(angles.map((t) => [-tan(t) * (cy + tan(t) * cx), -tan(t) * cx])),
+        skew('skewX'),
+        skew('skewY'),
+      ];
+    }
+    case 'flip':
+      return growXY(
+        a.axis === 'horizontal'
+          ? [
+              [1, 1],
+              [1, -1],
+              [1, 1],
+            ]
+          : [
+              [1, 1],
+              [-1, 1],
+              [1, 1],
+            ],
+      );
     case 'bounce':
       return [
         move(
@@ -404,6 +502,7 @@ function animUnfit(el, p, a = null) {
     if (typeof el.getTotalLength !== 'function') return `${def.name} needs a path or shape.`;
     if (getComputedStyle(el).stroke === 'none') return `${def.name} needs a stroke.`;
   }
+  if (def.text && el.localName !== 'text') return `${def.name} needs a text layer.`;
   if (p === 'followPath' && !(a && motionRoute(el, a)))
     return 'Move along path needs a path: select the layer, then Shift-click the path above it.';
   // A group's own fill only reaches shapes that don't set one.
@@ -416,18 +515,32 @@ function animUnfit(el, p, a = null) {
 // beginElementAt() (the editor's timeline started when the page loaded);
 // each node remembers its start in seconds.
 function animNodes(el, a, preview = false, start = a.delay) {
-  const def = ANIM_PRESETS[a.p];
   if (animUnfit(el, a.p, a)) return [];
+  return chanNodes(a, animChannels(el, a), preview, start);
+}
+// SMIL elements for channels, timed and paced for animation a. A channel
+// with `raw` has its values and keyTimes for the whole run already (no
+// direction to apply); `hideWith` is how an entrance stays hidden while it
+// waits for its delay (opacity, unless that's not what it animates).
+function chanNodes(a, channels, preview, start, hideWith = ['opacity']) {
+  const def = ANIM_PRESETS[a.p];
   const spline = EASES[a.ease][1];
   const forever = a.rep === 0;
   // Entrances and exits hold their last frame; loops go back to rest.
   const hold = (def.enter || def.exit || def.line || def.hold) && !forever;
   const nodes = [];
-  for (const ch of animChannels(el, a)) {
+  for (const ch of channels) {
     const attrs = { ...ch.attrs };
     const begin = ch.at0 ? 0 : start;
     if (ch.tag === 'set') {
       if (!ch.at0) continue;
+    } else if (ch.raw) {
+      attrs.values = ch.raw.values.join(';');
+      attrs.keyTimes = ch.raw.kt.map(f).join(';');
+      attrs.calcMode = 'discrete';
+      attrs.dur = `${f(a.dur * (a.dir === 'alternate' ? 2 : 1))}s`;
+      attrs.repeatCount = forever ? 'indefinite' : String(a.rep);
+      if (hold) attrs.fill = 'freeze';
     } else {
       let values = ch.values;
       let kt = ch.keyTimes || values.map((_, i) => i / (values.length - 1));
@@ -467,16 +580,125 @@ function animNodes(el, a, preview = false, start = a.delay) {
     nodes.push(n);
   }
   // An entrance waiting for its delay starts hidden, not shown then hidden.
-  if (def.enter && start > 0 && !def.line) {
-    const n = mk('set', {
-      attributeName: 'opacity',
-      to: '0',
-      begin: preview ? 'indefinite' : '0s',
-    });
-    n.dataset.scBegin = 0;
-    nodes.unshift(n);
-  }
+  if (def.enter && start > 0 && !def.line)
+    for (const name of hideWith) {
+      const n = mk('set', {
+        attributeName: name,
+        to: name === 'visibility' ? 'hidden' : '0',
+        begin: preview ? 'indefinite' : '0s',
+      });
+      n.dataset.scBegin = 0;
+      nodes.unshift(n);
+    }
   return nodes;
+}
+
+// ---- Stagger and letters ------------------------------------------------------------
+// The letters of a text layer, in order: each non-space character, put in
+// a <tspan> of its own (marked, so opening the file joins them back up).
+function splitLetters(text) {
+  const out = [];
+  const walker = text.ownerDocument.createTreeWalker(text, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+  for (const t of nodes) {
+    if (t.parentNode.closest('title, desc')) continue;
+    const parts = [];
+    for (const ch of t.data) {
+      if (/\s/.test(ch)) parts.push(text.ownerDocument.createTextNode(ch));
+      else {
+        const sp = text.ownerDocument.createElementNS(NS, 'tspan');
+        sp.setAttribute('data-sc-gen', '');
+        sp.textContent = ch;
+        parts.push(sp);
+        out.push(sp);
+      }
+    }
+    t.replaceWith(...parts);
+  }
+  return out;
+}
+const letterCount = (text) => (text.textContent.match(/\S/gu) || []).length;
+// Channels for one letter (i of n) of text layer `text`.
+function letterChannels(text, a, i, n) {
+  if (a.p === 'typewriter') {
+    // Each letter appears at its moment in the run (the last a little before
+    // the end), or, run backwards, goes at its moment.
+    const k = (i + 1) / (n + 1);
+    const raw = {
+      normal: { values: ['hidden', 'visible'], kt: [0, k] },
+      reverse: { values: ['visible', 'hidden'], kt: [0, 1 - k] },
+      alternate: { values: ['hidden', 'visible', 'hidden'], kt: [0, k / 2, 1 - k / 2] },
+    }[a.dir];
+    return [{ tag: 'animate', attrs: { attributeName: 'visibility' }, raw }];
+  }
+  const cs = getComputedStyle(text);
+  if (a.p === 'colourCycle')
+    return [
+      {
+        tag: 'animate',
+        attrs: { attributeName: 'fill' },
+        values: [hex(cs.fill) || '#000000', a.to],
+      },
+    ];
+  const [vals, kt, discrete] = {
+    fadeIn: [[0, 1]],
+    fadeOut: [[1, 0]],
+    blink: [[1, 0, 1], [0, 0.5, 1], true],
+  }[a.p];
+  // Opacity per letter, as fill and stroke opacity (which every viewer
+  // applies to a <tspan>).
+  const out = [];
+  for (const [name, paint] of [
+    ['fill-opacity', cs.fill],
+    ['stroke-opacity', cs.stroke],
+  ]) {
+    if (!paint || paint === 'none') continue;
+    const base = parseFloat(cs.getPropertyValue(name)) || 1;
+    out.push({
+      tag: 'animate',
+      attrs: { attributeName: name },
+      values: vals.map((v) => f(v * base)),
+      keyTimes: kt,
+      discrete,
+    });
+  }
+  return out;
+}
+// The layers a group's animation goes to, one after another (bottom first).
+const staggerKids = (g) =>
+  [...g.children].filter((c) => selectable(c) && c.getAttribute('display') !== 'none');
+// One animation's SMIL and where each piece goes: [{ at, nodes }], at null
+// for the layer itself, { child: k } for its k-th child element, { letter: i }
+// for its i-th letter.
+function animEmit(el, a, preview, start) {
+  if (animUnfit(el, a.p, a)) return [];
+  const letters =
+    el.localName === 'text' && (a.p === 'typewriter' || (a.stagger > 0 && LETTER_PRESETS.has(a.p)));
+  if (letters) {
+    const n = letterCount(el);
+    const gap = a.p === 'typewriter' ? 0 : a.stagger;
+    const hide = a.p === 'typewriter' ? ['visibility'] : ['fill-opacity', 'stroke-opacity'];
+    return Array.from({ length: n }, (_, i) => ({
+      at: { letter: i },
+      nodes: chanNodes(a, letterChannels(el, a, i, n), preview, start + i * gap, hide),
+    }));
+  }
+  if (a.stagger > 0 && el.localName === 'g') {
+    const kids = [...el.children];
+    return staggerKids(el).map((c, k) => ({
+      at: { child: kids.indexOf(c) },
+      nodes: animNodes(c, a, preview, start + k * a.stagger),
+    }));
+  }
+  return [{ at: null, nodes: animNodes(el, a, preview, start) }];
+}
+// Where `at` points under root (the layer, live or a copy being saved).
+function animHost(root, at, letters) {
+  if (!at) return root;
+  if ('child' in at) return root.children[at.child] || null;
+  if (!letters.has(root)) letters.set(root, splitLetters(root));
+  return letters.get(root)[at.letter] || null;
 }
 
 // Saving: each animated layer's copy gets its SMIL. `live` is the layer in
@@ -490,13 +712,19 @@ function writeAnimations(live, copy, on) {
     );
   const lives = pick(live);
   const copies = pick(copy);
+  const letters = new Map();
   lives.forEach((el, i) => {
     const list = readAnims(el);
     const at = animStarts(list);
     list.forEach((a, j) => {
-      for (const n of animNodes(el, a, false, at[j])) {
-        delete n.dataset.scBegin;
-        copies[i]?.append(n);
+      for (const { at: where, nodes } of animEmit(el, a, false, at[j])) {
+        const host = copies[i] && animHost(copies[i], where, letters);
+        for (const n of nodes) {
+          delete n.dataset.scBegin;
+          // On a layer inside it, or a letter: dropped when the file reopens.
+          if (where) n.setAttribute('data-sc-gen', '');
+          host?.append(n);
+        }
       }
     });
   });
@@ -652,8 +880,33 @@ function smilOptions(chs, dir, el) {
     const v = fwd(rot);
     o.turns = (v.at(-1)[0] - v[0][0]) / 360;
   }
+  if (rot && fwd(rot)) {
+    // Swing: its widest angle, and the point it turns about.
+    const v = fwd(rot);
+    o.angle = Math.max(...v.map((x) => Math.abs(x[0])));
+    const b = el.getBBox();
+    const [cx, cy] = [b.x + b.width / 2, b.y + b.height / 2];
+    const at = {
+      centre: [cx, cy],
+      top: [cx, b.y],
+      bottom: [cx, b.y + b.height],
+      left: [b.x, cy],
+      right: [b.x + b.width, cy],
+    };
+    o.pivot = Object.keys(at).reduce((best, k) =>
+      Math.hypot(at[k][0] - v[0][1], at[k][1] - v[0][2]) <
+      Math.hypot(at[best][0] - v[0][1], at[best][1] - v[0][2])
+        ? k
+        : best,
+    );
+  }
+  const sk = chs.find((c) => c.type === 'skewX');
+  if (sk && fwd(sk)) o.angle = Math.max(...fwd(sk).map((x) => Math.abs(x[0])));
   const sc = chs.find((c) => c.type === 'scale');
-  if (sc && fwd(sc)) o.scale = Math.max(...fwd(sc).map((v) => v[0])) * 100;
+  if (sc && fwd(sc)) {
+    o.scale = Math.max(...fwd(sc).map((v) => v[0])) * 100;
+    o.axis = fwd(sc).some((v) => !smilNear(v[0], 1)) ? 'vertical' : 'horizontal';
+  }
   const mv = chs.find((c) => c.type === 'translate');
   if (mv && fwd(mv)) {
     const far = fwd(mv).reduce((p, v) => (Math.hypot(...v) > Math.hypot(...p) ? v : p));
@@ -812,7 +1065,7 @@ function smilToAnims(el, notes, own) {
           dir,
           ease: smilEase(first),
         };
-        for (const k of ['from', 'dist', 'turns', 'scale', 'to'])
+        for (const k of ['from', 'dist', 'turns', 'scale', 'to', 'angle', 'pivot', 'axis'])
           if (k in def && opts[k] != null) a[k] = opts[k];
         if (animUnfit(el, p, a)) continue;
         const gen = animNodes(el, a, false, a.delay).map((n) => ({
@@ -903,19 +1156,25 @@ function reportSmil({ kept, lost }) {
 }
 
 // ---- preview ---------------------------------------------------------------------
-const animPlay = { playing: false, nodes: [] };
+const animPlay = { playing: false, nodes: [], texts: [] };
 function playAnimations() {
   stopAnimations();
   const els = [...doc.querySelectorAll('[data-sc-anim]')];
   if (!els.length) return warn('Nothing is animated yet: add one in the Animation tab.');
+  const letters = new Map();
   for (const el of els) {
     const list = readAnims(el);
     const at = animStarts(list);
     list.forEach((a, j) => {
-      for (const n of animNodes(el, a, true, at[j])) {
-        n.setAttribute('data-sc-preview', '');
-        el.append(n);
-        animPlay.nodes.push(n);
+      for (const { at: where, nodes } of animEmit(el, a, true, at[j])) {
+        // Letters are split for the preview and put back when it stops.
+        if (where?.letter != null && !letters.has(el)) animPlay.texts.push([el, el.innerHTML]);
+        const host = animHost(el, where, letters);
+        for (const n of nodes) {
+          n.setAttribute('data-sc-preview', '');
+          host?.append(n);
+          animPlay.nodes.push(n);
+        }
       }
     });
   }
@@ -927,7 +1186,9 @@ function playAnimations() {
 function stopAnimations() {
   if (!animPlay.playing) return;
   for (const n of animPlay.nodes) n.remove();
+  for (const [el, html] of animPlay.texts) el.innerHTML = html;
   animPlay.nodes = [];
+  animPlay.texts = [];
   animPlay.playing = false;
   syncAnimUI();
 }
@@ -1092,6 +1353,38 @@ function syncAnimUI() {
   if ('dist' in a) kids.push(field('Distance ', number('dist', 'px')));
   if ('turns' in a) kids.push(field('Turns ', number('turns', '(− = anticlockwise)', 0.25)));
   if ('scale' in a) kids.push(field('Grow to ', number('scale', '%')));
+  if ('angle' in a) kids.push(field('Angle ', number('angle', '°')));
+  const choose = (k, label, names) => {
+    const s = document.createElement('select');
+    s.dataset.animOpt = k;
+    for (const v of ANIM_OPTS[k])
+      s.append(
+        Object.assign(document.createElement('option'), { value: v, textContent: names[v] }),
+      );
+    s.value = a[k];
+    kids.push(field(label, s));
+  };
+  if ('pivot' in a)
+    choose('pivot', 'Swing from ', {
+      centre: 'Centre',
+      top: 'Top',
+      bottom: 'Bottom',
+      left: 'Left',
+      right: 'Right',
+    });
+  if ('axis' in a)
+    choose('axis', 'Turn ', { vertical: 'Side to side', horizontal: 'Top over bottom' });
+  // Stagger: a group's layers, or a text's letters, one after another.
+  if (el.localName === 'g' || (el.localName === 'text' && LETTER_PRESETS.has(a.p))) {
+    const w = number(
+      'stagger',
+      el.localName === 'g' ? 's between layers' : 's between letters',
+      0.05,
+    );
+    w.querySelector('input').value = f(a.stagger || 0);
+    w.querySelector('input').min = 0;
+    kids.push(field('Stagger ', w));
+  }
   if ('to' in a) {
     const c = document.createElement('input');
     c.type = 'color';
@@ -1207,7 +1500,18 @@ function addAnimation(p) {
   if (!el || !ANIM_PRESETS[p]) return;
   const def = ANIM_PRESETS[p];
   const a = { p, dur: def.dur, delay: 0, rep: def.rep, dir: def.dir || 'normal', ease: def.ease };
-  for (const k of ['from', 'dist', 'turns', 'scale', 'to', 'orient', 'hide'])
+  for (const k of [
+    'from',
+    'dist',
+    'turns',
+    'scale',
+    'to',
+    'orient',
+    'hide',
+    'angle',
+    'pivot',
+    'axis',
+  ])
     if (k in def) a[k] = def[k];
   const pair = animPair();
   if (p === 'followPath' && pair) a.path = ensureId(pair.route, 'motion-path');
@@ -1225,7 +1529,7 @@ function addAnimation(p) {
 
 function wireAnimations() {
   const add = $('#sc-anim-add');
-  for (const group of ['Entrances', 'Exits', 'Loops', 'Motion', 'Line', 'Colour']) {
+  for (const group of ['Entrances', 'Exits', 'Loops', 'Motion', 'Line', 'Colour', 'Text']) {
     const g = document.createElement('optgroup');
     g.label = group;
     for (const [k, d] of Object.entries(ANIM_PRESETS))
@@ -1253,7 +1557,10 @@ function wireAnimations() {
         if (t.checked) a.after = true;
         else delete a.after;
       } else if (k === 'rep') a.rep = Math.max(1, Math.round(+t.value) || 1);
-      else if (['dur', 'delay', 'dist', 'turns', 'scale'].includes(k)) a[k] = +t.value;
+      else if (k === 'stagger') {
+        if (+t.value > 0) a.stagger = +t.value;
+        else delete a.stagger;
+      } else if (['dur', 'delay', 'dist', 'turns', 'scale', 'angle'].includes(k)) a[k] = +t.value;
       else if (k === 'orient' || k === 'hide') a[k] = t.checked;
       else if (k === 'path') {
         // A layer without an id gets one now it's pointed at.

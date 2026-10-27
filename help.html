@@ -305,6 +305,7 @@
               <li><a href="#edit-points">Edit points</a></li>
               <li><a href="#fill-rule-and-path-direction">Fill rule and path direction</a></li>
               <li><a href="#animate">Animate</a></li>
+              <li><a href="#stagger">Stagger</a></li>
               <li><a href="#move-along-path">Move along path</a></li>
               <li><a href="#zoom-and-pan">Zoom and pan</a></li>
               <li><a href="#pixel-grid-and-snap-to-pixel">Pixel grid and Snap to Pixel</a></li>
@@ -2290,13 +2291,21 @@
             <ul>
               <li><strong>Entrances</strong>: Fade in, Slide in, Pop in, Zoom in.</li>
               <li><strong>Exits</strong>: Fade out, Slide out, Zoom out.</li>
-              <li><strong>Loops</strong>: Spin, Pulse, Bounce, Shake, Float, Blink.</li>
+              <li>
+                <strong>Loops</strong>: Spin, Pulse, Bounce, Shake, Float, Blink, Swing (back and
+                forth about a point, like a hanging sign), Heartbeat (a double pulse), Jello (a
+                wobble that settles) and Flip (turned over like a card, and back).
+              </li>
               <li>
                 <strong>Motion</strong>: Move along path (see
                 <a href="#move-along-path">Move along path</a>).
               </li>
               <li><strong>Line effects</strong>: Draw on, Draw off, Dash march.</li>
               <li><strong>Colour cycle</strong>.</li>
+              <li>
+                <strong>Text</strong>: Typewriter: the letters appear one by one over the length.
+                Run backwards, they go one by one.
+              </li>
             </ul>
             <h4>Settings</h4>
             <ul>
@@ -2315,7 +2324,12 @@
               <li><strong>Ease</strong>: Linear, Ease, Ease in, Ease out or Ease in-out.</li>
               <li>
                 Each preset's own options, such as the slide side and distance, turns, how far to
-                grow, or the colour to cycle to.
+                grow, the colour to cycle to, the angle and point a Swing turns about, or which way
+                a Flip turns.
+              </li>
+              <li>
+                <strong>Stagger</strong> (a group, or a text layer's letters): see
+                <a href="#stagger">Stagger</a>.
               </li>
             </ul>
             <h4>Several on one layer</h4>
@@ -2376,6 +2390,49 @@
               <li>
                 An animation that replaces a layer's own transform (SMIL's default) is only kept
                 when the layer has none, since a preset adds to it.
+              </li>
+            </ul>
+          </article>
+          <article id="stagger" data-find>
+            <h3>Stagger</h3>
+            <figure>
+              <img
+                src="docs/help/stagger.png"
+                alt="Three paint layers in a group popping in one after another, with Stagger set in the Animation tab"
+                width="1116"
+                height="649"
+                loading="lazy"
+              />
+            </figure>
+            <p>
+              Run one animation on a group's layers, or a text's letters, one after another: paints
+              popping in in turn, letters fading in.
+            </p>
+            <ol>
+              <li>
+                Select the group (or the text layer) and open the <strong>Animation</strong> tab.
+              </li>
+              <li>Add an animation, as for one layer.</li>
+              <li>Set <strong>Stagger</strong> to the time between one starting and the next.</li>
+            </ol>
+            <h4>Good to know</h4>
+            <ul>
+              <li>
+                The group's layers go from the bottom of the Layers panel to the top, each after the
+                stagger, with the animation's own delay before the first.
+              </li>
+              <li>Each layer runs it about its own centre, as if you'd added it to each.</li>
+              <li>
+                Letters work with <strong>Fade in</strong>, <strong>Fade out</strong>,
+                <strong>Blink</strong> and <strong>Colour cycle</strong>. Spaces are skipped. For
+                letters appearing at a steady pace, use the <strong>Typewriter</strong> preset
+                instead.
+              </li>
+              <li>A Stagger of 0 runs it on the group (or text) as a whole.</li>
+              <li>
+                In the file, each layer (or letter) gets its own SMIL. Saved by SVGCraft, it reopens
+                as the one animation on the group; Export Clean SVG reopens as an animation on each
+                layer.
               </li>
             </ul>
           </article>
