@@ -168,7 +168,7 @@ function closeNewDoc(ok) {
   const w = +ndField('w').value * UNITS[u][1];
   const h = +ndField('h').value * UNITS[u][1];
   if (!(w >= 1 && h >= 1 && w <= 20000 && h <= 20000))
-    return say('The document must be 1 to 20,000 px each way.');
+    return warn('The document must be 1 to 20,000 px each way.');
   hideDialog(ndDlg);
   const bg = ndField('bg').value;
   const colour = ndField('colour').value;

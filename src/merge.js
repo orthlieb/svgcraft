@@ -88,7 +88,7 @@ async function mergeInto(els, name) {
     try {
       P = await loadPaper();
     } catch {
-      return say('Couldn’t load the shape engine (vendor/paper-core.min.js).');
+      return warn('Couldn’t load the shape engine (vendor/paper-core.min.js).');
     }
     const bottom = leaves[0];
     // The path's own space: the bottom shape's, from where the top one sits.
@@ -146,7 +146,7 @@ const mergeTargets = () => {
 // Ctrl+E: Merge Down, Merge Layers or Merge Group, as the selection has it.
 function mergeDown() {
   const t = mergeTargets();
-  if (!t) return say('Select a layer with one below it, several layers, or a group.');
+  if (!t) return warn('Select a layer with one below it, several layers, or a group.');
   const name = (el) => el.getAttribute('data-name');
   // Merge Down keeps the lower layer's name; the others the topmost's.
   mergeInto(t.els, t.kind === 'down' ? name(t.els[0]) : name(t.els.at(-1)));
@@ -158,6 +158,6 @@ const mergeLabel = () => MERGE_LABEL[mergeTargets()?.kind] || 'Merge Down';
 const visibleLayers = () => items().filter((el) => el.getAttribute('display') !== 'none');
 function mergeVisible() {
   const els = visibleLayers();
-  if (els.length < 2) return say('There need to be two or more visible layers to merge.');
+  if (els.length < 2) return warn('There need to be two or more visible layers to merge.');
   mergeInto(els, els.at(-1).getAttribute('data-name'));
 }

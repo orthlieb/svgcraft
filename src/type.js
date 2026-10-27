@@ -733,7 +733,7 @@ function textOnPath() {
   const texts = sel.filter((el) => el.localName === 'text');
   const shapes = sel.filter((el) => TP_SHAPES.has(el.localName));
   if (sel.length !== 2 || texts.length !== 1 || shapes.length !== 1)
-    return say('Select one text layer and one path or shape (Shift-click both) first.');
+    return warn('Select one text layer and one path or shape (Shift-click both) first.');
   const [el] = texts;
   const [src] = shapes;
   if (refuseLocked([el], 'edit')) return;
@@ -767,7 +767,7 @@ function textOnPath() {
 // text started on the path.
 function releaseTextOnPath(els = normalizeSel(state.sel)) {
   const targets = els.filter(isTP);
-  if (!targets.length) return say('Select a text-on-path layer to release.');
+  if (!targets.length) return warn('Select a text-on-path layer to release.');
   if (refuseLocked(targets, 'edit')) return;
   if (typeEdit) finishTypeEdit(true);
   for (const el of targets) {

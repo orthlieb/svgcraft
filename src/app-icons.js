@@ -270,7 +270,7 @@ const MAC_ICONSET = [
 ];
 
 async function exportAppIcons({ web, ios, android, macos }, bg) {
-  if (!web && !ios && !android && !macos) return say('Pick at least one platform.');
+  if (!web && !ios && !android && !macos) return warn('Pick at least one platform.');
   say('Drawing the app icons…');
   const full = serialize({ fontCss: await embeddedFontCss(usedGoogleFonts()), animate: false });
   const cache = new Map();
@@ -278,7 +278,7 @@ async function exportAppIcons({ web, ios, android, macos }, bg) {
   try {
     draw = await svgRasterizer(full);
   } catch {
-    return say('App icon export failed: the drawing couldn’t be drawn as an image.');
+    return warn('App icon export failed: the drawing couldn’t be drawn as an image.');
   }
   // The whole drawing at a size, opaque (on the background colour) or not.
   const png = (size, opaque = false) => {
@@ -355,7 +355,7 @@ async function exportAppIcons({ web, ios, android, macos }, bg) {
     try {
       a = await androidIcons(full, bg);
     } catch {
-      return say('App icon export failed: the drawing couldn’t be drawn as an image.');
+      return warn('App icon export failed: the drawing couldn’t be drawn as an image.');
     }
     files.push(...a.files);
     readme.push(

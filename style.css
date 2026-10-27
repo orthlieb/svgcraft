@@ -1566,6 +1566,67 @@ button.sc-fx-item.sel {
   font-variant-numeric: tabular-nums;
 }
 
+/* An error or refusal (warn() in src/core.js): above the status bar, at
+   the left, in red, until dismissed. */
+.sc-alert {
+  position: fixed;
+  left: max(12px, env(safe-area-inset-left, 0px));
+  bottom: 34px;
+  z-index: 55;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: min(560px, calc(100vw - 24px));
+  padding: 8px 6px 8px 12px;
+  border: 1px solid var(--danger);
+  border-left-width: 4px;
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: 0 6px 24px rgb(0 0 0 / 35%);
+  font-size: 13px;
+  line-height: 1.35;
+}
+.sc-alert[hidden] {
+  display: none;
+}
+.sc-alert > i {
+  display: grid;
+  flex: none;
+  color: var(--danger);
+}
+.sc-alert svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+.sc-alert button {
+  flex: none;
+}
+.sc-alert-close {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text-dim);
+}
+.sc-alert-close:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+.sc-alert-new {
+  animation: sc-alert-pulse 0.5s ease-out;
+}
+@keyframes sc-alert-pulse {
+  from {
+    transform: translateY(6px);
+    opacity: 0.4;
+  }
+}
+
 /* A newer version is on the server (src/update.js): a bar along the
    bottom of the window, above the status bar, until Update or Later. */
 .sc-update {

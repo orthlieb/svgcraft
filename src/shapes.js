@@ -144,9 +144,9 @@ function syncCustomPicker() {
 // An instance of the shape, fitted (proportions kept) and centred in box.
 function placeCustom(box) {
   const item = customItem();
-  if (!item) return say('The Symbols library is empty: add a symbol to draw it as a shape.');
+  if (!item) return warn('The Symbols library is empty: add a symbol to draw it as a shape.');
   const sym = libSymbolFor(item);
-  if (!sym) return say(`Couldn’t read the library symbol “${item.name}”.`);
+  if (!sym) return warn(`Couldn’t read the library symbol “${item.name}”.`);
   const paint =
     state.fillOn && !state.fillGrad && !state.fillPat
       ? { fill: state.fill, 'fill-opacity': state.fillA < 1 ? f(state.fillA) : null }
@@ -335,7 +335,7 @@ function closeCreateShape(ok) {
   if (!ok) return;
   const w = fromUnits(+csField('w').value);
   const h = fromUnits(+csField('h').value);
-  if (!(w > 0 && h > 0)) return say('Enter a width and height above zero.');
+  if (!(w > 0 && h > 0)) return warn('Enter a width and height above zero.');
   Object.assign(createShape, { w, h });
   const { kind, at } = createShape;
   const c = csField('centre').checked;

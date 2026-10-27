@@ -87,7 +87,7 @@ function layerViaCopy() {
     el.after(p);
     return selectNew([p]);
   }
-  if (!state.sel.length) return say('Select layers, or points with Edit Points, to copy.');
+  if (!state.sel.length) return warn('Select layers, or points with Edit Points, to copy.');
   cmds.duplicate(0);
 }
 
@@ -115,7 +115,7 @@ function layerViaCut() {
   }
   const els = inDocOrder(liftable());
   if (!els.length)
-    return say('Pick a shape inside a group (Auto-Select: Layer), or points with Edit Points.');
+    return warn('Pick a shape inside a group (Auto-Select: Layer), or points with Edit Points.');
   if (refuseLocked(els, 'edit')) return;
   // Each goes just above the top-level layer it was in, in the same order.
   const after = new Map(els.map((el) => [el, topLevel(el).nextSibling]));

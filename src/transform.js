@@ -15,8 +15,8 @@ function noteTransform(T, box) {
     .multiply(new DOMMatrix().translate(c.x, c.y));
 }
 function transformAgain(copy) {
-  if (!lastT) return say('Nothing to repeat yet — transform something first.');
-  if (!state.sel.length) return say('Select something to transform.');
+  if (!lastT) return warn('Nothing to repeat yet — transform something first.');
+  if (!state.sel.length) return warn('Select something to transform.');
   if (!copy && refuseLocked(state.sel)) return;
   if (copy) {
     state.sel = inDocOrder(state.sel).map((el) => {
@@ -41,7 +41,7 @@ function transformAgain(copy) {
 // shows X Y W H, angle and skew; Enter commits, Esc rolls the whole
 // session back.
 function beginTransform(mode) {
-  if (!state.sel.length) return say('Select something to transform first.');
+  if (!state.sel.length) return warn('Select something to transform first.');
   if (refuseLocked(state.sel)) return;
   if (state.tool !== 'select') setTool('select');
   if (state.tf) {

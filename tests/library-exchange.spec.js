@@ -236,7 +236,7 @@ test.describe('import', () => {
     expect(lib.symbols).toEqual([MY_SYMBOL]);
 
     await importFile(page, 'junk.zip', makeZip([['notes.txt', 'hello']]));
-    await expect(msg(page)).toContainText('isn’t a library');
+    await expect(page.locator('#sc-alert-text')).toContainText('isn’t a library');
   });
 
   test('a GIMP palette on its own, with GIMP 3 alpha', async ({ page }) => {
@@ -310,7 +310,7 @@ test.describe('import', () => {
     expect(lib.symbols[0].svg).toMatch(/^<g transform="translate\(12 12\)"><path /);
 
     await importFile(page, 'bad.svg', Buffer.from('<svg><unclosed></svg>'));
-    await expect(msg(page)).toContainText('isn’t a library');
+    await expect(page.locator('#sc-alert-text')).toContainText('isn’t a library');
   });
 });
 

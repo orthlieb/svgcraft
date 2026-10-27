@@ -383,7 +383,7 @@ tools.node = {
   target(el) {
     if (el && refuseLocked([el], 'edit')) el = null;
     if (el && !EDITABLE.has(el.localName)) {
-      say(
+      warn(
         el.localName === 'g'
           ? 'Click one of the shapes inside the group to edit its points.'
           : `A ${el.localName} has no points to edit.`,
@@ -703,7 +703,7 @@ tools.node = {
   },
   // 'corner' retracts handles; 'smooth' grows tangent handles from the neighbours.
   setKind(kind) {
-    if (!this.el || !this.picked.length) return say('Select a point first.');
+    if (!this.el || !this.picked.length) return warn('Select a point first.');
     for (const [si, ni] of this.picked) {
       const sp = this.subs[si];
       const n = sp.nodes;

@@ -222,7 +222,7 @@ function styleChanged(key, final) {
     if (!shapes.some(closedShape)) {
       state.strokeAlign = 'center';
       syncStyleUI();
-      say('Only closed shapes can align their stroke inside or outside.');
+      warn('Only closed shapes can align their stroke inside or outside.');
     }
   }
   if (final) commit();

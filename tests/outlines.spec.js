@@ -303,7 +303,7 @@ test.describe('Create Outlines', () => {
     const original = await docHtml(page);
     await select(page, 't');
     await page.keyboard.press('Control+Shift+O');
-    await expect(msg(page)).toHaveText(
+    await expect(page.locator('#sc-alert-text')).toHaveText(
       'Couldn’t create outlines. Couldn’t outline “Offline”: the font Lato couldn’t be downloaded, so it’s unchanged.',
     );
     expect(hits).toEqual(['lato@latest/latin-400-normal.woff']);
@@ -373,7 +373,7 @@ test.describe('Create Outlines', () => {
     const original = await docHtml(page);
     await select(page, 't');
     await page.keyboard.press('Control+Shift+O');
-    await expect(msg(page)).toHaveText('“Locked” is locked.');
+    await expect(page.locator('#sc-alert-text')).toHaveText('“Locked” is locked.');
     expect(await docHtml(page)).toBe(original);
   });
 
@@ -382,6 +382,8 @@ test.describe('Create Outlines', () => {
     await select(page, 'r');
     await menuOff(page, 'Type', 'createOutlines');
     await action(page, 'createOutlines');
-    await expect(msg(page)).toHaveText('Select one or more text layers to create outlines.');
+    await expect(page.locator('#sc-alert-text')).toHaveText(
+      'Select one or more text layers to create outlines.',
+    );
   });
 });

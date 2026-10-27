@@ -10,7 +10,7 @@ const FX_PAGES = ['ds', 'is', 'og', 'ig', 'co', 'bl'];
 
 function openLayerStyle(page) {
   const els = normalizeSel(state.sel);
-  if (!els.length) return say('Select a layer to give it a layer style.');
+  if (!els.length) return warn('Select a layer to give it a layer style.');
   if (refuseLocked(els, 'edit')) return;
   fxSess = {
     els,
@@ -143,7 +143,7 @@ function wireLayerStyle() {
     const els = normalizeSel(state.sel);
     if (!els.length) {
       syncLayerHead();
-      return say('Select the layers to blend.');
+      return warn('Select the layers to blend.');
     }
     if (refuseLocked(els, 'edit')) return syncLayerHead();
     for (const el of els) setBlend(el, e.target.value);
@@ -152,7 +152,7 @@ function wireLayerStyle() {
   for (const b of document.querySelectorAll('[data-lock]'))
     b.addEventListener('click', () => {
       const els = normalizeSel(state.sel);
-      if (!els.length) return say('Select the layers to lock.');
+      if (!els.length) return warn('Select the layers to lock.');
       const on = b.getAttribute('aria-pressed') !== 'true';
       setLock(els, on ? b.dataset.lock : null);
     });
@@ -257,7 +257,7 @@ const cmds = {
     );
   },
   cropToSelection() {
-    if (!state.sel.length) return say('Select something to crop to.');
+    if (!state.sel.length) return warn('Select something to crop to.');
     cropTo(paintBox(state.sel), 'the selection');
   },
   cropToDrawing() {
@@ -347,7 +347,7 @@ const cmds = {
 // Line the selection up on an edge or centre of its own bounding box, or
 // of the artboard when only one object is selected (Photoshop's rule).
 function alignSel(how) {
-  if (!state.sel.length) return say('Select the objects to align first.');
+  if (!state.sel.length) return warn('Select the objects to align first.');
   if (refuseLocked(state.sel)) return;
   const ref = state.sel.length === 1 ? { x: 0, y: 0, w: state.w, h: state.h } : selBox();
   if (!ref) return;
@@ -372,7 +372,7 @@ function alignSel(how) {
 // Equal gaps between neighbours along one axis; the outermost two stay put.
 function distributeSel(axis) {
   const list = state.sel.map((el) => ({ el, b: bboxDoc(el) })).filter((i) => i.b);
-  if (list.length < 3) return say('Select three or more objects to distribute.');
+  if (list.length < 3) return warn('Select three or more objects to distribute.');
   if (refuseLocked(state.sel)) return;
   const size = axis === 'x' ? 'w' : 'h';
   list.sort((a, b) => a.b[axis] + a.b[size] / 2 - (b.b[axis] + b.b[size] / 2));

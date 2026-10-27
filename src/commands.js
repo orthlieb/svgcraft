@@ -67,12 +67,12 @@ const COMBINE_LABEL = {
 async function combineShapes(op) {
   const sel = normalizeSel(state.sel);
   if (refuseLocked(sel, 'edit')) return;
-  if (sel.length < 2) return say('Select two or more shapes to combine.');
+  if (sel.length < 2) return warn('Select two or more shapes to combine.');
   let P;
   try {
     P = await loadPaper();
   } catch {
-    return say('Couldn’t load the shape engine (vendor/paper-core.min.js).');
+    return warn('Couldn’t load the shape engine (vendor/paper-core.min.js).');
   }
   const operands = [];
   let skipped = 0;
@@ -99,7 +99,7 @@ async function combineShapes(op) {
     operands.push({ el, item });
   }
   if (operands.length < 2)
-    return say(
+    return warn(
       skipped
         ? 'Text and images can’t be combined. Select two or more shapes.'
         : 'Select two or more shapes to combine.',
@@ -118,7 +118,7 @@ async function combineShapes(op) {
   // each part on its own.
   const parts = result?.children || [result];
   if (!result || !result.pathData || parts.every((c) => !c || Math.abs(c.area) < 1e-6))
-    return say(
+    return warn(
       op === 'intersect'
         ? 'The shapes don’t overlap, so there’s nothing to keep.'
         : 'Nothing would be left, so nothing changed.',

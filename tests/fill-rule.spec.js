@@ -148,7 +148,7 @@ test('locked layers are left alone', async ({ page }) => {
   await page.evaluate(() => document.getElementById('d').setAttribute('data-sc-lock', 'all'));
   await select(page, 'd');
   await pathMenu(page, 'fillRuleEvenodd');
-  await expect(page.locator('#sc-msg')).toContainText('is locked');
+  await expect(page.locator('#sc-alert-text')).toContainText('is locked');
   expect(await attr(page, 'd', 'fill-rule')).toBeNull();
   await pathMenu(page, 'reversePath');
   expect(await attr(page, 'd', 'd')).toBe('M50 20H250V180H50ZM100 60H200V140H100Z');

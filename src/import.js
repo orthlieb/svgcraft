@@ -418,7 +418,7 @@ function importFile(file, mode, handle) {
       else placeSvg(r.result, file.name);
       say(`${replace ? 'Opened' : 'Imported'} ${file.name}`);
     } catch (err) {
-      say(err.message || 'Could not read that file');
+      warn(err.message || 'Could not read that file');
     }
   };
   r.readAsText(file);

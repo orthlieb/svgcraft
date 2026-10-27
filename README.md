@@ -451,7 +451,8 @@ Turn a bitmap (a logo, icon, scan or line drawing) into vector shapes you
 can edit.
 
 1. Place the image (File → Import…, or drop it on the canvas) and select it.
-2. Choose **Image → Image Trace…**.
+2. Choose **Image → Image Trace…**. It's greyed out until one image layer
+   (or a group holding just one image) is selected.
 3. Pick the **Preset** closest to your image, then adjust the settings while
    you watch the preview. The line under the preview gives the result's
    colours, shapes and size.
@@ -483,6 +484,27 @@ can edit.
   where it touches the edge.
 - **Keep the image (hidden)**: keeps the original under the trace, hidden,
   instead of replacing it.
+
+#### When it won't trace
+
+When Image Trace can't run, it says why in the status bar at the bottom of
+the window (and in the browser's console, for an image it can't read):
+
+- **"select an image layer first"**, **"select just one image layer"** or
+  **"isn't an image layer"**: select the image itself. A group holding one
+  image traces that image; a group holding several asks you to pick one in
+  the Layers panel. Inside a symbol, edit the symbol first.
+- **"linked from elsewhere"**: the picture isn't embedded in the drawing.
+  Import the image file itself (File → Import…).
+- **"damaged, or in a format this browser can't read"**: the picture data
+  doesn't decode. Re-export it as PNG or JPEG and import that.
+- **"completely transparent"**: there are no visible pixels to trace.
+- **Locked**: an image locked with Lock all is refused; unlock it first.
+- **"Nothing left to trace with these settings"** in the dialog: lower
+  **Ignore specks under**, or turn off **Ignore background** (on a picture
+  that's mostly one colour, that colour is the background).
+- If the background thread fails, tracing carries on in the page (a note
+  goes to the console), just a little slower.
 
 #### Good to know
 

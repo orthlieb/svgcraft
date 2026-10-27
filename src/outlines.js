@@ -513,12 +513,12 @@ async function createOutlines() {
   const texts = sel.flatMap((el) =>
     el.localName === 'text' ? [el] : [...(el.querySelectorAll?.('text') || [])],
   );
-  if (!texts.length) return say('Select one or more text layers to create outlines.');
+  if (!texts.length) return warn('Select one or more text layers to create outlines.');
   if (refuseLocked(sel, 'edit')) return;
   try {
     await loadOpentype();
   } catch {
-    return say('Couldn’t load the font reader (vendor/opentype.min.js).');
+    return warn('Couldn’t load the font reader (vendor/opentype.min.js).');
   }
   const note = { subs: new Set(), missing: 0 };
   const faces = new Map();
@@ -535,7 +535,7 @@ async function createOutlines() {
     if (el.isConnected) el.replaceWith(g);
     else done.delete(el);
   const why = failed.length ? ` Couldn’t outline ${failed.join('; ')}, so it’s unchanged.` : '';
-  if (!done.size) return say(`Couldn’t create outlines. ${why.trim()}`);
+  if (!done.size) return warn(`Couldn’t create outlines. ${why.trim()}`);
   state.sel = sel.map((el) => done.get(el) || el);
   commit();
   const n = done.size;

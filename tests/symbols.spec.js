@@ -114,7 +114,7 @@ test.describe('Make Symbol', () => {
     await select(page);
     await menuOff(page, 'Object', 'makeSymbol');
     await action(page, 'makeSymbol');
-    await expect(page.locator('#sc-msg')).toContainText('Select the artwork');
+    await expect(page.locator('#sc-alert-text')).toContainText('Select the artwork');
   });
 
   test('a nested selection keeps its look, inherited paint and all', async ({ page }) => {
@@ -666,7 +666,7 @@ test.describe('locks and undo', () => {
     await makeSymbol(page);
     await menu(page, 'Layer', 'lockAll');
     await menu(page, 'Object', 'breakSymbolLink');
-    await expect(page.locator('#sc-msg')).toContainText('is locked');
+    await expect(page.locator('#sc-alert-text')).toContainText('is locked');
     await expect(uses(page)).toHaveCount(1);
     await menu(page, 'Object', 'editSymbol');
     await expect(page.locator('#sc-iso')).toBeHidden();

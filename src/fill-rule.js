@@ -34,7 +34,7 @@ function syncFillRuleUI() {
 
 function setFillRule(rule) {
   const els = shapesIn(state.sel, RULE_SHAPES);
-  if (!els.length) return say('Select a path, polygon or polyline to set its fill rule.');
+  if (!els.length) return warn('Select a path, polygon or polyline to set its fill rule.');
   if (refuseLocked(state.sel, 'edit')) return;
   for (const el of els) {
     el.style.removeProperty('fill-rule');
@@ -63,7 +63,7 @@ function reverseSubpath(sp) {
 // can't be reversed as they are, so they become paths.
 function reversePaths() {
   const els = shapesIn(state.sel, REVERSIBLE);
-  if (!els.length) return say('Select a path or shape to reverse its direction.');
+  if (!els.length) return warn('Select a path or shape to reverse its direction.');
   if (refuseLocked(state.sel, 'edit')) return;
   for (const el of els) {
     if (el.localName === 'line') {

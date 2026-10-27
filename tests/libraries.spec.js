@@ -169,7 +169,7 @@ test.describe('gradients', () => {
     await page.click('[data-kind-for="fill"] [data-kind="solid"]');
     await tab(page, 'gradients');
     await page.click('[data-lib="gradients"] [data-lib-act="add"]');
-    await expect(page.locator('#sc-msg')).toContainText('gradient first');
+    await expect(page.locator('#sc-alert-text')).toContainText('gradient first');
   });
 
   test('built-in presets keep their names as values', async ({ page }) => {
@@ -322,7 +322,7 @@ test.describe('Define Pattern', () => {
     await page.evaluate(() => (window.svgcraft.state.sel = []));
     await page.click('[data-tab="patterns"]');
     await page.click('[data-lib="patterns"] [data-lib-act="add"]');
-    await expect(page.locator('#sc-msg')).toContainText('Select the artwork');
+    await expect(page.locator('#sc-alert-text')).toContainText('Select the artwork');
     await load(page, '<rect id="a" x="20" y="20" width="10" height="10" fill="#f00"/>', 300, 200);
     await select(page, 'a');
     await menu(page, 'Edit', 'definePattern');
@@ -387,6 +387,6 @@ test.describe('export / import library', () => {
       mimeType: 'application/json',
       buffer: Buffer.from('not json'),
     });
-    await expect(page.locator('#sc-msg')).toContainText('isn’t a library');
+    await expect(page.locator('#sc-alert-text')).toContainText('isn’t a library');
   });
 });

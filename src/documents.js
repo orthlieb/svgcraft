@@ -58,7 +58,7 @@ function saveDocs() {
   idb.set('docs', docsData()).catch(() => {
     if (saveWarned) return;
     saveWarned = true;
-    say('Couldn’t keep a copy in this browser: its storage is full or blocked.');
+    warn('Couldn’t keep a copy in this browser: its storage is full or blocked.');
   });
 }
 
@@ -371,7 +371,7 @@ async function loadDocs() {
     try {
       showDoc(restored.find((d) => d.id === data?.active) || restored[0]);
     } catch {
-      say('A drawing saved in this browser couldn’t be reopened.');
+      warn('A drawing saved in this browser couldn’t be reopened.');
     }
   }
   store(STORE_KEY, null);

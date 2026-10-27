@@ -47,7 +47,7 @@ async function pngBlob(scale = 2) {
   if (g.length) say('Embedding fonts…');
   const fontCss = await embeddedFontCss(g);
   if (g.length && !fontCss)
-    say('Could not fetch the fonts (offline?) — the PNG uses fallback fonts.');
+    warn('Could not fetch the fonts (offline?) — the PNG uses fallback fonts.');
   const url = URL.createObjectURL(
     new Blob([serialize({ fontCss, animate: false })], { type: 'image/svg+xml' }),
   );
@@ -59,7 +59,7 @@ async function pngBlob(scale = 2) {
   });
   URL.revokeObjectURL(url);
   if (!loaded) {
-    say('PNG export failed');
+    warn('PNG export failed');
     return null;
   }
   const c = document.createElement('canvas');
@@ -68,10 +68,10 @@ async function pngBlob(scale = 2) {
   c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
   try {
     const b = await new Promise((resolve) => c.toBlob(resolve, 'image/png'));
-    if (!b) say('PNG export failed');
+    if (!b) warn('PNG export failed');
     return b;
   } catch {
-    say('PNG export blocked — the drawing references an external image.');
+    warn('PNG export blocked — the drawing references an external image.');
     return null;
   }
 }
@@ -86,6 +86,6 @@ async function copySvg() {
     await navigator.clipboard.writeText(text);
     say(state.sel.length ? 'Copied the selection as SVG' : 'Copied the drawing as SVG');
   } catch {
-    say('Clipboard unavailable');
+    warn('Clipboard unavailable');
   }
 }

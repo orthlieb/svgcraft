@@ -29,13 +29,13 @@ async function serverVersion() {
 // and doesn't offer again one that was put off with Later.
 async function checkForUpdate(asked = false) {
   if (!canUpdate) {
-    if (asked) say('This copy of SVGCraft was opened from a file, so it can’t update itself.');
+    if (asked) warn('This copy of SVGCraft was opened from a file, so it can’t update itself.');
     return;
   }
   updateChecked = Date.now();
   const v = await serverVersion();
   if (!v) {
-    if (asked) say('Couldn’t check for updates: SVGCraft can’t reach the internet.');
+    if (asked) warn('Couldn’t check for updates: SVGCraft can’t reach the internet.');
     return;
   }
   if (v === APP_VERSION) {

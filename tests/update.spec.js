@@ -101,7 +101,7 @@ test('offline, nothing is offered and Check for Updates says why', async ({ page
   await check(page);
   await expect(bar(page)).toBeHidden();
   await menu(page, 'Help', 'checkUpdates');
-  await expect(page.locator('#sc-msg')).toContainText('can’t reach the internet');
+  await expect(page.locator('#sc-alert-text')).toContainText('can’t reach the internet');
   // Back online, it looks again at once.
   await page.context().setOffline(false);
   await expect(bar(page)).toBeVisible();
@@ -110,6 +110,6 @@ test('offline, nothing is offered and Check for Updates says why', async ({ page
 test('a copy opened from a file doesn’t look for updates', async ({ page }) => {
   // The fixture's page is index.html from disk.
   await menu(page, 'Help', 'checkUpdates');
-  await expect(page.locator('#sc-msg')).toContainText('opened from a file');
+  await expect(page.locator('#sc-alert-text')).toContainText('opened from a file');
   await expect(bar(page)).toBeHidden();
 });

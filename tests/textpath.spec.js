@@ -11,7 +11,8 @@ const SCENE =
   '<path id="arc" d="M60 220A140 140 0 0 1 340 220" fill="none" stroke="none"/>' +
   '<text id="t" x="20" y="40" font-family="sans-serif" font-size="28" fill="#000000">HELLO CURVED WORLD</text>';
 
-const msg = (page) => page.locator('#sc-msg');
+// Refusals and lock warnings show above the status bar (warn()).
+const msg = (page) => page.locator('#sc-alert-text');
 const tick = (page) => page.evaluate(() => new Promise((r) => setTimeout(r, 0)));
 
 // Rasterise the export and sort its dark pixels by distance from a centre:
@@ -247,7 +248,7 @@ test('Character panel changes restyle the whole text and keep it on the path', a
   // Paragraph-only settings don't turn it into lines.
   await page.click('.sc-ptabs [data-tab="paragraph"]');
   await page.click('#sc-type-convert');
-  await expect(msg(page)).toHaveText(/release it first/);
+  await expect(page.locator('#sc-alert-text')).toHaveText(/release it first/);
   expect((await info(page)).tp).toBe(true);
 });
 
@@ -264,7 +265,9 @@ test('Release Text on Path gives back one line of point text at the start', asyn
   await select(page, 't');
   await menuOff(page, 'Type', 'releaseTextOnPath');
   await action(page, 'releaseTextOnPath');
-  await expect(msg(page)).toHaveText('Select a text-on-path layer to release.');
+  await expect(page.locator('#sc-alert-text')).toHaveText(
+    'Select a text-on-path layer to release.',
+  );
 });
 
 test('survives Save as SVG → reopen, still linked and live', async ({ page }) => {
@@ -384,11 +387,15 @@ test('refusals and locks', async ({ page }) => {
   await select(page, 't');
   await menuOff(page, 'Type', 'textOnPath');
   await action(page, 'textOnPath');
-  await expect(msg(page)).toHaveText(/Select one text layer and one path or shape/);
+  await expect(page.locator('#sc-alert-text')).toHaveText(
+    /Select one text layer and one path or shape/,
+  );
   await select(page, 't', 'arc', 'bg');
   await menuOff(page, 'Type', 'textOnPath');
   await action(page, 'textOnPath');
-  await expect(msg(page)).toHaveText(/Select one text layer and one path or shape/);
+  await expect(page.locator('#sc-alert-text')).toHaveText(
+    /Select one text layer and one path or shape/,
+  );
   await select(page, 'arc', 'bg');
   await menuOff(page, 'Type', 'textOnPath');
   await action(page, 'textOnPath');
