@@ -119,7 +119,7 @@ test('the options bar shows the tool icon', async ({ page }) => {
 // the others have it as their tooltip. Animation has a tab of its own.
 test('panel tabs show icons, and the open tab its name', async ({ page }) => {
   const tabs = page.locator('[role="tab"][data-tab]');
-  await expect(tabs).toHaveCount(9);
+  await expect(tabs).toHaveCount(10);
   for (const t of await tabs.all()) {
     await expect(t.locator('svg')).toHaveCount(1);
     expect(await t.getAttribute('data-tip')).toBe(await t.getAttribute('aria-label'));
@@ -248,7 +248,7 @@ test('» collapses the panels to icons that pop each panel out', async ({ page }
   await expect(toggle).toHaveAttribute('aria-expanded', 'false');
   expect((await panel.boundingBox()).width).toBeLessThan(50);
   await expect(page.locator('#sc-panel > .sc-pgroup:visible')).toHaveCount(0);
-  await expect(page.locator('.sc-dock-icon')).toHaveCount(10);
+  await expect(page.locator('.sc-dock-icon')).toHaveCount(11);
 
   // An icon pops its panel out, on that tab, left of the strip.
   await icon('Swatches').click();
