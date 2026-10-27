@@ -451,8 +451,8 @@ Turn a bitmap (a logo, icon, scan or line drawing) into vector shapes you
 can edit.
 
 1. Place the image (File → Import…, or drop it on the canvas) and select it.
-2. Choose **Image → Image Trace…**. It's greyed out until one image layer
-   (or a group holding just one image) is selected.
+2. Choose **Image → Image Trace…**. It's greyed out until an image is
+   selected (see "What counts as an image", below).
 3. Pick the **Preset** closest to your image, then adjust the settings while
    you watch the preview. The line under the preview gives the result's
    colours, shapes and size.
@@ -485,15 +485,28 @@ can edit.
 - **Keep the image (hidden)**: keeps the original under the trace, hidden,
   instead of replacing it.
 
+#### What counts as an image
+
+Select one layer that draws exactly one picture:
+
+- **An image layer**, or **a group** holding one (the trace goes into the
+  group, beside the image).
+- **A `<use>` of an image or a symbol**: an image kept in `<defs>` and
+  drawn by reference, as other apps export it, or a symbol instance whose
+  symbol holds one image. The trace replaces the instance, where it's
+  drawn; the symbol itself is left alone.
+- **A shape filled with an image pattern**, such as Figma's image fills.
+  The pattern's first tile is traced where it's drawn, whole: it isn't cut
+  to the shape's outline, and repeats of the tile aren't traced.
+
+A symbol or group drawing several images asks you to pick one in the
+Layers panel.
+
 #### When it won't trace
 
-When Image Trace can't run, it says why in the status bar at the bottom of
-the window (and in the browser's console, for an image it can't read):
+When Image Trace can't read the picture, it says why above the status bar
+(and in the browser's console):
 
-- **"select an image layer first"**, **"select just one image layer"** or
-  **"isn't an image layer"**: select the image itself. A group holding one
-  image traces that image; a group holding several asks you to pick one in
-  the Layers panel. Inside a symbol, edit the symbol first.
 - **"linked from elsewhere"**: the picture isn't embedded in the drawing.
   Import the image file itself (File → Import…).
 - **"damaged, or in a format this browser can't read"**: the picture data

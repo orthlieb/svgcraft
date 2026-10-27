@@ -876,9 +876,11 @@ function setTracePreset(k) {
 }
 
 // The image's pixels at tracing size, and the matrix from tracing pixels
-// to the drawing (its placement, aspect ratio and transform).
+// to the drawing (its placement, aspect ratio and transform). place maps
+// the <image>'s own x / y / width / height to the layer's parent: its
+// transform, or more when it's drawn through a <use> or a pattern.
 // Each failure is an Error whose message says why, for the status bar.
-async function imagePixels(el) {
+async function imagePixels(el, place = getM(el)) {
   const href = (el.getAttribute('href') || el.getAttribute('xlink:href') || '').trim();
   const why = (text, cause) => Object.assign(new Error(text), { cause });
   if (!href) throw why('the image layer has no picture in it');
@@ -929,39 +931,159 @@ async function imagePixels(el) {
     ox = (W - nw * sx) * frac[a[1]];
     oy = (H - nh * sy) * frac[a[2]];
   }
-  const M = getM(el)
-    .translate(num('x') + ox, num('y') + oy)
-    .scale((sx * nw) / w, (sy * nh) / h);
+  const M = place.translate(num('x') + ox, num('y') + oy).scale((sx * nw) / w, (sy * nh) / h);
   return { data, w, h, M };
 }
 
-// The image layer to trace: the one selected, or the one inside a selected
-// group, as { el }; otherwise { why } there isn't one. The menu item is off
-// without one (actionRules.imageTrace).
+// The element a "#id" or url(#id) points at, in the drawing.
+function refTarget(s) {
+  const m = /^(?:url\(\s*["']?)?#([^"')\s]+)/.exec((s || '').trim());
+  const t = m && document.getElementById(m[1]);
+  return t && (doc.contains(t) || defs.contains(t)) ? t : null;
+}
+const useHref = (u) => u.getAttribute('href') ?? u.getAttributeNS(XLINK, 'href');
+
+// The matrix fitting a viewBox into a w × h viewport (preserveAspectRatio).
+function fitM(vb, w, h, par = '') {
+  const [x, y, vw, vh] = vb;
+  if (!(vw > 0 && vh > 0)) return new DOMMatrix();
+  let sx = w / vw;
+  let sy = h / vh;
+  let ox = 0;
+  let oy = 0;
+  if (!/^none/.test(par)) {
+    sx = sy = /slice/.test(par) ? Math.max(sx, sy) : Math.min(sx, sy);
+    const a = /x(Min|Mid|Max)Y(Min|Mid|Max)/.exec(par) || [0, 'Mid', 'Mid'];
+    const frac = { Min: 0, Mid: 0.5, Max: 1 };
+    ox = (w - vw * sx) * frac[a[1]];
+    oy = (h - vh * sy) * frac[a[2]];
+  }
+  return new DOMMatrix().translate(ox, oy).scale(sx, sy).translate(-x, -y);
+}
+const viewBoxOf = (el) => {
+  const v = (el.getAttribute('viewBox') || '')
+    .trim()
+    .split(/[\s,]+/)
+    .map(Number);
+  return v.length === 4 && v.every(Number.isFinite) ? v : null;
+};
+
+// The <image>s el draws, through groups, <use> and symbols (in <defs> or
+// not), each with the matrix from its own x / y / width / height to the
+// coordinates m starts from (el's parent's, by default).
+function drawnImages(el, m = new DOMMatrix(), depth = 0) {
+  if (depth > 10 || el.getAttribute('display') === 'none') return [];
+  const n = el.localName;
+  if (n === 'image') return [{ img: el, m: m.multiply(getM(el)) }];
+  if (n === 'g' || n === 'a' || n === 'switch') {
+    const k = m.multiply(getM(el));
+    return [...el.children].flatMap((c) => drawnImages(c, k, depth + 1));
+  }
+  if (n !== 'use') return [];
+  const ref = refTarget(useHref(el));
+  if (!ref) return [];
+  const num = (a) => parseFloat(el.getAttribute(a)) || 0;
+  const k = m.multiply(getM(el)).translate(num('x'), num('y'));
+  if (ref.localName !== 'symbol') return drawnImages(ref, k, depth + 1);
+  // A symbol with a viewBox fits it into the instance's width × height.
+  const vb = viewBoxOf(ref);
+  const s = vb
+    ? k.multiply(
+        fitM(
+          vb,
+          num('width') || parseFloat(ref.getAttribute('width')) || vb[2],
+          num('height') || parseFloat(ref.getAttribute('height')) || vb[3],
+          ref.getAttribute('preserveAspectRatio') || '',
+        ),
+      )
+    : k;
+  return [...ref.children].flatMap((c) => drawnImages(c, s, depth + 1));
+}
+
+// The <image>s a shape's pattern fill draws in its first tile, each with
+// the matrix from its own coordinates to the shape's parent. A pattern
+// takes what it doesn't set from the one its href points at.
+function patternImages(el) {
+  const fill = getComputedStyle(el).fill;
+  let p = refTarget(fill);
+  const chain = [];
+  while (p?.localName === 'pattern' && !chain.includes(p) && chain.length < 10) {
+    chain.push(p);
+    p = refTarget(useHref(p));
+  }
+  if (!chain.length) return [];
+  const get = (a) => chain.find((q) => q.hasAttribute(a))?.getAttribute(a);
+  const box = el.getBBox();
+  const obbTile = get('patternUnits') !== 'userSpaceOnUse';
+  const len = (a, size, base) => {
+    const v = get(a) || '0';
+    const f = parseFloat(v) || 0;
+    if (!obbTile) return f;
+    return base + (v.endsWith('%') ? f / 100 : f) * size;
+  };
+  const tx = len('x', box.width, box.x);
+  const ty = len('y', box.height, box.y);
+  const tw = len('width', box.width, 0);
+  const th = len('height', box.height, 0);
+  let m = getM(el);
+  const pt = get('patternTransform');
+  if (pt) {
+    const g = mk('g', { transform: pt });
+    m = m.multiply(getM(g));
+  }
+  m = m.translate(tx, ty);
+  const holder = chain.find((q) => q.children.length);
+  const vb = holder && viewBoxOf(chain.find((q) => q.hasAttribute('viewBox')) || holder);
+  if (vb) m = m.multiply(fitM(vb, tw, th, get('preserveAspectRatio') || ''));
+  else if (get('patternContentUnits') === 'objectBoundingBox') m = m.scale(box.width, box.height);
+  return holder ? [...holder.children].flatMap((c) => drawnImages(c, m)) : [];
+}
+
+// The image layer to trace, as { el, img, place }: el is the layer the
+// result goes beside (and replaces), img the <image> read, and place maps
+// img's x / y / width / height to el's parent. It's the image selected,
+// the one in a selected group, the one a <use> draws (straight from
+// <defs>, or through a symbol), or the one a shape's pattern fill shows.
+// Otherwise { why } there isn't one. The menu item is off without one
+// (actionRules.imageTrace).
 function traceImage() {
   const sel = state.sel;
   if (!sel.length) return { why: 'select an image layer first (File → Import… places one).' };
   if (sel.length > 1) return { why: 'select just one image layer.' };
   const el = sel[0];
-  if (el.localName === 'image') return { el };
-  if (el.localName === 'use')
-    return { why: 'that’s a symbol instance. Edit the symbol to trace the image in it.' };
-  const inside = [...el.querySelectorAll('image')];
-  if (inside.length === 1) return { el: inside[0] };
-  if (inside.length > 1)
-    return {
-      why: `“${layerName(el)}” holds ${inside.length} images. Select one of them in the Layers panel.`,
-    };
+  const one = (found, holds) => {
+    if (found.length === 1) return { el, img: found[0].img, place: found[0].m };
+    if (found.length > 1)
+      return {
+        why: `“${layerName(el)}” ${holds} ${found.length} images. Select one of them in the Layers panel.`,
+      };
+    return null;
+  };
+  if (el.localName === 'image') return { el, img: el, place: getM(el) };
+  if (el.localName === 'use') {
+    const r = one(drawnImages(el), 'draws');
+    if (r) return r;
+  } else if (el.localName === 'g') {
+    const inside = [...el.querySelectorAll('image')];
+    if (inside.length === 1) return { el: inside[0], img: inside[0], place: getM(inside[0]) };
+    if (inside.length > 1)
+      return {
+        why: `“${layerName(el)}” holds ${inside.length} images. Select one of them in the Layers panel.`,
+      };
+  } else if (el instanceof SVGGraphicsElement) {
+    const r = one(patternImages(el), 'is filled with');
+    if (r) return r;
+  }
   return { why: `“${layerName(el)}” isn’t an image layer.` };
 }
 
 async function openTrace() {
-  const { el, why } = traceImage();
+  const { el, img, place, why } = traceImage();
   if (!el) return warn(`Image Trace: ${why}`);
   if (refuseLocked([el], 'edit')) return;
   let px;
   try {
-    px = await imagePixels(el);
+    px = await imagePixels(img, place);
   } catch (e) {
     console.warn('Image Trace:', e.message, e.cause || '');
     return warn(`Image Trace can’t read “${layerName(el)}”: ${e.message}.`);
