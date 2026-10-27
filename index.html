@@ -926,32 +926,6 @@
         </button>
       </div>
       <div class="sc-opt" data-for="node">
-        <div class="sc-seg sc-seg-glyph" role="radiogroup" aria-label="Point selection shape">
-          <button
-            data-marquee="rect"
-            role="radio"
-            aria-label="Rectangle — drag a rectangle to select points"
-            data-tip="Rectangle — drag a rectangle to select points"
-          >
-            <i data-icon="square"></i>
-          </button>
-          <button
-            data-marquee="oval"
-            role="radio"
-            aria-label="Oval — drag an oval to select points"
-            data-tip="Oval — drag an oval to select points"
-          >
-            <i data-icon="circle"></i>
-          </button>
-          <button
-            data-marquee="lasso"
-            role="radio"
-            aria-label="Freeform — draw round the points to select"
-            data-tip="Freeform — draw round the points to select"
-          >
-            <i data-icon="sc-lasso"></i>
-          </button>
-        </div>
         <button class="sc-tbtn" data-node-cmd="corner" data-tip="Retract handles — sharp point">
           <i data-icon="crosshairs"></i>Corner
         </button>
@@ -1270,12 +1244,15 @@
           <i data-icon="sc-move"></i>
         </button>
         <button
+          class="sc-tool-group"
+          id="sc-node-btn"
           data-tool="node"
           aria-label="Edit points"
+          aria-haspopup="menu"
           data-tip="Edit points"
-          data-tip-desc="Move, add and delete the points and curve handles of a path."
+          data-tip-desc="Move, add and delete the points and curve handles of a path. Drag round points to pick them: hold, right-click or Alt-click to pick with a rectangle, an ellipse or a lasso."
         >
-          <i data-icon="sc-direct"></i>
+          <i data-icon="sc-direct"></i><span class="sc-tool-more" aria-hidden="true"></span>
         </button>
         <span class="sc-sep"></span>
         <button
@@ -4010,6 +3987,18 @@
     </div>
 
     <!-- Font picker (shared by the options bar and the Character panel). -->
+    <!-- Edit Points' flyout: what a drag round points picks them with. -->
+    <div class="sc-flyout" id="sc-node-menu" role="menu" aria-label="Point selection" hidden>
+      <button role="menuitemradio" data-marquee="rect">
+        <i data-icon="square"></i><span>Rectangle Select</span><kbd>A</kbd>
+      </button>
+      <button role="menuitemradio" data-marquee="oval">
+        <i data-icon="circle"></i><span>Ellipse Select</span><kbd>A</kbd>
+      </button>
+      <button role="menuitemradio" data-marquee="lasso">
+        <i data-icon="sc-lasso"></i><span>Lasso Select</span><kbd>A</kbd>
+      </button>
+    </div>
     <!-- The Shape tool group's flyout (beside the toolbar's Shape button). -->
     <div class="sc-flyout" id="sc-shape-menu" role="menu" aria-label="Shape tools" hidden>
       <button role="menuitemradio" data-shape-tool="rect">

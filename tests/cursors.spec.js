@@ -1,5 +1,5 @@
 /* global cursorFor -- src/cursors.js, in the page */
-import { test, expect, toScreen } from './fixtures.js';
+import { test, expect, toScreen, pickMarquee } from './fixtures.js';
 
 // Photoshop's pointers (src/cursors.js): each tool's, and the badges that
 // Shift, Alt and the pointer's place add.
@@ -62,7 +62,7 @@ test('Edit Points: white arrow over shapes, the marquee’s cross or lasso with 
     await named(page, 'direct'),
   );
 
-  await page.click('[data-marquee="lasso"]');
+  await pickMarquee(page, 'lasso');
   await hover(page, 100, 500);
   await expectCursor(page, 'lasso');
   await page.keyboard.down('Alt');

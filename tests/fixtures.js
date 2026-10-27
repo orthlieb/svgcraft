@@ -92,3 +92,9 @@ export async function toScreen(page, x, y) {
     [x, y],
   );
 }
+
+// Pick Edit Points' selection shape from its toolbar flyout.
+export async function pickMarquee(page, shape) {
+  await page.click('#sc-node-btn', { button: 'right' });
+  await page.click(`#sc-node-menu [data-marquee="${shape}"]`);
+}

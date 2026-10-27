@@ -23,6 +23,59 @@ const TOOL_META = {
   zoom: ['magnifying-glass', 'Zoom'],
 };
 
+// A toolbar button holding a group of tools, as in Photoshop: held down,
+// right-clicked, Alt-clicked or clicked on its corner mark, it opens its
+// flyout menu beside the toolbar; a plain click runs `pick` (if given).
+function toolFlyout(btn, menu, pick) {
+  const items = () => [...menu.querySelectorAll('[role="menuitemradio"]')];
+  const open = () => {
+    const r = btn.getBoundingClientRect();
+    menu.hidden = false;
+    menu.style.left = `${r.right + 4}px`;
+    menu.style.top = `${Math.min(r.top, innerHeight - menu.offsetHeight - 4)}px`;
+    (items().find((b) => b.getAttribute('aria-checked') === 'true') || items()[0])?.focus();
+  };
+  const close = () => (menu.hidden = true);
+  let hold = 0;
+  btn.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0) return;
+    hold = setTimeout(() => {
+      hold = -1;
+      open();
+    }, 400);
+  });
+  btn.addEventListener('pointerup', () => clearTimeout(hold));
+  btn.addEventListener('pointerleave', () => clearTimeout(hold));
+  btn.addEventListener('click', (e) => {
+    if (hold === -1) {
+      hold = 0;
+      return;
+    }
+    if (e.target.closest('.sc-tool-more') || e.altKey) open();
+    else pick?.();
+  });
+  btn.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    open();
+  });
+  menu.addEventListener('keydown', (e) => {
+    const list = items();
+    const i = list.indexOf(document.activeElement);
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      list[(i + (e.key === 'ArrowDown' ? 1 : list.length - 1)) % list.length].focus();
+    } else if (e.key === 'Escape') {
+      close();
+      btn.focus();
+    } else return;
+    e.stopPropagation();
+  });
+  document.addEventListener('pointerdown', (e) => {
+    if (!menu.hidden && !menu.contains(e.target) && !btn.contains(e.target)) close();
+  });
+  return { open, close };
+}
+
 // Options bar: the transform session's fields while one is open,
 // otherwise the groups whose data-for lists the current tool.
 function updateOptions() {

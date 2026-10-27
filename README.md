@@ -317,7 +317,8 @@ stroke="currentColor"` (common in icon sets) is pushed down so it
   panel can pick a colour from anywhere on screen.
 - **Edit points** (A, or double-click a shape): drag points and Bézier
   handles, Shift-click or drag round them to pick several (a rectangle, an
-  oval or a freeform lasso, picked in the options bar; as in Photoshop, a
+  oval or a freeform lasso, picked like the Shape tools from the Edit
+  Points button's flyout, or with Shift+A; as in Photoshop, a
   drag begun with Shift adds to what's picked and one begun with Alt takes
   points away, and Alt pressed during a drag grows a rectangle or oval from
   its centre), and nudge with the arrow keys. Double-click a segment to add a point, or a point to switch

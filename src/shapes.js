@@ -224,14 +224,7 @@ function syncShapeButton() {
   for (const b of shapeMenu.querySelectorAll('[data-shape-tool]'))
     b.setAttribute('aria-checked', b.dataset.shapeTool === state.shape);
 }
-function openShapeMenu() {
-  const r = shapeBtn.getBoundingClientRect();
-  shapeMenu.hidden = false;
-  shapeMenu.style.left = `${r.right + 4}px`;
-  shapeMenu.style.top = `${Math.min(r.top, innerHeight - shapeMenu.offsetHeight - 4)}px`;
-  shapeMenu.querySelector('[aria-checked="true"]')?.focus();
-}
-const closeShapeMenu = () => (shapeMenu.hidden = true);
+const shapeFlyout = toolFlyout(shapeBtn, shapeMenu, () => setTool(state.shape));
 // U: the group's tool; Shift+U: the next one in the group.
 function shapeKey(next) {
   const i = SHAPE_TOOLS.indexOf(state.shape);
@@ -241,50 +234,11 @@ function shapeKey(next) {
       : state.shape,
   );
 }
-let shapeHold = 0;
-shapeBtn.addEventListener('pointerdown', (e) => {
-  if (e.button !== 0) return;
-  // Held down, as in Photoshop: the flyout.
-  shapeHold = setTimeout(() => {
-    shapeHold = -1;
-    openShapeMenu();
-  }, 400);
-});
-shapeBtn.addEventListener('pointerup', () => clearTimeout(shapeHold));
-shapeBtn.addEventListener('pointerleave', () => clearTimeout(shapeHold));
-shapeBtn.addEventListener('click', (e) => {
-  if (shapeHold === -1) {
-    shapeHold = 0;
-    return;
-  }
-  if (e.target.closest('.sc-tool-more') || e.altKey) openShapeMenu();
-  else setTool(state.shape);
-});
-shapeBtn.addEventListener('contextmenu', (e) => {
-  e.preventDefault();
-  openShapeMenu();
-});
 for (const b of shapeMenu.querySelectorAll('[data-shape-tool]'))
   b.addEventListener('click', () => {
-    closeShapeMenu();
+    shapeFlyout.close();
     setTool(b.dataset.shapeTool);
   });
-shapeMenu.addEventListener('keydown', (e) => {
-  const items = [...shapeMenu.querySelectorAll('[data-shape-tool]')];
-  const i = items.indexOf(document.activeElement);
-  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-    e.preventDefault();
-    items[(i + (e.key === 'ArrowDown' ? 1 : items.length - 1)) % items.length].focus();
-  } else if (e.key === 'Escape') {
-    closeShapeMenu();
-    shapeBtn.focus();
-  } else return;
-  e.stopPropagation();
-});
-document.addEventListener('pointerdown', (e) => {
-  if (!shapeMenu.hidden && !shapeMenu.contains(e.target) && !shapeBtn.contains(e.target))
-    closeShapeMenu();
-});
 
 // ---- options bar -----------------------------------------------------------------
 for (const el of document.querySelectorAll('[data-shape-opt]'))

@@ -170,11 +170,11 @@ for (const t of ['gesturestart', 'gesturechange', 'gestureend'])
   });
 
 // Keyboard ------------------------------------------------------------
-// Photoshop's tool keys (U, the Shape tools, is handled on its own); R, O
+// Photoshop's tool keys (U, the Shape tools, and A, Edit Points and its
+// selection shapes, are handled on their own); R, O
 // and L also pick the rectangle, ellipse and line.
 const TOOL_KEYS = {
   v: 'select',
-  a: 'node',
   p: 'pen',
   b: 'pencil',
   e: 'eraser',
@@ -323,6 +323,7 @@ window.addEventListener('keydown', (e) => {
     if (iso) exitIso();
     else setSel([]);
   } else if (k === 'u') shapeKey(e.shiftKey);
+  else if (k === 'a') marqueeKey(e.shiftKey);
   else if (k === 'tab') {
     // Tab hides the panels (Shift+Tab just the right-hand ones) while
     // you're working on the canvas; with a control focused it moves focus.

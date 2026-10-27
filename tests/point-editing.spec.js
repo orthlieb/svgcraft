@@ -1,7 +1,7 @@
 // Point editing (the Node tool): path parsing round-trips, shape → node
 // conversion, and the interactive edits — drag, insert, smooth, delete,
 // close / open, marquee, nudge — including on transformed elements.
-import { test, expect, toScreen } from './fixtures.js';
+import { test, expect, toScreen, pickMarquee } from './fixtures.js';
 
 // Press-drag-release between two document points.
 async function drag(page, from, to) {
@@ -237,7 +237,7 @@ test('points can be picked with an oval too, or from the centre with Alt', async
   expect(await picked()).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
 
   // An oval the same size misses the corners: just the sides' middles.
-  await page.click('[data-marquee="oval"]');
+  await pickMarquee(page, 'oval');
   await drag(page, [290, 190], [510, 410]);
   // (Its dashed outline goes when the drag ends.)
   await expect(page.locator('#sc-stage ellipse.sc-ov-dash')).toHaveCount(0);
@@ -261,7 +261,7 @@ test('points can be picked with an oval too, or from the centre with Alt', async
   await drag(page, [380, 180], [420, 220]);
   await page.keyboard.up('Alt');
   expect(await picked()).toEqual([3, 5, 7]);
-  await page.click('[data-marquee="rect"]');
+  await pickMarquee(page, 'rect');
   const c = await toScreen(page, 430, 400);
   const d = await toScreen(page, 480, 430);
   await page.keyboard.down('Alt');
@@ -274,7 +274,7 @@ test('points can be picked with an oval too, or from the centre with Alt', async
   await page.mouse.up();
   await page.keyboard.up('Alt');
   expect(await picked()).toEqual([3, 7]);
-  await page.click('[data-marquee="oval"]');
+  await pickMarquee(page, 'oval');
 
   // The choice is remembered.
   await page.reload();
@@ -307,7 +307,7 @@ test('points can be picked freeform, with a lasso drawn round them', async ({ pa
   };
 
   // A triangle round the top-left corner takes it and its two neighbours.
-  await page.click('[data-marquee="lasso"]');
+  await pickMarquee(page, 'lasso');
   await lasso([
     [280, 180],
     [450, 180],
@@ -344,4 +344,42 @@ test('points can be picked freeform, with a lasso drawn round them', async ({ pa
   await page.reload();
   await page.waitForFunction(() => !!window.svgcraft);
   await expect(page.locator('[data-marquee="lasso"]')).toHaveAttribute('aria-checked', 'true');
+});
+
+test('the selection shapes sit in Edit Points’ toolbar flyout, like the Shape tools', async ({
+  page,
+}) => {
+  const btn = page.locator('#sc-node-btn');
+  const menu = page.locator('#sc-node-menu');
+  const checked = () => page.$eval('#sc-node-menu [aria-checked="true"]', (b) => b.dataset.marquee);
+  // Held down, the flyout opens beside the toolbar, on the current shape.
+  const b = await btn.boundingBox();
+  await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
+  await page.mouse.down();
+  await expect(menu).toBeVisible();
+  await page.mouse.up();
+  await expect(menu.locator('[data-marquee="rect"]')).toBeFocused();
+  // Arrow keys move through it; Escape closes it.
+  await page.keyboard.press('ArrowDown');
+  await expect(menu.locator('[data-marquee="oval"]')).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(menu).toBeHidden();
+  // Picking one switches to Edit Points with it.
+  await page.keyboard.press('v');
+  await pickMarquee(page, 'lasso');
+  await expect(menu).toBeHidden();
+  expect(await page.evaluate(() => window.svgcraft.state.tool)).toBe('node');
+  expect(await checked()).toBe('lasso');
+  await expect(btn).toHaveAttribute('data-tip', 'Edit points · Lasso Select');
+  // A plain click is just the tool; Shift+A steps through the shapes.
+  await page.keyboard.press('v');
+  await btn.click();
+  await expect(menu).toBeHidden();
+  expect(await page.evaluate(() => window.svgcraft.state.tool)).toBe('node');
+  await page.keyboard.press('Shift+A');
+  expect(await checked()).toBe('rect');
+  await page.keyboard.press('Shift+A');
+  expect(await checked()).toBe('oval');
+  // The options bar no longer carries them.
+  await expect(page.locator('.sc-opt [data-marquee]')).toHaveCount(0);
 });

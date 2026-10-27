@@ -115,18 +115,33 @@ for (const b of document.querySelectorAll('[data-eraser]')) {
       x.setAttribute('aria-checked', x === b);
   });
 }
-// Edit Points: select points with a rectangle, an oval or freeform (remembered).
+// Edit Points picks points with a rectangle, an ellipse or a lasso, chosen
+// from its toolbar flyout like the Shape tools (remembered). Shift+A steps
+// through them.
 const MARQUEE_KEY = 'svgcraft.pointMarquee';
-function setMarquee(shape) {
-  state.marquee = ['oval', 'lasso'].includes(shape) ? shape : 'rect';
+const MARQUEES = { rect: 'Rectangle Select', oval: 'Ellipse Select', lasso: 'Lasso Select' };
+const nodeBtn = $('#sc-node-btn');
+const nodeFlyout = toolFlyout(nodeBtn, $('#sc-node-menu'));
+function setMarquee(shape, save) {
+  state.marquee = MARQUEES[shape] ? shape : 'rect';
   for (const b of document.querySelectorAll('[data-marquee]'))
     b.setAttribute('aria-checked', b.dataset.marquee === state.marquee);
+  nodeBtn.dataset.tip = `Edit points · ${MARQUEES[state.marquee]}`;
+  if (save) store(MARQUEE_KEY, state.marquee === 'rect' ? null : state.marquee);
+  syncCursor();
 }
 for (const b of document.querySelectorAll('[data-marquee]'))
   b.addEventListener('click', () => {
-    setMarquee(b.dataset.marquee);
-    store(MARQUEE_KEY, state.marquee === 'rect' ? null : state.marquee);
+    nodeFlyout.close();
+    setMarquee(b.dataset.marquee, true);
+    setTool('node');
   });
+function marqueeKey(next) {
+  const all = Object.keys(MARQUEES);
+  if (next && state.tool === 'node')
+    setMarquee(all[(all.indexOf(state.marquee) + 1) % all.length], true);
+  setTool('node');
+}
 setMarquee(stored(MARQUEE_KEY));
 for (const el of document.querySelectorAll('[data-tf]')) {
   el.addEventListener('input', () =>
