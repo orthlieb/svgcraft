@@ -1,0 +1,14 @@
+#!/bin/sh
+# Refuses to push to main a commit whose src/version.js doesn't match its
+# files: a running SVGCraft wouldn't see the update (see CLAUDE.md). Fix it
+# with node scripts/gen-version.mjs and a commit.
+z=0000000000000000000000000000000000000000
+while read -r local_ref local_sha remote_ref remote_sha; do
+  [ "$remote_ref" = refs/heads/main ] || continue
+  [ "$local_sha" = "$z" ] && continue
+  if ! node scripts/gen-version.mjs --check --ref "$local_sha" >/dev/null 2>&1; then
+    echo "pre-push: src/version.js is stale in $local_sha; run node scripts/gen-version.mjs and commit it." >&2
+    exit 1
+  fi
+done
+exit 0

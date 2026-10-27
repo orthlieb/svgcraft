@@ -2688,8 +2688,10 @@ used, or a ? points at a topic that isn't there.
 **The version.** `src/version.js` is generated: `node scripts/gen-version.mjs`
 hashes every file the app is made of (what the service worker keeps) into
 `APP_VERSION`. A running copy compares it with the server's (`src/update.js`)
-and offers the update. Run it last, after any other generator, whenever an
-app file changes; `tests/update.spec.js` fails while it's stale.
+and offers the update. `npm install` turns on the git hooks in `.githooks/`:
+pre-commit regenerates it (and `help.html`) from what's being committed, and
+pre-push refuses to push a stale one to main. CI and `tests/update.spec.js`
+check it too.
 
 **The code.** The editor is split by area into the scripts in `src/`:
 `core.js` (state and helpers), `guides.js`, `geometry.js`, `paints.js`,

@@ -38,9 +38,20 @@ points at a topic that doesn't exist.
 
 `src/version.js` holds SVGCraft's version, a hash of the app's files, which
 a running copy compares with the server's to offer updates (`src/update.js`).
-After changing any app file (and after `gen-help.mjs`, as `help.html` counts),
-run `node scripts/gen-version.mjs` last and commit `src/version.js` with the
-change; `tests/update.spec.js` fails while it's stale.
+It must match the files in every commit that reaches main:
+
+- **`npm install` turns on the git hooks in `.githooks/`** (it sets
+  `core.hooksPath`). Run it once in every clone or worktree.
+- **pre-commit** regenerates `help.html` (when the README is committed) and
+  `src/version.js` from exactly what's being committed, and adds them.
+- **pre-push** refuses to push to main a commit whose version is stale, so
+  a fast-forward merge (`git push origin <sha>:main`) can't skip it.
+- **CI** checks both generated files are current, and
+  `tests/update.spec.js` fails while the version is stale.
+- **Before every merge to main**, also run
+  `node scripts/gen-version.mjs --check --ref <sha>` on the commit being
+  merged. If a commit was made with `--no-verify`, run
+  `node scripts/gen-version.mjs` and commit the result first.
 
 ## Before pushing
 

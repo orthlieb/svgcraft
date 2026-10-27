@@ -1,0 +1,12 @@
+#!/bin/sh
+# Keeps the generated files in step with every commit (see CLAUDE.md):
+# help.html from the README when the README is being committed, then
+# src/version.js from exactly what's being committed. Turned on by
+# npm install (package.json's prepare script).
+set -e
+if git diff --cached --name-only | grep -qx 'README.md'; then
+  node scripts/gen-help.mjs >/dev/null
+  git add help.html
+fi
+node scripts/gen-version.mjs --index >/dev/null
+git add src/version.js

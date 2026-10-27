@@ -25,6 +25,8 @@ jobs:
         run: npm run format:check
       - name: Lint
         run: npm run lint
+      - name: Generated files are current
+        run: node scripts/gen-help.mjs --check && node scripts/gen-version.mjs --check
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Playwright tests
