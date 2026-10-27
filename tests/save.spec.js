@@ -66,10 +66,17 @@ const writeFile = (page, name, text) =>
     },
     [name, text],
   );
+// Reading while a save is still writing the file can fail (NotReadableError);
+// that reads as empty, so expect.poll tries again.
 const readFile = (page, name) =>
   page.evaluate(async (name) => {
     const root = await navigator.storage.getDirectory();
-    return (await (await root.getFileHandle(name)).getFile()).text();
+    try {
+      return await (await (await root.getFileHandle(name)).getFile()).text();
+    } catch (e) {
+      if (e.name === 'NotReadableError') return '';
+      throw e;
+    }
   }, name);
 const picks = (page) => page.evaluate(() => window.__picks);
 const tab = (page) => page.locator('.sc-doctab[aria-selected="true"] .sc-doctab-name');
