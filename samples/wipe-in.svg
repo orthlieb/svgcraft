@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  <defs><clipPath id="sc-gen-2" clipPathUnits="objectBoundingBox" data-sc-gen=""><rect x="-0.1" y="-0.1" width="1.2" height="1.2" data-sc-gen=""><animate attributeName="width" values="0;1.2;0" dur="2.4s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0 0 0.58 1;0 0 0.58 1" begin="0s"/></rect></clipPath></defs><title>Wipe in</title>
+  <metadata>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">
+      <cc:Work rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+        <dc:title>Wipe in</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <rect data-name="Background" width="400" height="300" fill="#f8fafc"/>
+  <g clip-path="url(#sc-gen-2)" data-sc-gen=""><rect id="it" data-name="Card" x="130" y="95" width="140" height="110" rx="16" fill="#7c3aed" data-sc-anim="[{&quot;p&quot;:&quot;wipeIn&quot;,&quot;dur&quot;:1.2,&quot;from&quot;:&quot;left&quot;,&quot;rep&quot;:0,&quot;dir&quot;:&quot;alternate&quot;}]"/></g>
+</svg>

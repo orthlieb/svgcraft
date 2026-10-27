@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  <title>Spin</title>
+  <metadata>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">
+      <cc:Work rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+        <dc:title>Spin</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <rect data-name="Background" width="400" height="300" fill="#f8fafc"/>
+  <polygon id="it" data-name="Star" points="200.0,60.0 223.8,117.2 285.6,122.2 238.5,162.5 252.9,222.8 200.0,190.5 147.1,222.8 161.5,162.5 114.4,122.2 176.2,117.2" fill="#facc15" data-sc-anim="[{&quot;p&quot;:&quot;spin&quot;,&quot;dur&quot;:3,&quot;rep&quot;:0,&quot;ease&quot;:&quot;linear&quot;,&quot;turns&quot;:1}]"><animateTransform attributeName="transform" type="rotate" additive="sum" values="0 200 141.4;360 200 141.4" dur="3s" repeatCount="indefinite" begin="0s"/></polygon>
+</svg>

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  <title>Draw off</title>
+  <metadata>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">
+      <cc:Work rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+        <dc:title>Draw off</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <rect data-name="Background" width="400" height="300" fill="#f8fafc"/>
+  <path id="it" data-name="Loop" d="M200 70C300 70 300 230 200 230S100 70 200 70Z" fill="none" stroke="#2563eb" stroke-width="8" data-sc-anim="[{&quot;p&quot;:&quot;drawOff&quot;,&quot;dur&quot;:1.6,&quot;rep&quot;:0,&quot;dir&quot;:&quot;alternate&quot;}]"><set attributeName="stroke-dasharray" to="491.76 491.76" begin="0s"/><animate attributeName="stroke-dashoffset" values="0;491.76;0" dur="3.2s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" begin="0s"/></path>
+</svg>

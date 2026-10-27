@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  <title>Pop in</title>
+  <metadata>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">
+      <cc:Work rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+        <dc:title>Pop in</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <rect data-name="Background" width="400" height="300" fill="#f8fafc"/>
+  <polygon id="it" data-name="Star" points="200.0,70.0 221.2,120.9 276.1,125.3 234.2,161.1 247.0,214.7 200.0,186.0 153.0,214.7 165.8,161.1 123.9,125.3 178.8,120.9" fill="#facc15" data-sc-anim="[{&quot;p&quot;:&quot;popIn&quot;,&quot;dur&quot;:0.8,&quot;rep&quot;:0,&quot;dir&quot;:&quot;alternate&quot;}]"><animateTransform attributeName="transform" type="translate" additive="sum" values="200 142.35;-20 -14.23;0 0;-20 -14.23;200 142.35" dur="1.6s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.35;0.5;0.65;1" keySplines="0 0 0.58 1;0 0 0.58 1;0 0 0.58 1;0 0 0.58 1" begin="0s"/><animateTransform attributeName="transform" type="scale" additive="sum" values="0;1.1;1;1.1;0" dur="1.6s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.35;0.5;0.65;1" keySplines="0 0 0.58 1;0 0 0.58 1;0 0 0.58 1;0 0 0.58 1" begin="0s"/><animate attributeName="opacity" values="0;1;1;1;0" dur="1.6s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.2;0.5;0.8;1" keySplines="0 0 0.58 1;0 0 0.58 1;0 0 0.58 1;0 0 0.58 1" begin="0s"/></polygon>
+</svg>

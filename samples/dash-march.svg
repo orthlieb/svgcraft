@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  <title>Dash march</title>
+  <metadata>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">
+      <cc:Work rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+        <dc:title>Dash march</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <rect data-name="Background" width="400" height="300" fill="#f8fafc"/>
+  <rect id="it" data-name="Box" x="90" y="80" width="220" height="140" rx="10" fill="none" stroke="#0f172a" stroke-width="4" stroke-dasharray="12 8" data-sc-anim="[{&quot;p&quot;:&quot;dashMarch&quot;,&quot;dur&quot;:1,&quot;rep&quot;:0}]"><animate attributeName="stroke-dashoffset" values="0;-20" dur="1s" repeatCount="indefinite" begin="0s"/></rect>
+</svg>

@@ -2911,6 +2911,12 @@ npm run lint                      # ESLint
 npm run format:check              # Prettier (npm run format to fix)
 ```
 
+**Animation samples.** `samples/` holds one SVG file per animation
+feature, and `samples/index.html` plays them all. They're made in the
+editor and saved as File → Save does, by `node scripts/gen-samples.mjs`;
+run it again after changing a preset. `tests/samples.spec.js` checks each
+one reopens with its animations.
+
 **Help is built from this README.** Help → SVGCraft Help (F1, and the ?
 on every dialog and panel) opens `help.html`, which
 `node scripts/gen-help.mjs` builds from this file's user sections

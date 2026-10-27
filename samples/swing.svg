@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  <title>Swing</title>
+  <metadata>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">
+      <cc:Work rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+        <dc:title>Swing</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <rect data-name="Background" width="400" height="300" fill="#f8fafc"/>
+  <rect id="it" data-name="Card" x="130" y="95" width="140" height="110" rx="16" fill="#b45309" data-sc-anim="[{&quot;p&quot;:&quot;swing&quot;,&quot;dur&quot;:1.4,&quot;rep&quot;:0,&quot;angle&quot;:15,&quot;pivot&quot;:&quot;top&quot;}]"><animateTransform attributeName="transform" type="rotate" additive="sum" values="0 200 95;15 200 95;0 200 95;-15 200 95;0 200 95" dur="1.4s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.25;0.5;0.75;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1" begin="0s"/></rect>
+</svg>

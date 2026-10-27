@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  <title>Draw on</title>
+  <metadata>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">
+      <cc:Work rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+        <dc:title>Draw on</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <rect data-name="Background" width="400" height="300" fill="#f8fafc"/>
+  <path id="it" data-name="Squiggle" d="M60 200C110 60 160 260 210 140S320 60 340 160" fill="none" stroke="#0f172a" stroke-width="8" stroke-linecap="round" data-sc-anim="[{&quot;p&quot;:&quot;drawOn&quot;,&quot;dur&quot;:1.6,&quot;rep&quot;:0,&quot;dir&quot;:&quot;alternate&quot;}]"><set attributeName="stroke-dasharray" to="433.2 433.2" begin="0s"/><set attributeName="stroke-dashoffset" to="433.2" begin="0s"/><animate attributeName="stroke-dashoffset" values="433.2;0;433.2" dur="3.2s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" begin="0s"/></path>
+</svg>

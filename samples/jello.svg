@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  <title>Jello</title>
+  <metadata>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">
+      <cc:Work rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+        <dc:title>Jello</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <rect data-name="Background" width="400" height="300" fill="#f8fafc"/>
+  <rect id="it" data-name="Card" x="130" y="95" width="140" height="110" rx="16" fill="#22c55e" data-sc-anim="[{&quot;p&quot;:&quot;jello&quot;,&quot;dur&quot;:1,&quot;rep&quot;:0,&quot;angle&quot;:12}]"><animateTransform attributeName="transform" type="translate" additive="sum" values="0 0;22.85 42.51;-17.98 -21.02;7.31 10.48;-4.07 -5.24;1.93 2.62;0 0" dur="1s" repeatCount="indefinite" begin="0s"/><animateTransform attributeName="transform" type="skewX" additive="sum" values="0;-12;6;-3;1.5;-0.75;0" dur="1s" repeatCount="indefinite" begin="0s"/><animateTransform attributeName="transform" type="skewY" additive="sum" values="0;-12;6;-3;1.5;-0.75;0" dur="1s" repeatCount="indefinite" begin="0s"/></rect>
+</svg>

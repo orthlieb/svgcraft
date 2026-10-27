@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  <title>Morph</title>
+  <metadata>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">
+      <cc:Work rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+        <dc:title>Morph</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <rect data-name="Background" width="400" height="300" fill="#f8fafc"/>
+  <path id="it" data-name="Circle" d="M120 150A80 80 0 1 0 280 150A80 80 0 1 0 120 150Z" fill="#7c3aed" data-sc-anim="[{&quot;p&quot;:&quot;morph&quot;,&quot;dur&quot;:1.2,&quot;rep&quot;:0,&quot;dir&quot;:&quot;alternate&quot;,&quot;path&quot;:&quot;target&quot;,&quot;hide&quot;:true}]"><animate attributeName="d" values="M120 150C120 161.046 122.239 171.569 126.287 181.14C130.335 190.711 136.193 199.33 143.431 206.569C150.67 213.807 159.289 219.665 168.86 223.713C178.431 227.761 188.954 230 200 230C222.091 230 242.091 221.046 256.569 206.569C271.046 192.091 280 172.091 280 150C280 127.909 271.046 107.909 256.569 93.431C242.091 78.954 222.091 70 200 70C177.909 70 157.909 78.954 143.431 93.431C128.954 107.909 120 127.909 120 150Z;M109.6 120.6C126.167 134.8 142.733 149 159.3 163.2C154.267 184.433 149.233 205.667 144.2 226.9C162.8 215.533 181.4 204.167 200 192.8C218.6 204.167 237.2 215.533 255.8 226.9C250.767 205.667 245.733 184.433 240.7 163.2C257.267 149 273.833 134.8 290.4 120.6C268.633 118.867 246.867 117.133 225.1 115.4C216.733 95.267 208.367 75.133 200 55C191.633 75.133 183.267 95.267 174.9 115.4C153.133 117.133 131.367 118.867 109.6 120.6Z;M120 150C120 161.046 122.239 171.569 126.287 181.14C130.335 190.711 136.193 199.33 143.431 206.569C150.67 213.807 159.289 219.665 168.86 223.713C178.431 227.761 188.954 230 200 230C222.091 230 242.091 221.046 256.569 206.569C271.046 192.091 280 172.091 280 150C280 127.909 271.046 107.909 256.569 93.431C242.091 78.954 222.091 70 200 70C177.909 70 157.909 78.954 143.431 93.431C128.954 107.909 120 127.909 120 150Z" dur="2.4s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" begin="0s"/></path>
+  <polygon id="target" data-name="Star" points="200.0,55.0 225.1,115.4 290.4,120.6 240.7,163.2 255.8,226.9 200.0,192.8 144.2,226.9 159.3,163.2 109.6,120.6 174.9,115.4" fill="#7c3aed" display="none" data-sc-route=""/>
+</svg>

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  <title>Typewriter</title>
+  <metadata>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">
+      <cc:Work rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+        <dc:title>Typewriter</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <rect data-name="Background" width="400" height="300" fill="#f8fafc"/>
+  <text id="it" data-name="Label" x="200" y="165" font-family="Georgia, serif" font-size="40" font-weight="700" text-anchor="middle" fill="#0f172a" data-sc-anim="[{&quot;p&quot;:&quot;typewriter&quot;,&quot;dur&quot;:2.5,&quot;rep&quot;:0,&quot;dir&quot;:&quot;alternate&quot;}]"><tspan data-sc-gen="">T<animate attributeName="visibility" values="hidden;visible;hidden" keyTimes="0;0.05;0.95" calcMode="discrete" dur="5s" repeatCount="indefinite" begin="0s" data-sc-gen=""/></tspan><tspan data-sc-gen="">y<animate attributeName="visibility" values="hidden;visible;hidden" keyTimes="0;0.09;0.91" calcMode="discrete" dur="5s" repeatCount="indefinite" begin="0s" data-sc-gen=""/></tspan><tspan data-sc-gen="">p<animate attributeName="visibility" values="hidden;visible;hidden" keyTimes="0;0.14;0.86" calcMode="discrete" dur="5s" repeatCount="indefinite" begin="0s" data-sc-gen=""/></tspan><tspan data-sc-gen="">e<animate attributeName="visibility" values="hidden;visible;hidden" keyTimes="0;0.18;0.82" calcMode="discrete" dur="5s" repeatCount="indefinite" begin="0s" data-sc-gen=""/></tspan> <tspan data-sc-gen="">m<animate attributeName="visibility" values="hidden;visible;hidden" keyTimes="0;0.23;0.77" calcMode="discrete" dur="5s" repeatCount="indefinite" begin="0s" data-sc-gen=""/></tspan><tspan data-sc-gen="">e<animate attributeName="visibility" values="hidden;visible;hidden" keyTimes="0;0.27;0.73" calcMode="discrete" dur="5s" repeatCount="indefinite" begin="0s" data-sc-gen=""/></tspan> <tspan data-sc-gen="">o<animate attributeName="visibility" values="hidden;visible;hidden" keyTimes="0;0.32;0.68" calcMode="discrete" dur="5s" repeatCount="indefinite" begin="0s" data-sc-gen=""/></tspan><tspan data-sc-gen="">u<animate attributeName="visibility" values="hidden;visible;hidden" keyTimes="0;0.36;0.64" calcMode="discrete" dur="5s" repeatCount="indefinite" begin="0s" data-sc-gen=""/></tspan><tspan data-sc-gen="">t<animate attributeName="visibility" values="hidden;visible;hidden" keyTimes="0;0.41;0.59" calcMode="discrete" dur="5s" repeatCount="indefinite" begin="0s" data-sc-gen=""/></tspan><tspan data-sc-gen="">…<animate attributeName="visibility" values="hidden;visible;hidden" keyTimes="0;0.45;0.55" calcMode="discrete" dur="5s" repeatCount="indefinite" begin="0s" data-sc-gen=""/></tspan></text>
+</svg>
