@@ -958,6 +958,29 @@ kbd {
   padding: 8px 10px 10px;
 }
 /* The chevron at the end of each tab bar folds the group to its tabs. */
+/* The ? on panel tab bars and dialog title bars (src/help.js). */
+.sc-ptabs .sc-help-btn {
+  flex: none;
+  margin-left: auto;
+  width: 18px;
+  height: auto;
+  border-radius: 0;
+  color: var(--text-dim);
+}
+.sc-ptabs .sc-help-btn + .sc-pcollapse {
+  margin-left: 0;
+}
+.sc-dialog-title .sc-help-btn {
+  width: 22px;
+  height: 22px;
+  margin-left: auto;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+.sc-help-btn svg {
+  width: 13px;
+  height: 13px;
+}
 .sc-pcollapse {
   margin-left: auto;
   width: 26px;

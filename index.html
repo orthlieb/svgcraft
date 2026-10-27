@@ -588,6 +588,9 @@
             Help
           </button>
           <div class="sc-menu-list" role="menu" hidden>
+            <button role="menuitem" data-action="help">
+              <i data-icon="circle-question"></i><span>SVGCraft Help</span><kbd>F1</kbd>
+            </button>
             <button role="menuitem" data-action="about">
               <i data-icon="circle-info"></i><span>About SVGCraft</span>
             </button>
@@ -3025,7 +3028,12 @@
     </div>
 
     <!-- View → New Guide… -->
-    <dialog class="sc-dialog" id="sc-newguide" aria-labelledby="sc-ng-title">
+    <dialog
+      class="sc-dialog"
+      id="sc-newguide"
+      data-help="rulers-guides-and-smart-guides"
+      aria-labelledby="sc-ng-title"
+    >
       <div class="sc-dialog-title" id="sc-ng-title">New Guide</div>
       <div class="sc-dialog-body">
         <label class="sc-check"
@@ -3047,7 +3055,12 @@
     </dialog>
 
     <!-- File → Export Clean SVG…: plain SVG without SVGCraft's editing data. -->
-    <dialog class="sc-dialog sc-cleansvg" id="sc-cleansvg" aria-labelledby="sc-cs-title">
+    <dialog
+      class="sc-dialog sc-cleansvg"
+      id="sc-cleansvg"
+      data-help="export-clean-svg"
+      aria-labelledby="sc-cs-title"
+    >
       <div class="sc-dialog-title" id="sc-cs-title">Export Clean SVG</div>
       <div class="sc-dialog-body">
         <p class="sc-hint sc-cs-note">
@@ -3084,7 +3097,12 @@
     </dialog>
 
     <!-- Image → Image Trace…: a placed bitmap traced into colour layers. -->
-    <dialog class="sc-dialog sc-trace" id="sc-trace" aria-labelledby="sc-tr-title">
+    <dialog
+      class="sc-dialog sc-trace"
+      id="sc-trace"
+      data-help="image-trace"
+      aria-labelledby="sc-tr-title"
+    >
       <div class="sc-dialog-title" id="sc-tr-title">Image Trace</div>
       <div class="sc-tr-body">
         <div class="sc-tr-view">
@@ -3175,7 +3193,12 @@
     </dialog>
 
     <!-- File → New…: Photoshop's New Document, presets and details. -->
-    <dialog class="sc-dialog sc-newdoc" id="sc-newdoc" aria-labelledby="sc-nd-title">
+    <dialog
+      class="sc-dialog sc-newdoc"
+      id="sc-newdoc"
+      data-help="documents"
+      aria-labelledby="sc-nd-title"
+    >
       <div class="sc-dialog-title" id="sc-nd-title">New Document</div>
       <div class="sc-nd-body">
         <div class="sc-nd-browse">
@@ -3238,7 +3261,12 @@
     </dialog>
 
     <!-- A Shape tool's click without dragging: draw one at an exact size. -->
-    <dialog class="sc-dialog sc-docsize" id="sc-createshape" aria-labelledby="sc-cs-shape-title">
+    <dialog
+      class="sc-dialog sc-docsize"
+      id="sc-createshape"
+      data-help="shape-tools"
+      aria-labelledby="sc-cs-shape-title"
+    >
       <div class="sc-dialog-title" id="sc-cs-shape-title">Create Rectangle</div>
       <div class="sc-dialog-body">
         <div class="sc-docsize-row">
@@ -3297,7 +3325,12 @@
     </dialog>
 
     <!-- Image → Image Size…: scale the artboard and everything on it. -->
-    <dialog class="sc-dialog sc-docsize" id="sc-imagesize" aria-labelledby="sc-is-title">
+    <dialog
+      class="sc-dialog sc-docsize"
+      id="sc-imagesize"
+      data-help="image-size"
+      aria-labelledby="sc-is-title"
+    >
       <div class="sc-dialog-title" id="sc-is-title">Image Size</div>
       <div class="sc-dialog-body">
         <p class="sc-hint" data-is="was"></p>
@@ -3335,6 +3368,7 @@
     <dialog
       class="sc-dialog sc-adjust"
       id="sc-bw"
+      data-help="grayscale-and-black-white"
       data-name="Black & White"
       aria-labelledby="sc-bw-title"
     >
@@ -3403,6 +3437,7 @@
     <dialog
       class="sc-dialog sc-adjust"
       id="sc-threshold"
+      data-help="grayscale-and-black-white"
       data-name="Threshold"
       aria-labelledby="sc-th-title"
     >
@@ -3428,7 +3463,12 @@
     </dialog>
 
     <!-- Image → Canvas Size…: the artboard grows or shrinks around an anchor. -->
-    <dialog class="sc-dialog sc-docsize" id="sc-canvassize" aria-labelledby="sc-cv-title">
+    <dialog
+      class="sc-dialog sc-docsize"
+      id="sc-canvassize"
+      data-help="canvas-size"
+      aria-labelledby="sc-cv-title"
+    >
       <div class="sc-dialog-title" id="sc-cv-title">Canvas Size</div>
       <div class="sc-dialog-body">
         <p class="sc-hint" data-cv="was"></p>
@@ -3499,7 +3539,12 @@
     </dialog>
 
     <!-- File → Export App Icons…: every size each platform needs, in one zip. -->
-    <dialog class="sc-dialog sc-appicons" id="sc-appicons" aria-labelledby="sc-ai-title">
+    <dialog
+      class="sc-dialog sc-appicons"
+      id="sc-appicons"
+      data-help="file-export-app-icons"
+      aria-labelledby="sc-ai-title"
+    >
       <div class="sc-dialog-title" id="sc-ai-title">Export App Icons</div>
       <div class="sc-dialog-body">
         <p class="sc-hint sc-ai-note">
@@ -3536,7 +3581,12 @@
     </dialog>
 
     <!-- File → New Icon…: a square artboard with its margins as guides. -->
-    <dialog class="sc-dialog sc-newicon" id="sc-newicon" aria-labelledby="sc-ni-title">
+    <dialog
+      class="sc-dialog sc-newicon"
+      id="sc-newicon"
+      data-help="file-new-icon"
+      aria-labelledby="sc-ni-title"
+    >
       <div class="sc-dialog-title" id="sc-ni-title">New Icon</div>
       <div class="sc-dialog-body">
         <label class="sc-field"
@@ -3679,6 +3729,7 @@
         <div class="sc-pinfo-body" id="sc-pinfo-body"></div>
       </div>
       <div class="sc-dialog-foot">
+        <button class="sc-tbtn" id="sc-pinfo-help">Help</button>
         <button class="sc-tbtn" id="sc-pinfo-about">About SVGCraft</button>
         <button class="sc-tbtn sc-primary-btn" id="sc-pinfo-close">Close</button>
       </div>
@@ -3698,7 +3749,12 @@
       </div>
     </dialog>
 
-    <dialog class="sc-dialog sc-info-dialog" id="sc-fileinfo" aria-labelledby="sc-info-title">
+    <dialog
+      class="sc-dialog sc-info-dialog"
+      id="sc-fileinfo"
+      data-help="file-info"
+      aria-labelledby="sc-info-title"
+    >
       <div class="sc-dialog-title" id="sc-info-title">File Info</div>
       <div class="sc-dialog-body sc-info-body">
         <label class="sc-info-field"
@@ -3765,7 +3821,12 @@
     </dialog>
 
     <!-- Object → Layer Style… (Photoshop's fx dialog). -->
-    <dialog class="sc-dialog sc-fx-dialog" id="sc-fx" aria-labelledby="sc-fx-title">
+    <dialog
+      class="sc-dialog sc-fx-dialog"
+      id="sc-fx"
+      data-help="layer-style-fx"
+      aria-labelledby="sc-fx-title"
+    >
       <div class="sc-dialog-title" id="sc-fx-title">Layer Style</div>
       <div class="sc-fx-body">
         <nav class="sc-fx-nav" aria-label="Effects">
@@ -4304,6 +4365,7 @@
     <script src="src/controls.js"></script>
     <script src="src/actions.js"></script>
     <script src="src/panels.js"></script>
+    <script src="src/help.js"></script>
     <script src="src/phone.js"></script>
     <script src="src/tooltips.js"></script>
     <script src="src/boot.js"></script>

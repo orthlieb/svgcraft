@@ -128,6 +128,11 @@ The layout follows Photoshop:
     (and top, middle or bottom), and magenta lines show what lined up.
     A guide or smart match within 6 screen pixels takes priority over
     the grid. Hold Ctrl/⌘ while dragging to skip snapping.
+- **Help**: Help → SVGCraft Help (F1) opens this guide in its own tab,
+  with every feature listed down the side and a search box. The ? on each
+  dialog's title bar and each panel's tab bar opens the topic for it, and F1
+  with a dialog open goes to that dialog's topic. On a phone, Info has a Help
+  button.
 - **Status bar**: an editable zoom field and the document size.
 - **Theme**: follows your OS by default. The sun / moon button and
   View → Theme switch between Dark and Light, and the choice is remembered.
@@ -1172,6 +1177,16 @@ npm test                          # Playwright tests (Chromium)
 npm run lint                      # ESLint
 npm run format:check              # Prettier (npm run format to fix)
 ```
+
+**Help is built from this README.** Help → SVGCraft Help (F1, and the ?
+on every dialog and panel) opens `help.html`, which
+`node scripts/gen-help.mjs` builds from this file's user sections
+(Workspace up to Development): every `##` section becomes a help section
+and every top-level bullet that starts with a bold name a topic with its
+own anchor. Every new feature gets its entry here, and every change to a
+feature gets this entry edited, in the same branch; then regenerate
+`help.html`. `tests/help.spec.js` fails while `help.html` is stale or a ?
+points at a topic that isn't there.
 
 **The code.** The editor is split by area into the scripts in `src/`:
 `core.js` (state and helpers), `guides.js`, `geometry.js`, `paints.js`,

@@ -16,7 +16,14 @@ self.addEventListener('install', (e) => {
       const html = await (await fetch('index.html', { cache: 'no-cache' })).text();
       const files = [...html.matchAll(/\b(?:src|href)="([^"#:]+)"/g)].map((m) => m[1]);
       const urls = [
-        ...new Set(['./', 'index.html', 'about.html', 'manifest.webmanifest', ...files]),
+        ...new Set([
+          './',
+          'index.html',
+          'about.html',
+          'help.html',
+          'manifest.webmanifest',
+          ...files,
+        ]),
       ];
       // One missing file mustn't stop the rest being kept.
       await Promise.allSettled(urls.map((u) => cache.add(u)));
