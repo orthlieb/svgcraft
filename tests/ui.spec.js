@@ -86,6 +86,26 @@ test.describe('toolbar paint chips', () => {
     await page.click('.sc-tb-swap');
     expect(await paints()).toEqual(['#1f2933', '#e8a33d']);
   });
+
+  test('the default button sets black fill and white stroke; there is no None button', async ({
+    page,
+  }) => {
+    await page.click('.sc-tb-default');
+    expect(
+      await page.evaluate(() => [window.svgcraft.state.fill, window.svgcraft.state.stroke]),
+    ).toEqual(['#000000', '#ffffff']);
+    // As in Photoshop: the two small buttons sit above the chips.
+    const box = (s) => page.locator(s).boundingBox();
+    const [def, swap, fill] = [
+      await box('.sc-tb-default'),
+      await box('.sc-tb-swap'),
+      await box('#sc-tb-fill'),
+    ];
+    expect(def.y + def.height).toBeLessThanOrEqual(fill.y + 1);
+    expect(swap.y + swap.height).toBeLessThanOrEqual(fill.y + 1);
+    expect(def.x).toBeLessThan(swap.x);
+    await expect(page.locator('.sc-chips [data-action="paintNone"]')).toHaveCount(0);
+  });
 });
 
 test('panel tabs switch panes', async ({ page }) => {

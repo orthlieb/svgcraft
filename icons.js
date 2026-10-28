@@ -234,6 +234,7 @@ window.SC_ICONS = {
     '<svg viewBox="0 0 512 512" aria-hidden="true"><path fill-rule="evenodd" d="M96 32v400l104-96 70 148 64-30-70-146h148Zm40 92v214l58-54 72 152 8-4-72-150h108Z"/></svg>',
   'sc-type':
     '<svg viewBox="0 0 512 512" aria-hidden="true"><path d="M72 64h368v120h-30c-6-44-22-70-74-70h-56v300c0 26 12 34 50 36v26H182v-26c38-2 50-10 50-36V114h-56c-52 0-68 26-74 70H72Z"/></svg>',
-  'sc-default-colours':
-    '<svg viewBox="0 0 512 512" aria-hidden="true"><path fill-rule="evenodd" d="M176 176h304v304H176Zm40 40v224h224V216Z"/><path d="M32 32h272v112H144v160H32Z"/></svg>',
+  // Photoshop's swap arrow: a quarter turn with a head at each end.
+  'sc-swap-colours':
+    '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 4h3.5a4 4 0 0 1 4 4v3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M5.5 0.8 1.6 4l3.9 3.2Z M9.3 10.5l3.2 3.9 3.2-3.9Z"/></svg>',
 };
