@@ -306,6 +306,7 @@
               <li><a href="#edit-points">Edit points</a></li>
               <li><a href="#fill-rule-and-path-direction">Fill rule and path direction</a></li>
               <li><a href="#animate">Animate</a></li>
+              <li><a href="#animations-left-out">Animations left out</a></li>
               <li><a href="#when-an-animation-starts">When an animation starts</a></li>
               <li><a href="#pivot">Pivot</a></li>
               <li><a href="#stagger">Stagger</a></li>
@@ -2466,13 +2467,67 @@
                 the animations it had.
               </li>
               <li>
-                What no preset does is left out, and a message says how many: a rotation about
-                another point, a motion at a fixed angle, an animation that starts on a click or
-                another animation's end, one inside a symbol, and CSS <code>@keyframes</code>.
+                What no preset does is left out, and a message says how many; its
+                <strong>More info</strong> button says which and why (see
+                <a href="#animations-left-out">Animations left out</a>). Among them: a motion at a
+                fixed angle, an animation that starts on another animation's end, one inside a
+                symbol, and CSS <code>@keyframes</code>.
               </li>
               <li>
                 An animation that replaces a layer's own transform (SMIL's default) is only kept
                 when the layer has none, since a preset adds to it.
+              </li>
+            </ul>
+          </article>
+          <article id="animations-left-out" data-find>
+            <h3>Animations left out</h3>
+            <figure>
+              <img
+                src="docs/help/animations-left-out.png"
+                alt="The Animations left out report: a rotation on the Card layer, why no preset writes it, and Spin as the nearest preset"
+                width="640"
+                height="353"
+                loading="lazy"
+              />
+            </figure>
+            <p>
+              See exactly which of a file's animations SVGCraft couldn't keep, and why, so you can
+              fix the file or rebuild them with presets.
+            </p>
+            <ol>
+              <li>Open the file. If some animations can't be kept, a warning says how many.</li>
+              <li>Click <strong>More info</strong> in the warning → the report lists each one.</li>
+            </ol>
+            <h4>What it shows</h4>
+            <ul>
+              <li>
+                <strong>Where</strong>: the layer it was on, or the part of the file (a
+                <code>&lt;style&gt;</code> block, the whole drawing, an element that isn't there).
+              </li>
+              <li><strong>The markup</strong>: the animation element as it was in the file.</li>
+              <li>
+                <strong>Why</strong>: the reason it was left out: its timing can't be set in
+                SVGCraft, it animates something no preset does, it's a CSS animation, it's inside a
+                symbol…
+              </li>
+              <li>
+                <strong>Nearest preset</strong>: when a preset nearly matched, which one and how it
+                differs (its values, timing or turning point), so you can add that preset and adjust
+                it.
+              </li>
+            </ul>
+            <h4>Settings</h4>
+            <ul>
+              <li>
+                <strong>Copy report</strong> → the whole report as text, to paste into a bug report
+                or a note.
+              </li>
+            </ul>
+            <h4>Good to know</h4>
+            <ul>
+              <li>
+                What's left out isn't in the drawing any more: saving won't write it. Reopen the
+                original file to get it back.
               </li>
             </ul>
           </article>
