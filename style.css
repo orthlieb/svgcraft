@@ -3751,3 +3751,36 @@ body.sc-no-right .sc-main {
 .sc-anim-pivot .sc-ibtn:disabled {
   opacity: 0.4;
 }
+/* File → Open's report of animations left out (More info). */
+.sc-smil-report {
+  width: min(640px, calc(100vw - 32px));
+}
+.sc-smil-list {
+  max-height: min(60vh, 520px);
+  margin: 8px 0 0;
+  padding-left: 22px;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.sc-smil-list li {
+  margin-bottom: 12px;
+}
+.sc-smil-list p {
+  margin: 4px 0 0;
+}
+.sc-smil-where {
+  font-weight: 600;
+}
+.sc-smil-what {
+  display: block;
+  margin-top: 4px;
+  padding: 4px 6px;
+  border-radius: 3px;
+  background: var(--hover);
+  font-size: 11px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+.sc-smil-near {
+  color: var(--text-dim);
+}

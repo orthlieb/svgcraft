@@ -1613,6 +1613,69 @@ function smilHex(v) {
 // One channel, from a file's element or a generated one, made comparable:
 // its values as number lists (transforms padded: rotate a cx cy, translate
 // x y, scale sx sy; colours as #rrggbb), keyTimes, timing and pacing.
+// ---- what couldn't be kept, and why --------------------------------------------
+// Each animation left out is noted as { where, what, why, near? }: the layer
+// (or part of the file) it was on, its markup, the reason, and the preset
+// that came nearest with how it differs. The More info link in the
+// warning shows them (reportSmil).
+function smilMarkup(tag, attrs) {
+  const q = (v) => String(v).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+  const out = `<${tag}${Object.entries(attrs)
+    .map(([k, v]) => ` ${k}="${q(v)}"`)
+    .join('')}/>`;
+  return out.length > 600 ? `${out.slice(0, 600)}…` : out;
+}
+// A file's element as a short name: its layer name, id or tag.
+function smilWhere(el) {
+  if (!el) return 'The file';
+  if (doc.contains(el)) return `Layer “${layerName(el)}”`;
+  const name = el.getAttribute?.('data-name') || el.id;
+  return name ? `<${el.localName}> “${name}”` : `<${el.localName}>`;
+}
+// Why a SMIL element couldn't be read at all (smilChannel gave null).
+function smilUnreadable({ tag, attrs: a }) {
+  if (tag === 'set') return 'It sets a value at a moment; no preset writes that on its own.';
+  if (!smilTiming(a)) {
+    const t = ['begin', 'dur', 'repeatCount', 'repeatDur']
+      .filter((k) => a[k] != null)
+      .map((k) => `${k}="${a[k]}"`)
+      .join(' ');
+    return `Its timing (${t || 'no dur'}) isn’t one SVGCraft can set: it needs a length (dur), a start in seconds or on a click or hover, and a whole number of repeats or forever.`;
+  }
+  if (a.values == null && a.to == null && a.by == null)
+    return 'It has no values, to or by: nothing to animate between.';
+  return `Its values (${a.values ?? `${a.from ?? '(current)'} → ${a.to ?? `by ${a.by}`}`}) aren’t numbers or a colour SVGCraft can read for ${a.attributeName || 'that attribute'}.`;
+}
+// One channel's values, for reading: "0 70 30 → 360 70 30".
+const smilShow = (c) =>
+  c.values.map((v) => (typeof v === 'string' ? v : v.map((x) => f(x)).join(' '))).join(' → ');
+// What a channel changes: "rotate (transform)", "opacity".
+const smilWhat = (c) => (c.type ? `${c.type} (${c.name})` : c.name);
+// How file channel g differs from what preset channel c writes, or null
+// when they're the same (see smilSame).
+function smilDiff(g, c, own, name) {
+  if (c.type && !g.additive && own)
+    return `It replaces the layer’s own transform (it has no additive="sum") on a layer that already has one; ${name} adds to it.`;
+  if (g.base !== c.base) return `It starts on ${g.base || 'opening'}, not ${c.base || 'opening'}.`;
+  if (!smilNear(g.dur, c.dur) || !smilNear(g.begin, c.begin) || g.rep !== c.rep)
+    return `Its timing (${f(g.dur)} s from ${f(g.begin)} s, ${g.rep ? `${g.rep}×` : 'forever'}) isn’t what ${name} writes for it (${f(c.dur)} s from ${f(c.begin)} s, ${c.rep ? `${c.rep}×` : 'forever'}).`;
+  if (g.calc !== c.calc) return `It’s ${g.calc}, where ${name} is ${c.calc}.`;
+  if (g.values.length !== c.values.length)
+    return `It has ${g.values.length} values (${smilShow(g)}); ${name} writes ${c.values.length} (${smilShow(c)}).`;
+  for (let i = 0; i < g.values.length; i++) {
+    const [a, b] = [g.values[i], c.values[i]];
+    if (typeof a === 'string' ? a !== b : a.some((x, j) => !smilNear(x, b[j] ?? NaN))) {
+      const why =
+        g.type === 'rotate' && smilNear(a[0], b[0])
+          ? ` It turns about (${f(a[1])}, ${f(a[2])}), not (${f(b[1])}, ${f(b[2])}).`
+          : '';
+      return `Its values are ${smilShow(g)}; ${name} would write ${smilShow(c)}.${why}`;
+    }
+    if (Math.abs(g.kt[i] - c.kt[i]) > 0.002)
+      return `Its keyTimes (${g.kt.map(f).join('; ')}) aren’t ${name}’s (${c.kt.map(f).join('; ')}).`;
+  }
+  return null;
+}
 function smilChannel({ tag, attrs: a }, el) {
   const name = a.attributeName || '';
   const type = tag === 'animateTransform' ? a.type || 'translate' : '';
@@ -1920,14 +1983,17 @@ function smilMotion(el, a, pool) {
 }
 // A layer's noted SMIL as presets: { anims, lost }.
 function smilToAnims(el, notes, own) {
-  let lost = 0;
+  const lost = [];
+  const where = smilWhere(el);
+  const drop = (n, why, near) =>
+    lost.push({ where, what: smilMarkup(n.tag, n.attrs), why, ...(near ? { near } : {}) });
   const sets = notes.filter((n) => n.tag === 'set');
   let pool = [];
   for (const n of notes) {
     if (n.tag === 'set' || n.tag === 'animateMotion' || n.attrs.attributeName === 'd') continue;
     const c = smilChannel(n, el);
-    if (c) pool.push(c);
-    else lost++;
+    if (c) pool.push(Object.assign(c, { note: n }));
+    else drop(n, smilUnreadable(n));
   }
   const anims = [];
   // An outline changing: Morph, into a layer of its own made from the
@@ -1936,14 +2002,23 @@ function smilToAnims(el, notes, own) {
     if (n.tag !== 'animate' || n.attrs.attributeName !== 'd') continue;
     const m = el.localName === 'path' && smilMorph(el, n.attrs);
     if (m) anims.push(m);
-    else lost++;
+    else
+      drop(
+        n,
+        el.localName === 'path'
+          ? 'It changes the outline (d) between shapes Morph can’t rebuild: it needs at least two outlines it can read, as values or from / to.'
+          : `It changes the outline (d) of a <${el.localName}>; Morph works on paths.`,
+      );
   }
   // Motion along a path: Move along path, its route a layer of its own.
   for (const n of notes) {
     if (n.tag !== 'animateMotion') continue;
     const m = smilMotion(el, n.attrs, pool);
     if (!m) {
-      lost++;
+      drop(
+        n,
+        'It moves along a path in a way Move along path can’t rebuild: its timing, its path, or turning with the path about a point other than the layer’s centre.',
+      );
       continue;
     }
     if (m.used) pool = pool.filter((c) => c !== m.used);
@@ -1978,6 +2053,9 @@ function smilToAnims(el, notes, own) {
     // entrance starting hidden, a line's dashes) are the file's wins, as a
     // reversed Fade in writes what a Fade out does, but for its <set>.
     let found = null;
+    // Should none fit: the preset that came nearest, and how it differs.
+    let near = null;
+    let wrote = false;
     for (const pause of hold ? [hold, 0] : [0])
       for (const dir of ['normal', 'alternate', 'reverse']) {
         // The options, read off one run without its pause.
@@ -2028,7 +2106,31 @@ function smilToAnims(el, notes, own) {
             if (!m) break;
             used.push(m);
           }
-          if (used.length !== chs.length || !used.includes(first)) continue;
+          if (used.length !== chs.length || !used.includes(first)) {
+            const c0 = chs.find(
+              (c) => c.tag === first.tag && c.name === first.name && c.type === first.type,
+            );
+            if (!c0) continue;
+            wrote = true;
+            const ok = used.includes(first);
+            // Closer: more of the file's elements matched, the same first
+            // and last values, fewer extra elements of its own.
+            const same = (x, y) =>
+              typeof x === 'string' ? x === y : x.every((v, j) => smilNear(v, y[j] ?? NaN));
+            const ends =
+              same(first.values[0], c0.values[0]) + same(first.values.at(-1), c0.values.at(-1));
+            const score = (ok ? 1000 : 0) + used.length * 10 + ends * 3 - chs.length;
+            if (near && score <= near.score) continue;
+            const miss = chs[used.length];
+            const why = ok
+              ? `it also writes ${smilWhat(miss)} (${smilShow(miss)}), which the file doesn’t have with it.`
+              : smilDiff(first, c0, own, def.name) || 'it writes it differently.';
+            near = {
+              score,
+              text: `${def.name}${dir === 'normal' ? '' : ` (${DIRS[dir]})`}: ${why}`,
+            };
+            continue;
+          }
           // The file's <set>s it accounts for, less any it would add: what
           // plays must stay as it was, so a delayed fade in with no <set> to
           // start it hidden comes back as a reversed Fade out, which has none.
@@ -2048,7 +2150,13 @@ function smilToAnims(el, notes, own) {
         }
       }
     if (!found) {
-      lost++;
+      drop(
+        first.note,
+        wrote
+          ? 'No preset writes exactly this.'
+          : `No preset animates ${smilWhat(first)}${first.base ? ` started by ${first.base}` : ''}.`,
+        near?.text,
+      );
       pool = pool.slice(1);
       continue;
     }
@@ -2056,14 +2164,21 @@ function smilToAnims(el, notes, own) {
     for (const i of found.setHits) setsUsed.add(i);
     anims.push(found.a);
   }
-  lost += sets.length - setsUsed.size;
+  sets.forEach((n, j) => {
+    if (!setsUsed.has(j))
+      drop(
+        n,
+        `It sets ${n.attrs.attributeName || 'a value'} at a moment (a <set>), which none of the presets kept here writes.`,
+      );
+  });
   anims.sort((x, y) => x.delay - y.delay);
   return { anims, lost };
 }
 // After a file is opened or placed: turn the noted SMIL on its layers
 // (under roots) into presets. { kept, lost }, lost starting at the count
 // the importer couldn't note at all.
-function adoptSmil(roots, lost = 0) {
+function adoptSmil(roots, lost = []) {
+  lost = [...lost];
   let kept = 0;
   for (const r of roots)
     for (const el of [r, ...(r.querySelectorAll?.('[data-sc-smil]') || [])]) {
@@ -2078,11 +2193,17 @@ function adoptSmil(roots, lost = 0) {
       const notes = Array.isArray(note?.list) ? note.list.slice(0, 50) : [];
       // Only layers in the drawing animate (not symbols' insides, or runs of text).
       if (!doc.contains(el) || !selectable(el) || el.parentNode.closest('text')) {
-        lost += notes.length;
+        const why = el.parentNode?.closest?.('text')
+          ? 'It animates part of a text layer (a run of its letters); SVGCraft animates whole layers, or their letters in turn with Stagger.'
+          : doc.contains(el)
+            ? 'It animates something inside a layer, not a layer of its own.'
+            : 'It’s in a symbol or <defs>, not on a layer of the drawing.';
+        for (const n of notes)
+          lost.push({ where: smilWhere(el), what: smilMarkup(n.tag, n.attrs || {}), why });
         continue;
       }
       const r2 = smilToAnims(el, notes, !!note.own);
-      lost += r2.lost;
+      lost.push(...r2.lost);
       if (!r2.anims.length) continue;
       writeAnims(el, [...readAnims(el), ...r2.anims]);
       // Checked and clamped as any file's settings are.
@@ -2094,15 +2215,73 @@ function adoptSmil(roots, lost = 0) {
 // Tell the user what became of the file's animations.
 function reportSmil({ kept, lost }) {
   const n = (k, w) => `${k} ${w}${k === 1 ? '' : 's'}`;
-  if (lost)
+  if (lost.length)
     warn(
-      `${n(lost, 'animation')} in this file can’t be edited in SVGCraft, so ${lost === 1 ? 'it was' : 'they were'} left out.` +
+      `${n(lost.length, 'animation')} in this file can’t be edited in SVGCraft, so ${lost.length === 1 ? 'it was' : 'they were'} left out.` +
         (kept ? ` The other ${kept === 1 ? 'one is' : `${kept} are`} in the Animation tab.` : ''),
+      { more: () => showSmilReport(lost, kept) },
     );
   else if (kept)
     say(
       `Kept the file’s ${n(kept, 'animation')}: edit ${kept === 1 ? 'it' : 'them'} in the Animation tab.`,
     );
+}
+// The More info dialog: each animation left out, where it was, its markup,
+// why, and the preset that came nearest.
+function smilReportText(lost, kept) {
+  return [
+    `Animations left out: ${lost.length}${kept ? ` (${kept} kept)` : ''}`,
+    ...lost.map((e, i) =>
+      [
+        '',
+        `${i + 1}. ${e.where}`,
+        `   ${e.what}`,
+        `   Why: ${e.why}`,
+        ...(e.near ? [`   Nearest preset: ${e.near}`] : []),
+      ].join('\n'),
+    ),
+  ].join('\n');
+}
+function showSmilReport(lost, kept) {
+  const dlg = $('#sc-smil-report');
+  $('#sc-smil-report-intro').textContent =
+    `SVGCraft turns a file’s SVG animation into presets you can edit. ${
+      lost.length === 1 ? 'This one didn’t match any' : `These ${lost.length} didn’t match any`
+    }, so ${lost.length === 1 ? 'it was' : 'they were'} left out${
+      kept ? `; the other ${kept} ${kept === 1 ? 'is' : 'are'} in the Animation tab` : ''
+    }. Saving the drawing won’t write ${lost.length === 1 ? 'it' : 'them'}.`;
+  $('#sc-smil-list').replaceChildren(
+    ...lost.map((e) => {
+      const li = document.createElement('li');
+      const where = document.createElement('div');
+      where.className = 'sc-smil-where';
+      where.textContent = e.where;
+      const what = document.createElement('code');
+      what.className = 'sc-smil-what';
+      what.textContent = e.what;
+      const why = document.createElement('p');
+      why.textContent = e.why;
+      li.append(where, what, why);
+      if (e.near) {
+        const near = document.createElement('p');
+        near.className = 'sc-smil-near';
+        const b = document.createElement('strong');
+        b.textContent = 'Nearest preset: ';
+        near.append(b, e.near);
+        li.append(near);
+      }
+      return li;
+    }),
+  );
+  $('#sc-smil-report-copy').onclick = () =>
+    navigator.clipboard.writeText(smilReportText(lost, kept)).then(
+      () => say('Copied the report.'),
+      () => say('Couldn’t reach the clipboard.'),
+    );
+  const close = () => hideDialog(dlg);
+  $('#sc-smil-report-close').onclick = close;
+  showDialog(dlg, close);
+  $('#sc-smil-report-close').focus();
 }
 
 // ---- preview ---------------------------------------------------------------------

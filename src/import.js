@@ -94,13 +94,28 @@ function sanitize(root, { smil = false } = {}) {
 // animations from settings on the layer (src/animate.js). Each one is noted
 // on the element it animates (data-sc-smil, read by adoptSmil() once the
 // drawing is on the page), and those it can't be (on the root, in <defs>,
-// CSS @keyframes) are counted in data-sc-smil-lost. SMIL that SVGCraft
+// CSS @keyframes) are listed, with why, in data-sc-smil-lost (see
+// smilMarkup in src/animate.js). SMIL that SVGCraft
 // wrote itself, on a layer that still has its settings, is just dropped.
 const SMIL_TAGS = new Set(['animate', 'animateTransform', 'animateMotion', 'set']);
+// The list stashSmil left on the root ([] if none or unreadable).
+function readSmilLost(v) {
+  try {
+    const l = JSON.parse(v || '[]');
+    return Array.isArray(l) ? l.filter((e) => e && typeof e.why === 'string').slice(0, 200) : [];
+  } catch {
+    return [];
+  }
+}
 function stashSmil(root) {
-  let lost = 0;
+  const lost = [];
   for (const st of root.querySelectorAll('style'))
-    lost += (st.textContent.match(/@(-webkit-)?keyframes\b/g) || []).length;
+    for (const m of st.textContent.matchAll(/@(?:-webkit-)?keyframes\s+([^\s{]+)/g))
+      lost.push({
+        where: 'A <style> block',
+        what: `@keyframes ${m[1]} { … }`,
+        why: 'A CSS animation: SVGCraft keeps animations as SVG animation (SMIL) only, so CSS ones aren’t read.',
+      });
   const notes = new Map();
   for (const n of [...root.querySelectorAll('*')]) {
     if (n.namespaceURI !== NS || !SMIL_TAGS.has(n.localName)) continue;
@@ -111,13 +126,21 @@ function stashSmil(root) {
       t = m ? [...root.querySelectorAll('[id]')].find((e) => e.id === m[1]) : null;
     }
     if (t?.hasAttribute?.('data-sc-anim')) continue;
-    if (!t || t === root || t.namespaceURI !== NS || !SVG_ALLOWED.has(t.localName)) {
-      lost++;
-      continue;
-    }
     const attrs = {};
     for (const a of n.attributes)
       if (a.localName !== 'href' && !a.name.startsWith('on')) attrs[a.localName] = a.value;
+    if (!t || t === root || t.namespaceURI !== NS || !SVG_ALLOWED.has(t.localName)) {
+      lost.push({
+        where: !t ? 'The file' : t === root ? 'The whole drawing' : `<${t.localName}>`,
+        what: smilMarkup(n.localName, href ? { href, ...attrs } : attrs),
+        why: !t
+          ? `It animates ${href}, which isn’t in the file.`
+          : t === root
+            ? 'It animates the <svg> itself; SVGCraft animates the layers in it.'
+            : `It animates a <${t.localName}>, which SVGCraft doesn’t keep.`,
+      });
+      continue;
+    }
     // A motion along another element's path (<mpath>): that path's data.
     const mp = n.localName === 'animateMotion' && !attrs.path && n.querySelector('mpath');
     if (mp) {
@@ -134,7 +157,9 @@ function stashSmil(root) {
   // (SMIL's default) can only be kept when there was none.
   for (const [t, list] of notes)
     t.setAttribute('data-sc-smil', JSON.stringify({ own: t.hasAttribute('transform'), list }));
-  if (lost) root.setAttribute('data-sc-smil-lost', lost);
+  // (A file's own copy of the list isn't believed.)
+  if (lost.length) root.setAttribute('data-sc-smil-lost', JSON.stringify(lost));
+  else root.removeAttribute('data-sc-smil-lost');
 }
 
 // Bake <style> rules into inline styles so imported CSS can't leak into
@@ -369,7 +394,7 @@ function parseSvg(text, { dedupe = true } = {}) {
     nodes,
     clip: root.getAttribute('data-svgcraft') === 'clip',
     guides: parseGuides(root.getAttribute('data-sc-guides')),
-    smilLost: parseInt(root.getAttribute('data-sc-smil-lost')) || 0,
+    smilLost: readSmilLost(root.getAttribute('data-sc-smil-lost')),
     meta: readMeta(root),
   };
 }

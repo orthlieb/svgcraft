@@ -206,6 +206,24 @@ export default [
     },
   },
   {
+    id: 'animations-left-out',
+    async shoot(h) {
+      await h.page.evaluate(() =>
+        window.svgcraft.openSvg(
+          '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">' +
+            '<style>@keyframes glow { to { opacity: 0.5 } }</style>' +
+            '<rect data-name="Card" x="120" y="70" width="160" height="160" rx="16" fill="#2563eb">' +
+            '<animateTransform attributeName="transform" type="rotate" values="0 200 150;90 200 150;360 200 150" dur="2s" repeatCount="indefinite"/>' +
+            '</rect></svg>',
+          'card.svg',
+        ),
+      );
+      await h.page.click('#sc-alert-more');
+      await h.page.locator('#sc-smil-report').waitFor();
+      await h.shot('#sc-smil-report', { pad: 0 });
+    },
+  },
+  {
     id: 'when-an-animation-starts',
     async shoot(h) {
       await h.select('Red paint');

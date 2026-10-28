@@ -274,13 +274,18 @@ function say(text) {
   msgTimer = setTimeout(() => (m.textContent = ''), 3500);
 }
 let alertDetails = '';
-function warn(text, { details = '' } = {}) {
+let alertMore = null;
+// A warning in the bar over the canvas. details: text for its Copy details
+// button; more: what its More info button does.
+function warn(text, { details = '', more = null } = {}) {
   clearTimeout(msgTimer);
   $('#sc-msg').textContent = '';
   const a = $('#sc-alert');
   $('#sc-alert-text').textContent = text;
   alertDetails = details;
+  alertMore = more;
   $('#sc-alert-copy').hidden = !details;
+  $('#sc-alert-more').hidden = !more;
   a.hidden = false;
   // A repeat of the same message pulses, so it's seen to be new.
   a.classList.remove('sc-alert-new');
@@ -288,6 +293,7 @@ function warn(text, { details = '' } = {}) {
   a.classList.add('sc-alert-new');
 }
 $('#sc-alert-close').addEventListener('click', () => ($('#sc-alert').hidden = true));
+$('#sc-alert-more').addEventListener('click', () => alertMore?.());
 $('#sc-alert-copy').addEventListener('click', () =>
   navigator.clipboard.writeText(alertDetails).then(
     () => say('Copied the details: paste them into your report.'),

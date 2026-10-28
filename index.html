@@ -3752,6 +3752,23 @@
         <button class="sc-tbtn sc-primary-btn" id="sc-pinfo-close">Close</button>
       </div>
     </dialog>
+    <!-- An opened file's animations SVGCraft couldn't keep, and why. -->
+    <dialog
+      class="sc-dialog sc-smil-report"
+      id="sc-smil-report"
+      data-help="animations-left-out"
+      aria-labelledby="sc-smil-report-title"
+    >
+      <div class="sc-dialog-title" id="sc-smil-report-title">Animations left out</div>
+      <div class="sc-dialog-body">
+        <p class="sc-hint" id="sc-smil-report-intro"></p>
+        <ol class="sc-smil-list" id="sc-smil-list"></ol>
+      </div>
+      <div class="sc-dialog-foot">
+        <button class="sc-tbtn" id="sc-smil-report-copy">Copy report</button>
+        <button class="sc-tbtn sc-primary-btn" id="sc-smil-report-close">Close</button>
+      </div>
+    </dialog>
     <dialog class="sc-dialog sc-peek" id="sc-peek" aria-labelledby="sc-peek-title">
       <div class="sc-dialog-title" id="sc-peek-title">Layers</div>
       <div class="sc-dialog-body">
@@ -4307,6 +4324,7 @@
     <div id="sc-alert" class="sc-alert" role="alert" hidden>
       <i data-icon="sc-warn"></i>
       <span id="sc-alert-text"></span>
+      <button type="button" id="sc-alert-more" class="sc-tbtn" hidden>More info</button>
       <button type="button" id="sc-alert-copy" class="sc-tbtn" hidden>Copy details</button>
       <button type="button" id="sc-alert-close" class="sc-alert-close" aria-label="Dismiss">
         <i data-icon="xmark"></i>

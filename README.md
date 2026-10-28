@@ -1227,12 +1227,46 @@ edit and play:
   repeats, direction and ease.
 - A file saved by Export Clean SVG (which drops SVGCraft's settings) comes
   back with the animations it had.
-- What no preset does is left out, and a message says how many: a rotation
-  about another point, a motion at a fixed angle, an animation that starts
-  on a click or another animation's end, one inside a symbol, and CSS
-  `@keyframes`.
+- What no preset does is left out, and a message says how many; its
+  **More info** button says which and why (see
+  [Animations left out](#animations-left-out)). Among them: a motion at a
+  fixed angle, an animation that starts on another animation's end, one
+  inside a symbol, and CSS `@keyframes`.
 - An animation that replaces a layer's own transform (SMIL's default) is
   only kept when the layer has none, since a preset adds to it.
+
+### Animations left out
+
+![The Animations left out report: a rotation on the Card layer, why no preset writes it, and Spin as the nearest preset](docs/help/animations-left-out.png)
+
+See exactly which of a file's animations SVGCraft couldn't keep, and why,
+so you can fix the file or rebuild them with presets.
+
+1. Open the file. If some animations can't be kept, a warning says how
+   many.
+2. Click **More info** in the warning → the report lists each one.
+
+#### What it shows
+
+- **Where**: the layer it was on, or the part of the file (a `<style>`
+  block, the whole drawing, an element that isn't there).
+- **The markup**: the animation element as it was in the file.
+- **Why**: the reason it was left out: its timing can't be set in
+  SVGCraft, it animates something no preset does, it's a CSS animation, it's
+  inside a symbol…
+- **Nearest preset**: when a preset nearly matched, which one and how it
+  differs (its values, timing or turning point), so you can add that
+  preset and adjust it.
+
+#### Settings
+
+- **Copy report** → the whole report as text, to paste into a bug report
+  or a note.
+
+#### Good to know
+
+- What's left out isn't in the drawing any more: saving won't write it.
+  Reopen the original file to get it back.
 
 ### When an animation starts
 
