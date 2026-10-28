@@ -11,6 +11,13 @@ tools.select = {
   // Photoshop's Move tool: the arrow with its four-way cross.
   cursor: cursorFor['move+move'],
   down(e, p) {
+    // An animation's pivot (the ⊕ the Animation tab shows).
+    if (e.target.closest?.('[data-anim-origin]') && animTarget()) {
+      const el = animTarget();
+      if (refuseLocked([el], 'edit')) return;
+      this.g = { mode: 'pivot', el };
+      return;
+    }
     const ch = e.target.closest?.('[data-corner-h]');
     if (ch && cornerTarget()) {
       const el = cornerTarget();
@@ -96,6 +103,11 @@ tools.select = {
       });
       state.sel = normalizeSel([...g.base, ...hit]);
       drawSelection();
+      return;
+    }
+    if (g.mode === 'pivot') {
+      g.origin = pivotFrom(g.el, p);
+      markPivot(pivotAt(g.el, g.origin));
       return;
     }
     if (g.mode === 'corner') {
@@ -192,7 +204,9 @@ tools.select = {
     if (!g) return;
     if (g.mode === 'rot') stage.style.cursor = this.cursor;
     if (g.mode === 'marquee') setSel(state.sel);
-    else if (g.mode === 'corner') {
+    else if (g.mode === 'pivot') {
+      if (g.origin) setPivot(g.origin);
+    } else if (g.mode === 'corner') {
       if (g.changed) commit();
     } else if (g.changed) {
       if (state.tf && g.mode === 'rot') state.tf.angle += g.deg;
@@ -203,6 +217,8 @@ tools.select = {
     }
   },
   dblclick(e) {
+    // Double-click the pivot: back to the centre.
+    if (e.target.closest?.('[data-anim-origin]')) return setPivot(null);
     // Double-click an instance to edit its symbol; double-click outside
     // the symbol being edited to finish.
     const inst = doc.contains(e.target) ? e.target.closest('use') : null;

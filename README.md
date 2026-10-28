@@ -1269,6 +1269,41 @@ another layer's animations, or with a pause between its runs.
   so the layer clicked gets an id. A pause makes each run longer, holding
   its last frame to the end.
 
+### Pivot
+
+![A brush set to Swing, its pivot ⊕ dragged to the end of its handle, beside the Animation tab's Pivot fields](docs/help/pivot.png)
+
+Choose the point an animation turns or grows about, as you'd move the
+reference point in Photoshop's Free Transform: a clock hand turning about
+its end, a sign swinging from its hook, a badge growing out of a corner.
+
+1. Select the layer and open the **Animation** tab.
+2. Pick an animation that turns or grows: Spin, Pulse, Swing, Heartbeat,
+   Pop in, Zoom in or out, Roll in, Flip in, Flip, Jello, Rubber band,
+   Tada, Head shake or Wobble.
+3. Drag the **⊕** on the canvas to where it should turn. Near the layer's
+   corners, edge middles and centre it snaps to them.
+
+#### Settings
+
+- **Pivot**: where the ⊕ is, across and down the layer's box, in %
+  (50 %, 50 % is the centre). Type a value to place it exactly; it can go
+  outside the layer too.
+- **↺** next to it, or double-click the ⊕ → back to the centre.
+- **Swing from** picks a side of the layer; once you drag the ⊕
+  elsewhere it reads **Custom**.
+
+#### Good to know
+
+- The ⊕ shows while the Animation tab is open, for the animation chosen
+  in its list. Each animation on a layer has its own pivot.
+- The pivot is kept relative to the layer, so moving or resizing the layer
+  takes it along. On a rotated layer, across and down follow the layer's
+  own sides.
+- Files that turn or grow a layer about a point of their own (say
+  `rotate(0 50 50)` to `rotate(360 50 50)`) open as that animation with
+  its pivot there, ready to edit.
+
 ### Stagger
 
 ![Three paint layers in a group popping in one after another, with Stagger set in the Animation tab](docs/help/stagger.png)

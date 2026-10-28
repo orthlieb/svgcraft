@@ -147,6 +147,9 @@ function drawSelection() {
       selLayer,
     );
   }
+  // An animation's pivot sits on top, as Photoshop's reference point does.
+  const pivot = selLayer.querySelector('[data-anim-origin]');
+  if (pivot) selLayer.append(pivot);
 }
 
 const INKSCAPE = 'http://www.inkscape.org/namespaces/inkscape';

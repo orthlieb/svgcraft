@@ -307,6 +307,7 @@
               <li><a href="#fill-rule-and-path-direction">Fill rule and path direction</a></li>
               <li><a href="#animate">Animate</a></li>
               <li><a href="#when-an-animation-starts">When an animation starts</a></li>
+              <li><a href="#pivot">Pivot</a></li>
               <li><a href="#stagger">Stagger</a></li>
               <li><a href="#move-along-path">Move along path</a></li>
               <li><a href="#morph">Morph</a></li>
@@ -2538,6 +2539,63 @@
                 In the file they're SMIL begin times such as <code>begin="button.click+0.5s"</code>,
                 so the layer clicked gets an id. A pause makes each run longer, holding its last
                 frame to the end.
+              </li>
+            </ul>
+          </article>
+          <article id="pivot" data-find>
+            <h3>Pivot</h3>
+            <figure>
+              <img
+                src="docs/help/pivot.png"
+                alt="A brush set to Swing, its pivot ⊕ dragged to the end of its handle, beside the Animation tab's Pivot fields"
+                width="628"
+                height="649"
+                loading="lazy"
+              />
+            </figure>
+            <p>
+              Choose the point an animation turns or grows about, as you'd move the reference point
+              in Photoshop's Free Transform: a clock hand turning about its end, a sign swinging
+              from its hook, a badge growing out of a corner.
+            </p>
+            <ol>
+              <li>Select the layer and open the <strong>Animation</strong> tab.</li>
+              <li>
+                Pick an animation that turns or grows: Spin, Pulse, Swing, Heartbeat, Pop in, Zoom
+                in or out, Roll in, Flip in, Flip, Jello, Rubber band, Tada, Head shake or Wobble.
+              </li>
+              <li>
+                Drag the <strong>⊕</strong> on the canvas to where it should turn. Near the layer's
+                corners, edge middles and centre it snaps to them.
+              </li>
+            </ol>
+            <h4>Settings</h4>
+            <ul>
+              <li>
+                <strong>Pivot</strong>: where the ⊕ is, across and down the layer's box, in % (50 %,
+                50 % is the centre). Type a value to place it exactly; it can go outside the layer
+                too.
+              </li>
+              <li><strong>↺</strong> next to it, or double-click the ⊕ → back to the centre.</li>
+              <li>
+                <strong>Swing from</strong> picks a side of the layer; once you drag the ⊕ elsewhere
+                it reads <strong>Custom</strong>.
+              </li>
+            </ul>
+            <h4>Good to know</h4>
+            <ul>
+              <li>
+                The ⊕ shows while the Animation tab is open, for the animation chosen in its list.
+                Each animation on a layer has its own pivot.
+              </li>
+              <li>
+                The pivot is kept relative to the layer, so moving or resizing the layer takes it
+                along. On a rotated layer, across and down follow the layer's own sides.
+              </li>
+              <li>
+                Files that turn or grow a layer about a point of their own (say
+                <code>rotate(0 50 50)</code> to <code>rotate(360 50 50)</code>) open as that
+                animation with its pivot there, ready to edit.
               </li>
             </ul>
           </article>

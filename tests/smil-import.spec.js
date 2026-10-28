@@ -35,15 +35,27 @@ test('a spin about the shape’s centre becomes Spin, plays, and saves', async (
   expect(out).toMatch(/dur="5s"/);
 });
 
-test('a rotation about another point can’t be kept, and says so', async ({ page }) => {
+test('a rotation about another point becomes Spin with its pivot there', async ({ page }) => {
   await open(
     page,
     ARROW.replace('to="360"', 'to="360 200 0"').replace('from="0"', 'from="0 200 0"'),
   );
-  expect(await anims(page, 'path')).toEqual([]);
-  await expect(alertText(page)).toHaveText(
-    '1 animation in this file can’t be edited in SVGCraft, so it was left out.',
-  );
+  // (200, 0) is half the arrow's width past its right edge, halfway down.
+  expect(await anims(page, 'path')).toEqual([
+    {
+      p: 'spin',
+      dur: 5,
+      delay: 0,
+      rep: 0,
+      dir: 'normal',
+      ease: 'linear',
+      turns: 1,
+      origin: [1.5, 0.5],
+    },
+  ]);
+  await expect(alertText(page)).toHaveText('');
+  const out = await page.evaluate(() => window.svgcraft.serialize());
+  expect(out).toMatch(/values="0 200 0;360 200 0"/);
 });
 
 test('fades, colour, reverse, alternate, eases, delays and repeats', async ({ page }) => {
