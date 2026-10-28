@@ -227,6 +227,13 @@ const SAMPLES = [
     { it: [{ p: 'shine', dur: 1.8, rep: 0 }] },
   ],
   [
+    'ripple',
+    'Ripple',
+    'Rings spread out from a map pin and fade.',
+    '<circle id="it" data-name="Pin" cx="200" cy="150" r="22" fill="#0284c7"/>',
+    { it: [{ p: 'ripple', dur: 2, rep: 0, scale: 400, size: 3, to: '#38bdf8' }] },
+  ],
+  [
     'flipbook',
     'Flipbook',
     'A group’s layers shown one at a time: a spinner.',
@@ -309,6 +316,20 @@ const SAMPLES = [
     'Its fill changes colour and back.',
     DISC('#2563eb'),
     { it: [{ p: 'colourCycle', dur: 1.5, rep: 0, dir: 'alternate', to: '#dc2626' }] },
+  ],
+  [
+    'gradient-flow',
+    'Gradient flow',
+    'Bands of colour flow across the lettering.',
+    '<text id="it" data-name="Title" x="200" y="175" font-family="Georgia, serif" font-size="80" font-weight="700" text-anchor="middle" fill="#7c3aed">Flow</text>',
+    { it: [{ p: 'gradientFlow', dur: 2, rep: 0, angle: 20, to: '#f472b6' }] },
+  ],
+  [
+    'pattern-scroll',
+    'Pattern scroll',
+    'Stripes slide along a progress bar.',
+    '<rect data-name="Track" x="60" y="130" width="280" height="40" rx="20" fill="#e2e8f0"/><rect id="it" data-name="Bar" x="60" y="130" width="190" height="40" rx="20" fill="#16a34a"/>',
+    { it: [{ p: 'patternScroll', dur: 0.8, rep: 0, angle: 45, size: 10, to: '#4ade80' }] },
   ],
   // Motion and shape.
   [

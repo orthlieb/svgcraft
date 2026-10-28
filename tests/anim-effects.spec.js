@@ -152,13 +152,21 @@ test('reopening a saved file takes the effects off and keeps the settings', asyn
 test('▶ Play wraps the layers for the preview and unwraps them after', async ({ page }) => {
   await page.click('[data-tab="animation"]');
   await setAnims(page, 'r', [{ p: 'irisIn' }]);
-  await setAnims(page, 'c', [{ p: 'shine' }]);
+  await setAnims(page, 'c', [{ p: 'shine' }, { p: 'ripple' }]);
   const before = await page.evaluate(
     () =>
       document.getElementById('sc-doc').innerHTML + document.getElementById('sc-defs').innerHTML,
   );
   await page.click('.sc-anim-top [data-action="toggleAnimations"]');
-  await expect(page.locator('#sc-doc g[data-sc-gen]')).toHaveCount(2);
+  await expect(page.locator('#sc-doc g[data-sc-gen]')).toHaveCount(4);
+  // Ripple's rings play too: the first one's already showing.
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () => +getComputedStyle(document.querySelector('#sc-doc circle[stroke]')).opacity,
+      ),
+    )
+    .toBeGreaterThan(0);
   await page.keyboard.press('Escape');
   expect(
     await page.evaluate(
@@ -174,4 +182,83 @@ test('the still drawing (PNG, app icons) keeps every layer and no effects', asyn
   expect(still).not.toContain('undefined');
   expect(still).toMatch(/<rect id="r"/);
   expect(still).not.toMatch(/data-sc-gen/);
+});
+
+// The paint's transform as one matrix, the animated value included.
+const paintM = (s, sel) => {
+  const n = document.querySelector(sel);
+  const list = (n.gradientTransform || n.patternTransform).animVal;
+  let m = new DOMMatrix();
+  for (let i = 0; i < list.numberOfItems; i++) m = m.multiply(list.getItem(i).matrix);
+  return [m.a, m.b, m.e, m.f].map((v) => Math.round(v * 100) / 100);
+};
+
+test('Ripple: two rings under the layer, half a run apart, growing and fading', async ({
+  page,
+}) => {
+  await setAnims(page, 'c', [{ p: 'ripple', dur: 2, ease: 'linear', scale: 200, to: '#ff0000' }]);
+  const svg = await saved(page);
+  const rings = () =>
+    [...document.querySelectorAll('circle[stroke]')].map((c) => [
+      Math.round(c.r.animVal.value),
+      Math.round(+getComputedStyle(c).opacity * 100) / 100,
+      c.compareDocumentPosition(document.getElementById('c')) & Node.DOCUMENT_POSITION_FOLLOWING
+        ? 'under'
+        : 'over',
+    ]);
+  expect(await at(page, svg, 0, rings)).toEqual([
+    [40, 1, 'under'],
+    [40, 0, 'under'],
+  ]);
+  expect(await at(page, svg, 1.5, rings)).toEqual([
+    [70, 0.25, 'under'],
+    [50, 0.75, 'under'],
+  ]);
+  expect(svg).toMatch(/stroke="#ff0000"/);
+});
+
+test('Gradient flow: its colour and the second in bands, slid along', async ({ page }) => {
+  await setAnims(page, 'c', [{ p: 'gradientFlow', dur: 2, to: '#ff0000' }]);
+  const svg = await saved(page);
+  const stops = () =>
+    [...document.querySelectorAll('linearGradient stop')].map((s) => s.getAttribute('stop-color'));
+  expect(await at(page, svg, 0, stops)).toEqual(['#16a34a', '#ff0000', '#16a34a']);
+  expect(await at(page, svg, 0, paintM, 'linearGradient')).toEqual([1, 0, 410, 110]);
+  expect(await at(page, svg, 1, paintM, 'linearGradient')).toEqual([1, 0, 450, 110]);
+  expect(svg).toMatch(/<rect [^>]*mask="url\(#/);
+});
+
+test('Pattern scroll: stripes at its angle, slid one tile a run', async ({ page }) => {
+  await setAnims(page, 'r', [{ p: 'patternScroll', dur: 1, angle: 90, size: 5, to: '#ff0000' }]);
+  const svg = await saved(page);
+  const tile = () => {
+    const p = document.querySelector('pattern');
+    return [p.getAttribute('width'), p.querySelector('rect').getAttribute('fill')];
+  };
+  expect(await at(page, svg, 0, tile)).toEqual(['10', '#ff0000']);
+  // Turned a quarter, so sliding along the stripes' way moves it down.
+  expect(await at(page, svg, 0, paintM, 'pattern')).toEqual([0, 1, 0, 0]);
+  expect(await at(page, svg, 0.5, paintM, 'pattern')).toEqual([0, 1, 0, 5]);
+});
+
+test('Ripple, Gradient flow and Pattern scroll come off when the file reopens', async ({
+  page,
+}) => {
+  const before = await page.evaluate(() => document.getElementById('sc-doc').innerHTML);
+  await setAnims(page, 'r', [{ p: 'patternScroll' }, { p: 'ripple' }]);
+  await setAnims(page, 'c', [{ p: 'gradientFlow' }]);
+  const svg = await saved(page);
+  await page.evaluate((t) => window.svgcraft.openSvg(t, 'fx.svg'), svg);
+  const back = await page.evaluate(() =>
+    [...document.querySelectorAll('#sc-doc [data-sc-anim]')].map((el) => {
+      const list = JSON.parse(el.dataset.scAnim).map((a) => a.p);
+      el.removeAttribute('data-sc-anim');
+      return list;
+    }),
+  );
+  expect(back).toEqual([['patternScroll', 'ripple'], ['gradientFlow']]);
+  expect(await page.evaluate(() => document.getElementById('sc-doc').innerHTML)).toBe(before);
+  expect(
+    await page.evaluate(() => document.querySelectorAll('#sc-defs [data-sc-gen]').length),
+  ).toBe(0);
 });

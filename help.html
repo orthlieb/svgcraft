@@ -2309,9 +2309,11 @@
                 coloured glow round it that comes and goes), Shine (a highlight sweeping across it,
                 as on a button), Rubber band (squashes and stretches), Tada (grows with a wiggle),
                 Head shake (a small shake that turns), Wobble (sways side to side), Breathe (a slow
-                fade down and up) and Flipbook (a group's layers shown one at a time, bottom first,
-                as the frames of a flipbook or a loading spinner; the length is the whole round, and
-                a set number of times ends on the last frame).
+                fade down and up), Ripple (rings spreading out from under it and fading, one after
+                another; <strong>Grow to</strong> sets how far, <strong>Ring width</strong> and
+                <strong>Ring colour</strong> their look) and Flipbook (a group's layers shown one at
+                a time, bottom first, as the frames of a flipbook or a loading spinner; the length
+                is the whole round, and a set number of times ends on the last frame).
               </li>
               <li>
                 <strong>Motion</strong>: Move along path (see
@@ -2323,7 +2325,13 @@
                 outline grows thicker and back; <strong>Grow to</strong> sets how thick, as a
                 percentage of its width).
               </li>
-              <li><strong>Colour cycle</strong>.</li>
+              <li>
+                <strong>Colour</strong>: Colour cycle; Gradient flow (bands of its own colour and a
+                <strong>Second colour</strong> moving across it, the way
+                <strong>Angle</strong> points); Pattern scroll (stripes of the
+                <strong>Stripe colour</strong>, <strong>Stripe width</strong> wide, sliding over it
+                at the <strong>Angle</strong>).
+              </li>
               <li>
                 <strong>Text</strong>: Typewriter: the letters appear one by one over the length.
                 Run backwards, they go one by one.
@@ -2385,11 +2393,12 @@
                 app icon and favicon exports use the still drawing.
               </li>
               <li>
-                Wipe in, Iris in, Blur in, Glow pulse and Shine need a clip, filter or mask: the
-                saved file wraps the layer in a group that carries it (Shine's highlight goes in
-                that group too). Reopened in SVGCraft, the group is taken off again; a file from
-                Export Clean SVG reopens with it as a group of its own, and those animations left
-                out.
+                Wipe in, Iris in, Blur in, Glow pulse, Shine, Ripple, Gradient flow and Pattern
+                scroll need a clip, filter, mask or paint of their own: the saved file wraps the
+                layer in a group that carries it (Shine's highlight, Ripple's rings, and the
+                gradient or stripes, masked by the layer, go in that group too). Reopened in
+                SVGCraft, the group is taken off again; a file from Export Clean SVG reopens with it
+                as a group of its own, and those animations left out.
               </li>
               <li>Reopening a saved file rebuilds the animations from their settings.</li>
             </ul>
