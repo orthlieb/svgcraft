@@ -35,6 +35,7 @@ watched without reloading.
 | [Draw on](draw-on.svg)                 | The line draws itself, and undraws.              |
 | [Draw off](draw-off.svg)               | The line takes itself away.                      |
 | [Dash march](dash-march.svg)           | Marching ants round a box.                       |
+| [Stroke pulse](stroke-pulse.svg)       | The outline grows thicker and back.              |
 | [Colour cycle](colour-cycle.svg)       | Its fill changes colour and back.                |
 | [Move along path](move-along-path.svg) | An arrow follows the road, turning with it.      |
 | [Morph](morph.svg)                     | A circle turns into a star, and back.            |

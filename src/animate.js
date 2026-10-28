@@ -142,6 +142,16 @@ const ANIM_PRESETS = {
     line: true,
   },
   dashMarch: { name: 'Dash march', group: 'Line', dur: 1, rep: 0, ease: 'linear' },
+  // The outline growing thicker and back (scale: how thick, as a % of its width).
+  strokePulse: {
+    name: 'Stroke pulse',
+    group: 'Line',
+    dur: 1,
+    rep: 0,
+    ease: 'inout',
+    scale: 250,
+    stroke: true,
+  },
   // Along another layer's outline (its id in `path`), the layer's centre
   // on the line; `orient` turns it to face the way it goes, `hide` leaves
   // the path out of sight in the saved file.
@@ -614,6 +624,16 @@ function animChannels(el, a) {
         },
       ];
     }
+    case 'strokePulse': {
+      const w = parseFloat(getComputedStyle(el).strokeWidth) || 1;
+      return [
+        {
+          tag: 'animate',
+          attrs: { attributeName: 'stroke-width' },
+          values: [w, (w * a.scale) / 100, w].map(f),
+        },
+      ];
+    }
     case 'dashMarch': {
       const cs = getComputedStyle(el);
       let dashes =
@@ -684,6 +704,8 @@ function animChannels(el, a) {
 // Why a preset can't go on a layer, or ''.
 function animUnfit(el, p, a = null) {
   const def = ANIM_PRESETS[p];
+  if (def.stroke && (getComputedStyle(el).stroke || 'none') === 'none')
+    return `${def.name} needs a stroke.`;
   if (def.line || p === 'dashMarch') {
     if (typeof el.getTotalLength !== 'function') return `${def.name} needs a path or shape.`;
     if (getComputedStyle(el).stroke === 'none') return `${def.name} needs a stroke.`;
@@ -1345,6 +1367,10 @@ function smilOptions(chs, dir, el) {
           ? 'top'
           : 'bottom';
   }
+  // Stroke pulse: its widest, against the width it starts at.
+  const sw = chs.find((c) => c.name === 'stroke-width');
+  if (sw && fwd(sw) && fwd(sw)[0][0] > 0)
+    o.scale = (Math.max(...fwd(sw).map((v) => v[0])) / fwd(sw)[0][0]) * 100;
   const col = chs.find((c) => c.name === 'fill');
   if (col && fwd(col)) o.to = fwd(col).at(-1);
   return o;
