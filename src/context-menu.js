@@ -5,8 +5,10 @@
 // copied, icon, label and shortcut, and runs through the usual click
 // handler), '-' for a divider, { sub, items } for a submenu, or
 // { label, icon, run, checked } for an item of its own. An action that
-// isn't allowed right now is left out rather than greyed, and so is a
-// submenu left empty, so the menu only offers what can be done.
+// isn't allowed right now is left out rather than greyed, as is one that
+// wouldn't do anything here (Bring Forward on the top layer, Copy Layer
+// Style with no style), and so is a submenu left empty: the menu only
+// offers what can be done.
 const ctx = document.createElement('div');
 ctx.className = 'sc-menu-list sc-ctx';
 ctx.id = 'sc-ctx';
@@ -28,6 +30,11 @@ function ctxAction(name, { when, label, icon: ic } = {}) {
   b.disabled = false;
   b.hidden = false;
   if (label) b.querySelector('span').textContent = label;
+  if (ic) {
+    const i = b.querySelector('i');
+    i.dataset.icon = ic;
+    i.innerHTML = icon(ic);
+  }
   return b;
 }
 function ctxItem({ label, icon: ic, run, checked }) {
@@ -173,6 +180,24 @@ const TRANSFORM_ITEMS = [
   { act: 'tfCancel', label: 'Cancel Transform', icon: 'xmark' },
 ];
 const isLocked = (el) => el.hasAttribute('data-sc-lock');
+// Where the menus are shorter than the menu bar's: what only applies to
+// some layers is left out where it wouldn't do anything.
+const layerSibs = (el) => [...el.parentNode.children].filter(selectable);
+// Could any selected layer go up (or down) its stack?
+const canRaise = () => state.sel.some((el) => layerSibs(el).indexOf(el) < layerSibs(el).length - 1);
+const canLower = () => state.sel.some((el) => layerSibs(el).indexOf(el) > 0);
+// Layers not selected (and showing) for Select Inverse to pick.
+const othersShown = () =>
+  items().some(
+    (el) =>
+      el.getAttribute('display') !== 'none' && !state.sel.some((s) => s === el || s.contains(el)),
+  );
+// ▶ Play or ■ Stop, when there's something animated.
+const playItem = () => ({
+  act: 'toggleAnimations',
+  label: animPlay.playing ? 'Stop Animations' : 'Play Animations',
+  icon: animPlay.playing ? 'stop' : 'play',
+});
 
 // What the selection can do, for the canvas and the Layers panel alike.
 const selectionItems = () => [
@@ -181,7 +206,16 @@ const selectionItems = () => [
     icon: 'rotate',
     items: ['flipH', 'flipV', '-', 'rot180', 'rot90cw', 'rot90ccw'],
   },
-  { sub: 'Arrange', icon: 'layer-group', items: ['front', 'forward', 'backward', 'back'] },
+  {
+    sub: 'Arrange',
+    icon: 'layer-group',
+    items: [
+      { act: 'front', when: canRaise },
+      { act: 'forward', when: canRaise },
+      { act: 'backward', when: canLower },
+      { act: 'back', when: canLower },
+    ],
+  },
   {
     sub: 'Align',
     icon: 'align-left',
@@ -219,7 +253,7 @@ const selectionItems = () => [
   'reversePath',
   '-',
   'layerStyle',
-  'copyLayerStyle',
+  { act: 'copyLayerStyle', when: () => state.sel[0]?.hasAttribute('data-sc-fx') },
   'pasteLayerStyle',
   'clearLayerStyle',
   { act: 'lockAll', when: () => !state.sel.every(isLocked) },
@@ -245,10 +279,12 @@ function canvasMenu(x, y) {
       { act: 'selectAll', label: 'Select All' },
       'cropToDrawing',
       '-',
-      'zoomIn',
-      'zoomOut',
+      playItem(),
+      '-',
+      { act: 'zoomIn', when: () => state.zoom < 64 },
+      { act: 'zoomOut', when: () => state.zoom > 0.02 },
       'fit',
-      'zoom100',
+      { act: 'zoom100', when: () => Math.abs(state.zoom - 1) > 1e-6 },
     ].filter(Boolean);
   return [
     layersHere,
@@ -262,8 +298,10 @@ function canvasMenu(x, y) {
     'freeTransform',
     ...selectionItems(),
     '-',
+    playItem(),
+    '-',
     'deselect',
-    { act: 'invertSelection', label: 'Select Inverse' },
+    { act: 'invertSelection', label: 'Select Inverse', when: othersShown },
     'cropToSelection',
   ].filter(Boolean);
 }
