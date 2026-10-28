@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  <title>Head shake</title>
+  <metadata>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">
+      <cc:Work rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+        <dc:title>Head shake</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <rect data-name="Background" width="400" height="300" fill="#f8fafc"/>
+  <circle id="it" data-name="Disc" cx="200" cy="150" r="60" fill="#ef4444" data-sc-anim="[{&quot;p&quot;:&quot;headShake&quot;,&quot;dur&quot;:1,&quot;rep&quot;:0,&quot;dist&quot;:10,&quot;pause&quot;:0.8}]"><animateTransform attributeName="transform" type="translate" additive="sum" values="0 0;-10 0;8.33 0;-5 0;3.33 0;0 0;0 0;0 0" dur="1.8s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.0361;0.1028;0.175;0.2417;0.2778;0.5556;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1" begin="0s"/><animateTransform attributeName="transform" type="rotate" additive="sum" values="0 200 150;-9 200 150;7 200 150;-5 200 150;3 200 150;0 200 150;0 200 150;0 200 150" dur="1.8s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.0361;0.1028;0.175;0.2417;0.2778;0.5556;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1" begin="0s"/></circle>
+</svg>

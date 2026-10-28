@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  <title>Rubber band</title>
+  <metadata>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">
+      <cc:Work rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+        <dc:title>Rubber band</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <rect data-name="Background" width="400" height="300" fill="#f8fafc"/>
+  <rect id="it" data-name="Card" x="130" y="95" width="140" height="110" rx="16" fill="#ec4899" data-sc-anim="[{&quot;p&quot;:&quot;rubberBand&quot;,&quot;dur&quot;:1,&quot;rep&quot;:0,&quot;pause&quot;:1}]"><animateTransform attributeName="transform" type="translate" additive="sum" values="0 0;-50 37.5;50 -37.5;-30 22.5;10 -7.5;-10 7.5;0 0;0 0" dur="2s" repeatCount="indefinite" keyTimes="0;0.15;0.2;0.25;0.325;0.375;0.5;1" begin="0s"/><animateTransform attributeName="transform" type="scale" additive="sum" values="1 1;1.25 0.75;0.75 1.25;1.15 0.85;0.95 1.05;1.05 0.95;1 1;1 1" dur="2s" repeatCount="indefinite" keyTimes="0;0.15;0.2;0.25;0.325;0.375;0.5;1" begin="0s"/></rect>
+</svg>

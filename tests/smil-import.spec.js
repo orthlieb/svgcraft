@@ -166,6 +166,16 @@ const PRESETS = {
   jello: { angle: 10 },
   flip: { axis: 'horizontal' },
   strokePulse: { scale: 300 },
+  dropIn: { dist: 90 },
+  backIn: { from: 'right', dist: 60 },
+  rollIn: { dist: 100 },
+  flipIn: { axis: 'horizontal' },
+  hinge: { dist: 250 },
+  rubberBand: {},
+  tada: {},
+  headShake: { dist: 8 },
+  wobble: {},
+  breathe: {},
 };
 const BASE =
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">' +

@@ -16,9 +16,14 @@ watched without reloading.
 | [Wipe in](wipe-in.svg)                       | Uncovered from the left.                                   |
 | [Iris in](iris-in.svg)                       | Uncovered from the middle out.                             |
 | [Blur in](blur-in.svg)                       | Comes into focus.                                          |
+| [Drop in](drop-in.svg)                       | Falls in from above and bounces to rest.                   |
+| [Back in](back-in.svg)                       | Slides in, overshoots, and settles.                        |
+| [Roll in](roll-in.svg)                       | Rolls in from the left.                                    |
+| [Flip in](flip-in.svg)                       | Turns into view.                                           |
 | [Fade out](fade-out.svg)                     | Fades away, and back.                                      |
 | [Slide out](slide-out.svg)                   | Slides off to the right.                                   |
 | [Zoom out](zoom-out.svg)                     | Shrinks away.                                              |
+| [Hinge](hinge.svg)                           | Swings on its corner, then drops away.                     |
 | [Spin](spin.svg)                             | Turns round, forever.                                      |
 | [Pulse](pulse.svg)                           | Grows and shrinks.                                         |
 | [Bounce](bounce.svg)                         | Bounces up and down.                                       |
@@ -32,6 +37,11 @@ watched without reloading.
 | [Glow pulse](glow-pulse.svg)                 | A glow round it that comes and goes.                       |
 | [Shine](shine.svg)                           | A highlight sweeps across it.                              |
 | [Flipbook](flipbook.svg)                     | A group’s layers shown one at a time: a spinner.           |
+| [Rubber band](rubber-band.svg)               | Squashes and stretches.                                    |
+| [Tada](tada.svg)                             | Grows with a wiggle: look at me!                           |
+| [Head shake](head-shake.svg)                 | A small shake that turns: no.                              |
+| [Wobble](wobble.svg)                         | Sways side to side as it goes.                             |
+| [Breathe](breathe.svg)                       | A slow fade down and up.                                   |
 | [Draw on](draw-on.svg)                       | The line draws itself, and undraws.                        |
 | [Draw off](draw-off.svg)                     | The line takes itself away.                                |
 | [Dash march](dash-march.svg)                 | Marching ants round a box.                                 |

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  <title>Drop in</title>
+  <metadata>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">
+      <cc:Work rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+        <dc:title>Drop in</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <rect data-name="Background" width="400" height="300" fill="#f8fafc"/>
+  <circle id="it" data-name="Disc" cx="200" cy="150" r="60" fill="#f97316" data-sc-anim="[{&quot;p&quot;:&quot;dropIn&quot;,&quot;dur&quot;:1.2,&quot;dist&quot;:140,&quot;rep&quot;:0,&quot;dir&quot;:&quot;alternate&quot;}]"><animateTransform attributeName="transform" type="translate" additive="sum" values="0 -140;0 0;0 -35;0 0;0 -11.2;0 0;0 -11.2;0 0;0 -35;0 0;0 -140" dur="2.4s" repeatCount="indefinite" keyTimes="0;0.225;0.325;0.4;0.45;0.5;0.55;0.6;0.675;0.775;1" begin="0s"/><animate attributeName="opacity" values="0;1;1;1;0" dur="2.4s" repeatCount="indefinite" keyTimes="0;0.15;0.5;0.85;1" begin="0s"/></circle>
+</svg>

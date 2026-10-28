@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  <title>Wobble</title>
+  <metadata>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">
+      <cc:Work rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+        <dc:title>Wobble</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <rect data-name="Background" width="400" height="300" fill="#f8fafc"/>
+  <rect id="it" data-name="Card" x="130" y="95" width="140" height="110" rx="16" fill="#10b981" data-sc-anim="[{&quot;p&quot;:&quot;wobble&quot;,&quot;dur&quot;:1,&quot;rep&quot;:0,&quot;pause&quot;:1}]"><animateTransform attributeName="transform" type="translate" additive="sum" values="0 0;-35 0;28 0;-21 0;14 0;-7 0;0 0;0 0" dur="2s" repeatCount="indefinite" keyTimes="0;0.075;0.15;0.225;0.3;0.375;0.5;1" begin="0s"/><animateTransform attributeName="transform" type="rotate" additive="sum" values="0 200 150;-5 200 150;3 200 150;-3 200 150;2 200 150;-1 200 150;0 200 150;0 200 150" dur="2s" repeatCount="indefinite" keyTimes="0;0.075;0.15;0.225;0.3;0.375;0.5;1" begin="0s"/></rect>
+</svg>

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  <title>Flip in</title>
+  <metadata>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">
+      <cc:Work rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+        <dc:title>Flip in</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <rect data-name="Background" width="400" height="300" fill="#f8fafc"/>
+  <rect id="it" data-name="Card" x="130" y="95" width="140" height="110" rx="16" fill="#e11d48" data-sc-anim="[{&quot;p&quot;:&quot;flipIn&quot;,&quot;dur&quot;:0.9,&quot;rep&quot;:0,&quot;dir&quot;:&quot;alternate&quot;}]"><animateTransform attributeName="transform" type="translate" additive="sum" values="198 0;-16 0;0 0;-16 0;198 0" dur="1.8s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.35;0.5;0.65;1" keySplines="0 0 0.58 1;0 0 0.58 1;0 0 0.58 1;0 0 0.58 1" begin="0s"/><animateTransform attributeName="transform" type="scale" additive="sum" values="0.01 1;1.08 1;1 1;1.08 1;0.01 1" dur="1.8s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.35;0.5;0.65;1" keySplines="0 0 0.58 1;0 0 0.58 1;0 0 0.58 1;0 0 0.58 1" begin="0s"/><animate attributeName="opacity" values="0;1;1;1;0" dur="1.8s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.15;0.5;0.85;1" keySplines="0 0 0.58 1;0 0 0.58 1;0 0 0.58 1;0 0 0.58 1" begin="0s"/></rect>
+</svg>

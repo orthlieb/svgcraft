@@ -1108,16 +1108,21 @@ in the saved SVG.
 
 #### Presets
 
-- **Entrances**: Fade in, Slide in, Pop in, Zoom in, Wipe in (uncovered
-  from a side), Iris in (uncovered from the middle out) and Blur in (comes
-  into focus). Run any of them in **Reverse** to take the layer away the
+- **Entrances**: Fade in, Slide in, Pop in, Zoom in, Drop in (falls in
+  and bounces to rest), Back in (slides in, overshoots and settles), Roll
+  in, Flip in (turns into view), Wipe in (uncovered from a side), Iris in
+  (uncovered from the middle out) and Blur in (comes into focus). Run any of them in **Reverse** to take the layer away the
   same way.
-- **Exits**: Fade out, Slide out, Zoom out.
+- **Exits**: Fade out, Slide out, Zoom out, Hinge (swings on its top-left
+  corner, then drops away).
 - **Loops**: Spin, Pulse, Bounce, Shake, Float, Blink, Swing (back and
   forth about a point, like a hanging sign), Heartbeat (a double pulse),
   Jello (a wobble that settles), Flip (turned over like a card, and
   back), Glow pulse (a coloured glow round it that comes and goes), Shine
-  (a highlight sweeping across it, as on a button) and Flipbook (a
+  (a highlight sweeping across it, as on a button), Rubber band (squashes
+  and stretches), Tada (grows with a wiggle), Head shake (a small shake
+  that turns), Wobble (sways side to side), Breathe (a slow fade down and
+  up) and Flipbook (a
   group's layers shown one at a time, bottom first, as the frames of a
   flipbook or a loading spinner; the length is the whole round, and a set
   number of times ends on the last frame).

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  <title>Roll in</title>
+  <metadata>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">
+      <cc:Work rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+        <dc:title>Roll in</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <rect data-name="Background" width="400" height="300" fill="#f8fafc"/>
+  <polygon id="it" data-name="Star" points="200.0,80.0 218.5,124.5 266.6,128.4 230.0,159.7 241.1,206.6 200.0,181.5 158.9,206.6 170.0,159.7 133.4,128.4 181.5,124.5" fill="#8b5cf6" data-sc-anim="[{&quot;p&quot;:&quot;rollIn&quot;,&quot;dur&quot;:1,&quot;dist&quot;:140,&quot;rep&quot;:0,&quot;dir&quot;:&quot;alternate&quot;}]"><animateTransform attributeName="transform" type="translate" additive="sum" values="-140 0;0 0;-140 0" dur="2s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0 0 0.58 1;0 0 0.58 1" begin="0s"/><animateTransform attributeName="transform" type="rotate" additive="sum" values="-120 200 143.3;0 200 143.3;-120 200 143.3" dur="2s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0 0 0.58 1;0 0 0.58 1" begin="0s"/><animate attributeName="opacity" values="0;1;0" dur="2s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0 0 0.58 1;0 0 0.58 1" begin="0s"/></polygon>
+</svg>
