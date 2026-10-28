@@ -222,6 +222,28 @@ export default [
     },
   },
   {
+    id: 'pivot',
+    async shoot(h) {
+      await h.select('Brush');
+      await h.tab('animation');
+      await tall(h, PROPS_GROUP);
+      await h.page.selectOption('#sc-anim-add', 'swing');
+      // Its pivot dragged down to the end of the handle.
+      await h.page.evaluate(() => {
+        // eslint-disable-next-line no-undef -- the editor's own global
+        setPivot([0.5, 0.96]);
+      });
+      await h.page.mouse.move(5, 5);
+      const b = await h.page.evaluate(() => {
+        /* eslint-disable no-undef -- the editor's own globals */
+        const r = bboxDoc(state.sel[0]);
+        /* eslint-enable no-undef */
+        return [r.x - 30, r.y - 30, r.x + r.w + 30, r.y + r.h + 30];
+      });
+      await h.shot(null, await around(h, { doc: [b], els: [PROPS_GROUP], pad: 6 }));
+    },
+  },
+  {
     id: 'stagger',
     async shoot(h) {
       // The five paints in a group of their own.

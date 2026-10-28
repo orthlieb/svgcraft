@@ -790,6 +790,7 @@ kbd {
 }
 #sc-selection [data-handle],
 #sc-selection [data-corner-h],
+#sc-selection [data-anim-origin],
 #sc-nodes [data-node],
 #sc-nodes [data-hnd] {
   pointer-events: all;
@@ -3719,4 +3720,34 @@ body.sc-no-right .sc-main {
 }
 .sc-anim-top .sc-subhead {
   margin: 0;
+}
+/* An animation's pivot on the canvas (Animation tab): drag to move it. */
+.sc-pivot {
+  cursor: move;
+}
+.sc-pivot circle {
+  fill: rgb(255 255 255 / 0.6);
+  stroke: var(--sel);
+  vector-effect: non-scaling-stroke;
+}
+.sc-pivot path {
+  fill: none;
+  stroke: var(--sel);
+  vector-effect: non-scaling-stroke;
+}
+.sc-anim-pivot {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+.sc-anim-pivot input[type='number'] {
+  width: 52px;
+}
+.sc-anim-pivot .sc-ibtn svg {
+  width: 12px;
+  height: 12px;
+  fill: currentColor;
+}
+.sc-anim-pivot .sc-ibtn:disabled {
+  opacity: 0.4;
 }

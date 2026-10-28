@@ -284,6 +284,35 @@ const ANIM_OPTS = {
 };
 // Presets a text layer's letters can each run, in turn (Stagger).
 const LETTER_PRESETS = new Set(['fadeIn', 'fadeOut', 'blink', 'colourCycle']);
+// Presets that turn or grow about a point: the pivot, which can be dragged
+// anywhere (`origin`: where, as fractions across and down the layer's box).
+const PIVOT_PRESETS = new Set([
+  'popIn',
+  'zoomIn',
+  'zoomOut',
+  'spin',
+  'pulse',
+  'rollIn',
+  'flipIn',
+  'rubberBand',
+  'tada',
+  'headShake',
+  'wobble',
+  'swing',
+  'heartbeat',
+  'jello',
+  'flip',
+]);
+// Swing's named pivots, as fractions of the box.
+const PIVOT_AT = {
+  centre: [0.5, 0.5],
+  top: [0.5, 0],
+  bottom: [0.5, 1],
+  left: [0, 0.5],
+  right: [1, 0.5],
+};
+// Where animation a turns about, as fractions of the layer's box.
+const animOrigin = (a) => a.origin || PIVOT_AT[a.pivot] || PIVOT_AT.centre;
 const EASES = {
   linear: ['Linear', null],
   ease: ['Ease', '0.25 0.1 0.25 1'],
@@ -325,6 +354,13 @@ function readAnims(el) {
       a.path = typeof r.path === 'string' && /^[^\s"'<>#]{1,100}$/.test(r.path) ? r.path : '';
     for (const k of ['orient', 'hide'])
       if (k in def) a[k] = typeof r[k] === 'boolean' ? r[k] : def[k];
+    if (
+      PIVOT_PRESETS.has(r.p) &&
+      Array.isArray(r.origin) &&
+      r.origin.length === 2 &&
+      r.origin.every((v) => v != null && isFinite(+v))
+    )
+      a.origin = r.origin.map((v) => Math.round(clamp(+v, -100, 100) * 1e4) / 1e4);
     // Stagger: a group's layers (or a text's letters) each run it in turn.
     const st = num(r.stagger, 0, 60, 0);
     if (st > 0) a.stagger = st;
@@ -565,8 +601,10 @@ function morphTarget(el, target) {
 // discrete?, at0? }. Values and keyTimes are for one forward run.
 function animChannels(el, a) {
   const b = el.getBBox();
-  const cx = b.x + b.width / 2;
-  const cy = b.y + b.height / 2;
+  // The point it turns and grows about: its centre, or the pivot dragged.
+  const [cx, cy] = PIVOT_PRESETS.has(a.p)
+    ? [b.x + animOrigin(a)[0] * b.width, b.y + animOrigin(a)[1] * b.height]
+    : [b.x + b.width / 2, b.y + b.height / 2];
   const o = el.hasAttribute('opacity') ? +el.getAttribute('opacity') || 0 : 1;
   // Animations work in the layer's own units: distances are given on screen.
   const m = fullM(el);
@@ -753,14 +791,7 @@ function animChannels(el, a) {
     case 'breathe':
       return [op([1, 0.4, 1])];
     case 'swing': {
-      const [px, py] = {
-        centre: [cx, cy],
-        top: [cx, b.y],
-        bottom: [cx, b.y + b.height],
-        left: [b.x, cy],
-        right: [b.x + b.width, cy],
-      }[a.pivot] || [cx, cy];
-      const r = (deg) => `${f(deg)} ${f(px)} ${f(py)}`;
+      const r = (deg) => `${f(deg)} ${f(cx)} ${f(cy)}`;
       return [
         {
           tag: 'animateTransform',
@@ -1712,6 +1743,23 @@ function smilOptions(chs, dir, el) {
     o.scale = Math.max(...fwd(sc).map((v) => v[0])) * 100;
     o.axis = fwd(sc).some((v) => !smilNear(v[0], 1)) ? 'vertical' : 'horizontal';
   }
+  // The pivot, as fractions of the layer's box: the point a turn is about,
+  // or the one a grow keeps still (its shift is that point × (1 − scale)).
+  const bb = el.getBBox();
+  const frac = (x, y) => [
+    Math.round(((x - bb.x) / (bb.width || 1)) * 1e4) / 1e4,
+    Math.round(((y - bb.y) / (bb.height || 1)) * 1e4) / 1e4,
+  ];
+  const mv0 = chs.find((c) => c.type === 'translate');
+  if (rot && fwd(rot) && fwd(rot)[0].length >= 3) o.origin = frac(fwd(rot)[0][1], fwd(rot)[0][2]);
+  else if (sc && fwd(sc) && mv0 && fwd(mv0)?.length === fwd(sc).length) {
+    const cen = [bb.x + bb.width / 2, bb.y + bb.height / 2];
+    const at = [0, 1].map((axis) => {
+      const i = fwd(sc).findIndex((v) => Math.abs(1 - (v[axis] ?? v[0])) > 0.01);
+      return i < 0 ? cen[axis] : fwd(mv0)[i][axis] / (1 - (fwd(sc)[i][axis] ?? fwd(sc)[i][0]));
+    });
+    o.origin = frac(...at);
+  }
   const mv = chs.find((c) => c.type === 'translate');
   if (mv && fwd(mv)) {
     const far = fwd(mv).reduce((p, v) => (Math.hypot(...v) > Math.hypot(...p) ? v : p));
@@ -1957,6 +2005,11 @@ function smilToAnims(el, notes, own) {
           };
           for (const k of ['from', 'dist', 'turns', 'scale', 'to', 'angle', 'pivot', 'axis'])
             if (k in def && opts[k] != null) a[k] = opts[k];
+          // A pivot of its own, if it isn't where the preset turns anyway.
+          if (PIVOT_PRESETS.has(p) && opts.origin) {
+            const [x, y] = animOrigin(a);
+            if (Math.hypot(opts.origin[0] - x, opts.origin[1] - y) > 0.002) a.origin = opts.origin;
+          }
           if (animUnfit(el, p, a)) continue;
           const ta = {
             ...a,
@@ -2151,6 +2204,7 @@ function moveAnim(from, to) {
   });
 }
 function syncAnimUI() {
+  for (const n of document.querySelectorAll('[data-anim-origin]')) n.remove();
   for (const b of document.querySelectorAll('[data-action="toggleAnimations"]')) {
     if (b.getAttribute('role') === 'menuitemcheckbox')
       b.setAttribute('aria-checked', animPlay.playing);
@@ -2290,7 +2344,7 @@ function syncAnimUI() {
     s.value = a[k];
     kids.push(field(label, s));
   };
-  if ('pivot' in a)
+  if ('pivot' in a) {
     choose('pivot', 'Swing from ', {
       centre: 'Centre',
       top: 'Top',
@@ -2298,6 +2352,47 @@ function syncAnimUI() {
       left: 'Left',
       right: 'Right',
     });
+    // A pivot dragged elsewhere is none of those.
+    if (a.origin) {
+      const s = kids.at(-1).querySelector('select');
+      s.append(
+        Object.assign(document.createElement('option'), { value: 'custom', textContent: 'Custom' }),
+      );
+      s.value = 'custom';
+    }
+  }
+  if (PIVOT_PRESETS.has(a.p)) {
+    // Where it turns or grows about: across and down its box, in %; the ⊕
+    // on the canvas drags it.
+    const [ox, oy] = animOrigin(a);
+    const pct = (k, v, label) => {
+      const i = document.createElement('input');
+      i.type = 'number';
+      i.step = 5;
+      i.dataset.animOpt = k;
+      i.value = f(v * 100);
+      i.setAttribute('aria-label', label);
+      return i;
+    };
+    const w = document.createElement('span');
+    w.className = 'sc-anim-pivot';
+    const reset = document.createElement('button');
+    reset.type = 'button';
+    reset.className = 'sc-ibtn';
+    reset.innerHTML = icon('rotate-left');
+    reset.setAttribute('aria-label', 'Reset the pivot');
+    reset.dataset.tip = 'Back to the centre (or double-click the ⊕)';
+    reset.disabled = !a.origin;
+    reset.addEventListener('click', () => editAnims((l) => delete l[animUI.edit]?.origin));
+    w.append(
+      pct('originX', ox, 'Pivot across, %'),
+      ' ',
+      pct('originY', oy, 'Pivot down, %'),
+      Object.assign(document.createElement('span'), { className: 'sc-unit', textContent: '%' }),
+      reset,
+    );
+    kids.push(field('Pivot ', w));
+  }
   if ('axis' in a)
     choose('axis', 'Turn ', { vertical: 'Side to side', horizontal: 'Top over bottom' });
   // Stagger: a group's layers, or a text's letters, one after another.
@@ -2373,7 +2468,61 @@ function syncAnimUI() {
     opts.replaceChildren(...kids);
     $('#sc-anim-timing').replaceChildren(...timingFields(el, a, field));
   }
+  if (
+    PIVOT_PRESETS.has(a.p) &&
+    state.tool === 'select' &&
+    !animPlay.playing &&
+    $('#sc-anim-props').checkVisibility?.()
+  )
+    markPivot(pivotAt(el, animOrigin(a)));
 }
+// The pivot (fractions of el's box) in the drawing's space.
+function pivotAt(el, [fx, fy]) {
+  const b = el.getBBox();
+  return new DOMPoint(b.x + fx * b.width, b.y + fy * b.height).matrixTransform(fullM(el));
+}
+// The pivot's ⊕ on the canvas, at p, for dragging (see tools.select).
+function markPivot(p) {
+  for (const n of document.querySelectorAll('[data-anim-origin]')) n.remove();
+  const z = state.zoom;
+  const r = 7 / z;
+  const g = mk('g', { class: 'sc-pivot', 'data-anim-origin': '' }, selLayer);
+  mk('circle', { cx: p.x, cy: p.y, r }, g);
+  mk(
+    'path',
+    { d: `M${p.x - r * 1.6} ${p.y}H${p.x + r * 1.6}M${p.x} ${p.y - r * 1.6}V${p.y + r * 1.6}` },
+    g,
+  );
+}
+// Drag the pivot to doc point p (snapping to the box's corners, edge
+// middles and centre within a few pixels): its new place, as fractions.
+function pivotFrom(el, p) {
+  const b = el.getBBox();
+  const M = fullM(el);
+  const q = new DOMPoint(p.x, p.y).matrixTransform(M.inverse());
+  let fx = (q.x - b.x) / (b.width || 1);
+  let fy = (q.y - b.y) / (b.height || 1);
+  const reach = 8 / state.zoom;
+  for (const sx of [0, 0.5, 1])
+    for (const sy of [0, 0.5, 1]) {
+      const s = pivotAt(el, [sx, sy]);
+      if (Math.hypot(s.x - p.x, s.y - p.y) < reach) [fx, fy] = [sx, sy];
+    }
+  return [fx, fy].map((v) => Math.round(clamp(v, -100, 100) * 1e4) / 1e4);
+}
+// Set the edited animation's pivot (null: back to its default).
+function setPivot(origin) {
+  editAnims((l) => {
+    const a = l[animUI.edit];
+    if (!a) return;
+    const [dx, dy] = PIVOT_AT[a.pivot] || PIVOT_AT.centre;
+    if (!origin || Math.hypot(origin[0] - dx, origin[1] - dy) < 1e-4) delete a.origin;
+    else a.origin = origin;
+  });
+}
+// Switching panel tabs shows or hides the ⊕ with the Animation tab.
+for (const t of document.querySelectorAll('[data-tab]'))
+  t.addEventListener('click', () => setTimeout(syncAnimUI));
 // Layers that can be picked by name (a click's target, the one to start
 // after): every layer of the drawing, in order, each as its id or "@n".
 const pickable = () =>
@@ -2591,7 +2740,17 @@ function wireAnimations() {
       } else if (['dur', 'delay', 'dist', 'turns', 'scale', 'angle', 'size'].includes(k))
         a[k] = +t.value;
       else if (k === 'orient' || k === 'hide') a[k] = t.checked;
-      else if (k === 'trigger') {
+      else if (k === 'originX' || k === 'originY') {
+        const o = [...animOrigin(a)];
+        if (isFinite(+t.value) && t.value !== '') o[k === 'originX' ? 0 : 1] = +t.value / 100;
+        a.origin = o.map((v) => Math.round(clamp(v, -100, 100) * 1e4) / 1e4);
+      } else if (k === 'pivot') {
+        if (t.value === 'custom') a.origin = [...animOrigin(a)];
+        else {
+          a.pivot = t.value;
+          delete a.origin;
+        }
+      } else if (k === 'trigger') {
         delete a.trigger;
         delete a.on;
         delete a.afterLayer;
