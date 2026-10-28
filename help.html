@@ -305,6 +305,7 @@
               <li><a href="#edit-points">Edit points</a></li>
               <li><a href="#fill-rule-and-path-direction">Fill rule and path direction</a></li>
               <li><a href="#animate">Animate</a></li>
+              <li><a href="#when-an-animation-starts">When an animation starts</a></li>
               <li><a href="#stagger">Stagger</a></li>
               <li><a href="#move-along-path">Move along path</a></li>
               <li><a href="#morph">Morph</a></li>
@@ -2412,6 +2413,72 @@
               <li>
                 An animation that replaces a layer's own transform (SMIL's default) is only kept
                 when the layer has none, since a preset adds to it.
+              </li>
+            </ul>
+          </article>
+          <article id="when-an-animation-starts" data-find>
+            <h3>When an animation starts</h3>
+            <figure>
+              <img
+                src="docs/help/when-an-animation-starts.png"
+                alt="The Animation tab with Pulse set to start on a click on the Title, and a pause between runs"
+                width="271"
+                height="466"
+                loading="lazy"
+              />
+            </figure>
+            <p>
+              Start an animation on a click or when the pointer is over a layer, after another
+              layer's animations, or with a pause between its runs.
+            </p>
+            <ol>
+              <li>
+                Select the layer, open the <strong>Animation</strong> tab and click the animation's
+                row.
+              </li>
+              <li>
+                Choose under <strong>Start</strong>:
+                <ul>
+                  <li><strong>When the file opens</strong> (after its <strong>Delay</strong>).</li>
+                  <li>
+                    <strong>On click</strong>: when the layer is clicked, or the one chosen under
+                    <strong>Clicking</strong>, such as a button.
+                  </li>
+                  <li>
+                    <strong>On hover</strong>: when the pointer is over it (or the one chosen under
+                    <strong>Pointing at</strong>). One that runs <strong>Forever</strong> stops when
+                    the pointer leaves.
+                  </li>
+                  <li>
+                    <strong>After another layer</strong>: when the animations of the layer chosen
+                    under <strong>After</strong> have finished (their first run, for one that runs
+                    forever).
+                  </li>
+                </ul>
+              </li>
+              <li>
+                For a loop, set <strong>Pause</strong> to wait that long between one run and the
+                next.
+              </li>
+            </ol>
+            <h4>Good to know</h4>
+            <ul>
+              <li>
+                <strong>Delay</strong> counts from the start you chose: a click, the end of the
+                other layer's animations, or the file opening.
+              </li>
+              <li>An entrance that waits for a click stays hidden until then.</li>
+              <li>
+                Clicks and the pointer work where the SVG is a page of its own or part of one
+                (opened directly, inline, or in an <code>&lt;object&gt;</code> or
+                <code>&lt;iframe&gt;</code>). An <code>&lt;img&gt;</code> tag never passes them on,
+                so there it waits for ever.
+              </li>
+              <li>▶ <strong>Play</strong> shows them as if the click had happened.</li>
+              <li>
+                In the file they're SMIL begin times such as <code>begin="button.click+0.5s"</code>,
+                so the layer clicked gets an id. A pause makes each run longer, holding its last
+                frame to the end.
               </li>
             </ul>
           </article>

@@ -206,6 +206,22 @@ export default [
     },
   },
   {
+    id: 'when-an-animation-starts',
+    async shoot(h) {
+      await h.select('Red paint');
+      await h.tab('animation');
+      await tall(h, PROPS_GROUP);
+      await h.page.selectOption('#sc-anim-add', 'pulse');
+      await h.page.selectOption('#sc-anim-timing [data-anim-opt="trigger"]', 'click');
+      await h.page.selectOption('#sc-anim-timing [data-anim-opt="on"]', { label: 'Title' });
+      const p = h.page.locator('#sc-anim-timing [data-anim-opt="pause"]');
+      await p.fill('1.5');
+      await p.dispatchEvent('change');
+      await h.page.evaluate(() => document.activeElement.blur());
+      await h.shot(null, await panel(h, PROPS_GROUP));
+    },
+  },
+  {
     id: 'stagger',
     async shoot(h) {
       // The five paints in a group of their own.

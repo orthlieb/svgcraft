@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  <title>On click</title>
+  <metadata>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">
+      <cc:Work rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+        <dc:title>On click</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <rect data-name="Background" width="400" height="300" fill="#f8fafc"/>
+  <rect id="it" data-name="Button" x="110" y="110" width="180" height="80" rx="40" fill="#16a34a" data-sc-anim="[{&quot;p&quot;:&quot;heartbeat&quot;,&quot;dur&quot;:0.8,&quot;rep&quot;:1,&quot;scale&quot;:115,&quot;trigger&quot;:&quot;click&quot;}]"><animateTransform attributeName="transform" type="translate" additive="sum" values="0 0;-30 -22.5;0 0;-30 -22.5;0 0;0 0" dur="0.8s" repeatCount="1" keyTimes="0;0.14;0.28;0.42;0.7;1" begin="it.click"/><animateTransform attributeName="transform" type="scale" additive="sum" values="1;1.15;1;1.15;1;1" dur="0.8s" repeatCount="1" keyTimes="0;0.14;0.28;0.42;0.7;1" begin="it.click"/></rect>
+  <text data-name="Text" x="200" y="160" font-family="Georgia, serif" font-size="28" font-weight="700" text-anchor="middle" fill="#ffffff" pointer-events="none">Click me</text>
+</svg>

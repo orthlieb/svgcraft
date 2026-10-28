@@ -43,6 +43,10 @@ const ANIM_GEOMETRY = /^(transform|stroke-dash(array|offset)|[xy]|[cr]x|[cr]y|r|
 // Elements whose whitespace is content.
 const TEXTY = new Set(['text', 'tspan', 'textPath', 'style', 'title', 'desc']);
 const REF_RE = /url\(\s*["']?#([^"')\s]+)["']?\s*\)/g;
+// An animation started or stopped by an element's event: "logo.click+1s".
+const EVENT_RE =
+  /([A-Za-z_][\w:-]*)\.(click|mouseover|mouseout|mousedown|mouseup|begin|end|repeat)\b/g;
+const isTiming = (n) => n === 'begin' || n === 'end';
 
 function roundNumbers(v, dp) {
   return v.replace(/-?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?/gi, (n) => {
@@ -128,6 +132,7 @@ function cleanSvgText(text, o) {
       for (const m of a.value.matchAll(REF_RE)) out.push(m[1]);
       if ((a.name === 'href' || a.name === 'xlink:href') && a.value.startsWith('#'))
         out.push(a.value.slice(1));
+      if (isTiming(a.name)) for (const m of a.value.matchAll(EVENT_RE)) out.push(m[1]);
     }
     if (el.localName === 'style') for (const m of el.textContent.matchAll(REF_RE)) out.push(m[1]);
     return out;
@@ -167,7 +172,11 @@ function cleanSvgText(text, o) {
     // Short ids, and no whitespace between elements.
     const names = new Map();
     let n = 0;
-    for (const id of reached) if (byId.get(id)?.isConnected) names.set(id, (n++).toString(36));
+    // Letters only (a, b, … z, aa, ab…): an id starting with a digit isn't a
+    // valid name, and an animation's "a.click" couldn't name it.
+    const short = (k) =>
+      (k < 26 ? '' : short(Math.floor(k / 26) - 1)) + String.fromCharCode(97 + (k % 26));
+    for (const id of reached) if (byId.get(id)?.isConnected) names.set(id, short(n++));
     const fix = (v) => v.replace(REF_RE, (m, id) => (names.has(id) ? `url(#${names.get(id)})` : m));
     for (const el of all()) {
       if (el.id && names.has(el.id)) el.id = names.get(el.id);
@@ -175,6 +184,13 @@ function cleanSvgText(text, o) {
         if ((a.name === 'href' || a.name === 'xlink:href') && names.has(a.value.slice(1)))
           el.setAttribute(a.name, `#${names.get(a.value.slice(1))}`);
         else if (a.value.includes('url(')) el.setAttribute(a.name, fix(a.value));
+        else if (isTiming(a.name))
+          el.setAttribute(
+            a.name,
+            a.value.replace(EVENT_RE, (m, id, ev) =>
+              names.has(id) ? `${names.get(id)}.${ev}` : m,
+            ),
+          );
       }
       if (el.localName === 'style') el.textContent = fix(el.textContent);
     }
