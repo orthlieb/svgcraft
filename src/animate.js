@@ -2359,7 +2359,9 @@ function stopAnimations() {
 }
 const toggleAnimations = () => (animPlay.playing ? stopAnimations() : playAnimations());
 // Any click on the canvas, or Esc, stops it so editing sees the real shapes.
-stage.addEventListener('pointerdown', stopAnimations, true);
+// A right-click doesn't: its menu offers Stop Animations (and anything in
+// it that changes the drawing stops it anyway, as commit does).
+stage.addEventListener('pointerdown', (e) => e.button !== 2 && stopAnimations(), true);
 document.addEventListener(
   'keydown',
   (e) => {

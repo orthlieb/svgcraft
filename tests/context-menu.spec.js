@@ -240,3 +240,67 @@ test.describe('the Layers panel menus', () => {
     expect(await shown()).toBe('a,b,g,d');
   });
 });
+
+test.describe('only what would do something', () => {
+  test('Arrange offers only the ways the layer can go', async ({ page }) => {
+    // a is the bottom layer: it can only come up.
+    await rightClickDoc(page, 150, 150);
+    expect(await sel(page)).toBe('a');
+    await expect((await sub(page, 'Arrange')).locator('button > span')).toHaveText([
+      'Bring to Front',
+      'Bring Forward',
+    ]);
+    await page.keyboard.press('Escape');
+    // g is on top: it can only go down.
+    await rightClickDoc(page, 530, 130);
+    await expect((await sub(page, 'Arrange')).locator('button > span')).toHaveText([
+      'Send Backward',
+      'Send to Back',
+    ]);
+  });
+
+  test('Copy Layer Style needs a style; Select Inverse needs something left', async ({ page }) => {
+    await rightClickDoc(page, 150, 150);
+    expect(await entries(page)).not.toContain('Copy Layer Style');
+    expect(await entries(page)).toContain('Select Inverse');
+    await page.keyboard.press('Escape');
+    await page.evaluate(() => {
+      document.getElementById('a').setAttribute('data-sc-fx', '{"shadow":{"on":true}}');
+      window.svgcraft.commit();
+    });
+    await rightClickDoc(page, 150, 150);
+    expect(await entries(page)).toContain('Copy Layer Style');
+    await page.keyboard.press('Escape');
+    // Everything selected: nothing left to invert to.
+    await page.keyboard.press('Control+a');
+    await rightClickDoc(page, 150, 150);
+    expect(await entries(page)).not.toContain('Select Inverse');
+  });
+
+  test('100% only when not at 100%', async ({ page }) => {
+    await rightClickDoc(page, 760, 560);
+    expect(await entries(page)).toContain('100%');
+    await page.keyboard.press('Escape');
+    // eslint-disable-next-line no-undef -- the editor's own global
+    await page.evaluate(() => zoomAt(1));
+    await rightClickDoc(page, 400, 400);
+    expect(await entries(page)).not.toContain('100%');
+  });
+
+  test('Play Animations when something is animated, Stop while it plays', async ({ page }) => {
+    await rightClickDoc(page, 760, 560);
+    expect(await entries(page)).not.toContain('Play Animations');
+    await page.keyboard.press('Escape');
+    await page.evaluate(() => {
+      document.getElementById('a').setAttribute('data-sc-anim', '[{"p":"spin","rep":0}]');
+      window.svgcraft.commit();
+    });
+    await rightClickDoc(page, 760, 560);
+    await item(page, 'Play Animations').click();
+    await expect(ctx(page)).toBeHidden();
+    expect(await page.evaluate(() => animPlay.playing)).toBe(true); // eslint-disable-line no-undef
+    await rightClickDoc(page, 760, 560);
+    await item(page, 'Stop Animations').click();
+    expect(await page.evaluate(() => animPlay.playing)).toBe(false); // eslint-disable-line no-undef
+  });
+});

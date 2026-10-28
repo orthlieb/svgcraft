@@ -188,12 +188,15 @@ Photoshop.
   already in the selection) and the menu lists what the selection can do:
   Cut, Copy, Duplicate, Free Transform, Transform, Arrange, Align, Group,
   Clipping Mask, Combine Shapes, symbols, Layer Style and Lock, then
-  Deselect, Select Inverse and Crop to Selection.
+  Play Animations, Deselect, Select Inverse and Crop to Selection.
 - **Layers Here** (at the top, when more than one layer is under the
   pointer) lists them, top first, so you can pick one that's covered by
   others. The ticked one is selected.
 - **Right-click empty canvas** with nothing selected: Paste, Select All,
-  Crop to Drawing and the zoom commands.
+  Crop to Drawing, Play Animations and the zoom commands.
+- **Play Animations** (when the drawing has any) plays them on the canvas,
+  as ▶ Play does; while they play, right-click → **Stop Animations**. A
+  right-click doesn't stop them, as a click does.
 - **During Free Transform**: Scale, Rotate, Skew, the turns and flips, and
   Commit or Cancel Transform.
 - **While editing text**: the browser's own menu, for cutting, copying and
@@ -202,9 +205,14 @@ Photoshop.
 
 #### Good to know
 
-- The menu only lists what can run now: Ungroup appears for a group,
-  Create Outlines for text, Image Trace for an image, Distribute for three
-  layers or more.
+- The menu only lists what would do something now, rather than greying
+  out the rest, to keep it short: Ungroup appears for a group, Create
+  Outlines for text, Image Trace for an image, Distribute for three layers
+  or more; Arrange offers only the ways the layer can move (no Bring
+  Forward on the top layer); Copy Layer Style needs a style; Select Inverse
+  needs layers left unselected; 100% shows when you're not at 100%.
+- Paste is always there: what's on the clipboard can't be known until the
+  browser is asked to read it.
 - Each item is the menu bar's own, with its shortcut, so the menu teaches
   the keys.
 - Arrow keys move through it, → opens a submenu, Enter runs, Esc closes.
