@@ -10,7 +10,7 @@ const files = fs.readdirSync(DIR).filter((f) => f.endsWith('.svg'));
 test('there are samples, and the gallery shows every one', () => {
   expect(files.length).toBeGreaterThan(20);
   const html = fs.readFileSync(path.join(DIR, 'index.html'), 'utf8');
-  for (const f of files) expect(html, f).toContain(`src="${f}"`);
+  for (const f of files) expect(html, f).toContain(`data="${f}"`);
 });
 
 for (const f of files)

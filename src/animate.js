@@ -244,6 +244,16 @@ function readAnims(el) {
     // Stagger: a group's layers (or a text's letters) each run it in turn.
     const st = num(r.stagger, 0, 60, 0);
     if (st > 0) a.stagger = st;
+    // When it starts: on a click on, or the pointer over, this layer (or the
+    // one `on` names); or after another layer's animations end. And how
+    // long a loop waits before each run after the first.
+    const id = (v) => (typeof v === 'string' && /^[A-Za-z_][\w.:-]{0,99}$/.test(v) ? v : null);
+    if (r.trigger === 'click' || r.trigger === 'hover') {
+      a.trigger = r.trigger;
+      if (id(r.on)) a.on = r.on;
+    } else if (id(r.afterLayer)) a.afterLayer = r.afterLayer;
+    const ps = num(r.pause, 0, 600, 0);
+    if (ps > 0) a.pause = ps;
     out.push(a);
   }
   return out;
@@ -266,6 +276,43 @@ function animStarts(list) {
   });
   return at;
 }
+// When each of a layer's animations starts, as { t, base, end }: t seconds
+// after base (null: the file opening; else a SMIL event such as
+// "logo.click"), and end, an event that stops it (a hover loop stops when
+// the pointer leaves).
+function animTimes(el, list = readAnims(el), seen = new Set()) {
+  seen.add(el);
+  const out = [];
+  list.forEach((a, i) => {
+    const prev = out[i - 1];
+    if (a.trigger) {
+      const on = (a.on && document.getElementById(a.on)?.id) || el.id || '';
+      const base = on ? `${on}.${a.trigger === 'click' ? 'click' : 'mouseover'}` : null;
+      const end = base && a.trigger === 'hover' && a.rep === 0 ? `${on}.mouseout` : null;
+      out.push({ t: a.delay, base, end });
+    } else if (a.after && prev) {
+      out.push({ t: prev.t + animLength(list[i - 1]) + a.delay, base: prev.base, end: null });
+    } else if (a.afterLayer) {
+      // After the other layer's last animation to finish (its first run,
+      // for one that loops forever), from the same start as that one.
+      const other = document.getElementById(a.afterLayer);
+      let base = null;
+      let t = 0;
+      if (other && doc.contains(other) && !seen.has(other) && other.hasAttribute('data-sc-anim')) {
+        const theirs = readAnims(other);
+        animTimes(other, theirs, seen).forEach((w, k) => {
+          const e = w.t + animLength(theirs[k]);
+          if (e >= t) [t, base] = [e, w.base];
+        });
+      }
+      out.push({ t: t + a.delay, base, end: null });
+    } else out.push({ t: a.delay, base: null, end: null });
+  });
+  return out;
+}
+// Animation a as it plays at time w (animTimes): its start event carried
+// along for the SMIL to name.
+const timed = (a, w) => ({ ...a, _base: w.base, _end: w.end });
 
 // ---- Move along path --------------------------------------------------------------
 // Shapes a layer can move along (as text can run along them).
@@ -734,6 +781,17 @@ function animNodes(el, a, preview = false, start = a.delay) {
   if (animUnfit(el, a.p, a)) return [];
   return chanNodes(a, animChannels(el, a), preview, start);
 }
+// keyTimes, finer than other numbers: a pause makes them long fractions.
+const kf = (t) => +t.toFixed(4);
+// A run's values held at the last one for `pause` seconds after it.
+function paused(values, kt, dur, pause) {
+  const total = dur + pause;
+  return [[...values, values.at(-1)], [...kt.map((t) => (t * dur) / total), 1], total];
+}
+// The begin attribute for a start `t` seconds in (after a's start event,
+// if it has one).
+const smilBegin = (a, t, at0) =>
+  a._base && !at0 ? `${a._base}${t ? `+${f(t)}s` : ''}` : `${f(at0 ? 0 : t)}s`;
 // SMIL elements for channels, timed and paced for animation a. A channel
 // with `raw` has its values and keyTimes for the whole run already (no
 // direction to apply); `hideWith` is how an entrance stays hidden while it
@@ -751,10 +809,13 @@ function chanNodes(a, channels, preview, start, hideWith = ['opacity']) {
     if (ch.tag === 'set') {
       if (!ch.at0) continue;
     } else if (ch.raw) {
-      attrs.values = ch.raw.values.join(';');
-      attrs.keyTimes = ch.raw.kt.map(f).join(';');
+      let { values, kt } = ch.raw;
+      let dur = a.dur * (a.dir === 'alternate' ? 2 : 1);
+      if (a.pause > 0) [values, kt, dur] = paused(values, kt, dur, a.pause);
+      attrs.values = values.join(';');
+      attrs.keyTimes = kt.map(kf).join(';');
       attrs.calcMode = 'discrete';
-      attrs.dur = `${f(a.dur * (a.dir === 'alternate' ? 2 : 1))}s`;
+      attrs.dur = `${f(dur)}s`;
       attrs.repeatCount = forever ? 'indefinite' : String(a.rep);
       if (hold) attrs.fill = 'freeze';
     } else {
@@ -775,28 +836,31 @@ function chanNodes(a, channels, preview, start, hideWith = ['opacity']) {
         ];
         dur *= 2;
       }
+      if (a.pause > 0) [values, kt, dur] = paused(values, kt, dur, a.pause);
       attrs[ch.valuesAttr || 'values'] = values.join(';');
       attrs.dur = `${f(dur)}s`;
       attrs.repeatCount = forever ? 'indefinite' : String(a.rep);
       if (ch.discrete) {
         attrs.calcMode = 'discrete';
-        attrs.keyTimes = kt.map(f).join(';');
+        attrs.keyTimes = kt.map(kf).join(';');
       } else if (spline) {
         attrs.calcMode = 'spline';
-        attrs.keyTimes = kt.map(f).join(';');
+        attrs.keyTimes = kt.map(kf).join(';');
         attrs.keySplines = Array(values.length - 1)
           .fill(spline)
           .join(';');
-      } else if (ch.keyTimes || a.dir === 'alternate') attrs.keyTimes = kt.map(f).join(';');
+      } else if (ch.keyTimes || a.dir === 'alternate' || a.pause > 0)
+        attrs.keyTimes = kt.map(kf).join(';');
       if (hold) attrs.fill = 'freeze';
     }
-    attrs.begin = preview ? 'indefinite' : `${f(begin)}s`;
+    attrs.begin = preview ? 'indefinite' : smilBegin(a, begin, ch.at0);
+    if (a._end && !ch.at0 && !preview) attrs.end = a._end;
     const n = mk(ch.tag, attrs);
     n.dataset.scBegin = begin;
     nodes.push(n);
   }
   // An entrance waiting for its delay starts hidden, not shown then hidden.
-  if (def.enter && start > 0 && !def.line)
+  if (def.enter && (start > 0 || a._base) && !def.line)
     for (const name of hideWith) {
       const n = mk('set', {
         attributeName: name,
@@ -969,7 +1033,7 @@ function wrapParts(el, a, preview, start) {
   const anim = (name, values) => ({ tag: 'animate', attrs: { attributeName: name }, values });
   // An entrance waiting for its delay starts as it will begin.
   const waitAs = (name, value) => {
-    if (!(start > 0 && ANIM_PRESETS[a.p].enter)) return [];
+    if (!((start > 0 || a._base) && ANIM_PRESETS[a.p].enter)) return [];
     const n = mk('set', { attributeName: name, to: value, begin: preview ? 'indefinite' : '0s' });
     n.dataset.scBegin = 0;
     return [n];
@@ -1153,14 +1217,16 @@ function writeAnimations(live, copy, on, addDef = () => {}) {
   const letters = new Map();
   lives.forEach((el, i) => {
     const list = readAnims(el);
-    const at = animStarts(list);
-    list.forEach((a, j) => {
+    const times = animTimes(el, list);
+    list.forEach((a0, j) => {
+      const a = timed(a0, times[j]);
+      const start = times[j].t;
       if (ANIM_PRESETS[a.p].wrap) {
-        const w = copies[i] && wrapLayer(el, copies[i], a, false, at[j], addDef);
+        const w = copies[i] && wrapLayer(el, copies[i], a, false, start, addDef);
         for (const n of w?.nodes || []) delete n.dataset.scBegin;
         return;
       }
-      for (const { at: where, nodes } of animEmit(el, a, false, at[j])) {
+      for (const { at: where, nodes } of animEmit(el, a, false, start)) {
         const host = copies[i] && animHost(copies[i], where, letters);
         for (const n of nodes) {
           delete n.dataset.scBegin;
@@ -1198,7 +1264,18 @@ function smilClock(v) {
 // An animation element's timing: { begin, dur, rep } (rep 0 = forever),
 // or null when it starts on an event or repeats a part of a run.
 function smilTiming(a) {
-  const begin = a.begin == null || a.begin.trim() === '' ? 0 : smilClock(a.begin);
+  // A click on, or the pointer over, an element: "logo.click+0.5s".
+  const ev = /^([A-Za-z_][\w.:-]*)\.(click|mouseover)\s*(?:\+\s*(\S+))?$/.exec(
+    (a.begin || '').trim(),
+  );
+  const base = ev ? `${ev[1]}.${ev[2]}` : null;
+  const begin = ev
+    ? ev[3]
+      ? smilClock(ev[3])
+      : 0
+    : a.begin == null || a.begin.trim() === ''
+      ? 0
+      : smilClock(a.begin);
   const dur = smilClock(a.dur);
   if (!(begin >= 0) || !(dur > 0)) return null;
   let rep = 1;
@@ -1206,7 +1283,7 @@ function smilTiming(a) {
   else if (a.repeatCount != null) rep = +a.repeatCount;
   else if (a.repeatDur != null) rep = smilClock(a.repeatDur) / dur;
   if (rep !== 0 && !(Math.abs(rep - Math.round(rep)) < 1e-6 && rep >= 1)) return null;
-  return { begin, dur, rep: Math.round(rep) };
+  return { begin, dur, rep: Math.round(rep), base };
 }
 const smilNums = (v) =>
   String(v)
@@ -1279,6 +1356,7 @@ function smilSame(g, c, own) {
   if (g.tag !== c.tag || g.name !== c.name || g.type !== c.type) return false;
   if (c.type && !g.additive && own) return false;
   if (!smilNear(g.begin, c.begin) || !smilNear(g.dur, c.dur) || g.rep !== c.rep) return false;
+  if (g.base !== c.base) return false;
   if (g.calc !== c.calc || g.values.length !== c.values.length) return false;
   for (let i = 0; i < g.values.length; i++) {
     const [a, b] = [g.values[i], c.values[i]];
@@ -1546,56 +1624,93 @@ function smilToAnims(el, notes, own) {
   while (pool.length) {
     const first = pool[0];
     const peers = pool.filter(
-      (c) => smilNear(c.begin, first.begin) && smilNear(c.dur, first.dur) && c.rep === first.rep,
+      (c) =>
+        smilNear(c.begin, first.begin) &&
+        smilNear(c.dur, first.dur) &&
+        c.rep === first.rep &&
+        c.base === first.base,
     );
+    // A pause between runs: the last value held to the end of each.
+    const n = first.values.length;
+    const same = (x, y) => (typeof x === 'string' ? x === y : x.every((v, i) => smilNear(v, y[i])));
+    const hold =
+      n >= 3 && same(first.values[n - 1], first.values[n - 2]) && first.kt[n - 2] < 0.999
+        ? first.dur * (1 - first.kt[n - 2])
+        : 0;
+    // Started by a click or the pointer: on which layer.
+    const [onId, evt] = first.base ? first.base.split(/\.(?=[^.]+$)/) : [];
+    const timing = first.base
+      ? {
+          trigger: evt === 'click' ? 'click' : 'hover',
+          ...(onId !== el.id ? { on: onId } : {}),
+        }
+      : {};
     // Every preset that writes these channels; the one whose <set>s (an
     // entrance starting hidden, a line's dashes) are the file's wins, as a
     // reversed Fade in writes what a Fade out does, but for its <set>.
     let found = null;
-    for (const dir of ['normal', 'alternate', 'reverse']) {
-      const opts = smilOptions(peers, dir, el);
-      for (const p of Object.keys(ANIM_PRESETS)) {
-        const def = ANIM_PRESETS[p];
-        const a = {
-          p,
-          dur: dir === 'alternate' ? first.dur / 2 : first.dur,
-          delay: first.begin,
-          rep: first.rep,
-          dir,
-          ease: smilEase(first),
-        };
-        for (const k of ['from', 'dist', 'turns', 'scale', 'to', 'angle', 'pivot', 'axis'])
-          if (k in def && opts[k] != null) a[k] = opts[k];
-        if (animUnfit(el, p, a)) continue;
-        const gen = animNodes(el, a, false, a.delay).map((n) => ({
-          tag: n.localName,
-          attrs: Object.fromEntries([...n.attributes].map((x) => [x.name, x.value])),
-        }));
-        const chs = gen.filter((g) => g.tag !== 'set').map((g) => smilChannel(g, el));
-        if (!chs.length || chs.some((c) => !c)) continue;
-        const used = [];
-        for (const c of chs) {
-          const m = peers.find((g) => !used.includes(g) && smilSame(g, c, own));
-          if (!m) break;
-          used.push(m);
+    for (const pause of hold ? [hold, 0] : [0])
+      for (const dir of ['normal', 'alternate', 'reverse']) {
+        // The options, read off one run without its pause.
+        const run = (c) =>
+          pause
+            ? {
+                ...c,
+                values: c.values.slice(0, -1),
+                kt: c.kt.slice(0, -1).map((t) => (t * c.dur) / (c.dur - pause)),
+                dur: c.dur - pause,
+              }
+            : c;
+        const opts = smilOptions(peers.map(run), dir, el);
+        for (const p of Object.keys(ANIM_PRESETS)) {
+          const def = ANIM_PRESETS[p];
+          const a = {
+            p,
+            dur: (first.dur - pause) / (dir === 'alternate' ? 2 : 1),
+            delay: first.begin,
+            rep: first.rep,
+            dir,
+            ease: smilEase(first),
+            ...timing,
+            ...(pause ? { pause } : {}),
+          };
+          for (const k of ['from', 'dist', 'turns', 'scale', 'to', 'angle', 'pivot', 'axis'])
+            if (k in def && opts[k] != null) a[k] = opts[k];
+          if (animUnfit(el, p, a)) continue;
+          const ta = {
+            ...a,
+            _base: first.base,
+            _end: first.base && a.trigger === 'hover' && a.rep === 0 ? `${onId}.mouseout` : null,
+          };
+          const gen = animNodes(el, ta, false, a.delay).map((n) => ({
+            tag: n.localName,
+            attrs: Object.fromEntries([...n.attributes].map((x) => [x.name, x.value])),
+          }));
+          const chs = gen.filter((g) => g.tag !== 'set').map((g) => smilChannel(g, el));
+          if (!chs.length || chs.some((c) => !c)) continue;
+          const used = [];
+          for (const c of chs) {
+            const m = peers.find((g) => !used.includes(g) && smilSame(g, c, own));
+            if (!m) break;
+            used.push(m);
+          }
+          if (used.length !== chs.length || !used.includes(first)) continue;
+          // The file's <set>s it accounts for, less any it would add: what
+          // plays must stay as it was, so a delayed fade in with no <set> to
+          // start it hidden comes back as a reversed Fade out, which has none.
+          const setHits = [];
+          let extra = 0;
+          for (const g of gen.filter((x) => x.tag === 'set')) {
+            const i = sets.findIndex(
+              (x, j) => !setsUsed.has(j) && !setHits.includes(j) && smilSameSet(x, g),
+            );
+            if (i >= 0) setHits.push(i);
+            else extra++;
+          }
+          const score = setHits.length - extra;
+          if (!found || score > found.score) found = { a, used, setHits, score };
         }
-        if (used.length !== chs.length || !used.includes(first)) continue;
-        // The file's <set>s it accounts for, less any it would add: what
-        // plays must stay as it was, so a delayed fade in with no <set> to
-        // start it hidden comes back as a reversed Fade out, which has none.
-        const setHits = [];
-        let extra = 0;
-        for (const g of gen.filter((x) => x.tag === 'set')) {
-          const i = sets.findIndex(
-            (x, j) => !setsUsed.has(j) && !setHits.includes(j) && smilSameSet(x, g),
-          );
-          if (i >= 0) setHits.push(i);
-          else extra++;
-        }
-        const score = setHits.length - extra;
-        if (!found || score > found.score) found = { a, used, setHits, score };
       }
-    }
     if (!found) {
       lost++;
       pool = pool.slice(1);
@@ -1663,17 +1778,19 @@ function playAnimations() {
   const letters = new Map();
   for (const el of els) {
     const list = readAnims(el);
-    const at = animStarts(list);
+    // The preview plays click and hover starts as if they'd happened.
+    const times = animTimes(el, list);
     list.forEach((a, j) => {
+      const start = times[j].t;
       if (ANIM_PRESETS[a.p].wrap) {
-        const w = wrapLayer(el, el, a, true, at[j], (d) => defs.append(d));
+        const w = wrapLayer(el, el, a, true, start, (d) => defs.append(d));
         if (w) {
           animPlay.nodes.push(...w.nodes);
           animPlay.undos.push(w.undo);
         }
         return;
       }
-      for (const { at: where, nodes } of animEmit(el, a, true, at[j])) {
+      for (const { at: where, nodes } of animEmit(el, a, true, start)) {
         // Letters are split for the preview and put back when it stops.
         if (where?.letter != null && !letters.has(el)) animPlay.texts.push([el, el.innerHTML]);
         const host = animHost(el, where, letters);
@@ -1727,7 +1844,16 @@ const animTarget = () => (state.sel.length === 1 ? state.sel[0] : animPair()?.el
 function describeAnim(a, start) {
   const d = ANIM_PRESETS[a.p];
   const reps = a.rep === 0 ? '∞' : `×${a.rep}`;
-  const when = a.after ? `then at ${f(start)} s` : a.delay ? `at ${f(a.delay)} s` : '';
+  const later = a.delay ? ` + ${f(a.delay)} s` : '';
+  const when = a.trigger
+    ? `on ${a.trigger}${later}`
+    : a.afterLayer
+      ? `after ${layerName(document.getElementById(a.afterLayer) || doc)}${later}`
+      : a.after
+        ? `then at ${f(start)} s`
+        : a.delay
+          ? `at ${f(a.delay)} s`
+          : '';
   return [d.name, `${f(a.dur)} s`, reps, when].filter(Boolean).join(' · ');
 }
 // Move the animation at `from` to index `to` of the list, keeping it the
@@ -1944,7 +2070,82 @@ function syncAnimUI() {
       kids.push(l);
     }
   const focused = document.activeElement?.dataset?.animOpt;
-  if (!focused) opts.replaceChildren(...kids);
+  if (!focused) {
+    opts.replaceChildren(...kids);
+    $('#sc-anim-timing').replaceChildren(...timingFields(el, a, field));
+  }
+}
+// Layers that can be picked by name (a click's target, the one to start
+// after): every layer of the drawing, in order, each as its id or "@n".
+const pickable = () =>
+  [...doc.querySelectorAll('*')].filter(
+    (n) => selectable(n) && !n.parentNode.closest('text, clipPath, mask'),
+  );
+function pickOptions(list, current, first) {
+  const s = document.createElement('select');
+  if (first)
+    s.append(Object.assign(document.createElement('option'), { value: '', textContent: first }));
+  list.forEach((n, i) =>
+    s.append(
+      Object.assign(document.createElement('option'), {
+        value: n.id || `@${i}`,
+        textContent: layerName(n),
+        selected: !!current && n.id === current,
+      }),
+    ),
+  );
+  return s;
+}
+// Start (on click, on hover, after another layer) and Pause between runs.
+function timingFields(el, a, field) {
+  const out = [];
+  const start = document.createElement('select');
+  start.dataset.animOpt = 'trigger';
+  for (const [v, t] of [
+    ['', a.after ? 'After the one above' : 'When the file opens'],
+    ['click', 'On click'],
+    ['hover', 'On hover'],
+    ['afterLayer', 'After another layer'],
+  ])
+    start.append(Object.assign(document.createElement('option'), { value: v, textContent: t }));
+  start.value = a.trigger || (a.afterLayer ? 'afterLayer' : '');
+  out.push(field('Start ', start));
+  const layers = pickable();
+  if (a.trigger) {
+    const on = pickOptions(
+      layers.filter((n) => n !== el),
+      a.on,
+      'This layer',
+    );
+    on.dataset.animOpt = 'on';
+    out.push(field(a.trigger === 'click' ? 'Clicking ' : 'Pointing at ', on));
+  } else if (a.afterLayer) {
+    const after = pickOptions(
+      layers.filter((n) => n !== el && n.hasAttribute('data-sc-anim')),
+      a.afterLayer,
+    );
+    after.dataset.animOpt = 'afterLayer';
+    out.push(field('After ', after));
+  }
+  const p = document.createElement('input');
+  p.type = 'number';
+  p.min = 0;
+  p.step = 0.1;
+  p.dataset.animOpt = 'pause';
+  p.value = f(a.pause || 0);
+  const u = document.createElement('span');
+  u.className = 'sc-unit';
+  u.textContent = 's between runs';
+  const w = document.createElement('span');
+  w.append(p, u);
+  out.push(field('Pause ', w));
+  return out;
+}
+// The layer an "@n" or id option names (it gets an id now it's pointed at).
+function pickedLayer(value, list) {
+  const m = /^@(\d+)$/.exec(value);
+  const n = m ? list[+m[1]] : document.getElementById(value);
+  return n ? ensureId(n, 'layer') : null;
 }
 
 // Dragging an animation's grip up or down the list; a line shows where it
@@ -2091,7 +2292,41 @@ function wireAnimations() {
       } else if (['dur', 'delay', 'dist', 'turns', 'scale', 'angle', 'size'].includes(k))
         a[k] = +t.value;
       else if (k === 'orient' || k === 'hide') a[k] = t.checked;
-      else if (k === 'path') {
+      else if (k === 'trigger') {
+        delete a.trigger;
+        delete a.on;
+        delete a.afterLayer;
+        const el = animTarget();
+        if (t.value === 'click' || t.value === 'hover') {
+          a.trigger = t.value;
+          // The layer clicked needs an id for the file to name it.
+          ensureId(el, 'layer');
+        } else if (t.value === 'afterLayer') {
+          const first = pickable().find((n) => n !== el && n.hasAttribute('data-sc-anim'));
+          if (first) a.afterLayer = ensureId(first, 'layer');
+          else warn('Start after another layer needs another animated layer.');
+        }
+      } else if (k === 'on') {
+        const el = animTarget();
+        const id =
+          t.value &&
+          pickedLayer(
+            t.value,
+            pickable().filter((n) => n !== el),
+          );
+        if (id) a.on = id;
+        else delete a.on;
+      } else if (k === 'afterLayer') {
+        const el = animTarget();
+        const id = pickedLayer(
+          t.value,
+          pickable().filter((n) => n !== el && n.hasAttribute('data-sc-anim')),
+        );
+        if (id) a.afterLayer = id;
+      } else if (k === 'pause') {
+        if (+t.value > 0) a.pause = +t.value;
+        else delete a.pause;
+      } else if (k === 'path') {
         // A layer without an id gets one now it's pointed at.
         const m = /^@(\d+)$/.exec(t.value);
         const el = animTarget();

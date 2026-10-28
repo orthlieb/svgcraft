@@ -1194,6 +1194,41 @@ edit and play:
 - An animation that replaces a layer's own transform (SMIL's default) is
   only kept when the layer has none, since a preset adds to it.
 
+### When an animation starts
+
+![The Animation tab with Pulse set to start on a click on the Title, and a pause between runs](docs/help/when-an-animation-starts.png)
+
+Start an animation on a click or when the pointer is over a layer, after
+another layer's animations, or with a pause between its runs.
+
+1. Select the layer, open the **Animation** tab and click the animation's
+   row.
+2. Choose under **Start**:
+   - **When the file opens** (after its **Delay**).
+   - **On click**: when the layer is clicked, or the one chosen under
+     **Clicking**, such as a button.
+   - **On hover**: when the pointer is over it (or the one chosen under
+     **Pointing at**). One that runs **Forever** stops when the pointer
+     leaves.
+   - **After another layer**: when the animations of the layer chosen
+     under **After** have finished (their first run, for one that runs
+     forever).
+3. For a loop, set **Pause** to wait that long between one run and the
+   next.
+
+#### Good to know
+
+- **Delay** counts from the start you chose: a click, the end of the other
+  layer's animations, or the file opening.
+- An entrance that waits for a click stays hidden until then.
+- Clicks and the pointer work where the SVG is a page of its own or part of
+  one (opened directly, inline, or in an `<object>` or `<iframe>`). An
+  `<img>` tag never passes them on, so there it waits for ever.
+- ▶ **Play** shows them as if the click had happened.
+- In the file they're SMIL begin times such as `begin="button.click+0.5s"`,
+  so the layer clicked gets an id. A pause makes each run longer, holding
+  its last frame to the end.
+
 ### Stagger
 
 ![Three paint layers in a group popping in one after another, with Stagger set in the Animation tab](docs/help/stagger.png)

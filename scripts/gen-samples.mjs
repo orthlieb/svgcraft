@@ -290,6 +290,38 @@ const SAMPLES = [
     LABEL('Type me out…', 40),
     { it: [{ p: 'typewriter', dur: 2.5, rep: 0, dir: 'alternate' }] },
   ],
+  // When they start.
+  [
+    'on-click',
+    'On click',
+    'Click the button: it beats once.',
+    '<rect id="it" data-name="Button" x="110" y="110" width="180" height="80" rx="40" fill="#16a34a"/><text data-name="Text" x="200" y="160" font-family="Georgia, serif" font-size="28" font-weight="700" text-anchor="middle" fill="#ffffff" pointer-events="none">Click me</text>',
+    { it: [{ p: 'heartbeat', dur: 0.8, rep: 1, scale: 115, trigger: 'click' }] },
+  ],
+  [
+    'on-hover',
+    'On hover',
+    'Point at the sign: it swings while the pointer is over it.',
+    '<line data-name="String" x1="200" y1="30" x2="200" y2="95" stroke="#475569" stroke-width="3"/><rect id="it" data-name="Sign" x="130" y="95" width="140" height="90" rx="10" fill="#f59e0b"/>',
+    { it: [{ p: 'swing', dur: 1, rep: 0, angle: 12, pivot: 'top', trigger: 'hover' }] },
+  ],
+  [
+    'after-layer',
+    'After another layer',
+    'The title fades in; then the star pops in after it.',
+    `<text id="title" data-name="Title" x="200" y="250" font-family="Georgia, serif" font-size="36" font-weight="700" text-anchor="middle" fill="#0f172a">Ta-da!</text>${STAR(200, 120, 70, 'it')}`,
+    {
+      title: [{ p: 'fadeIn', dur: 1, rep: 1 }],
+      it: [{ p: 'popIn', dur: 0.6, rep: 1, afterLayer: 'title' }],
+    },
+  ],
+  [
+    'pause-between-runs',
+    'Pause between runs',
+    'A Shake, then a two-second wait, over and over.',
+    '<path id="it" data-name="Bell" d="M200 70C150 70 135 110 135 150V190H265V150C265 110 250 70 200 70ZM180 200A20 20 0 0 0 220 200Z" fill="#eab308"/>',
+    { it: [{ p: 'shake', dur: 0.6, rep: 0, dist: 8, pause: 2 }] },
+  ],
 ];
 
 // ---- make them ------------------------------------------------------------------------
@@ -338,7 +370,7 @@ const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
 const tiles = SAMPLES.map(
   ([file, title, what]) =>
     `      <figure>
-        <img src="${file}.svg" alt="${esc(title)}: ${esc(what)}" width="${W}" height="${H}" />
+        <object data="${file}.svg" type="image/svg+xml" width="${W}" height="${H}">${esc(title)}: ${esc(what)}</object>
         <figcaption><a href="${file}.svg">${esc(title)}</a> ${esc(what)}</figcaption>
       </figure>`,
 ).join('\n');
@@ -370,7 +402,7 @@ fs.writeFileSync(
         border-radius: 10px;
         background: #fff;
       }
-      img {
+      object {
         display: block;
         width: 100%;
         height: auto;
@@ -383,8 +415,9 @@ fs.writeFileSync(
   <body>
     <h1>SVGCraft animation samples</h1>
     <p>
-      Each is an SVG file saved by SVGCraft. It plays here (in an &lt;img&gt;), and opens in
-      SVGCraft with its animations ready to edit in the Animation tab.
+      Each is an SVG file saved by SVGCraft. It plays here, and opens in SVGCraft with its
+      animations ready to edit in the Animation tab. The click and hover samples respond here
+      too, but not in an &lt;img&gt; tag, which never passes on clicks or the pointer.
     </p>
     <main>
 ${tiles}

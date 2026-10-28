@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  <title>Pause between runs</title>
+  <metadata>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">
+      <cc:Work rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+        <dc:title>Pause between runs</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <rect data-name="Background" width="400" height="300" fill="#f8fafc"/>
+  <path id="it" data-name="Bell" d="M200 70C150 70 135 110 135 150V190H265V150C265 110 250 70 200 70ZM180 200A20 20 0 0 0 220 200Z" fill="#eab308" data-sc-anim="[{&quot;p&quot;:&quot;shake&quot;,&quot;dur&quot;:0.6,&quot;rep&quot;:0,&quot;dist&quot;:8,&quot;pause&quot;:2}]"><animateTransform attributeName="transform" type="translate" additive="sum" values="0 0;-8 0;8 0;-8 0;8 0;0 0;0 0" dur="2.6s" repeatCount="indefinite" keyTimes="0;0.0462;0.0923;0.1385;0.1846;0.2308;1" begin="0s"/></path>
+</svg>
