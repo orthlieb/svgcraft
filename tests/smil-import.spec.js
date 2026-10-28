@@ -165,6 +165,7 @@ const PRESETS = {
   heartbeat: { scale: 125 },
   jello: { angle: 10 },
   flip: { axis: 'horizontal' },
+  strokePulse: { scale: 300 },
 };
 const BASE =
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">' +

@@ -227,6 +227,13 @@ const SAMPLES = [
     { it: [{ p: 'dashMarch', dur: 1, rep: 0 }] },
   ],
   [
+    'stroke-pulse',
+    'Stroke pulse',
+    'The outline grows thicker and back.',
+    '<circle id="it" data-name="Ring" cx="200" cy="150" r="70" fill="#fef3c7" stroke="#d97706" stroke-width="6"/>',
+    { it: [{ p: 'strokePulse', dur: 1.2, rep: 0, scale: 250 }] },
+  ],
+  [
     'colour-cycle',
     'Colour cycle',
     'Its fill changes colour and back.',

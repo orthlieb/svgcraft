@@ -178,3 +178,23 @@ test('the Stagger field shows for a group and for letters', async ({ page }) => 
   await select(page, 't');
   await expect(st).toHaveCount(1);
 });
+
+test('Stroke pulse thickens the outline and back; it needs a stroke', async ({ page }) => {
+  await load(
+    page,
+    '<circle id="o" cx="100" cy="100" r="50" fill="none" stroke="#000" stroke-width="4"/><rect id="n" width="10" height="10"/>',
+    300,
+    200,
+  );
+  await page.click('[data-tab="animation"]');
+  await setAnims(page, 'o', [{ p: 'strokePulse', dur: 2, rep: 1, ease: 'linear', scale: 300 }]);
+  const svg = await saved(page);
+  const width = () => +getComputedStyle(document.getElementById('o')).strokeWidth.replace('px', '');
+  expect(await at(page, svg, 0, width)).toBeCloseTo(4, 1);
+  expect(await at(page, svg, 1, width)).toBeCloseTo(12, 1);
+  expect(await at(page, svg, 1.5, width)).toBeCloseTo(8, 1);
+  expect(await at(page, svg, 3, width)).toBeCloseTo(4, 1);
+  await select(page, 'n');
+  await page.selectOption('#sc-anim-add', 'strokePulse');
+  await expect(page.locator('#sc-alert-text')).toHaveText('Stroke pulse needs a stroke.');
+});

@@ -1123,7 +1123,9 @@ in the saved SVG.
   number of times ends on the last frame).
 - **Motion**: Move along path (see [Move along path](#move-along-path)) and
   Morph (see [Morph](#morph)).
-- **Line effects**: Draw on, Draw off, Dash march.
+- **Line effects**: Draw on, Draw off, Dash march, and Stroke pulse (the
+  outline grows thicker and back; **Grow to** sets how thick, as a
+  percentage of its width).
 - **Colour cycle**.
 - **Text**: Typewriter: the letters appear one by one over the length.
   Run backwards, they go one by one.
