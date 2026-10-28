@@ -51,10 +51,6 @@ const actions = {
   redo,
   deselect: () => setSel([]),
   swapPaint,
-  paintNone() {
-    state[state.active + 'On'] = false;
-    styleChanged(state.active, true);
-  },
   zoomIn: () => zoomAt(state.zoom * 1.25),
   zoomOut: () => zoomAt(state.zoom / 1.25),
   fit,

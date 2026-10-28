@@ -228,7 +228,7 @@ for the eraser, or the point commands for Edit Points.
 
 ### The toolbar
 
-![The toolbar, with the fill and stroke chips at the bottom](docs/help/the-toolbar.png)
+![The toolbar, with the fill and stroke chips and their default and swap buttons at the bottom](docs/help/the-toolbar.png)
 
 Pick a tool, and the colours it paints with.
 
@@ -238,7 +238,9 @@ Pick a tool, and the colours it paints with.
   from its flyout.
 - Click the fill or stroke chip (at the bottom) to make it the active
   paint. Click it again to pick a colour.
-- Below the chips: swap fill and stroke (X), and "none".
+- Above the chips, as in Photoshop: the little black-and-white squares set
+  the default colours (D: black fill, white stroke), and the curved arrow
+  swaps fill and stroke (X).
 
 #### Pointers
 

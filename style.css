@@ -535,7 +535,7 @@ kbd {
 .sc-chips {
   position: relative;
   width: 38px;
-  height: 58px;
+  height: 52px;
   margin-top: 8px;
   flex: none;
 }
@@ -561,14 +561,16 @@ kbd {
   inset: 0;
   background: var(--chip, transparent);
 }
+/* Fill in front at the top left, stroke behind it at the bottom right:
+   Photoshop's foreground and background colours. */
 .sc-tb-fill {
-  left: 2px;
-  top: 2px;
+  left: 1px;
+  top: 14px;
   z-index: 1;
 }
 .sc-tb-stroke {
-  left: 15px;
-  top: 15px;
+  left: 14px;
+  top: 27px;
 }
 /* A stroke chip is drawn hollow, Illustrator-style, so it can't be mistaken for fill. */
 .sc-tb-stroke::after {
@@ -592,33 +594,50 @@ kbd {
     transparent calc(50% + 1px)
   );
 }
+/* The two small buttons above the chips. */
 .sc-tb-mini {
   position: absolute;
+  top: 0;
   display: grid;
   place-items: center;
-  width: 14px;
-  height: 14px;
+  width: 13px;
+  height: 13px;
   padding: 0;
   border: 0;
+  border-radius: 2px;
   background: transparent;
-  color: var(--text-dim);
-  font-size: 9px;
-}
-.sc-tb-mini:hover {
   color: var(--text);
 }
-.sc-tb-swap {
-  right: -1px;
-  top: 0;
+.sc-tb-mini:hover {
+  background: var(--hover);
 }
 .sc-tb-default {
   left: 0;
-  bottom: 12px;
 }
-/* None sits under the chips, as in Illustrator. */
-.sc-tb-none {
-  left: 12px;
-  bottom: 0;
+.sc-tb-swap {
+  right: 0;
+}
+.sc-tb-swap svg {
+  width: 12px;
+  height: 12px;
+}
+/* Default colours: a little black fill in front of a white stroke. */
+.sc-tb-def-fill,
+.sc-tb-def-stroke {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border: 1px solid var(--text);
+}
+.sc-tb-def-fill {
+  left: 1px;
+  top: 1px;
+  background: #000;
+}
+.sc-tb-def-stroke {
+  left: 5px;
+  top: 5px;
+  background: #fff;
 }
 
 /* ---- document window --------------------------------------------------- */

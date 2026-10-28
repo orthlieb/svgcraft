@@ -1424,29 +1424,22 @@
             aria-label="Fill colour (make active)"
             data-tip="Fill · click to edit"
           ></button>
-          <button
-            class="sc-tb-mini sc-tb-swap"
-            data-action="swapPaint"
-            aria-label="Swap fill and stroke"
-            data-tip="Swap fill and stroke"
-          >
-            <i data-icon="right-left"></i>
-          </button>
+          <!-- Above the chips, as in Photoshop: default colours, swap. -->
           <button
             class="sc-tb-mini sc-tb-default"
             data-action="defaultPaint"
             aria-label="Default fill and stroke"
             data-tip="Default fill and stroke"
           >
-            <i data-icon="sc-default-colours"></i>
+            <span class="sc-tb-def-stroke"></span><span class="sc-tb-def-fill"></span>
           </button>
           <button
-            class="sc-tb-mini sc-tb-none"
-            data-action="paintNone"
-            aria-label="Set the active paint to none"
-            data-tip="None"
+            class="sc-tb-mini sc-tb-swap"
+            data-action="swapPaint"
+            aria-label="Swap fill and stroke"
+            data-tip="Swap fill and stroke"
           >
-            <i data-icon="ban"></i>
+            <i data-icon="sc-swap-colours"></i>
           </button>
         </div>
       </nav>
