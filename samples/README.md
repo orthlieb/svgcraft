@@ -36,6 +36,7 @@ watched without reloading.
 | [Flip](flip.svg)                             | Turned over like a card, and back.                         |
 | [Glow pulse](glow-pulse.svg)                 | A glow round it that comes and goes.                       |
 | [Shine](shine.svg)                           | A highlight sweeps across it.                              |
+| [Ripple](ripple.svg)                         | Rings spread out from a map pin and fade.                  |
 | [Flipbook](flipbook.svg)                     | A group’s layers shown one at a time: a spinner.           |
 | [Rubber band](rubber-band.svg)               | Squashes and stretches.                                    |
 | [Tada](tada.svg)                             | Grows with a wiggle: look at me!                           |
@@ -47,6 +48,8 @@ watched without reloading.
 | [Dash march](dash-march.svg)                 | Marching ants round a box.                                 |
 | [Stroke pulse](stroke-pulse.svg)             | The outline grows thicker and back.                        |
 | [Colour cycle](colour-cycle.svg)             | Its fill changes colour and back.                          |
+| [Gradient flow](gradient-flow.svg)           | Bands of colour flow across the lettering.                 |
+| [Pattern scroll](pattern-scroll.svg)         | Stripes slide along a progress bar.                        |
 | [Move along path](move-along-path.svg)       | An arrow follows the road, turning with it.                |
 | [Morph](morph.svg)                           | A circle turns into a star, and back.                      |
 | [Stagger](stagger.svg)                       | One Bounce, on each dot in turn: a wave.                   |

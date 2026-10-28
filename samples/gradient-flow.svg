@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  <defs><linearGradient id="sc-gen-15" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="168.87" y2="0" spreadMethod="repeat" gradientTransform="translate(115.57 103.69) rotate(20)" data-sc-gen=""><stop offset="0" stop-color="#7c3aed" data-sc-gen=""/><stop offset="0.5" stop-color="#f472b6" data-sc-gen=""/><stop offset="1" stop-color="#7c3aed" data-sc-gen=""/><animateTransform attributeName="gradientTransform" type="translate" additive="sum" values="0 0;168.87 0" dur="2s" repeatCount="indefinite" begin="0s"/></linearGradient><mask id="sc-gen-16" mask-type="alpha" data-sc-gen=""><use data-sc-gen="" href="#it"/></mask></defs><title>Gradient flow</title>
+  <metadata>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">
+      <cc:Work rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+        <dc:title>Gradient flow</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <rect data-name="Background" width="400" height="300" fill="#f8fafc"/>
+  <g data-sc-gen=""><text id="it" data-name="Title" x="200" y="175" font-family="Georgia, serif" font-size="80" font-weight="700" text-anchor="middle" fill="#7c3aed" data-sc-anim="[{&quot;p&quot;:&quot;gradientFlow&quot;,&quot;dur&quot;:2,&quot;rep&quot;:0,&quot;angle&quot;:20,&quot;to&quot;:&quot;#f472b6&quot;}]">Flow</text><rect x="115.57" y="103.69" width="168.87" height="88.52" fill="url(#sc-gen-15)" mask="url(#sc-gen-16)" pointer-events="none" data-sc-gen=""/></g>
+</svg>

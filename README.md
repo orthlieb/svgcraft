@@ -1122,7 +1122,9 @@ in the saved SVG.
   (a highlight sweeping across it, as on a button), Rubber band (squashes
   and stretches), Tada (grows with a wiggle), Head shake (a small shake
   that turns), Wobble (sways side to side), Breathe (a slow fade down and
-  up) and Flipbook (a
+  up), Ripple (rings spreading out from under it and fading, one after
+  another; **Grow to** sets how far, **Ring width** and **Ring colour**
+  their look) and Flipbook (a
   group's layers shown one at a time, bottom first, as the frames of a
   flipbook or a loading spinner; the length is the whole round, and a set
   number of times ends on the last frame).
@@ -1131,7 +1133,10 @@ in the saved SVG.
 - **Line effects**: Draw on, Draw off, Dash march, and Stroke pulse (the
   outline grows thicker and back; **Grow to** sets how thick, as a
   percentage of its width).
-- **Colour cycle**.
+- **Colour**: Colour cycle; Gradient flow (bands of its own colour and a
+  **Second colour** moving across it, the way **Angle** points); Pattern
+  scroll (stripes of the **Stripe colour**, **Stripe width** wide, sliding
+  over it at the **Angle**).
 - **Text**: Typewriter: the letters appear one by one over the length.
   Run backwards, they go one by one.
 
@@ -1171,9 +1176,11 @@ in the saved SVG.
   tag. Each animation adds about 150–300 bytes.
 - Export Clean SVG keeps the animation and rounds its coordinates like the
   rest. PNG, app icon and favicon exports use the still drawing.
-- Wipe in, Iris in, Blur in, Glow pulse and Shine need a clip, filter or
-  mask: the saved file wraps the layer in a group that carries it (Shine's
-  highlight goes in that group too). Reopened in SVGCraft, the group is
+- Wipe in, Iris in, Blur in, Glow pulse, Shine, Ripple, Gradient flow and
+  Pattern scroll need a clip, filter, mask or paint of their own: the saved
+  file wraps the layer in a group that carries it (Shine's highlight,
+  Ripple's rings, and the gradient or stripes, masked by the layer, go in
+  that group too). Reopened in SVGCraft, the group is
   taken off again; a file from Export Clean SVG reopens with it as a group
   of its own, and those animations left out.
 - Reopening a saved file rebuilds the animations from their settings.

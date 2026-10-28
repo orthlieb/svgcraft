@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  <defs><pattern id="sc-gen-19" patternUnits="userSpaceOnUse" width="20" height="20" patternTransform="rotate(45)" data-sc-gen=""><rect width="10" height="20" fill="#4ade80" data-sc-gen=""/><animateTransform attributeName="patternTransform" type="translate" additive="sum" values="0 0;20 0" dur="0.8s" repeatCount="indefinite" begin="0s"/></pattern><mask id="sc-gen-20" mask-type="alpha" data-sc-gen=""><use data-sc-gen="" href="#it"/></mask></defs><title>Pattern scroll</title>
+  <metadata>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">
+      <cc:Work rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+        <dc:title>Pattern scroll</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <rect data-name="Background" width="400" height="300" fill="#f8fafc"/>
+  <rect data-name="Track" x="60" y="130" width="280" height="40" rx="20" fill="#e2e8f0"/>
+  <g data-sc-gen=""><rect id="it" data-name="Bar" x="60" y="130" width="190" height="40" rx="20" fill="#16a34a" data-sc-anim="[{&quot;p&quot;:&quot;patternScroll&quot;,&quot;dur&quot;:0.8,&quot;rep&quot;:0,&quot;angle&quot;:45,&quot;size&quot;:10,&quot;to&quot;:&quot;#4ade80&quot;}]"/><rect x="60" y="130" width="190" height="40" fill="url(#sc-gen-19)" mask="url(#sc-gen-20)" pointer-events="none" data-sc-gen=""/></g>
+</svg>

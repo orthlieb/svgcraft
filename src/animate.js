@@ -140,6 +140,18 @@ const ANIM_PRESETS = {
   flipbook: { name: 'Flipbook', group: 'Loops', dur: 1, rep: 0, ease: 'linear', hold: true },
   // A highlight sweeping across the layer.
   shine: { name: 'Shine', group: 'Loops', dur: 1.6, rep: 0, ease: 'inout', wrap: true },
+  // Rings spreading out from under the layer and fading, one after another.
+  ripple: {
+    name: 'Ripple',
+    group: 'Loops',
+    dur: 1.6,
+    rep: 0,
+    ease: 'out',
+    wrap: true,
+    scale: 180,
+    size: 3,
+    to: '#38bdf8',
+  },
   // Back and forth about a point (the top: a hanging sign).
   swing: {
     name: 'Swing',
@@ -233,6 +245,30 @@ const ANIM_PRESETS = {
     ease: 'inout',
     dir: 'alternate',
     to: '#dc2626',
+  },
+  // Its own colour and a second one, in bands moving across it (angle: the
+  // way they go).
+  gradientFlow: {
+    name: 'Gradient flow',
+    group: 'Colour',
+    dur: 2,
+    rep: 0,
+    ease: 'linear',
+    wrap: true,
+    angle: 0,
+    to: '#f59e0b',
+  },
+  // Stripes over it, sliding along (size: how wide).
+  patternScroll: {
+    name: 'Pattern scroll',
+    group: 'Colour',
+    dur: 1,
+    rep: 0,
+    ease: 'linear',
+    wrap: true,
+    angle: 45,
+    size: 8,
+    to: '#ffffff',
   },
 };
 // Preset options and their limits.
@@ -1175,7 +1211,8 @@ const genEl = (tag, attrs = {}, kids = []) => {
   return n;
 };
 // What wraps the layer for animation a: { defs, attrs (for the wrapping
-// group), overlay? (Shine's highlight), use? (a <use> to point at the layer) }.
+// group), overlay? (Shine's highlight), under? (drawn below the layer:
+// Ripple's rings), use? (a <use> to point at the layer) }.
 function wrapParts(el, a, preview, start) {
   const m = fullM(el);
   const k = Math.hypot(m.a, m.b) || 1;
@@ -1188,6 +1225,45 @@ function wrapParts(el, a, preview, start) {
     n.dataset.scBegin = 0;
     return [n];
   };
+  // The layer's box, in the space it sits in.
+  const box = () => {
+    const b = el.getBBox();
+    const own = getM(el);
+    const pts = [
+      [b.x, b.y],
+      [b.x + b.width, b.y],
+      [b.x, b.y + b.height],
+      [b.x + b.width, b.y + b.height],
+    ].map(([x, y]) => new DOMPoint(x, y).matrixTransform(own));
+    const xs = pts.map((p) => p.x);
+    const ys = pts.map((p) => p.y);
+    const x = Math.min(...xs);
+    const y = Math.min(...ys);
+    return { x, y, width: Math.max(...xs) - x, height: Math.max(...ys) - y };
+  };
+  // A box over the layer filled with paint (a gradient or pattern), masked
+  // by the layer itself, so it only colours the layer.
+  const masked = (paint) => {
+    const use = genEl('use');
+    const mask = genEl('mask', { id: genId(), 'mask-type': 'alpha' }, [use]);
+    const b = box();
+    const overlay = genEl('rect', {
+      x: f(b.x),
+      y: f(b.y),
+      width: f(b.width),
+      height: f(b.height),
+      fill: `url(#${paint.id})`,
+      mask: `url(#${mask.id})`,
+      'pointer-events': 'none',
+    });
+    return { defs: [paint, mask], attrs: {}, overlay, use };
+  };
+  // A paint's transform slid d along, after the transform it has.
+  const slide = (name, d) => ({
+    tag: 'animateTransform',
+    attrs: { attributeName: name, type: 'translate', additive: 'sum' },
+    values: ['0 0', `${f(d)} 0`],
+  });
   switch (a.p) {
     case 'wipeIn': {
       // A clip box (in the layer's bounding-box units, a little larger, for
@@ -1279,29 +1355,81 @@ function wrapParts(el, a, preview, start) {
           },
         ]),
       );
-      const use = genEl('use');
-      const mask = genEl('mask', { id: genId(), 'mask-type': 'alpha' }, [use]);
-      // The layer's box, in the space it sits in.
-      const b = el.getBBox();
-      const own = getM(el);
-      const pts = [
-        [b.x, b.y],
-        [b.x + b.width, b.y],
-        [b.x, b.y + b.height],
-        [b.x + b.width, b.y + b.height],
-      ].map(([x, y]) => new DOMPoint(x, y).matrixTransform(own));
-      const xs = pts.map((p) => p.x);
-      const ys = pts.map((p) => p.y);
-      const overlay = genEl('rect', {
-        x: f(Math.min(...xs)),
-        y: f(Math.min(...ys)),
-        width: f(Math.max(...xs) - Math.min(...xs)),
-        height: f(Math.max(...ys) - Math.min(...ys)),
-        fill: `url(#${grad.id})`,
-        mask: `url(#${mask.id})`,
-        'pointer-events': 'none',
-      });
-      return { defs: [grad, mask], attrs: {}, overlay, use };
+      return masked(grad);
+    }
+    case 'ripple': {
+      // Two rings round its centre, half a run apart, each growing from the
+      // layer's size and fading; under the layer, unseen at rest.
+      const b = box();
+      const r0 = Math.max(b.width, b.height) / 2;
+      const r1 = (r0 * a.scale) / 100;
+      const half = (a.dur * (a.dir === 'alternate' ? 2 : 1) + (a.pause || 0)) / 2;
+      const ring = (t) => {
+        const c = genEl('circle', {
+          cx: f(b.x + b.width / 2),
+          cy: f(b.y + b.height / 2),
+          r: f(r0),
+          fill: 'none',
+          stroke: a.to,
+          'stroke-width': f(a.size),
+          opacity: '0',
+        });
+        c.append(
+          ...chanNodes(
+            a,
+            [anim('r', [f(r0), f(r1)]), anim('opacity', ['1', '0'])],
+            preview,
+            start + t,
+            [],
+          ),
+        );
+        return c;
+      };
+      const under = genEl('g', { 'pointer-events': 'none' }, [ring(0), ring(half)]);
+      return { defs: [], attrs: {}, under };
+    }
+    case 'gradientFlow': {
+      // Its colour, the second and back, repeating; slid one band along.
+      const b = box();
+      const L = Math.max(b.width, b.height) || 1;
+      const from = hex(getComputedStyle(el).fill || '') || '#000000';
+      const grad = genEl(
+        'linearGradient',
+        {
+          id: genId(),
+          gradientUnits: 'userSpaceOnUse',
+          x1: '0',
+          y1: '0',
+          x2: f(L),
+          y2: '0',
+          spreadMethod: 'repeat',
+          gradientTransform: `translate(${f(b.x)} ${f(b.y)}) rotate(${f(a.angle)})`,
+        },
+        [
+          genEl('stop', { offset: '0', 'stop-color': from }),
+          genEl('stop', { offset: '0.5', 'stop-color': a.to }),
+          genEl('stop', { offset: '1', 'stop-color': from }),
+        ],
+      );
+      grad.append(...nodes([slide('gradientTransform', L)]));
+      return masked(grad);
+    }
+    case 'patternScroll': {
+      // Stripes, a stripe and a gap to a tile, slid one tile along.
+      const w = Math.max(a.size, 0.5);
+      const pat = genEl(
+        'pattern',
+        {
+          id: genId(),
+          patternUnits: 'userSpaceOnUse',
+          width: f(2 * w),
+          height: f(2 * w),
+          patternTransform: `rotate(${f(a.angle)})`,
+        },
+        [genEl('rect', { width: f(w), height: f(2 * w), fill: a.to })],
+      );
+      pat.append(...nodes([slide('patternTransform', 2 * w)]));
+      return masked(pat);
     }
   }
   return null;
@@ -1316,6 +1444,7 @@ function wrapLayer(el, host, a, preview, start, addDef) {
   if (host.parentNode) host.before(g);
   g.append(host);
   if (parts.overlay) g.append(parts.overlay);
+  if (parts.under) g.prepend(parts.under);
   let madeId = false;
   if (parts.use) {
     if (!host.id) {
@@ -1326,9 +1455,11 @@ function wrapLayer(el, host, a, preview, start, addDef) {
     parts.use.setAttribute('href', `#${host.id}`);
   }
   for (const d of parts.defs) addDef(d);
-  const nodes = parts.defs.flatMap((d) =>
-    [...d.querySelectorAll('*')].filter((n) => ANIM_KEY_TAGS.includes(n.localName)),
-  );
+  const nodes = [...parts.defs, parts.under]
+    .filter(Boolean)
+    .flatMap((d) =>
+      [...d.querySelectorAll('*')].filter((n) => ANIM_KEY_TAGS.includes(n.localName)),
+    );
   return {
     top: g,
     nodes,
@@ -2142,7 +2273,13 @@ function syncAnimUI() {
   if ('scale' in a) kids.push(field('Grow to ', number('scale', '%')));
   if ('angle' in a) kids.push(field('Angle ', number('angle', '°')));
   if ('size' in a)
-    kids.push(field(a.p === 'blurIn' ? 'Blur ' : 'Glow size ', number('size', 'px')));
+    kids.push(
+      field(
+        { blurIn: 'Blur ', ripple: 'Ring width ', patternScroll: 'Stripe width ' }[a.p] ||
+          'Glow size ',
+        number('size', 'px'),
+      ),
+    );
   const choose = (k, label, names) => {
     const s = document.createElement('select');
     s.dataset.animOpt = k;
@@ -2183,7 +2320,17 @@ function syncAnimUI() {
     c.type = 'color';
     c.dataset.animOpt = 'to';
     c.value = a.to;
-    kids.push(field(a.p === 'glowPulse' ? 'Glow colour ' : 'To colour ', c));
+    kids.push(
+      field(
+        {
+          glowPulse: 'Glow colour ',
+          ripple: 'Ring colour ',
+          gradientFlow: 'Second colour ',
+          patternScroll: 'Stripe colour ',
+        }[a.p] || 'To colour ',
+        c,
+      ),
+    );
   }
   if ('path' in a) {
     // Every outline it could follow, by name.
