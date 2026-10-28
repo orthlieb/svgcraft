@@ -191,3 +191,110 @@ test.describe('a browser that can’t write files', () => {
     expect(dl.suggestedFilename()).toBe('dot.svg');
   });
 });
+
+// File → Open Recent: the files opened and saved, newest first.
+// Clicking elsewhere puts the menus away.
+const shut = (page) =>
+  page.evaluate(() =>
+    document.body.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true })),
+  );
+const recentNames = async (page) => {
+  await page.click('.sc-menu-btn:text-is("File")');
+  await page.hover('.sc-sub-btn:has-text("Open Recent")');
+  const names = await page.locator('#sc-recent-list button').allTextContents();
+  await shut(page);
+  return names;
+};
+const openRecent = async (page, name) => {
+  await page.click('.sc-menu-btn:text-is("File")');
+  await page.hover('.sc-sub-btn:has-text("Open Recent")');
+  await page.locator('#sc-recent-list').getByRole('menuitem', { name, exact: true }).click();
+};
+const openNamed = async (page, name) => {
+  await page.evaluate((n) => (window.__openName = n), name);
+  await page.keyboard.press('Control+o');
+  await expect(tab(page)).toHaveText(new RegExp(`^${name.replace('.', '\\.')} `));
+};
+
+test('Open Recent lists files newest first, reopens them and keeps them over a reload', async ({
+  page,
+}) => {
+  await pickers(page);
+  expect(await recentNames(page)).toEqual(['No recent files']);
+  await expect(page.locator('#sc-recent-list button')).toBeDisabled();
+  await writeFile(page, 'a.svg', LOGO);
+  await writeFile(page, 'b.svg', LOGO.replace('#ff0000', '#00ff00'));
+  await openNamed(page, 'a.svg');
+  await openNamed(page, 'b.svg');
+  expect(await recentNames(page)).toEqual(['b.svg', 'a.svg', 'Clear Recent File List']);
+  // An open file: its tab comes forward, no second copy.
+  await openRecent(page, 'a.svg');
+  await expect(tab(page)).toHaveText(/^a\.svg /);
+  await expect(page.locator('.sc-doctab')).toHaveCount(2);
+  await page.locator('.sc-doctab:has-text("b.svg")').click();
+  // Closed, then changed on disk: it opens as it is now.
+  await page.click('.sc-doctab[aria-selected="true"] .sc-doctab-x');
+  await writeFile(page, 'b.svg', LOGO.replace('#ff0000', '#0000ff'));
+  await page.waitForTimeout(600); // kept in this browser
+  await served(page);
+  await pickers(page);
+  await openRecent(page, 'b.svg');
+  await expect(tab(page)).toHaveText(/^b\.svg /);
+  await expect(page.locator('#sc-doc rect')).toHaveAttribute('fill', '#0000ff');
+  // Save can still write to it.
+  await recolour(page, '#abcdef');
+  await page.keyboard.press('Control+s');
+  await expect.poll(() => readFile(page, 'b.svg')).toContain('#abcdef');
+  expect(await picks(page)).toEqual({ open: 0, save: 0 });
+});
+
+test('Save As… adds the new file; a gone file leaves the list; Clear empties it', async ({
+  page,
+}) => {
+  await pickers(page);
+  await writeFile(page, 'a.svg', LOGO);
+  await openNamed(page, 'a.svg');
+  await page.evaluate(() => (window.__saveName = 'copy.svg'));
+  await page.keyboard.press('Control+Shift+s');
+  await expect(tab(page)).toHaveText(/^copy\.svg /);
+  await expect
+    .poll(() => recentNames(page))
+    .toEqual(['copy.svg', 'a.svg', 'Clear Recent File List']);
+  await shut(page);
+  await page.evaluate(async () => (await navigator.storage.getDirectory()).removeEntry('a.svg'));
+  await openRecent(page, 'a.svg');
+  await expect(page.locator('#sc-alert-text')).toContainText('a.svg isn’t where it was');
+  expect(await recentNames(page)).toEqual(['copy.svg', 'Clear Recent File List']);
+  await openRecent(page, 'Clear Recent File List');
+  expect(await recentNames(page)).toEqual(['No recent files']);
+});
+
+test('without file access, Open Recent keeps a copy of each file opened', async ({ page }) => {
+  await page.evaluate(() => {
+    /* eslint-disable no-undef -- the editor's own globals */
+    for (const [name, fill] of [
+      ['one.svg', '#ff0000'],
+      ['two.svg', '#00ff00'],
+    ])
+      importFile(
+        new File(
+          [
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><rect width="5" height="5" fill="${fill}"/></svg>`,
+          ],
+          name,
+          { type: 'image/svg+xml' },
+        ),
+        'open',
+      );
+    /* eslint-enable no-undef */
+  });
+  await expect(page.locator('.sc-doctab')).toHaveCount(2);
+  await expect
+    .poll(() => recentNames(page))
+    .toEqual(['two.svg', 'one.svg', 'Clear Recent File List']);
+  await shut(page);
+  await page.click('.sc-doctab:has-text("one.svg") .sc-doctab-x');
+  await openRecent(page, 'one.svg');
+  await expect(tab(page)).toHaveText(/^one\.svg /);
+  await expect(page.locator('#sc-doc rect')).toHaveAttribute('fill', '#ff0000');
+});

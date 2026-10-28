@@ -753,7 +753,8 @@ Every open drawing gets a tab, as in Photoshop: see
 Work on several drawings at once, each in its own tab.
 
 - **File → Open…** (Ctrl+O) → the file opens in a tab of its own. An
-  untouched Untitled tab is reused.
+  untouched Untitled tab is reused. **File → Open Recent** lists the files
+  you've had open lately (see [Open Recent](#open-recent)).
 - Click a tab → switch to that drawing. Each tab keeps its own drawing, undo
   history and zoom.
 - Click a tab's ✕, middle-click it, or choose **File → Close** → closes the
@@ -773,6 +774,33 @@ Work on several drawings at once, each in its own tab.
 - Closing the last tab leaves a blank workspace, as in Photoshop. Only New,
   Open (or dropping a file on it) and the view settings work until a
   drawing is open, and it stays blank after a reload.
+
+### Open Recent
+
+![The File menu's Open Recent submenu, listing four drawings](docs/help/open-recent.png)
+
+Get back to a file you've worked on lately without hunting for it.
+
+1. Choose **File → Open Recent**.
+2. Click a file's name → it opens in a tab of its own. If it's already
+   open, its tab comes forward instead.
+
+#### Settings
+
+- **Clear Recent File List** → empties the list.
+
+#### Good to know
+
+- The list holds the last 10 files you opened (File → Open…, dropped on
+  the window, or opened with the installed app) or saved with Save As…,
+  newest first. It's kept in this browser, so it's still there after a
+  reload.
+- In Chrome, Edge and other Chromium browsers the list points at the files
+  themselves: a file opens as it is now, and Save goes back to it. The
+  browser may ask once a session before letting the page read it again. A
+  file that's been moved or deleted since is taken off the list.
+- Browsers that can't reach files later (Firefox, Safari, phones) keep a
+  copy of each file as it was opened instead (up to 5 MB each).
 
 ### Save and Save As
 

@@ -40,6 +40,7 @@ async function writeToFile(h) {
 // After a save: the tab takes the file's name and loses its *.
 function savedTo(d, h) {
   d.handle = h;
+  noteRecent(null, h);
   if (d !== curDoc) return;
   state.fileName = d.name = h.name.replace(/\.svg$/i, '');
   markSaved();
