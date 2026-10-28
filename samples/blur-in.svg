@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  <defs><filter id="sc-gen-6" x="-50%" y="-50%" width="200%" height="200%" data-sc-gen=""><feGaussianBlur stdDeviation="0" data-sc-gen=""><animate attributeName="stdDeviation" values="14;0;14" dur="2.4s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0 0 0.58 1;0 0 0.58 1" begin="0s"/></feGaussianBlur></filter></defs><title>Blur in</title>
+  <metadata>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">
+      <cc:Work rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+        <dc:title>Blur in</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <rect data-name="Background" width="400" height="300" fill="#f8fafc"/>
+  <g filter="url(#sc-gen-6)" data-sc-gen=""><text id="it" data-name="Label" x="200" y="165" font-family="Georgia, serif" font-size="44" font-weight="700" text-anchor="middle" fill="#0f172a" data-sc-anim="[{&quot;p&quot;:&quot;blurIn&quot;,&quot;dur&quot;:1.2,&quot;size&quot;:14,&quot;rep&quot;:0,&quot;dir&quot;:&quot;alternate&quot;}]">Focus</text></g>
+</svg>

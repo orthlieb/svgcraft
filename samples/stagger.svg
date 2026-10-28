@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  <title>Stagger</title>
+  <metadata>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">
+      <cc:Work rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+        <dc:title>Stagger</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <rect data-name="Background" width="400" height="300" fill="#f8fafc"/>
+  <g id="it" data-name="Dots" data-sc-anim="[{&quot;p&quot;:&quot;bounce&quot;,&quot;dur&quot;:1,&quot;rep&quot;:0,&quot;dist&quot;:40,&quot;stagger&quot;:0.12}]"><circle data-name="Dot 1" cx="100" cy="170" r="16" fill="#0ea5e9"><animateTransform attributeName="transform" type="translate" additive="sum" values="0 0;0 -40;0 0;0 -16;0 0" dur="1s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.3;0.6;0.8;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1" begin="0s" data-sc-gen=""/></circle><circle data-name="Dot 2" cx="150" cy="170" r="16" fill="#0ea5e9"><animateTransform attributeName="transform" type="translate" additive="sum" values="0 0;0 -40;0 0;0 -16;0 0" dur="1s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.3;0.6;0.8;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1" begin="0.12s" data-sc-gen=""/></circle><circle data-name="Dot 3" cx="200" cy="170" r="16" fill="#0ea5e9"><animateTransform attributeName="transform" type="translate" additive="sum" values="0 0;0 -40;0 0;0 -16;0 0" dur="1s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.3;0.6;0.8;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1" begin="0.24s" data-sc-gen=""/></circle><circle data-name="Dot 4" cx="250" cy="170" r="16" fill="#0ea5e9"><animateTransform attributeName="transform" type="translate" additive="sum" values="0 0;0 -40;0 0;0 -16;0 0" dur="1s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.3;0.6;0.8;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1" begin="0.36s" data-sc-gen=""/></circle><circle data-name="Dot 5" cx="300" cy="170" r="16" fill="#0ea5e9"><animateTransform attributeName="transform" type="translate" additive="sum" values="0 0;0 -40;0 0;0 -16;0 0" dur="1s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.3;0.6;0.8;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1" begin="0.48s" data-sc-gen=""/></circle></g>
+</svg>

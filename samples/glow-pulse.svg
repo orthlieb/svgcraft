@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  <defs><filter id="sc-gen-8" x="-50%" y="-50%" width="200%" height="200%" data-sc-gen=""><feGaussianBlur in="SourceAlpha" stdDeviation="10" result="soft" data-sc-gen=""/><feFlood flood-color="#f97316" flood-opacity="0" result="colour" data-sc-gen=""><animate attributeName="flood-opacity" values="0;1;0" dur="2s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" begin="0s"/></feFlood><feComposite in="colour" in2="soft" operator="in" result="glow" data-sc-gen=""/><feMerge data-sc-gen=""><feMergeNode in="glow" data-sc-gen=""/><feMergeNode in="SourceGraphic" data-sc-gen=""/></feMerge></filter></defs><title>Glow pulse</title>
+  <metadata>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">
+      <cc:Work rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+        <dc:title>Glow pulse</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <rect data-name="Background" width="400" height="300" fill="#f8fafc"/>
+  <g filter="url(#sc-gen-8)" data-sc-gen=""><polygon id="it" data-name="Star" points="200.0,70.0 221.2,120.9 276.1,125.3 234.2,161.1 247.0,214.7 200.0,186.0 153.0,214.7 165.8,161.1 123.9,125.3 178.8,120.9" fill="#fde047" data-sc-anim="[{&quot;p&quot;:&quot;glowPulse&quot;,&quot;dur&quot;:1,&quot;rep&quot;:0,&quot;dir&quot;:&quot;alternate&quot;,&quot;size&quot;:10,&quot;to&quot;:&quot;#f97316&quot;}]"/></g>
+</svg>

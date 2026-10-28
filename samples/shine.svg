@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  <defs><linearGradient id="sc-gen-11" x1="0" y1="0" x2="1" y2="0.35" gradientTransform="translate(-1 0)" data-sc-gen=""><stop offset="0.3" stop-color="#ffffff" stop-opacity="0" data-sc-gen=""/><stop offset="0.5" stop-color="#ffffff" stop-opacity="0.65" data-sc-gen=""/><stop offset="0.7" stop-color="#ffffff" stop-opacity="0" data-sc-gen=""/><animateTransform attributeName="gradientTransform" type="translate" values="-1 0;1 0" dur="1.8s" repeatCount="indefinite" calcMode="spline" keyTimes="0;1" keySplines="0.42 0 0.58 1" begin="0s"/></linearGradient><mask id="sc-gen-12" mask-type="alpha" data-sc-gen=""><use data-sc-gen="" href="#it"/></mask></defs><title>Shine</title>
+  <metadata>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">
+      <cc:Work rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+        <dc:title>Shine</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <rect data-name="Background" width="400" height="300" fill="#f8fafc"/>
+  <g data-sc-gen=""><rect id="it" data-name="Button" x="100" y="110" width="200" height="80" rx="40" fill="#2563eb" data-sc-anim="[{&quot;p&quot;:&quot;shine&quot;,&quot;dur&quot;:1.8,&quot;rep&quot;:0}]"/><rect x="100" y="110" width="200" height="80" fill="url(#sc-gen-11)" mask="url(#sc-gen-12)" pointer-events="none" data-sc-gen=""/></g>
+  <text data-name="Text" x="200" y="160" font-family="Georgia, serif" font-size="30" font-weight="700" text-anchor="middle" fill="#ffffff">Buy now</text>
+</svg>

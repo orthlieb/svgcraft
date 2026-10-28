@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  <title>Move along path</title>
+  <metadata>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">
+      <cc:Work rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+        <dc:title>Move along path</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <rect data-name="Background" width="400" height="300" fill="#f8fafc"/>
+  <path id="road" data-name="Road" d="M40 220C120 40 220 300 360 90" fill="none" stroke="#cbd5e1" stroke-width="14" stroke-linecap="round"/>
+  <path id="it" data-name="Arrow" d="M-18 -10L18 0L-18 10L-10 0Z" transform="translate(40 220)" fill="#dc2626" data-sc-anim="[{&quot;p&quot;:&quot;followPath&quot;,&quot;dur&quot;:4,&quot;rep&quot;:0,&quot;dir&quot;:&quot;alternate&quot;,&quot;ease&quot;:&quot;inout&quot;,&quot;path&quot;:&quot;road&quot;,&quot;orient&quot;:true,&quot;hide&quot;:false}]"><animateMotion path="M40 220C120 40 220 300 360 90" calcMode="spline" rotate="auto" keyPoints="0;1;0" dur="8s" repeatCount="indefinite" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" begin="0s"/><animateTransform attributeName="transform" type="translate" additive="sum" values="-40 -220;-40 -220;-40 -220" dur="8s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" begin="0s"/></path>
+</svg>
