@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  <title>Hinge</title>
+  <metadata>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">
+      <cc:Work rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+        <dc:title>Hinge</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <rect data-name="Background" width="400" height="300" fill="#f8fafc"/>
+  <rect id="it" data-name="Card" x="130" y="95" width="140" height="110" rx="16" fill="#64748b" data-sc-anim="[{&quot;p&quot;:&quot;hinge&quot;,&quot;dur&quot;:2.5,&quot;dist&quot;:300,&quot;rep&quot;:0}]"><animateTransform attributeName="transform" type="translate" additive="sum" values="0 0;0 0;0 0;0 0;0 0;0 300" dur="2.5s" repeatCount="indefinite" keyTimes="0;0.2;0.4;0.6;0.8;1" begin="0s"/><animateTransform attributeName="transform" type="rotate" additive="sum" values="0 130 95;80 130 95;60 130 95;80 130 95;60 130 95;60 130 95" dur="2.5s" repeatCount="indefinite" keyTimes="0;0.2;0.4;0.6;0.8;1" begin="0s"/><animate attributeName="opacity" values="1;1;1;1;1;0" dur="2.5s" repeatCount="indefinite" keyTimes="0;0.2;0.4;0.6;0.8;1" begin="0s"/></rect>
+</svg>

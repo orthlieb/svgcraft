@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  <title>Tada</title>
+  <metadata>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">
+      <cc:Work rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+        <dc:title>Tada</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <rect data-name="Background" width="400" height="300" fill="#f8fafc"/>
+  <polygon id="it" data-name="Star" points="200.0,70.0 221.2,120.9 276.1,125.3 234.2,161.1 247.0,214.7 200.0,186.0 153.0,214.7 165.8,161.1 123.9,125.3 178.8,120.9" fill="#f59e0b" data-sc-anim="[{&quot;p&quot;:&quot;tada&quot;,&quot;dur&quot;:1,&quot;rep&quot;:0,&quot;pause&quot;:1}]"><animateTransform attributeName="transform" type="translate" additive="sum" values="0 0;20 14.23;20 14.23;-20 -14.23;-20 -14.23;-20 -14.23;-20 -14.23;-20 -14.23;-20 -14.23;-20 -14.23;0 0;0 0" dur="2s" repeatCount="indefinite" keyTimes="0;0.05;0.1;0.15;0.2;0.25;0.3;0.35;0.4;0.45;0.5;1" begin="0s"/><animateTransform attributeName="transform" type="scale" additive="sum" values="1;0.9;0.9;1.1;1.1;1.1;1.1;1.1;1.1;1.1;1;1" dur="2s" repeatCount="indefinite" keyTimes="0;0.05;0.1;0.15;0.2;0.25;0.3;0.35;0.4;0.45;0.5;1" begin="0s"/><animateTransform attributeName="transform" type="rotate" additive="sum" values="0 200 142.35;-3 200 142.35;-3 200 142.35;3 200 142.35;-3 200 142.35;3 200 142.35;-3 200 142.35;3 200 142.35;-3 200 142.35;3 200 142.35;0 200 142.35;0 200 142.35" dur="2s" repeatCount="indefinite" keyTimes="0;0.05;0.1;0.15;0.2;0.25;0.3;0.35;0.4;0.45;0.5;1" begin="0s"/></polygon>
+</svg>

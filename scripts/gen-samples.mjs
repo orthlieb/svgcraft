@@ -90,6 +90,34 @@ const SAMPLES = [
     LABEL('Focus'),
     { it: [{ p: 'blurIn', dur: 1.2, size: 14, ...LOOP }] },
   ],
+  [
+    'drop-in',
+    'Drop in',
+    'Falls in from above and bounces to rest.',
+    DISC('#f97316'),
+    { it: [{ p: 'dropIn', dur: 1.2, dist: 140, ...LOOP }] },
+  ],
+  [
+    'back-in',
+    'Back in',
+    'Slides in, overshoots, and settles.',
+    CARD('#0d9488'),
+    { it: [{ p: 'backIn', dur: 1, from: 'left', dist: 120, ...LOOP }] },
+  ],
+  [
+    'roll-in',
+    'Roll in',
+    'Rolls in from the left.',
+    STAR(200, 150, 70, 'it', '#8b5cf6'),
+    { it: [{ p: 'rollIn', dur: 1, dist: 140, ...LOOP }] },
+  ],
+  [
+    'flip-in',
+    'Flip in',
+    'Turns into view.',
+    CARD('#e11d48'),
+    { it: [{ p: 'flipIn', dur: 0.9, ...LOOP }] },
+  ],
   // Exits.
   [
     'fade-out',
@@ -111,6 +139,13 @@ const SAMPLES = [
     'Shrinks away.',
     DISC('#65a30d'),
     { it: [{ p: 'zoomOut', dur: 1, ...LOOP }] },
+  ],
+  [
+    'hinge',
+    'Hinge',
+    'Swings on its corner, then drops away.',
+    CARD('#64748b'),
+    { it: [{ p: 'hinge', dur: 2.5, dist: 300, rep: 0 }] },
   ],
   // Loops.
   [
@@ -203,6 +238,41 @@ const SAMPLES = [
       },
     ).join('')}</g>`,
     { it: [{ p: 'flipbook', dur: 0.8, rep: 0 }] },
+  ],
+  [
+    'rubber-band',
+    'Rubber band',
+    'Squashes and stretches.',
+    CARD('#ec4899'),
+    { it: [{ p: 'rubberBand', dur: 1, rep: 0, pause: 1 }] },
+  ],
+  [
+    'tada',
+    'Tada',
+    'Grows with a wiggle: look at me!',
+    STAR(200, 150, 80, 'it', '#f59e0b'),
+    { it: [{ p: 'tada', dur: 1, rep: 0, pause: 1 }] },
+  ],
+  [
+    'head-shake',
+    'Head shake',
+    'A small shake that turns: no.',
+    DISC('#ef4444'),
+    { it: [{ p: 'headShake', dur: 1, rep: 0, dist: 10, pause: 0.8 }] },
+  ],
+  [
+    'wobble',
+    'Wobble',
+    'Sways side to side as it goes.',
+    CARD('#10b981'),
+    { it: [{ p: 'wobble', dur: 1, rep: 0, pause: 1 }] },
+  ],
+  [
+    'breathe',
+    'Breathe',
+    'A slow fade down and up.',
+    DISC('#3b82f6'),
+    { it: [{ p: 'breathe', dur: 3, rep: 0 }] },
   ],
   // Lines and colour.
   [

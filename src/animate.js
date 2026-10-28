@@ -28,6 +28,45 @@ const ANIM_PRESETS = {
   },
   popIn: { name: 'Pop in', group: 'Entrances', dur: 0.5, rep: 1, ease: 'out', enter: true },
   zoomIn: { name: 'Zoom in', group: 'Entrances', dur: 0.6, rep: 1, ease: 'out', enter: true },
+  // Falls in from above and bounces to rest; slides in and overshoots;
+  // rolls in; turns into view.
+  dropIn: {
+    name: 'Drop in',
+    group: 'Entrances',
+    dur: 1,
+    rep: 1,
+    ease: 'linear',
+    enter: true,
+    dist: 120,
+  },
+  backIn: {
+    name: 'Back in',
+    group: 'Entrances',
+    dur: 0.8,
+    rep: 1,
+    ease: 'out',
+    enter: true,
+    from: 'left',
+    dist: 80,
+  },
+  rollIn: {
+    name: 'Roll in',
+    group: 'Entrances',
+    dur: 0.9,
+    rep: 1,
+    ease: 'out',
+    enter: true,
+    dist: 120,
+  },
+  flipIn: {
+    name: 'Flip in',
+    group: 'Entrances',
+    dur: 0.8,
+    rep: 1,
+    ease: 'out',
+    enter: true,
+    axis: 'vertical',
+  },
   // Uncovered from a side, or from the middle out; and out of a blur.
   wipeIn: {
     name: 'Wipe in',
@@ -70,6 +109,8 @@ const ANIM_PRESETS = {
     dist: 40,
   },
   zoomOut: { name: 'Zoom out', group: 'Exits', dur: 0.6, rep: 1, ease: 'in', exit: true },
+  // Swings on its top-left corner, then drops away.
+  hinge: { name: 'Hinge', group: 'Exits', dur: 2, rep: 1, ease: 'linear', exit: true, dist: 300 },
   spin: { name: 'Spin', group: 'Loops', dur: 1.2, rep: 0, ease: 'linear', turns: 1 },
   pulse: { name: 'Pulse', group: 'Loops', dur: 1, rep: 0, ease: 'inout', scale: 115 },
   bounce: { name: 'Bounce', group: 'Loops', dur: 1, rep: 0, ease: 'inout', dist: 12 },
@@ -111,6 +152,13 @@ const ANIM_PRESETS = {
   },
   heartbeat: { name: 'Heartbeat', group: 'Loops', dur: 1.3, rep: 0, ease: 'linear', scale: 120 },
   jello: { name: 'Jello', group: 'Loops', dur: 0.9, rep: 1, ease: 'linear', angle: 12 },
+  // Squashed and stretched; a wiggling grow; a shake that turns; a sway;
+  // a slow fade down and up.
+  rubberBand: { name: 'Rubber band', group: 'Loops', dur: 1, rep: 0, ease: 'linear' },
+  tada: { name: 'Tada', group: 'Loops', dur: 1, rep: 0, ease: 'linear' },
+  headShake: { name: 'Head shake', group: 'Loops', dur: 1, rep: 0, ease: 'inout', dist: 6 },
+  wobble: { name: 'Wobble', group: 'Loops', dur: 1, rep: 0, ease: 'linear' },
+  breathe: { name: 'Breathe', group: 'Loops', dur: 3, rep: 0, ease: 'inout' },
   // Turned over like a card, about its centre, and back.
   flip: { name: 'Flip', group: 'Loops', dur: 1.2, rep: 1, ease: 'inout', axis: 'vertical' },
   // A text layer's letters shown one by one.
@@ -528,6 +576,13 @@ function animChannels(el, a) {
     },
   ];
   const side = { left: [-1, 0], right: [1, 0], top: [0, -1], bottom: [0, 1] }[a.from] || [0, 0];
+  // Turning (degrees) about a point.
+  const turn = (degs, px, py, keyTimes) => ({
+    tag: 'animateTransform',
+    attrs: { attributeName: 'transform', type: 'rotate', additive: 'sum' },
+    values: degs.map((t) => `${f(t)} ${f(px)} ${f(py)}`),
+    keyTimes,
+  });
   const len = () => (typeof el.getTotalLength === 'function' ? el.getTotalLength() : 0);
   switch (a.p) {
     case 'fadeIn':
@@ -566,6 +621,101 @@ function animChannels(el, a) {
       ];
     case 'pulse':
       return grow([1, a.scale / 100, 1]);
+    case 'dropIn':
+      return [
+        move(
+          [-1, 0, -0.25, 0, -0.08, 0].map((t) => [0, t * d]),
+          [0, 0.45, 0.65, 0.8, 0.9, 1],
+        ),
+        op([0, 1, 1], [0, 0.3, 1]),
+      ];
+    case 'backIn':
+      return [
+        move(
+          [1, -0.08, 0].map((t) => [side[0] * d * t, side[1] * d * t]),
+          [0, 0.7, 1],
+        ),
+        op([0, 1, 1], [0, 0.4, 1]),
+      ];
+    case 'rollIn':
+      return [
+        move([
+          [-d, 0],
+          [0, 0],
+        ]),
+        turn([-120, 0], cx, cy),
+        op([0, 1]),
+      ];
+    case 'flipIn': {
+      const kt = [0, 0.7, 1];
+      const pairs =
+        a.axis === 'horizontal'
+          ? [
+              [1, 0.01],
+              [1, 1.08],
+              [1, 1],
+            ]
+          : [
+              [0.01, 1],
+              [1.08, 1],
+              [1, 1],
+            ];
+      return [...growXY(pairs, kt), op([0, 1, 1], [0, 0.3, 1])];
+    }
+    case 'hinge': {
+      // Rotations about the top-left corner, then the fall.
+      const kt = [0, 0.2, 0.4, 0.6, 0.8, 1];
+      return [
+        move(
+          [0, 0, 0, 0, 0, 1].map((t) => [0, t * d]),
+          kt,
+        ),
+        turn([0, 80, 60, 80, 60, 60], b.x, b.y, kt),
+        op([1, 1, 1, 1, 1, 0], kt),
+      ];
+    }
+    case 'rubberBand':
+      return growXY(
+        [
+          [1, 1],
+          [1.25, 0.75],
+          [0.75, 1.25],
+          [1.15, 0.85],
+          [0.95, 1.05],
+          [1.05, 0.95],
+          [1, 1],
+        ],
+        [0, 0.3, 0.4, 0.5, 0.65, 0.75, 1],
+      );
+    case 'tada': {
+      const kt = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1];
+      return [
+        ...grow([1, 0.9, 0.9, 1.1, 1.1, 1.1, 1.1, 1.1, 1.1, 1.1, 1], kt),
+        turn([0, -3, -3, 3, -3, 3, -3, 3, -3, 3, 0], cx, cy, kt),
+      ];
+    }
+    case 'headShake': {
+      const kt = [0, 0.065, 0.185, 0.315, 0.435, 0.5, 1];
+      return [
+        move(
+          [0, -6, 5, -3, 2, 0, 0].map((t) => [(t / 6) * d, 0]),
+          kt,
+        ),
+        turn([0, -9, 7, -5, 3, 0, 0], cx, cy, kt),
+      ];
+    }
+    case 'wobble': {
+      const kt = [0, 0.15, 0.3, 0.45, 0.6, 0.75, 1];
+      return [
+        move(
+          [0, -0.25, 0.2, -0.15, 0.1, -0.05, 0].map((t) => [t * b.width, 0]),
+          kt,
+        ),
+        turn([0, -5, 3, -3, 2, -1, 0], cx, cy, kt),
+      ];
+    }
+    case 'breathe':
+      return [op([1, 0.4, 1])];
     case 'swing': {
       const [px, py] = {
         centre: [cx, cy],
@@ -1707,7 +1857,9 @@ function smilToAnims(el, notes, own) {
             if (i >= 0) setHits.push(i);
             else extra++;
           }
-          const score = setHits.length - extra;
+          // The preset that accounts for most of the file's elements wins (a Roll in,
+          // not a Slide in and a Spin), then the one matching its <set>s best.
+          const score = used.length * 100 + setHits.length - extra;
           if (!found || score > found.score) found = { a, used, setHits, score };
         }
       }
