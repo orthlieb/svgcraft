@@ -139,6 +139,22 @@ export default [
     },
   },
   {
+    id: 'open-recent',
+    async shoot(h) {
+      await h.page.evaluate(() => {
+        for (const name of ['badge.svg', 'map-pins.svg', 'poster.svg', 'logo.svg'])
+          // eslint-disable-next-line no-undef -- the editor's own global
+          noteRecent(new File(['<svg xmlns="http://www.w3.org/2000/svg"/>'], name));
+      });
+      await h.page.waitForTimeout(150);
+      await h.menu('File', 'open', { click: false });
+      await h.page.hover('.sc-sub-btn:has-text("Open Recent")');
+      await h.page.keyboard.press('Shift');
+      await h.page.locator('#sc-recent-list button').first().focus();
+      await menuShot(h);
+    },
+  },
+  {
     id: 'save-and-save-as',
     async shoot(h) {
       await h.menu('File', 'save', { click: false });

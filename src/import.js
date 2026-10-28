@@ -477,7 +477,10 @@ function importFile(file, mode, handle) {
   const r = new FileReader();
   if (file.type.startsWith('image/') && file.type !== 'image/svg+xml') {
     r.onload = () => {
-      if (!curDoc) newDoc({ name: file.name.replace(/\.[^.]+$/, '') || nextUntitled() });
+      if (!curDoc) {
+        newDoc({ name: file.name.replace(/\.[^.]+$/, '') || nextUntitled() });
+        noteRecent(file, handle);
+      }
       placeImage(r.result);
     };
     r.readAsDataURL(file);
@@ -486,8 +489,10 @@ function importFile(file, mode, handle) {
   r.onload = () => {
     try {
       const replace = mode === 'open' || (mode === 'auto' && !items().length);
-      if (replace) openDoc(r.result, file.name, handle);
-      else placeSvg(r.result, file.name);
+      if (replace) {
+        openDoc(r.result, file.name, handle);
+        noteRecent(file, handle);
+      } else placeSvg(r.result, file.name);
       say(`${replace ? 'Opened' : 'Imported'} ${file.name}`);
     } catch (err) {
       warn(err.message || 'Could not read that file');

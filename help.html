@@ -291,6 +291,7 @@
               <li><a href="#history-panel">History panel</a></li>
               <li><a href="#documents">Documents</a></li>
               <li><a href="#open-close-and-switch-tabs">Open, close and switch tabs</a></li>
+              <li><a href="#open-recent">Open Recent</a></li>
               <li><a href="#save-and-save-as">Save and Save As</a></li>
               <li><a href="#export">Export</a></li>
               <li><a href="#export-clean-svg">Export Clean SVG…</a></li>
@@ -1687,7 +1688,8 @@
             <ul>
               <li>
                 <strong>File → Open…</strong> (Ctrl+O) → the file opens in a tab of its own. An
-                untouched Untitled tab is reused.
+                untouched Untitled tab is reused. <strong>File → Open Recent</strong> lists the
+                files you've had open lately (see <a href="#open-recent">Open Recent</a>).
               </li>
               <li>
                 Click a tab → switch to that drawing. Each tab keeps its own drawing, undo history
@@ -1719,6 +1721,48 @@
                 Closing the last tab leaves a blank workspace, as in Photoshop. Only New, Open (or
                 dropping a file on it) and the view settings work until a drawing is open, and it
                 stays blank after a reload.
+              </li>
+            </ul>
+          </article>
+          <article id="open-recent" data-find>
+            <h3>Open Recent</h3>
+            <figure>
+              <img
+                src="docs/help/open-recent.png"
+                alt="The File menu's Open Recent submenu, listing four drawings"
+                width="471"
+                height="439"
+                loading="lazy"
+              />
+            </figure>
+            <p>Get back to a file you've worked on lately without hunting for it.</p>
+            <ol>
+              <li>Choose <strong>File → Open Recent</strong>.</li>
+              <li>
+                Click a file's name → it opens in a tab of its own. If it's already open, its tab
+                comes forward instead.
+              </li>
+            </ol>
+            <h4>Settings</h4>
+            <ul>
+              <li><strong>Clear Recent File List</strong> → empties the list.</li>
+            </ul>
+            <h4>Good to know</h4>
+            <ul>
+              <li>
+                The list holds the last 10 files you opened (File → Open…, dropped on the window, or
+                opened with the installed app) or saved with Save As…, newest first. It's kept in
+                this browser, so it's still there after a reload.
+              </li>
+              <li>
+                In Chrome, Edge and other Chromium browsers the list points at the files themselves:
+                a file opens as it is now, and Save goes back to it. The browser may ask once a
+                session before letting the page read it again. A file that's been moved or deleted
+                since is taken off the list.
+              </li>
+              <li>
+                Browsers that can't reach files later (Firefox, Safari, phones) keep a copy of each
+                file as it was opened instead (up to 5 MB each).
               </li>
             </ul>
           </article>

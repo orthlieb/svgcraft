@@ -42,6 +42,13 @@
             <button role="menuitem" data-action="open">
               <i data-icon="folder-open"></i><span>Open…</span><kbd>Ctrl+O</kbd>
             </button>
+            <div class="sc-submenu">
+              <button role="menuitem" class="sc-sub-btn" aria-haspopup="menu" aria-expanded="false">
+                <i data-icon="clock-rotate-left"></i><span>Open Recent</span
+                ><i data-icon="chevron-right" class="sc-sub-caret"></i>
+              </button>
+              <div class="sc-menu-list sc-sub-list" id="sc-recent-list" role="menu" hidden></div>
+            </div>
             <button role="menuitem" data-action="place">
               <i data-icon="file-import"></i><span>Import…</span>
             </button>
@@ -4375,6 +4382,7 @@
     <script src="src/export.js"></script>
     <script src="src/file-info.js"></script>
     <script src="src/save.js"></script>
+    <script src="src/recent.js"></script>
     <script src="src/clean-svg.js"></script>
     <script src="src/trace.js"></script>
     <script src="src/app-icons.js"></script>
