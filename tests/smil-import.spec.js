@@ -273,3 +273,66 @@ test('rings of circles turning both ways about their shared centre', async ({ pa
     'Kept the file’s 2 animations: edit them in the Animation tab.',
   );
 });
+
+// A loading spinner (from a file that came in with nothing kept): two rings
+// turning about their centre, and bars bobbing about their place, each a
+// little after the one before.
+const LOADER =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">' +
+  '<circle id="c1" fill="none" stroke="#000" stroke-width="6" stroke-dasharray="14.2472,14.2472" cx="50" cy="50" r="47">' +
+  '<animateTransform attributeName="transform" attributeType="XML" type="rotate" dur="5s" from="0 50 50" to="360 50 50" repeatCount="indefinite"/></circle>' +
+  '<g fill="#000">' +
+  [1, 2, 3]
+    .map(
+      (i) =>
+        `<rect id="b${i}" x="${20 + 10 * i}" y="35" width="5" height="30">` +
+        `<animateTransform attributeName="transform" dur="1s" type="translate" values="0 5 ; 0 -5; 0 5" repeatCount="indefinite" begin="0.${i}"/></rect>`,
+    )
+    .join('') +
+  '</g></svg>';
+
+test('opened from the blank workspace, a spinner’s rings and bobbing bars are all kept', async ({
+  page,
+}) => {
+  // No drawing open: the canvas is hidden until one is.
+  await page.click('.sc-doctab[aria-selected="true"] .sc-doctab-x');
+  await page.evaluate(
+    // eslint-disable-next-line no-undef -- the editor's own global
+    (t) => importFile(new File([t], 'loader.svg', { type: 'image/svg+xml' }), 'open'),
+    LOADER,
+  );
+  await expect(page.locator('#sc-msg')).toHaveText('Opened loader.svg');
+  expect(await anims(page, '#c1')).toEqual([
+    { p: 'spin', dur: 5, delay: 0, rep: 0, dir: 'normal', ease: 'linear', turns: 1 },
+  ]);
+  // Each bar: Float, 10 up and back, its resting place moved down 5.
+  expect(await anims(page, '#b2')).toEqual([
+    { p: 'float', dur: 0.5, delay: 0.2, rep: 0, dir: 'alternate', ease: 'linear', dist: 10 },
+  ]);
+  expect(await page.locator('#sc-doc #b2').getAttribute('transform')).toBe('matrix(1 0 0 1 0 5)');
+  await expect(alertText(page)).toHaveText('');
+  // Saved, it moves as the original did.
+  const out = await page.evaluate(() => window.svgcraft.serialize());
+  const where = async (svg, t) => {
+    const p2 = await page.context().newPage();
+    await p2.setContent(
+      `<body style="margin:0">${svg.replace('<svg ', '<svg width="100" height="100" ')}</body>`,
+    );
+    const r = await p2.evaluate((t) => {
+      const s = document.querySelector('svg');
+      s.pauseAnimations();
+      s.setCurrentTime(t);
+      const at = (id) => document.getElementById(id).getBoundingClientRect();
+      const c = document.getElementById('c1').getCTM();
+      return [
+        Math.round(at('b1').y * 10) / 10,
+        Math.round(at('b3').y * 10) / 10,
+        Math.round((Math.atan2(c.b, c.a) * 180) / Math.PI),
+      ];
+    }, t);
+    await p2.close();
+    return r;
+  };
+  for (const t of [0.75, 1.35, 2.2])
+    expect(await where(out, t), `at ${t}s`).toEqual(await where(LOADER, t));
+});

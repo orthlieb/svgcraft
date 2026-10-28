@@ -210,6 +210,9 @@ function addDoc(name) {
   state.fileName = name;
   hist.length = 0;
   hIdx = -1;
+  // Out of the blank workspace now, before the drawing goes in: hidden, its
+  // layers would measure nothing (an opened file's animations need sizes).
+  syncNoDoc();
   return d;
 }
 

@@ -1824,18 +1824,22 @@ function smilOptions(chs, dir, el) {
     o.origin = frac(...at);
   }
   const mv = chs.find((c) => c.type === 'translate');
+  // How far it goes (from the layer's place, or from where it starts), and
+  // which way.
+  const farthest = (vs) => vs.reduce((p, v) => (Math.hypot(...v) > Math.hypot(...p) ? v : p));
+  const side = (v) =>
+    Math.abs(v[0]) >= Math.abs(v[1]) ? (v[0] < 0 ? 'left' : 'right') : v[1] < 0 ? 'top' : 'bottom';
+  const k = Math.hypot(fullM(el).a, fullM(el).b) || 1;
+  let shifted = null;
   if (mv && fwd(mv)) {
-    const far = fwd(mv).reduce((p, v) => (Math.hypot(...v) > Math.hypot(...p) ? v : p));
-    const m = fullM(el);
-    o.dist = Math.hypot(...far) * (Math.hypot(m.a, m.b) || 1);
-    o.from =
-      Math.abs(far[0]) >= Math.abs(far[1])
-        ? far[0] < 0
-          ? 'left'
-          : 'right'
-        : far[1] < 0
-          ? 'top'
-          : 'bottom';
+    const far = farthest(fwd(mv));
+    o.dist = Math.hypot(...far) * k;
+    o.from = side(far);
+    const v0 = fwd(mv)[0];
+    if (Math.hypot(...v0) > 0.01) {
+      const rel = farthest(fwd(mv).map((v) => [v[0] - v0[0], v[1] - v0[1]]));
+      shifted = { dist: Math.hypot(...rel) * k, from: side(rel) };
+    }
   }
   // Stroke pulse: its widest, against the width it starts at.
   const sw = chs.find((c) => c.name === 'stroke-width');
@@ -1843,6 +1847,9 @@ function smilOptions(chs, dir, el) {
     o.scale = (Math.max(...fwd(sw).map((v) => v[0])) / fwd(sw)[0][0]) * 100;
   const col = chs.find((c) => c.name === 'fill');
   if (col && fwd(col)) o.to = fwd(col).at(-1);
+  // A move about another resting place (a bob from +5 to −5): the same
+  // presets, measured from where it starts, with the layer shifted there.
+  if (shifted) o.shifted = { ...o, ...shifted, shift: true };
   return o;
 }
 // An <animate> of a path's d as Morph (or null): from the path's own outline
@@ -2068,86 +2075,102 @@ function smilToAnims(el, notes, own) {
                 dur: c.dur - pause,
               }
             : c;
-        const opts = smilOptions(peers.map(run), dir, el);
-        for (const p of Object.keys(ANIM_PRESETS)) {
-          const def = ANIM_PRESETS[p];
-          const a = {
-            p,
-            dur: (first.dur - pause) / (dir === 'alternate' ? 2 : 1),
-            delay: first.begin,
-            rep: first.rep,
-            dir,
-            ease: smilEase(first),
-            ...timing,
-            ...(pause ? { pause } : {}),
-          };
-          for (const k of ['from', 'dist', 'turns', 'scale', 'to', 'angle', 'pivot', 'axis'])
-            if (k in def && opts[k] != null) a[k] = opts[k];
-          // A pivot of its own, if it isn't where the preset turns anyway.
-          if (PIVOT_PRESETS.has(p) && opts.origin) {
-            const [x, y] = animOrigin(a);
-            if (Math.hypot(opts.origin[0] - x, opts.origin[1] - y) > 0.002) a.origin = opts.origin;
-          }
-          if (animUnfit(el, p, a)) continue;
-          const ta = {
-            ...a,
-            _base: first.base,
-            _end: first.base && a.trigger === 'hover' && a.rep === 0 ? `${onId}.mouseout` : null,
-          };
-          const gen = animNodes(el, ta, false, a.delay).map((n) => ({
-            tag: n.localName,
-            attrs: Object.fromEntries([...n.attributes].map((x) => [x.name, x.value])),
-          }));
-          const chs = gen.filter((g) => g.tag !== 'set').map((g) => smilChannel(g, el));
-          if (!chs.length || chs.some((c) => !c)) continue;
-          const used = [];
-          for (const c of chs) {
-            const m = peers.find((g) => !used.includes(g) && smilSame(g, c, own));
-            if (!m) break;
-            used.push(m);
-          }
-          if (used.length !== chs.length || !used.includes(first)) {
-            const c0 = chs.find(
-              (c) => c.tag === first.tag && c.name === first.name && c.type === first.type,
-            );
-            if (!c0) continue;
-            wrote = true;
-            const ok = used.includes(first);
-            // Closer: more of the file's elements matched, the same first
-            // and last values, fewer extra elements of its own.
-            const same = (x, y) =>
-              typeof x === 'string' ? x === y : x.every((v, j) => smilNear(v, y[j] ?? NaN));
-            const ends =
-              same(first.values[0], c0.values[0]) + same(first.values.at(-1), c0.values.at(-1));
-            const score = (ok ? 1000 : 0) + used.length * 10 + ends * 3 - chs.length;
-            if (near && score <= near.score) continue;
-            const miss = chs[used.length];
-            const why = ok
-              ? `it also writes ${smilWhat(miss)} (${smilShow(miss)}), which the file doesn’t have with it.`
-              : smilDiff(first, c0, own, def.name) || 'it writes it differently.';
-            near = {
-              score,
-              text: `${def.name}${dir === 'normal' ? '' : ` (${DIRS[dir]})`}: ${why}`,
+        const opts0 = smilOptions(peers.map(run), dir, el);
+        for (const opts of [opts0, opts0.shifted].filter(Boolean))
+          for (const p of Object.keys(ANIM_PRESETS)) {
+            const def = ANIM_PRESETS[p];
+            const a = {
+              p,
+              dur: (first.dur - pause) / (dir === 'alternate' ? 2 : 1),
+              delay: first.begin,
+              rep: first.rep,
+              dir,
+              ease: smilEase(first),
+              ...timing,
+              ...(pause ? { pause } : {}),
             };
-            continue;
+            for (const k of ['from', 'dist', 'turns', 'scale', 'to', 'angle', 'pivot', 'axis'])
+              if (k in def && opts[k] != null) a[k] = opts[k];
+            // A pivot of its own, if it isn't where the preset turns anyway.
+            if (PIVOT_PRESETS.has(p) && opts.origin) {
+              const [x, y] = animOrigin(a);
+              if (Math.hypot(opts.origin[0] - x, opts.origin[1] - y) > 0.002)
+                a.origin = opts.origin;
+            }
+            if (animUnfit(el, p, a)) continue;
+            const ta = {
+              ...a,
+              _base: first.base,
+              _end: first.base && a.trigger === 'hover' && a.rep === 0 ? `${onId}.mouseout` : null,
+            };
+            const gen = animNodes(el, ta, false, a.delay).map((n) => ({
+              tag: n.localName,
+              attrs: Object.fromEntries([...n.attributes].map((x) => [x.name, x.value])),
+            }));
+            let chs = gen.filter((g) => g.tag !== 'set').map((g) => smilChannel(g, el));
+            if (!chs.length || chs.some((c) => !c)) continue;
+            // Shifted: its moves as they'd be with the layer moved by off.
+            let off = null;
+            if (opts.shift) {
+              const ct = chs.find((c) => c.type === 'translate');
+              if (first.type !== 'translate' || !ct) continue;
+              off = [0, 1].map((i) => first.values[0][i] - ct.values[0][i]);
+              if (Math.hypot(...off) < 0.01) continue;
+              chs = chs.map((c) =>
+                c.type === 'translate'
+                  ? { ...c, values: c.values.map((v) => [v[0] + off[0], v[1] + off[1]]) }
+                  : c,
+              );
+            }
+            const used = [];
+            for (const c of chs) {
+              const m = peers.find((g) => !used.includes(g) && smilSame(g, c, own));
+              if (!m) break;
+              used.push(m);
+            }
+            if (used.length !== chs.length || !used.includes(first)) {
+              if (off) continue;
+              const c0 = chs.find(
+                (c) => c.tag === first.tag && c.name === first.name && c.type === first.type,
+              );
+              if (!c0) continue;
+              wrote = true;
+              const ok = used.includes(first);
+              // Closer: more of the file's elements matched, the same first
+              // and last values, fewer extra elements of its own.
+              const same = (x, y) =>
+                typeof x === 'string' ? x === y : x.every((v, j) => smilNear(v, y[j] ?? NaN));
+              const ends =
+                same(first.values[0], c0.values[0]) + same(first.values.at(-1), c0.values.at(-1));
+              const score = (ok ? 1000 : 0) + used.length * 10 + ends * 3 - chs.length;
+              if (near && score <= near.score) continue;
+              const miss = chs[used.length];
+              const why = ok
+                ? `it also writes ${smilWhat(miss)} (${smilShow(miss)}), which the file doesn’t have with it.`
+                : smilDiff(first, c0, own, def.name) || 'it writes it differently.';
+              near = {
+                score,
+                text: `${def.name}${dir === 'normal' ? '' : ` (${DIRS[dir]})`}: ${why}`,
+              };
+              continue;
+            }
+            // The file's <set>s it accounts for, less any it would add: what
+            // plays must stay as it was, so a delayed fade in with no <set> to
+            // start it hidden comes back as a reversed Fade out, which has none.
+            const setHits = [];
+            let extra = 0;
+            for (const g of gen.filter((x) => x.tag === 'set')) {
+              const i = sets.findIndex(
+                (x, j) => !setsUsed.has(j) && !setHits.includes(j) && smilSameSet(x, g),
+              );
+              if (i >= 0) setHits.push(i);
+              else extra++;
+            }
+            // The preset that accounts for most of the file's elements wins (a Roll in,
+            // not a Slide in and a Spin), then the one matching its <set>s best.
+            const score = used.length * 100 + setHits.length - extra - (off ? 1 : 0);
+            if (!found || score > found.score) found = { a, used, setHits, score, off };
           }
-          // The file's <set>s it accounts for, less any it would add: what
-          // plays must stay as it was, so a delayed fade in with no <set> to
-          // start it hidden comes back as a reversed Fade out, which has none.
-          const setHits = [];
-          let extra = 0;
-          for (const g of gen.filter((x) => x.tag === 'set')) {
-            const i = sets.findIndex(
-              (x, j) => !setsUsed.has(j) && !setHits.includes(j) && smilSameSet(x, g),
-            );
-            if (i >= 0) setHits.push(i);
-            else extra++;
-          }
-          // The preset that accounts for most of the file's elements wins (a Roll in,
-          // not a Slide in and a Spin), then the one matching its <set>s best.
-          const score = used.length * 100 + setHits.length - extra;
-          if (!found || score > found.score) found = { a, used, setHits, score };
-        }
       }
     if (!found) {
       drop(
@@ -2162,6 +2185,7 @@ function smilToAnims(el, notes, own) {
     }
     pool = pool.filter((c) => !found.used.includes(c));
     for (const i of found.setHits) setsUsed.add(i);
+    if (found.off) setM(el, getM(el).translate(...found.off));
     anims.push(found.a);
   }
   sets.forEach((n, j) => {

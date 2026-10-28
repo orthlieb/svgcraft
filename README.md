@@ -1227,6 +1227,9 @@ edit and play:
   repeats, direction and ease.
 - A file saved by Export Clean SVG (which drops SVGCraft's settings) comes
   back with the animations it had.
+- A move about another resting place (bars bobbing from 5 below to 5
+  above) becomes the preset that moves that way (here **Float**, 10 up and
+  back), with the layer moved to where the move starts.
 - What no preset does is left out, and a message says how many; its
   **More info** button says which and why (see
   [Animations left out](#animations-left-out)). Among them: a motion at a
