@@ -2,4 +2,4 @@
 // scripts/gen-version.mjs. src/update.js compares it with the server's.
 'use strict';
 
-const APP_VERSION = 'bcfc31ff1ab2';
+const APP_VERSION = '59cd7227768a';

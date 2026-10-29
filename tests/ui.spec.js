@@ -305,3 +305,15 @@ test('» collapses the panels to icons that pop each panel out', async ({ page }
   expect((await panel.boundingBox()).width).toBeGreaterThan(250);
   await expect(props).toHaveClass(/collapsed/);
 });
+
+// Icons are inlined wherever they're used, some copies in hidden menus: an
+// id (a gradient's, a clip's) would repeat, and Chrome draws nothing that
+// points at one inside a hidden copy.
+test('no icon relies on an id', async ({ page }) => {
+  const bad = await page.evaluate(() =>
+    Object.entries(window.SC_ICONS)
+      .filter(([, svg]) => /\sid=|url\(#|href="#/.test(svg))
+      .map(([k]) => k),
+  );
+  expect(bad).toEqual([]);
+});
