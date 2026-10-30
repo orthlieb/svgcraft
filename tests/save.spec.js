@@ -66,15 +66,17 @@ const writeFile = (page, name, text) =>
     },
     [name, text],
   );
-// Reading while a save is still writing the file can fail (NotReadableError);
-// that reads as empty, so expect.poll tries again.
+// Reading while a save is still writing the file can fail: busy
+// (NotReadableError), or, as the browser swaps the new copy in, briefly
+// not there (NotFoundError). Either reads as empty, so expect.poll tries
+// again.
 const readFile = (page, name) =>
   page.evaluate(async (name) => {
     const root = await navigator.storage.getDirectory();
     try {
       return await (await (await root.getFileHandle(name)).getFile()).text();
     } catch (e) {
-      if (e.name === 'NotReadableError') return '';
+      if (e.name === 'NotReadableError' || e.name === 'NotFoundError') return '';
       throw e;
     }
   }, name);
