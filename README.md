@@ -2263,7 +2263,12 @@ and nothing on screen changes.
 - Shapes alike in every way that shows become one path. Side by side, their
   outlines are joined; overlapping, they're united, which looks the same
   only for opaque fills with no stroke.
-- Anything else becomes one group.
+- Anything else becomes one group, with the alike shapes in it joined the
+  same way: three red shapes and a blue one become a group of one red path
+  and the blue shape.
+- A shape is only joined to one lower down when nothing between them
+  overlaps it, so what's on top stays on top. Shapes that can't join keep
+  their own layers in the group.
 
 ### Group by Colour
 
