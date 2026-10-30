@@ -22,6 +22,7 @@ function renderPatEditor() {
   };
   set('#sc-pat-scale', Math.round((p.scale || 1) * 100));
   set('#sc-pat-angle', Math.round(p.angle || 0));
+  $('#sc-pat-with').checked = !!p.withShape;
 }
 function editPat(fn, final = true) {
   const p = activePat();
@@ -39,6 +40,9 @@ function wirePatEditor() {
     manage: () => showTab('patterns'),
     manageLabel: 'Manage in the Patterns panel',
   });
+  $('#sc-pat-with').addEventListener('change', (e) =>
+    editPat((p) => (p.withShape = e.target.checked)),
+  );
   for (const [sel, set] of [
     ['#sc-pat-scale', (p, v) => (p.scale = clamp(v, 5, 5000) / 100)],
     ['#sc-pat-angle', (p, v) => (p.angle = ((((v + 180) % 360) + 360) % 360) - 180)],

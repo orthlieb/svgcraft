@@ -413,7 +413,8 @@ export default [
       await tall(h, COLOR_GROUP);
       await h.page.click('[aria-label="Fill type"] [data-kind="linear"]');
       await h.page.waitForSelector('#sc-grad-preset:visible');
-      await h.page.selectOption('#sc-grad-preset', { label: 'Sunset' });
+      await h.page.click('#sc-grad-preset');
+      await h.page.click('#sc-libpick-pop .sc-libpick-tile[data-id="sunset"]');
       await h.shot(null, await panel(h, COLOR_GROUP));
     },
   },

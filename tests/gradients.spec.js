@@ -89,7 +89,8 @@ const makeLinear = (page) => page.click('[data-kind-for="fill"] [data-kind="line
 async function sunset(page) {
   await makeLinear(page);
   await setField(page, '#sc-grad-angle', 90);
-  await page.selectOption('#sc-grad-preset', 'sunset');
+  await page.click('#sc-grad-preset');
+  await page.click('#sc-libpick-pop .sc-libpick-tile[data-id="sunset"]');
 }
 
 // Click the bar at 50% and recolour the new stop green from Swatches.
@@ -261,7 +262,8 @@ test('a duplicate shares the gradient until one of them is edited', async ({ pag
   await expect(ourGrads(page)).toHaveCount(1);
 
   await tab(page, 'color');
-  await page.selectOption('#sc-grad-preset', 'ocean');
+  await page.click('#sc-grad-preset');
+  await page.click('#sc-libpick-pop .sc-libpick-tile[data-id="ocean"]');
   const [a2, b2] = await fills();
   expect(a2).toMatch(/^url\(#sc-grad-\d+\)$/);
   expect(b2).toMatch(/^url\(#sc-grad-\d+\)$/);

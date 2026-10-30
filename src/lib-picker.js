@@ -14,12 +14,13 @@
 // manage() (show the panel) and manageLabel.
 let libPickOpen = null; // the picker showing
 // The pickers, kept in step by the panels: { symbols, patterns }.
-const libPickers = { symbols: null, patterns: null };
+const libPickers = { symbols: null, patterns: null, gradients: null };
 // Tile pictures: a library symbol in ink on white, a pattern in the active
-// paint's colour.
+// paint's colour, a gradient left to right over a checkerboard.
 const libSymThumb = (it) => `${libSymCss(it)} center / contain no-repeat content-box, #fff`;
 const libPatThumb = (it, small) =>
   `${patCss({ ...it, scale: 1 }, state[state.active], small ? 0.7 : 1.5)}, var(--field)`;
+const libGradThumb = (it) => `${gradCss(it)}, var(--checker) 0 0 / 8px 8px`;
 function libPicker(btn, opts) {
   btn.classList.add('sc-libpick');
   btn.type = 'button';

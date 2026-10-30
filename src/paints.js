@@ -230,11 +230,38 @@ function patFor(el, attr) {
     svg: p.innerHTML,
     scale: n('data-scale', 1),
     angle: parseFloat(p.getAttribute('data-angle')) || 0,
+    withShape: p.hasAttribute('data-with-shape'),
   };
 }
 // The ink a pattern paint was given (its `color`), for the colour fields.
 const patInk = (el, attr) =>
   hex(document.getElementById(urlId(getComputedStyle(el)[attr])).getAttribute('color'));
+
+// A pattern's transform: its tile starts at the shape's top-left corner and
+// turns with the shape. Unless it scales with the shape (withShape), it
+// keeps its size when the shape is scaled, stretched or skewed: the shape's
+// scale and skew are undone, keeping only its rotation.
+function patTransform(el, model) {
+  let b;
+  try {
+    b = el.getBBox();
+  } catch {
+    b = { x: 0, y: 0 };
+  }
+  const sc = clamp(model.scale || 1, 0.05, 50);
+  let keep = '';
+  if (!model.withShape) {
+    const M = fullM(el);
+    const L = new DOMMatrix([M.a, M.b, M.c, M.d, 0, 0]);
+    const C = L.inverse().rotate((Math.atan2(M.b, M.a) * 180) / Math.PI);
+    if (![C.a - 1, C.b, C.c, C.d - 1].every((v) => Math.abs(v) < 1e-6) && isFinite(C.a))
+      keep = `${matrixAttr(C)} `;
+  }
+  return (
+    (paintSpaceM(el) ? `${matrixAttr(paintSpaceM(el).inverse())} ` : '') +
+    `translate(${f(b.x)} ${f(b.y)}) ${keep}rotate(${f(model.angle || 0)}) scale(${f(sc)})`
+  );
+}
 
 function setPatPaint(el, attr, model, ink) {
   const id = paintRef(el, attr);
@@ -244,20 +271,12 @@ function setPatPaint(el, attr, model, ink) {
     p = mk('pattern', { id: newDefId('sc-pat') });
     defs.append(p);
   }
-  let b;
-  try {
-    b = el.getBBox();
-  } catch {
-    b = { x: 0, y: 0 };
-  }
   const sc = clamp(model.scale || 1, 0.05, 50);
   for (const [k, v] of Object.entries({
     patternUnits: 'userSpaceOnUse',
     width: f(model.w),
     height: f(model.h),
-    patternTransform:
-      (paintSpaceM(el) ? `${matrixAttr(paintSpaceM(el).inverse())} ` : '') +
-      `translate(${f(b.x)} ${f(b.y)}) rotate(${f(model.angle || 0)}) scale(${f(sc)})`,
+    patternTransform: patTransform(el, model),
     color: ink,
     'data-sc-pat': model.id || '',
     'data-name': model.name,
@@ -265,9 +284,28 @@ function setPatPaint(el, attr, model, ink) {
     'data-angle': f(model.angle || 0),
   }))
     p.setAttribute(k, v);
+  p.toggleAttribute('data-with-shape', !!model.withShape);
   if (p.innerHTML !== model.svg) p.innerHTML = model.svg;
   el.style?.removeProperty(attr);
   el.setAttribute(attr, `url(#${p.id})`);
+}
+
+// After shapes are scaled: their patterns back to their own size (`els`
+// and what's in them, or the whole drawing).
+function syncPatterns(els) {
+  const Q = '[fill^="url(#"], [stroke^="url(#"]';
+  const all = els
+    ? els.flatMap((el) => [...(el.matches?.(Q) ? [el] : []), ...el.querySelectorAll(Q)])
+    : [...doc.querySelectorAll(Q)];
+  for (const el of all)
+    for (const attr of ['fill', 'stroke']) {
+      if (!el.getAttribute(attr)?.startsWith('url(#')) continue;
+      const model = patFor(el, attr);
+      if (!model || model.withShape) continue;
+      const p = document.getElementById(paintRef(el, attr));
+      if (p?.getAttribute('patternTransform') !== patTransform(el, model))
+        setPatPaint(el, attr, model, patInk(el, attr));
+    }
 }
 
 // A CSS background showing the tile, for chips and the Patterns panel.

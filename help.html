@@ -3010,7 +3010,7 @@
                 src="docs/help/gradients.png"
                 alt="The Color panel's gradient editor with a four-stop gradient"
                 width="271"
-                height="613"
+                height="647"
                 loading="lazy"
               />
             </figure>
@@ -3041,8 +3041,10 @@
               <li><strong>Angle</strong>: the direction, in degrees.</li>
               <li><strong>Reverse</strong> (⇄) flips the stops.</li>
               <li>
-                <strong>Presets</strong>: Colour → Transparent, plus everything in the Gradients
-                panel.
+                <strong>Presets</strong>: the button beside the title shows the gradient in use (or
+                <strong>Custom</strong>). Click it for the tiles: Colour → Transparent, plus
+                everything in the Gradients panel, which marks the same one. Picking a tile swaps in
+                its stops and keeps the type and angle.
               </li>
               <li><strong>+</strong> saves the gradient to the Gradients panel.</li>
             </ul>
@@ -3192,9 +3194,10 @@
                 <strong>Type</strong> to Pattern in the Color panel.
               </li>
               <li>
-                Adjust it in the pattern editor: <strong>Scale</strong>, <strong>Angle</strong>, or
-                another pattern: click the pattern's name for the library's tiles (the same ones as
-                the Patterns panel, which marks the one in use).
+                Adjust it in the pattern editor: <strong>Scale</strong>, <strong>Angle</strong>,
+                <strong>Scale with shape</strong>, or another pattern: click the pattern's name for
+                the library's tiles (the same ones as the Patterns panel, which marks the one in
+                use).
               </li>
             </ol>
             <figure>
@@ -3206,6 +3209,16 @@
                 loading="lazy"
               />
             </figure>
+            <h4>Scale with shape</h4>
+            <ul>
+              <li>
+                Off (the default): scaling, stretching or skewing the shape leaves the tiles their
+                size, so a bigger shape shows more of the pattern. They still move and turn with it.
+              </li>
+              <li>
+                On: the tiles grow, shrink and stretch with the shape, as if it were one picture.
+              </li>
+            </ul>
             <h4>Make your own</h4>
             <ul>
               <li>
@@ -3226,7 +3239,9 @@
               <li>The tiles start at the shape's top-left corner.</li>
               <li>
                 As with gradients, each shape gets its own <code>&lt;pattern&gt;</code> in its own
-                coordinates, so the pattern moves and rotates with the shape.
+                coordinates. Unless <strong>Scale with shape</strong> is on, its
+                <code>patternTransform</code> undoes the shape's scale and skew, and is kept so as
+                the shape changes.
               </li>
               <li>Patterns export as plain SVG.</li>
             </ul>

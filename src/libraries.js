@@ -214,7 +214,12 @@ function applyLibGrad(g, e) {
 function applyLibPat(p, e) {
   const k = e?.shiftKey ? otherPaint() : state.active;
   const cur = state[k + 'Pat'];
-  state[k + 'Pat'] = { ...p, scale: cur?.scale || 1, angle: cur?.angle || 0 };
+  state[k + 'Pat'] = {
+    ...p,
+    scale: cur?.scale || 1,
+    angle: cur?.angle || 0,
+    withShape: !!cur?.withShape,
+  };
   state[k + 'Grad'] = null;
   state[k + 'On'] = true;
   styleChanged(k, true);
@@ -260,19 +265,8 @@ function renderLibraries() {
     ...lib.gradients.map((x) => libTile('gradients', x, libGradCss(x), (e) => applyLibGrad(x, e))),
   );
   renderPatTiles(true);
-  // The gradient editor's Presets list and the pattern editor's picker follow
-  // the library too.
-  const presets = $('#sc-grad-preset');
-  presets.replaceChildren(
-    Object.assign(document.createElement('option'), { value: '', textContent: 'Presets…' }),
-    Object.assign(document.createElement('option'), {
-      value: 'fade',
-      textContent: GRAD_PRESETS.fade[0],
-    }),
-    ...lib.gradients.map((x) =>
-      Object.assign(document.createElement('option'), { value: x.id, textContent: x.name }),
-    ),
-  );
+  // The gradient and pattern editors' pickers follow the library too.
+  libPickers.gradients?.sync();
   renderPatEditor();
   renderSymLib();
 }

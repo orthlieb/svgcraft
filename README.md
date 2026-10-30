@@ -1560,8 +1560,10 @@ Fill or stroke a shape with a smooth blend of colours.
   deletes it.
 - **Angle**: the direction, in degrees.
 - **Reverse** (⇄) flips the stops.
-- **Presets**: Colour → Transparent, plus everything in the Gradients
-  panel.
+- **Presets**: the button beside the title shows the gradient in use (or
+  **Custom**). Click it for the tiles: Colour → Transparent, plus
+  everything in the Gradients panel, which marks the same one. Picking a
+  tile swaps in its stops and keeps the type and angle.
 - **+** saves the gradient to the Gradients panel.
 
 #### Tips
@@ -1645,11 +1647,20 @@ tile you make.
 1. Select a shape and make fill or stroke the active paint.
 2. Click a tile in the **Patterns** panel, or set the paint's **Type** to
    Pattern in the Color panel.
-3. Adjust it in the pattern editor: **Scale**, **Angle**, or another
+3. Adjust it in the pattern editor: **Scale**, **Angle**, **Scale with
+   shape**, or another
    pattern: click the pattern's name for the library's tiles (the same
    ones as the Patterns panel, which marks the one in use).
 
 ![The pattern editor's picker open, with the library's patterns as tiles](docs/help/patterns-picker.png)
+
+#### Scale with shape
+
+- Off (the default): scaling, stretching or skewing the shape leaves the
+  tiles their size, so a bigger shape shows more of the pattern. They
+  still move and turn with it.
+- On: the tiles grow, shrink and stretch with the shape, as if it were
+  one picture.
 
 #### Make your own
 
@@ -1665,7 +1676,8 @@ tile you make.
   colour re-inks them.
 - The tiles start at the shape's top-left corner.
 - As with gradients, each shape gets its own `<pattern>` in its own
-  coordinates, so the pattern moves and rotates with the shape.
+  coordinates. Unless **Scale with shape** is on, its `patternTransform`
+  undoes the shape's scale and skew, and is kept so as the shape changes.
 - Patterns export as plain SVG.
 
 ### Libraries

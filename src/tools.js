@@ -193,6 +193,7 @@ tools.select = {
       T = new DOMMatrix().translate(c.x, c.y).rotate(deg).translate(-c.x, -c.y);
     }
     state.sel.forEach((el, i) => transformDoc(el, T, g.m0[i]));
+    syncPatterns(state.sel);
     g.T = T;
     g.changed = true;
     drawSelection();

@@ -159,7 +159,11 @@ test.describe('gradients', () => {
     await answer(page, 'My grad');
     expect((await stored(page)).gradients.at(-1)).toMatchObject({ name: 'My grad' });
     expect((await stored(page)).gradients.at(-1).stops[0].c).toBe('#00ff00');
-    await expect(page.locator('#sc-grad-preset option', { hasText: 'My grad' })).toHaveCount(1);
+    // The editor's picker has it, and shows it in use.
+    await expect(page.locator('#sc-grad-preset')).toHaveText('My grad');
+    await page.click('#sc-grad-preset');
+    await expect(page.locator('#sc-libpick-pop .sc-libpick-tile.sel')).toHaveText('My grad');
+    await page.keyboard.press('Escape');
 
     await select(page, 'b');
     await tiles(page, 'sc-gradlib').last().click();
@@ -177,7 +181,8 @@ test.describe('gradients', () => {
     await select(page, 'a');
     await tab(page, 'color');
     await page.click('[data-kind-for="fill"] [data-kind="linear"]');
-    await page.selectOption('#sc-grad-preset', 'ocean');
+    await page.click('#sc-grad-preset');
+    await page.click('#sc-libpick-pop .sc-libpick-tile[data-id="ocean"]');
     expect((await paintDef(page, 'a')).stops).toEqual(['#67e8f9', '#0ea5e9', '#1e3a8a']);
   });
 });
@@ -232,6 +237,63 @@ test.describe('pattern paint', () => {
     const d = await paintDef(page, 'a');
     expect(d.html).toContain('<rect');
     expect(d.tf).toContain('scale(2)');
+  });
+
+  test('scaling the shape keeps the tiles their size; Scale with shape lets them grow', async ({
+    page,
+  }) => {
+    // The tile's size and turn on the page: the shape's transform, then the pattern's.
+    const tile = () =>
+      page.evaluate(() => {
+        const a = document.getElementById('a');
+        const id = /#([^)]+)/.exec(a.getAttribute('fill'))[1];
+        const P = document.getElementById(id).patternTransform.baseVal.consolidate().matrix;
+        const M = a.transform.baseVal.consolidate()?.matrix || new DOMMatrix();
+        const T = new DOMMatrix([M.a, M.b, M.c, M.d, M.e, M.f]).multiply(
+          new DOMMatrix([P.a, P.b, P.c, P.d, P.e, P.f]),
+        );
+        const r = (v) => Math.round(v * 100) / 100;
+        return {
+          sx: r(Math.hypot(T.a, T.b)),
+          sy: r(Math.hypot(T.c, T.d)),
+          deg: r((Math.atan2(T.b, T.a) * 180) / Math.PI),
+        };
+      });
+    const width = async (w) => {
+      await page.evaluate(() => window.svgcraft.setTool('select'));
+      await page.keyboard.press('Alt+t');
+      await page.fill('[data-tf="w"]', String(w));
+      await page.press('[data-tf="w"]', 'Enter');
+      await page.keyboard.press('Enter');
+    };
+    await width(200);
+    expect(
+      await page.evaluate(() => document.getElementById('a').getAttribute('transform')),
+    ).toMatch(/matrix\(2 /);
+    expect(await tile()).toEqual({ sx: 1, sy: 1, deg: 0 });
+    // Turned, it turns with the shape, still its own size.
+    await page.evaluate(() => {
+      const a = document.getElementById('a');
+      a.setAttribute('transform', `rotate(30 70 60) ${a.getAttribute('transform')}`);
+      window.svgcraft.commit();
+    });
+    expect(await tile()).toEqual({ sx: 1, sy: 1, deg: 30 });
+    // Undo: back to the stretched shape, the tiles still their size.
+    await page.keyboard.press('Control+z');
+    expect(await tile()).toEqual({ sx: 1, sy: 1, deg: 0 });
+    // Scale with shape: they stretch with it.
+    await select(page, 'a');
+    await tab(page, 'color');
+    await expect(page.locator('#sc-pat-with')).not.toBeChecked();
+    await page.check('#sc-pat-with');
+    expect(await tile()).toEqual({ sx: 2, sy: 1, deg: 0 });
+    await width(100);
+    expect(await tile()).toEqual({ sx: 1, sy: 1, deg: 0 });
+    // It travels in the file.
+    const svg = await page.evaluate(() => window.svgcraft.serialize());
+    await page.evaluate((t) => window.svgcraft.openSvg(t, 'p.svg'), svg);
+    await select(page, 'a');
+    await expect(page.locator('#sc-pat-with')).toBeChecked();
   });
 
   test('a duplicate gets its own pattern once edited; undo works', async ({ page }) => {

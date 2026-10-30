@@ -1966,9 +1966,7 @@
           <div class="sc-pbody sc-grad" id="sc-grad" hidden>
             <div class="sc-grad-head">
               <span class="sc-subhead" id="sc-grad-title">Fill gradient</span>
-              <select id="sc-grad-preset" aria-label="Gradient presets">
-                <option value="">Presets…</option>
-              </select>
+              <button id="sc-grad-preset"></button>
               <button
                 class="sc-ibtn"
                 id="sc-grad-save"
@@ -2074,6 +2072,11 @@
                 /><span class="sc-unit">°</span></label
               >
             </div>
+            <label
+              class="sc-check"
+              data-tip="Off: the tiles keep their size when you scale the shape"
+              ><input type="checkbox" id="sc-pat-with" /> Scale with shape</label
+            >
             <p class="sc-hint">
               The paint's colour inks the built-in patterns. Pick another above, or in the Patterns
               panel.
