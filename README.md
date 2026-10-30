@@ -2736,6 +2736,8 @@ go its own way.
   select them and choose **Object → Break Link to Symbol** (or the panel's
   broken-link button). They get their own copies of any gradients or
   effects inside.
+- Breaking the link of a symbol's last instance removes the symbol from the
+  Symbols panel too (Undo brings it back).
 
 #### Colour
 
