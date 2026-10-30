@@ -227,7 +227,8 @@ test.describe('pattern paint', () => {
       name: 'Dots',
       scale: 2,
     });
-    await page.selectOption('#sc-pat-pick', 'stripes');
+    await page.click('#sc-pat-pick');
+    await page.click('#sc-libpick-pop .sc-libpick-tile[data-id="stripes"]');
     const d = await paintDef(page, 'a');
     expect(d.html).toContain('<rect');
     expect(d.tf).toContain('scale(2)');

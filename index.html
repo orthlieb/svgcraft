@@ -1183,9 +1183,8 @@
         <label class="sc-check"><input type="checkbox" data-shape-opt="arrowEnd" /> End</label>
       </div>
       <div class="sc-opt" data-for="custom">
-        <label class="sc-field"
-          >Shape:<select id="sc-custom-shape" aria-label="Custom shape"></select
-        ></label>
+        <span class="sc-opt-label">Shape:</span>
+        <button id="sc-custom-shape"></button>
       </div>
       <div class="sc-opt" data-for="pencil">
         <label class="sc-field"
@@ -2048,7 +2047,7 @@
           <div class="sc-pbody sc-grad" id="sc-pat" hidden>
             <div class="sc-grad-head">
               <span class="sc-subhead" id="sc-pat-title">Fill pattern</span>
-              <select id="sc-pat-pick" aria-label="Pattern"></select>
+              <button id="sc-pat-pick"></button>
             </div>
             <div class="sc-pat-preview" id="sc-pat-preview"></div>
             <div class="sc-gstop-row">
@@ -2076,7 +2075,8 @@
               >
             </div>
             <p class="sc-hint">
-              The paint's colour inks the built-in patterns. Pick another in the Patterns panel.
+              The paint's colour inks the built-in patterns. Pick another above, or in the Patterns
+              panel.
             </p>
           </div>
           <div class="sc-pbody" data-pane="swatches" hidden>
@@ -4440,6 +4440,7 @@
     <script src="src/source.js"></script>
     <script src="src/ui.js"></script>
     <script src="src/libraries.js"></script>
+    <script src="src/lib-picker.js"></script>
     <script src="src/library-exchange.js"></script>
     <script src="src/zip.js"></script>
     <script src="src/pattern-editor.js"></script>

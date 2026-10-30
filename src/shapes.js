@@ -117,30 +117,22 @@ function setArrows(el, { start, end }) {
 }
 
 // ---- Custom Shape: a Symbols-library shape drawn into a box ----------------------
-const customItem = () =>
-  lib.symbols.find((x) => x.id === state.customShape) || lib.symbols[0] || null;
-function syncCustomPicker() {
-  const sel = $('#sc-custom-shape');
-  const cats = new Map();
-  for (const it of lib.symbols) {
-    const c = it.category || 'Your symbols';
-    if (!cats.has(c)) cats.set(c, []);
-    cats.get(c).push(it);
-  }
-  sel.replaceChildren(
-    ...[...cats].map(([c, items]) => {
-      const g = document.createElement('optgroup');
-      g.label = c;
-      for (const it of items)
-        g.append(
-          Object.assign(document.createElement('option'), { value: it.id, textContent: it.name }),
-        );
-      return g;
-    }),
-  );
-  const it = customItem();
-  if (it) sel.value = state.customShape = it.id;
-}
+// The shape is the Symbols library's current one: picking it here or
+// clicking a tile in the panel's Library is the same.
+const customItem = () => libItem('symbols', libSel.symbols) || lib.symbols[0] || null;
+libPickers.symbols = libPicker($('#sc-custom-shape'), {
+  label: 'Custom shape',
+  items: () => lib.symbols,
+  current: customItem,
+  thumb: libSymThumb,
+  cats: true,
+  pick: (it) => pickLibSymbol(it.id),
+  manage: () => {
+    showTab('symbols');
+    setSymView('lib');
+  },
+  manageLabel: 'Manage in the Symbols panel',
+});
 // An instance of the shape, fitted (proportions kept) and centred in box.
 function placeCustom(box) {
   const item = customItem();
@@ -205,7 +197,7 @@ tools.custom = {
     this.ghost = null;
   },
   enter() {
-    syncCustomPicker();
+    libPickers.symbols.sync();
   },
 };
 
@@ -250,7 +242,6 @@ for (const el of document.querySelectorAll('[data-shape-opt]'))
     else if (k === 'arrowEnd') state.arrows.end = el.checked;
     syncShapeOptions();
   });
-$('#sc-custom-shape').addEventListener('change', (e) => (state.customShape = e.target.value));
 function syncShapeOptions() {
   for (const el of document.querySelectorAll('[data-shape-opt]')) {
     const k = el.dataset.shapeOpt;

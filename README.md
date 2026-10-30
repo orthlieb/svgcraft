@@ -921,6 +921,21 @@ or any shape from the Symbols library.
 - **Custom Shape**: any shape from the Symbols library, drawn into the box
   you drag with its proportions kept.
 
+#### Pick a custom shape
+
+![The Custom Shape tool's Shape picker open below the options bar, with the library's shapes as tiles](docs/help/shape-tools-custom.png)
+
+1. Click **Shape** in the options bar: it shows the current shape.
+2. Find one: type in **Search**, or narrow it by category.
+3. Click a tile (or use the arrow keys and Enter). Esc, or a click
+   elsewhere, closes it as it was.
+
+- It's the Symbols library's current shape: clicking a tile in the
+  **Symbols** panel's **Library** picks it too, and the panel marks the
+  one you picked here.
+- **Manage in the Symbols panel** opens the Library, to save, rename or
+  delete shapes.
+
 #### Draw at an exact size
 
 ![The Create Polygon box: width, height, sides and star ratio](docs/help/shape-tools-create.png)
@@ -1631,7 +1646,10 @@ tile you make.
 2. Click a tile in the **Patterns** panel, or set the paint's **Type** to
    Pattern in the Color panel.
 3. Adjust it in the pattern editor: **Scale**, **Angle**, or another
-   pattern from its list.
+   pattern: click the pattern's name for the library's tiles (the same
+   ones as the Patterns panel, which marks the one in use).
+
+![The pattern editor's picker open, with the library's patterns as tiles](docs/help/patterns-picker.png)
 
 #### Make your own
 
