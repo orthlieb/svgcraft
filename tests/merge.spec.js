@@ -164,3 +164,97 @@ test('Merge Visible leaves hidden layers alone; greyed out with nothing to merge
   await menuOff(page, 'Layer', 'mergeDown');
   await menuOff(page, 'Layer', 'mergeVisible');
 });
+
+// Three or four layers, some alike: a group, the alike ones in it joined.
+const kids = (page) =>
+  page.$$eval('#sc-doc > g > *', (els) =>
+    els.map((e) =>
+      e.localName === 'path'
+        ? `path ${e.getAttribute('fill')} ×${(e.getAttribute('d').match(/M/gi) || []).length}`
+        : `${e.localName} ${e.getAttribute('fill')}`,
+    ),
+  );
+
+test('four layers, three alike: a group of one joined path and the odd one out', async ({
+  page,
+}) => {
+  await load(
+    page,
+    `<rect id="a" x="10" y="10" width="40" height="40" fill="${RED}"/>` +
+      `<rect id="b" x="70" y="10" width="40" height="40" fill="${BLUE}"/>` +
+      `<rect id="c" x="130" y="10" width="40" height="40" fill="${RED}"/>` +
+      `<circle id="d" data-name="Dot" cx="210" cy="30" r="20" fill="${RED}"/>`,
+    260,
+    60,
+  );
+  const before = await picture(page);
+  await select(page, 'a', 'b', 'c', 'd');
+  expect(await label(page)).toBe('Merge Layers');
+  await page.keyboard.press('Control+e');
+  await expect.poll(() => top(page)).toEqual(['g Dot']);
+  expect(await kids(page)).toEqual([`path ${RED} ×3`, `rect ${BLUE}`]);
+  await expect(page.locator('#sc-msg')).toHaveText(
+    'Merged 4 layers into a group of 2: the alike shapes are joined into one path.',
+  );
+  await same(page, before);
+  // One undo step.
+  await page.keyboard.press('Control+z');
+  expect(await top(page)).toEqual(['rect', 'rect', 'rect', 'circle Dot']);
+});
+
+test('two colours, two each, overlapping their own: two united paths', async ({ page }) => {
+  await load(
+    page,
+    `<circle id="a" cx="30" cy="30" r="25" fill="${RED}"/>` +
+      `<circle id="b" cx="150" cy="30" r="25" fill="${BLUE}"/>` +
+      `<circle id="c" cx="60" cy="30" r="25" fill="${RED}"/>` +
+      `<circle id="d" cx="180" cy="30" r="25" fill="${BLUE}"/>`,
+    240,
+    60,
+  );
+  const before = await picture(page);
+  await select(page, 'a', 'b', 'c', 'd');
+  await page.keyboard.press('Control+e');
+  await expect.poll(() => kids(page)).toEqual([`path ${RED} ×1`, `path ${BLUE} ×1`]);
+  await expect(page.locator('#sc-msg')).toContainText('joined into 2 paths');
+  await same(page, before);
+});
+
+test('an alike shape stays apart when joining would lift it over another', async ({ page }) => {
+  // Red, then blue over it, then red over the blue: the top red can't move
+  // down to the first without going under the blue.
+  await load(
+    page,
+    `<rect id="a" x="10" y="10" width="60" height="60" fill="${RED}"/>` +
+      `<rect id="b" x="40" y="40" width="60" height="60" fill="${BLUE}"/>` +
+      `<rect id="c" x="70" y="70" width="60" height="60" fill="${RED}"/>`,
+    160,
+    160,
+  );
+  const before = await picture(page);
+  await select(page, 'a', 'b', 'c');
+  await page.keyboard.press('Control+e');
+  await expect.poll(() => kids(page)).toEqual([`rect ${RED}`, `rect ${BLUE}`, `rect ${RED}`]);
+  await expect(page.locator('#sc-msg')).toHaveText(
+    'Merged 3 layers into one group: none could join without changing how it looks.',
+  );
+  await same(page, before);
+});
+
+test('Merge Group joins the alike shapes inside a mixed group', async ({ page }) => {
+  await load(
+    page,
+    `<g id="g" data-name="Icons"><rect x="10" y="10" width="40" height="40" fill="${RED}"/>` +
+      `<rect x="70" y="10" width="40" height="40" fill="${BLUE}"/>` +
+      `<rect x="130" y="10" width="40" height="40" fill="${RED}"/></g>`,
+    200,
+    60,
+  );
+  const before = await picture(page);
+  await select(page, 'g');
+  expect(await label(page)).toBe('Merge Group');
+  await page.keyboard.press('Control+e');
+  await expect.poll(() => kids(page)).toEqual([`path ${RED} ×2`, `rect ${BLUE}`]);
+  expect(await top(page)).toEqual(['g Icons']);
+  await same(page, before);
+});
