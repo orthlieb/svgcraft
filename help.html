@@ -414,6 +414,9 @@
             <a href="#svg-source">SVG source</a>
             <ul>
               <li><a href="#window-svg-source">Window → SVG Source</a></li>
+              <li>
+                <a href="#edit-the-source-and-new-from-text">Edit the source and New from Text</a>
+              </li>
             </ul>
           </li>
           <li><a href="#what-the-saved-svg-keeps">What the saved SVG keeps</a></li>
@@ -1708,6 +1711,10 @@
                 <strong>File → Open…</strong> (Ctrl+O) → the file opens in a tab of its own. An
                 untouched Untitled tab is reused. <strong>File → Open Recent</strong> lists the
                 files you've had open lately (see <a href="#open-recent">Open Recent</a>).
+              </li>
+              <li>
+                <strong>File → New from Text…</strong> → a tab made from SVG code you paste (see
+                <a href="#edit-the-source-and-new-from-text">Edit the source and New from Text</a>).
               </li>
               <li>
                 Click a tab → switch to that drawing. Each tab keeps its own drawing, undo history
@@ -5472,7 +5479,9 @@
             <ol>
               <li>
                 Choose <strong>Window → SVG Source</strong> (Ctrl+U, as in a browser's view-source).
-                A read-only pane docks beside the canvas (see Split view).
+                A pane docks beside the canvas (see Split view). To change the source, click
+                <strong>Edit</strong> (see
+                <a href="#edit-the-source-and-new-from-text">Edit the source and New from Text</a>).
               </li>
               <li>
                 Select layers on the canvas to highlight their lines and scroll them into view.
@@ -5524,7 +5533,8 @@
               </li>
               <li>Large drawings stay quick: lines are drawn as they scroll into view.</li>
               <li>
-                Keys pressed inside it don't edit the drawing, apart from undo, redo, save and open.
+                Keys pressed inside it don't edit the drawing, apart from undo, redo, save and open
+                (while editing, Ctrl+Z undoes your typing instead).
               </li>
             </ul>
             <h4>How it's laid out</h4>
@@ -5551,6 +5561,76 @@
                 <code>&lt;style&gt;</code> and <code>style=""</code>) is coloured too: selectors,
                 at-rules such as <code>@import</code>, properties and values.
               </li>
+            </ul>
+          </article>
+          <article id="edit-the-source-and-new-from-text" data-find>
+            <h3>Edit the source and New from Text</h3>
+            <figure>
+              <img
+                src="docs/help/edit-the-source-and-new-from-text.png"
+                alt="SVG Source being edited for New from Text: pasted shapes with a tag left open, and the line and column of the slip under them"
+                width="380"
+                height="322"
+                loading="lazy"
+              />
+            </figure>
+            <p>
+              Type or paste SVG code to make a drawing, or change a drawing by editing its markup.
+            </p>
+            <ul>
+              <li>
+                <strong>File → New from Text…</strong> → a new tab, with SVG Source open on an empty
+                editor. Paste SVG code and click <strong>Apply</strong> (Ctrl+Enter): it becomes the
+                drawing, as if you'd opened it as a file.
+              </li>
+              <li>
+                <strong>Edit</strong> (the pen in SVG Source) → the drawing's source as text. Change
+                it and click <strong>Apply</strong>: the drawing is rebuilt from it, in place.
+              </li>
+              <li>
+                <strong>Cancel</strong> or Esc → back to the source view, nothing changed.
+                Cancelling New from Text closes its empty tab.
+              </li>
+            </ul>
+            <h4>While you type</h4>
+            <ul>
+              <li>
+                The code is checked as you type. Under it, either how it reads ("Reads as SVG: 3
+                elements") or what's wrong, with its line and column ("Line 4, column 3: Opening and
+                ending tag mismatch: rect and g").
+              </li>
+              <li>Click the message → the line it names is selected in the text.</li>
+              <li><strong>Apply</strong> waits until the code reads.</li>
+              <li>Tab indents; Ctrl+Z undoes your typing.</li>
+            </ul>
+            <h4>What it takes</h4>
+            <ul>
+              <li>A whole SVG file, <code>&lt;?xml …?&gt;</code> and comments included.</li>
+              <li>
+                Shapes on their own (<code>&lt;circle cx="50" cy="50" r="40"/&gt;</code>, a few
+                paths): they're put in an <code>&lt;svg&gt;</code> sized to fit them.
+              </li>
+              <li>
+                A web page with an <code>&lt;svg&gt;</code> in it: the first
+                <code>&lt;svg&gt;</code> is taken out of it.
+              </li>
+            </ul>
+            <h4>Good to know</h4>
+            <ul>
+              <li>
+                Apply is one step in the History panel ("Edit Source"): Ctrl+Z puts the drawing back
+                as it was. The selection is cleared.
+              </li>
+              <li>
+                What's applied is read as an opened file is: scripts and event handlers are taken
+                out, animations become presets (or are reported), and SVGCraft's own layer names,
+                locks and effects come back.
+              </li>
+              <li>
+                A New from Text drawing is named after its <code>&lt;title&gt;</code>, if it has
+                one.
+              </li>
+              <li>On a phone, SVG Source is read-only.</li>
             </ul>
           </article>
         </section>

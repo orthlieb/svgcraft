@@ -223,6 +223,26 @@ export default [
     },
   },
   {
+    id: 'edit-the-source-and-new-from-text',
+    // Short, so the pane's error bar sits close under the text.
+    viewport: { width: 1280, height: 440 },
+    async shoot(h) {
+      await h.menu('File', 'newFromText');
+      await h.page.waitForSelector('#sc-src-text');
+      // Pasted shapes with a slip: the tag left open on line 3.
+      await h.page.fill(
+        '#sc-src-text',
+        '<g fill="#2563eb">\n  <circle cx="60" cy="60" r="40"/>\n  <rect x="120" y="20" width="80" height="80">\n</g>\n<path d="M240 100l40-80 40 80z" fill="#dc2626"/>',
+      );
+      await h.page.waitForSelector('#sc-src-status.sc-src-bad');
+      await h.page.mouse.move(5, 5);
+      const b = await h.page.locator('#sc-source').boundingBox();
+      await h.shot(null, {
+        clip: { x: b.x, y: b.y, width: b.width, height: b.height },
+      });
+    },
+  },
+  {
     id: 'what-the-saved-svg-keeps',
     async shoot(h) {
       await h.open(

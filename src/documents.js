@@ -189,6 +189,8 @@ function showDoc(d) {
 
 function switchDoc(d) {
   if (d === curDoc) return;
+  // An edit in SVG Source is this tab's: it goes.
+  if (srcEdit.on) endSrcEdit();
   stashDoc();
   showDoc(d);
 }

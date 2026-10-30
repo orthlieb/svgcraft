@@ -765,6 +765,8 @@ Work on several drawings at once, each in its own tab.
 - **File → Open…** (Ctrl+O) → the file opens in a tab of its own. An
   untouched Untitled tab is reused. **File → Open Recent** lists the files
   you've had open lately (see [Open Recent](#open-recent)).
+- **File → New from Text…** → a tab made from SVG code you paste (see
+  [Edit the source and New from Text](#edit-the-source-and-new-from-text)).
 - Click a tab → switch to that drawing. Each tab keeps its own drawing, undo
   history and zoom.
 - Click a tab's ✕, middle-click it, or choose **File → Close** → closes the
@@ -2968,7 +2970,9 @@ Read the SVG behind your drawing, find the markup for a layer, or copy it
 into a web page.
 
 1. Choose **Window → SVG Source** (Ctrl+U, as in a browser's view-source).
-   A read-only pane docks beside the canvas (see Split view).
+   A pane docks beside the canvas (see Split view). To change the source,
+   click **Edit** (see
+   [Edit the source and New from Text](#edit-the-source-and-new-from-text)).
 2. Select layers on the canvas to highlight their lines and scroll them
    into view. Click an element's start tag in the source to select that
    layer. A run inside a text layer selects the text.
@@ -3000,7 +3004,7 @@ into a web page.
   says `<script>` shows up as `&lt;script&gt;`, as it is in the file.
 - Large drawings stay quick: lines are drawn as they scroll into view.
 - Keys pressed inside it don't edit the drawing, apart from undo, redo,
-  save and open.
+  save and open (while editing, Ctrl+Z undoes your typing instead).
 
 #### How it's laid out
 
@@ -3017,6 +3021,47 @@ into a web page.
 - It's coloured for tags, attributes, values, comments and text. CSS (in
   `<style>` and `style=""`) is coloured too: selectors, at-rules such as
   `@import`, properties and values.
+
+### Edit the source and New from Text
+
+![SVG Source being edited for New from Text: pasted shapes with a tag left open, and the line and column of the slip under them](docs/help/edit-the-source-and-new-from-text.png)
+
+Type or paste SVG code to make a drawing, or change a drawing by editing
+its markup.
+
+- **File → New from Text…** → a new tab, with SVG Source open on an empty
+  editor. Paste SVG code and click **Apply** (Ctrl+Enter): it becomes the
+  drawing, as if you'd opened it as a file.
+- **Edit** (the pen in SVG Source) → the drawing's source as text. Change
+  it and click **Apply**: the drawing is rebuilt from it, in place.
+- **Cancel** or Esc → back to the source view, nothing changed. Cancelling
+  New from Text closes its empty tab.
+
+#### While you type
+
+- The code is checked as you type. Under it, either how it reads ("Reads
+  as SVG: 3 elements") or what's wrong, with its line and column ("Line 4,
+  column 3: Opening and ending tag mismatch: rect and g").
+- Click the message → the line it names is selected in the text.
+- **Apply** waits until the code reads.
+- Tab indents; Ctrl+Z undoes your typing.
+
+#### What it takes
+
+- A whole SVG file, `<?xml …?>` and comments included.
+- Shapes on their own (`<circle cx="50" cy="50" r="40"/>`, a few paths):
+  they're put in an `<svg>` sized to fit them.
+- A web page with an `<svg>` in it: the first `<svg>` is taken out of it.
+
+#### Good to know
+
+- Apply is one step in the History panel ("Edit Source"): Ctrl+Z puts the
+  drawing back as it was. The selection is cleared.
+- What's applied is read as an opened file is: scripts and event handlers
+  are taken out, animations become presets (or are reported), and
+  SVGCraft's own layer names, locks and effects come back.
+- A New from Text drawing is named after its `<title>`, if it has one.
+- On a phone, SVG Source is read-only.
 
 ## What the saved SVG keeps
 
