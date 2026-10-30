@@ -25,6 +25,7 @@ const actions = {
   breakSymbolLink,
   symbolDone: () => exitIso(),
   new: () => openNewDoc(),
+  newFromText: () => newFromText(),
   newIcon: openNewIcon,
   togglePixelGrid: () => toggleView('pixelGrid'),
   toggleSnapPixel: () => toggleView('snapPixel'),
@@ -211,6 +212,7 @@ const actionRules = {
 // With nothing open, only these work.
 const NO_DOC_ACTIONS = new Set([
   'new',
+  'newFromText',
   'newIcon',
   'open',
   'paste',

@@ -412,7 +412,9 @@ const loadDocFonts = () => docFamilies().forEach(ensureFont);
 
 // Replace the current tab's drawing with an SVG file's. It counts as
 // freshly opened (no *) unless keepSaved.
-function openSvg(text, name, { keepSaved = false } = {}) {
+// step: the History panel's name for it; keepView: no fit to the window
+// (Apply in SVG Source, where the drawing changes in place).
+function openSvg(text, name, { keepSaved = false, step = 'Open', keepView = false } = {}) {
   const s = parseSvg(text, { dedupe: false });
   tools[state.tool].leave?.();
   dropIso();
@@ -433,8 +435,8 @@ function openSvg(text, name, { keepSaved = false } = {}) {
   loadDocFonts();
   if (name) state.fileName = name.replace(/\.svg$/i, '');
   state.sel = [];
-  fit();
-  noteStep('Open');
+  if (!keepView) fit();
+  noteStep(step);
   commit();
   if (curDoc && !keepSaved) {
     curDoc.saved = curDoc.svg;

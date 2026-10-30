@@ -39,6 +39,9 @@
             <button role="menuitem" data-action="newIcon">
               <i data-icon="icons"></i><span>New Icon…</span>
             </button>
+            <button role="menuitem" data-action="newFromText">
+              <i data-icon="code"></i><span>New from Text…</span>
+            </button>
             <button role="menuitem" data-action="open">
               <i data-icon="folder-open"></i><span>Open…</span><kbd>Ctrl+O</kbd>
             </button>
@@ -4222,6 +4225,14 @@
         </button>
         <span class="sc-src-gap"></span>
         <button
+          class="sc-src-btn sc-src-editbtn"
+          id="sc-src-edit"
+          aria-label="Edit"
+          data-tip="Edit the source, then Apply it to the drawing"
+        >
+          <i data-icon="pen"></i>
+        </button>
+        <button
           class="sc-src-btn"
           id="sc-src-wrap"
           aria-pressed="true"
@@ -4254,6 +4265,35 @@
         role="region"
         aria-label="SVG source, read only"
       ></div>
+      <!-- Edit mode: the source as plain text, checked as it's typed. -->
+      <div class="sc-src-editor" id="sc-src-editor" hidden>
+        <textarea
+          id="sc-src-text"
+          spellcheck="false"
+          autocomplete="off"
+          autocapitalize="off"
+          wrap="off"
+          aria-label="SVG source"
+          aria-describedby="sc-src-status"
+        ></textarea>
+        <div class="sc-src-editbar">
+          <button
+            type="button"
+            class="sc-src-status"
+            id="sc-src-status"
+            aria-live="polite"
+          ></button>
+          <button type="button" class="sc-tbtn" id="sc-src-cancel">Cancel</button>
+          <button
+            type="button"
+            class="sc-tbtn sc-primary-btn"
+            id="sc-src-apply"
+            data-tip="Apply to the drawing (Ctrl+Enter)"
+          >
+            Apply
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- Font picker (shared by the options bar and the Character panel). -->

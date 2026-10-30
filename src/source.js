@@ -556,7 +556,7 @@ function srcBusy() {
   );
 }
 function srcSchedule(delay = 250) {
-  if (!srcView.open) return;
+  if (!srcView.open || srcEdit.on) return;
   clearTimeout(srcView.timer);
   srcView.timer = setTimeout(() => {
     if (!srcView.open) return;
@@ -712,6 +712,11 @@ function openSource() {
 function closeSource() {
   const v = srcView;
   if (!v.open) return;
+  if (srcEdit.on) {
+    // Closing New from Text's window drops its empty tab too.
+    endSrcEdit();
+    if (!srcView.open) return;
+  }
   v.open = false;
   clearTimeout(v.timer);
   srcWin.hidden = true;
@@ -763,6 +768,214 @@ function downloadSource() {
   download(new Blob([srcView.full], { type: 'image/svg+xml' }), `${state.fileName}.svg`);
   say('Downloaded the SVG source');
 }
+// ---- Edit: the source as text, applied back to the drawing ----------------------
+// Edit swaps the highlighted view for a plain text box holding the same
+// source. It's checked as it's typed: what's wrong, with its line and
+// column (a click selects that line), and Apply waits until it reads. Apply
+// opens the text as the drawing in place, one step in the history. File →
+// New from Text… is the same on a new, empty tab, which goes again if
+// nothing is applied. Some text that isn't a whole SVG file still works:
+// shapes on their own are put in an <svg> sized to fit them, and an <svg>
+// inside an HTML page is taken out of it.
+const srcEditor = $('#sc-src-editor');
+const srcText = $('#sc-src-text');
+const srcStatus = $('#sc-src-status');
+const srcEdit = { on: false, fresh: false, doc: null, timer: 0, at: null };
+const SVG_OPEN =
+  '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">';
+
+// What the text would open as: { ok, svg, msg, line?, col?, note }.
+function srcCheck(text) {
+  if (!text.trim()) return { ok: false, msg: 'Paste or type SVG code.' };
+  // The first tag, past any XML declaration, doctype and comments.
+  const head = text.replace(/^(?:\s|<\?[\s\S]*?\?>|<!DOCTYPE[^>]*>|<!--[\s\S]*?-->)*/i, '');
+  let svg = text;
+  let note = '';
+  let shift = 0;
+  if (/^<svg[\s>/]/i.test(head)) {
+    // A whole file.
+  } else if (/^<(!doctype\s+html|html|head|body)[\s>]/i.test(head)) {
+    const found = new DOMParser().parseFromString(text, 'text/html').querySelector('svg');
+    if (!found) return { ok: false, msg: 'This is an HTML page with no <svg> in it.' };
+    svg = new XMLSerializer().serializeToString(found);
+    note = 'Took the <svg> out of the page around it. ';
+  } else {
+    svg = SVG_OPEN + text + '</svg>';
+    shift = SVG_OPEN.length;
+    note = 'Put in an <svg>, sized to fit. ';
+  }
+  const xml = new DOMParser().parseFromString(svg, 'image/svg+xml');
+  const err = xml.querySelector('parsererror');
+  if (err) {
+    const m = /line (\d+) at column (\d+): ([^\n]*)/.exec(err.textContent);
+    if (!m) return { ok: false, msg: `It doesn’t read as SVG: ${err.textContent.trim()}` };
+    const line = +m[1];
+    const col = line === 1 ? Math.max(1, +m[2] - shift) : +m[2];
+    return { ok: false, line, col, msg: `Line ${line}, column ${col}: ${m[3].trim()}` };
+  }
+  const root = xml.documentElement;
+  if (root.localName !== 'svg' || root.namespaceURI !== NS)
+    return {
+      ok: false,
+      msg: 'The outer element has to be an <svg> in the SVG namespace (xmlns="http://www.w3.org/2000/svg").',
+    };
+  if (![...root.children].some((n) => !NON_GRAPHIC.has(n.localName)))
+    return { ok: false, msg: 'It reads, but there’s nothing in it to draw.' };
+  if (shift) svg = srcFitFragment(svg);
+  const kids = root.querySelectorAll('*').length;
+  return {
+    ok: true,
+    svg,
+    note,
+    msg: `${note}Reads as SVG: ${kids} element${kids === 1 ? '' : 's'}.`,
+  };
+}
+// Shapes put in an <svg>: its viewBox round what they draw.
+function srcFitFragment(svg) {
+  const host = document.createElement('div');
+  host.style.cssText = 'position:fixed;left:-10000px;top:0;visibility:hidden';
+  host.innerHTML = svg;
+  document.body.append(host);
+  const s = host.firstElementChild;
+  let b = null;
+  try {
+    b = s.getBBox();
+  } catch {
+    /* nothing measurable */
+  }
+  host.remove();
+  if (!b || !(b.width > 0 || b.height > 0)) return svg;
+  const box = [b.x, b.y, Math.max(b.width, 1), Math.max(b.height, 1)].map((v) => +v.toFixed(3));
+  return svg.replace(
+    '<svg ',
+    `<svg viewBox="${box.join(' ')}" width="${box[2]}" height="${box[3]}" `,
+  );
+}
+// Show what the text is now, and let Apply go when it reads.
+function srcShowCheck() {
+  const r = srcCheck(srcText.value);
+  srcEdit.at = r.line ? r : null;
+  srcStatus.textContent = r.msg;
+  srcStatus.classList.toggle('sc-src-bad', !r.ok && !!srcText.value.trim());
+  srcStatus.disabled = !r.line;
+  srcStatus.dataset.tip = r.line ? 'Show me' : '';
+  $('#sc-src-apply').disabled = !r.ok;
+  srcText.setAttribute('aria-invalid', !r.ok && !!srcText.value.trim());
+  return r;
+}
+// The line (and column) an error names, selected in the text.
+function srcGoToError() {
+  const at = srcEdit.at;
+  if (!at) return;
+  const lines = srcText.value.split('\n');
+  let start = 0;
+  for (let i = 0; i < at.line - 1 && i < lines.length; i++) start += lines[i].length + 1;
+  const len = lines[at.line - 1]?.length ?? 0;
+  srcText.focus();
+  srcText.setSelectionRange(start, start + len);
+  // Scrolled to it: about where the line is.
+  srcText.scrollTop = Math.max(0, (at.line - 3) * SRC_LINE_H);
+}
+
+function startSrcEdit({ fresh = false } = {}) {
+  if (!curDoc) return;
+  if (!srcView.open) openSource();
+  srcRender();
+  srcEdit.on = true;
+  srcEdit.fresh = fresh;
+  srcEdit.doc = curDoc;
+  srcWin.classList.add('sc-src-editing');
+  srcEditor.hidden = false;
+  srcCode.hidden = true;
+  srcText.value = fresh ? '' : srcView.full;
+  srcText.placeholder = fresh
+    ? 'Paste SVG code here: a whole file, or just shapes like <circle cx="50" cy="50" r="40"/>.'
+    : '';
+  srcShowCheck();
+  setTimeout(() => {
+    srcText.focus();
+    srcText.setSelectionRange(0, 0);
+    srcText.scrollTop = 0;
+  }, 0);
+}
+// Back to the highlighted view; New from Text's tab goes if nothing was
+// applied to it.
+function endSrcEdit() {
+  if (!srcEdit.on) return;
+  const { fresh, doc: d } = srcEdit;
+  srcEdit.on = false;
+  srcEdit.fresh = false;
+  clearTimeout(srcEdit.timer);
+  srcWin.classList.remove('sc-src-editing');
+  srcEditor.hidden = true;
+  srcCode.hidden = false;
+  srcText.value = '';
+  if (fresh && d === curDoc && pristine(d)) closeDoc(d);
+  else if (srcView.open) {
+    srcView.text = null;
+    srcRender();
+    srcCode.focus();
+  }
+}
+function applySrcEdit() {
+  const r = srcShowCheck();
+  if (!r.ok || !srcEdit.on) return;
+  if (srcEdit.doc !== curDoc) {
+    warn('That source was for another tab: open SVG Source on this one to edit it.');
+    return endSrcEdit();
+  }
+  const fresh = srcEdit.fresh;
+  srcEdit.fresh = false;
+  try {
+    if (fresh) {
+      const title = new DOMParser()
+        .parseFromString(r.svg, 'image/svg+xml')
+        .querySelector('svg > title')
+        ?.textContent.trim();
+      openDoc(r.svg, `${title || state.fileName}.svg`);
+    } else
+      openSvg(r.svg, `${state.fileName}.svg`, {
+        keepSaved: true,
+        step: 'Edit Source',
+        keepView: true,
+      });
+  } catch (err) {
+    srcEdit.fresh = fresh;
+    srcStatus.textContent = err.message || 'Couldn’t read that.';
+    srcStatus.classList.add('sc-src-bad');
+    return;
+  }
+  endSrcEdit();
+  if (fresh) fit();
+  say(fresh ? 'Made a new drawing from the text.' : 'Applied the source to the drawing.');
+}
+// File → New from Text…: a new tab, its source empty and ready to paste.
+function newFromText() {
+  if (srcEdit.on) endSrcEdit();
+  newDoc({ name: nextUntitled() });
+  startSrcEdit({ fresh: true });
+}
+
+srcText.addEventListener('input', () => {
+  clearTimeout(srcEdit.timer);
+  srcEdit.timer = setTimeout(srcShowCheck, 250);
+});
+srcText.addEventListener('keydown', (e) => {
+  const mod = e.ctrlKey || e.metaKey;
+  if (mod && e.key === 'Enter') {
+    e.preventDefault();
+    applySrcEdit();
+  } else if (e.key === 'Tab' && !e.shiftKey && !mod && !e.altKey) {
+    // Indents, as in a code editor (Esc, then Tab, moves on).
+    e.preventDefault();
+    document.execCommand('insertText', false, '  ');
+  }
+});
+srcStatus.addEventListener('click', srcGoToError);
+$('#sc-src-apply').addEventListener('click', applySrcEdit);
+$('#sc-src-cancel').addEventListener('click', endSrcEdit);
+$('#sc-src-edit').addEventListener('click', () => startSrcEdit());
+
 // Long lines wrap unless Wrap was turned off (remembered).
 const SRC_WRAP_KEY = 'svgcraft.sourceWrap';
 function setSrcWrap(on, save) {
@@ -792,19 +1005,22 @@ function wireSource() {
     const k = e.key.toLowerCase();
     // Undo, redo, save and open still reach the app; nothing else does,
     // so Delete or the arrows can't change the drawing from in here.
-    if (mod && !e.altKey && SRC_PASS.has(k) && e.target !== srcFind) return;
+    if (mod && !e.altKey && SRC_PASS.has(k) && e.target !== srcFind && e.target !== srcText) return;
     e.stopPropagation();
-    if (e.key === 'Escape') {
+    if (e.key === 'Escape' && srcEdit.on) {
+      e.preventDefault();
+      endSrcEdit();
+    } else if (e.key === 'Escape') {
       e.preventDefault();
       closeSource();
-    } else if (mod && (k === 'f' || k === 'g') && !e.altKey) {
+    } else if (mod && (k === 'f' || k === 'g') && !e.altKey && !srcEdit.on) {
       e.preventDefault();
       if (k === 'g') srcSearch(e.shiftKey ? -1 : 1);
       else {
         srcFind.focus();
         srcFind.select();
       }
-    } else if (mod && k === 'u') {
+    } else if (mod && k === 'u' && !srcEdit.on) {
       e.preventDefault();
       closeSource();
     } else if (e.key === 'F3') {
