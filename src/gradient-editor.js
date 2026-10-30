@@ -3,6 +3,12 @@
 
 // ---- gradient editor (Color panel) --------------------------------------------
 const activeGrad = () => (state[state.active + 'On'] ? state[state.active + 'Grad'] : null);
+// The presets: Colour → Transparent in the active colour, then the library.
+const gradPresets = () => [
+  { id: 'fade', name: GRAD_PRESETS.fade[0], stops: GRAD_PRESETS.fade[1](state[state.active]) },
+  ...lib.gradients,
+];
+const stopsKey = (stops) => stops.map((s) => `${s.o}|${s.c}|${s.a ?? 1}`).join(',');
 
 function renderGradEditor() {
   const g = activeGrad();
@@ -13,6 +19,13 @@ function renderGradEditor() {
   const s = g.stops[state.gradStop];
   $('#sc-grad-title').textContent = `${state.active === 'fill' ? 'Fill' : 'Stroke'} gradient`;
   $('#sc-grad-bar').style.backgroundImage = `${gradCss(g)}, var(--checker)`;
+  // The Gradients panel marks the one the picker shows, if it's there.
+  const key = stopsKey(g.stops);
+  const same = lib.gradients.find((x) => stopsKey(x.stops) === key);
+  if (same) libSel.gradients = same.id;
+  for (const t of document.querySelectorAll('#sc-gradlib .sc-tile'))
+    t.classList.toggle('sel', !!same && t.dataset.id === same.id);
+  libPickers.gradients?.sync();
   const marks = $('#sc-grad-stops');
   marks.replaceChildren(
     ...g.stops.map((st, i) => {
@@ -35,6 +48,7 @@ function renderGradEditor() {
   set('#sc-gstop-o', Math.round(s.o * 100));
   set('#sc-grad-angle', g.angle);
   $('#sc-grad-angle-wrap').hidden = g.type === 'radial';
+  $('#sc-grad-keep').checked = !g.stretch;
   $('#sc-gstop-del').disabled = g.stops.length <= 2;
   for (const b of document.querySelectorAll('[data-gtype]'))
     b.setAttribute('aria-checked', b.dataset.gtype === g.type);
@@ -105,22 +119,31 @@ function wireGradEditor() {
       for (const x of document.querySelectorAll('[data-gtype]'))
         x.setAttribute('aria-checked', x.dataset.gtype === state.gradType);
     });
-  // Presets: Colour → Transparent plus the Gradients library (its options are
-  // filled by renderLibraries). Picking one swaps in its stops.
-  const presets = $('#sc-grad-preset');
-  presets.addEventListener('change', () => {
-    const v = presets.value;
-    const stops =
-      v === 'fade'
-        ? GRAD_PRESETS.fade[1](state[state.active])
-        : libItem('gradients', v)?.stops.map((x) => ({ ...x }));
-    if (stops)
+  // Presets: Colour → Transparent and the Gradients library, as tiles.
+  // Picking one swaps in its stops; the button shows the one in use.
+  libPickers.gradients = libPicker($('#sc-grad-preset'), {
+    label: 'Gradient',
+    items: gradPresets,
+    current: () => {
+      const g = activeGrad();
+      if (!g) return null;
+      const key = stopsKey(g.stops);
+      return (
+        gradPresets().find((x) => stopsKey(x.stops) === key) || { id: '', name: 'Custom', ...g }
+      );
+    },
+    thumb: libGradThumb,
+    pick: (x) =>
       editGrad((g) => {
-        g.stops = stops;
+        g.stops = x.stops.map((s) => ({ ...s }));
         state.gradStop = 0;
-      });
-    presets.value = '';
+      }),
+    manage: () => showTab('gradients'),
+    manageLabel: 'Manage in the Gradients panel',
   });
+  $('#sc-grad-keep').addEventListener('change', (e) =>
+    editGrad((g) => (g.stretch = !e.target.checked)),
+  );
   $('#sc-grad-save').addEventListener('click', () => addLibItem('gradients'));
   $('#sc-grad-reverse').addEventListener('click', () =>
     editGrad((g) => {
@@ -242,7 +265,7 @@ function drawGradAnnotator(z) {
   if (!el) return;
   const ge = document.getElementById(paintRef(el, state.active) || '');
   if (!ge || !ge.hasAttribute('data-sc-grad')) return;
-  const M = fullM(el);
+  const M = fullM(el).multiply(gradSpace(el, ge.hasAttribute('data-stretch')).toLocal);
   const geo = geoOf(ge);
   const radial = ge.localName === 'radialGradient';
   const pt = (x, y) => new DOMPoint(x, y).matrixTransform(M);

@@ -673,8 +673,7 @@ function libSymTile(item) {
   b.append(t, name);
   b.addEventListener('click', (e) => {
     if (e.altKey) return removeLibItem('symbols', item.id);
-    libSel.symbols = item.id;
-    for (const x of b.parentNode.children) x.classList.toggle('sel', x === b);
+    pickLibSymbol(item.id);
   });
   b.addEventListener('dblclick', (e) => {
     if (e.target.closest('.sc-sym-name')) renameLibItem('symbols', item.id);
@@ -686,6 +685,14 @@ function libSymTile(item) {
     e.dataTransfer.effectAllowed = 'copy';
   });
   return b;
+}
+// The library's current symbol (the one Custom Shape draws): marked in the
+// panel and shown on the tool's picker.
+function pickLibSymbol(id) {
+  libSel.symbols = id;
+  for (const x of document.querySelectorAll('#sc-libsyms .sc-sym-tile'))
+    x.classList.toggle('sel', x.dataset.id === id);
+  libPickers.symbols?.sync();
 }
 function renderSymLib() {
   const cats = [...new Set(lib.symbols.map((x) => x.category))];
@@ -715,6 +722,7 @@ function renderSymLib() {
       : 'The library is empty. Save a symbol to it, or Reset for the built-in icons.';
     grid.replaceChildren(p);
   }
+  libPickers.symbols?.sync();
 }
 
 function swapPaint() {

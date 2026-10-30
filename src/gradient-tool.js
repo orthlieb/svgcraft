@@ -34,7 +34,9 @@ tools.gradient = {
     if (g.mode === 'handle') {
       const ge = document.getElementById(paintRef(g.el, k));
       if (!ge) return;
-      const q = fullM(g.el).inverse().transformPoint(new DOMPoint(p.x, p.y));
+      // In the gradient's own space (see gradSpace).
+      const sp = gradSpace(g.el, ge.hasAttribute('data-stretch'));
+      const q = fullM(g.el).multiply(sp.toLocal).inverse().transformPoint(new DOMPoint(p.x, p.y));
       const geo = geoOf(ge);
       if (ge.localName === 'radialGradient') {
         if (g.k === 'a') Object.assign(geo, { cx: q.x, cy: q.y });
@@ -42,6 +44,7 @@ tools.gradient = {
       } else if (g.k === 'a') Object.assign(geo, { x1: q.x, y1: q.y });
       else Object.assign(geo, { x2: q.x, y2: q.y });
       writeGrad(ge, model, geo);
+      layGrad(g.el, ge, sp);
       if (ge.localName === 'linearGradient')
         model.angle = Math.round((Math.atan2(-(geo.y2 - geo.y1), geo.x2 - geo.x1) * 180) / Math.PI);
       g.changed = true;
@@ -51,7 +54,7 @@ tools.gradient = {
     const q = e.shiftKey ? constrain45(g.p0, p) : p;
     if (dist(g.p0, q) * state.zoom < 3) return;
     for (const el of g.targets) {
-      const inv = fullM(el).inverse();
+      const inv = fullM(el).multiply(gradSpace(el, !!model.stretch).toLocal).inverse();
       const a = inv.transformPoint(new DOMPoint(g.p0.x, g.p0.y));
       const b = inv.transformPoint(new DOMPoint(q.x, q.y));
       setGradPaint(

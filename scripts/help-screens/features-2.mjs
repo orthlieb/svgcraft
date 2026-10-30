@@ -91,6 +91,12 @@ export default [
       await h.page.waitForSelector('#sc-createshape[open]');
       await h.page.fill('[data-cs-shape="ratio"]', '50');
       await h.shot('#sc-createshape', { pad: 0, name: 'shape-tools-create' });
+      // The Custom Shape tool's picker.
+      await h.page.keyboard.press('Escape');
+      await h.page.evaluate(() => window.svgcraft.setTool('custom'));
+      await h.page.click('#sc-custom-shape');
+      await h.page.waitForSelector('#sc-libpick-pop:not([hidden])');
+      await h.shot(['#sc-libpick-pop', '#sc-custom-shape'], { pad: 8, name: 'shape-tools-custom' });
     },
   },
   {
@@ -407,7 +413,8 @@ export default [
       await tall(h, COLOR_GROUP);
       await h.page.click('[aria-label="Fill type"] [data-kind="linear"]');
       await h.page.waitForSelector('#sc-grad-preset:visible');
-      await h.page.selectOption('#sc-grad-preset', { label: 'Sunset' });
+      await h.page.click('#sc-grad-preset');
+      await h.page.click('#sc-libpick-pop .sc-libpick-tile[data-id="sunset"]');
       await h.shot(null, await panel(h, COLOR_GROUP));
     },
   },
@@ -447,6 +454,10 @@ export default [
       await tall(h, COLOR_GROUP);
       await h.page.locator('#sc-patlib > *').nth(5).click();
       await h.shot(null, await panel(h, COLOR_GROUP));
+      await h.tab('color');
+      await h.page.click('#sc-pat-pick');
+      await h.page.waitForSelector('#sc-libpick-pop:not([hidden])');
+      await h.shot(['#sc-libpick-pop', '#sc-pat-pick'], { pad: 8, name: 'patterns-picker' });
     },
   },
   {

@@ -1183,9 +1183,8 @@
         <label class="sc-check"><input type="checkbox" data-shape-opt="arrowEnd" /> End</label>
       </div>
       <div class="sc-opt" data-for="custom">
-        <label class="sc-field"
-          >Shape:<select id="sc-custom-shape" aria-label="Custom shape"></select
-        ></label>
+        <span class="sc-opt-label">Shape:</span>
+        <button id="sc-custom-shape"></button>
       </div>
       <div class="sc-opt" data-for="pencil">
         <label class="sc-field"
@@ -1967,9 +1966,7 @@
           <div class="sc-pbody sc-grad" id="sc-grad" hidden>
             <div class="sc-grad-head">
               <span class="sc-subhead" id="sc-grad-title">Fill gradient</span>
-              <select id="sc-grad-preset" aria-label="Gradient presets">
-                <option value="">Presets…</option>
-              </select>
+              <button id="sc-grad-preset"></button>
               <button
                 class="sc-ibtn"
                 id="sc-grad-save"
@@ -2040,6 +2037,11 @@
                 /><span class="sc-unit">°</span></label
               >
             </div>
+            <label
+              class="sc-check"
+              data-tip="On: stretching or skewing the shape keeps the gradient’s angle, and a radial one round. Off: it stretches with the shape"
+              ><input type="checkbox" id="sc-grad-keep" /> Keep angle when stretched</label
+            >
             <p class="sc-hint">
               Click the bar to add a stop. Drag a stop to move it, or down off the bar to remove it.
               The Gradient tool (G) sets the direction on the canvas.
@@ -2048,7 +2050,7 @@
           <div class="sc-pbody sc-grad" id="sc-pat" hidden>
             <div class="sc-grad-head">
               <span class="sc-subhead" id="sc-pat-title">Fill pattern</span>
-              <select id="sc-pat-pick" aria-label="Pattern"></select>
+              <button id="sc-pat-pick"></button>
             </div>
             <div class="sc-pat-preview" id="sc-pat-preview"></div>
             <div class="sc-gstop-row">
@@ -2075,8 +2077,14 @@
                 /><span class="sc-unit">°</span></label
               >
             </div>
+            <label
+              class="sc-check"
+              data-tip="Off: the tiles keep their size when you scale the shape"
+              ><input type="checkbox" id="sc-pat-with" /> Scale with shape</label
+            >
             <p class="sc-hint">
-              The paint's colour inks the built-in patterns. Pick another in the Patterns panel.
+              The paint's colour inks the built-in patterns. Pick another above, or in the Patterns
+              panel.
             </p>
           </div>
           <div class="sc-pbody" data-pane="swatches" hidden>
@@ -4440,6 +4448,7 @@
     <script src="src/source.js"></script>
     <script src="src/ui.js"></script>
     <script src="src/libraries.js"></script>
+    <script src="src/lib-picker.js"></script>
     <script src="src/library-exchange.js"></script>
     <script src="src/zip.js"></script>
     <script src="src/pattern-editor.js"></script>

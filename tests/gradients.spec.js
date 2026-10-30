@@ -89,7 +89,8 @@ const makeLinear = (page) => page.click('[data-kind-for="fill"] [data-kind="line
 async function sunset(page) {
   await makeLinear(page);
   await setField(page, '#sc-grad-angle', 90);
-  await page.selectOption('#sc-grad-preset', 'sunset');
+  await page.click('#sc-grad-preset');
+  await page.click('#sc-libpick-pop .sc-libpick-tile[data-id="sunset"]');
 }
 
 // Click the bar at 50% and recolour the new stop green from Swatches.
@@ -261,7 +262,8 @@ test('a duplicate shares the gradient until one of them is edited', async ({ pag
   await expect(ourGrads(page)).toHaveCount(1);
 
   await tab(page, 'color');
-  await page.selectOption('#sc-grad-preset', 'ocean');
+  await page.click('#sc-grad-preset');
+  await page.click('#sc-libpick-pop .sc-libpick-tile[data-id="ocean"]');
   const [a2, b2] = await fills();
   expect(a2).toMatch(/^url\(#sc-grad-\d+\)$/);
   expect(b2).toMatch(/^url\(#sc-grad-\d+\)$/);
@@ -327,7 +329,8 @@ test('a gradient on a symbol instance lines up with its handles', async ({ page 
     window.svgcraft.commit();
     const g = document.getElementById(paintRef(u, 'fill'));
     const geo = geoOf(g);
-    const M = fullM(u);
+    // Its handles, as the Gradient tool draws them (in its own space).
+    const M = fullM(u).multiply(gradSpace(u, false).toLocal);
     /* eslint-enable no-undef */
     // Where each stop's handle is, in the drawing.
     return [...g.children].map((s) => {
@@ -360,5 +363,114 @@ test('a gradient on a symbol instance lines up with its handles', async ({ page 
     const want = rgb(s.c);
     for (let k = 0; k < 3; k++)
       expect(Math.abs(drawn[i][k] - want[k]), `${s.c} channel ${k}`).toBeLessThan(24);
+  });
+});
+
+// Where the gradient lies on the page: its ends (or centre and radius
+// handle), through the shape's transform and its own.
+const onPage = (page, id = 'r') =>
+  page.evaluate((id) => {
+    /* eslint-disable no-undef -- the editor's own globals */
+    const el = document.getElementById(id);
+    const g = document.getElementById(paintRef(el, 'fill'));
+    const t = g.gradientTransform.baseVal.consolidate()?.matrix;
+    const M = fullM(el).multiply(
+      t ? new DOMMatrix([t.a, t.b, t.c, t.d, t.e, t.f]) : new DOMMatrix(),
+    );
+    const geo = geoOf(g);
+    /* eslint-enable no-undef */
+    const P = (x, y) => new DOMPoint(x, y).matrixTransform(M);
+    const r2 = (v) => Math.round(v * 100) / 100;
+    const [a, b] =
+      g.localName === 'radialGradient'
+        ? [P(geo.cx, geo.cy), P(geo.cx + geo.r, geo.cy)]
+        : [P(geo.x1, geo.y1), P(geo.x2, geo.y2)];
+    // Round (or square on), with no skew: equal column lengths, at right angles.
+    const round =
+      Math.abs(Math.hypot(M.a, M.b) - Math.hypot(M.c, M.d)) < 1e-3 &&
+      Math.abs(M.a * M.c + M.b * M.d) < 1e-3;
+    return {
+      a: [r2(a.x), r2(a.y)],
+      b: [r2(b.x), r2(b.y)],
+      deg: Math.round((Math.atan2(-(b.y - a.y), b.x - a.x) * 180) / Math.PI),
+      len: r2(Math.hypot(b.x - a.x, b.y - a.y)),
+      round,
+    };
+  }, id);
+
+// Free Transform's W field: the selection stretched to w wide.
+async function stretchTo(page, w) {
+  await page.evaluate(() => window.svgcraft.setTool('select'));
+  await page.keyboard.press('Alt+t');
+  await page.fill('[data-tf="w"]', String(w));
+  await page.press('[data-tf="w"]', 'Enter');
+  await page.keyboard.press('Enter');
+}
+
+test.describe('stretching the shape', () => {
+  test.beforeEach(async ({ page }) => {
+    await load(page, '<rect id="sq" x="100" y="100" width="100" height="100" fill="#e8a33d"/>');
+    await page.evaluate(() => {
+      window.svgcraft.state.sel = [document.getElementById('sq')];
+      window.svgcraft.setTool('select');
+    });
+    await tab(page, 'color');
+  });
+
+  test('a linear gradient keeps its angle and still spans the shape', async ({ page }) => {
+    await page.click('[data-kind-for="fill"] [data-kind="linear"]');
+    await setField(page, '#sc-grad-angle', 45);
+    expect(await onPage(page, 'sq')).toMatchObject({ deg: 45, len: 141.42 });
+    await expect(page.locator('#sc-grad-keep')).toBeChecked();
+    await stretchTo(page, 200);
+    // 200 × 100 from (100, 100): through its centre, edge to edge at 45°.
+    const g = await onPage(page, 'sq');
+    expect(g.deg).toBe(45);
+    expect(g.len).toBeCloseTo(300 * Math.SQRT1_2, 1);
+    expect((g.a[0] + g.b[0]) / 2).toBeCloseTo(200, 1);
+    expect((g.a[1] + g.b[1]) / 2).toBeCloseTo(150, 1);
+    // Undo: the square, as it was.
+    await page.keyboard.press('Control+z');
+    expect(await onPage(page, 'sq')).toMatchObject({ deg: 45, len: 141.42 });
+    await page.keyboard.press('Control+Shift+z');
+    expect((await onPage(page, 'sq')).deg).toBe(45);
+    // Off: it stretches with the shape, its angle with it.
+    await page.evaluate(() => (window.svgcraft.state.sel = [document.getElementById('sq')]));
+    await page.evaluate(() => window.svgcraft.setTool('select'));
+    await tab(page, 'color');
+    await page.locator('[data-kind-for="fill"]').scrollIntoViewIfNeeded();
+    await page.uncheck('#sc-grad-keep');
+    await stretchTo(page, 400);
+    expect((await onPage(page, 'sq')).deg).not.toBe(45);
+    // The setting travels in the file.
+    const svg = await page.evaluate(() => window.svgcraft.serialize());
+    await page.evaluate((t) => window.svgcraft.openSvg(t, 'g2.svg'), svg);
+    await page.evaluate(() => (window.svgcraft.state.sel = [document.getElementById('sq')]));
+    await page.evaluate(() => window.svgcraft.setTool('select'));
+    await expect(page.locator('#sc-grad-keep')).not.toBeChecked();
+  });
+
+  test('a radial gradient stays round, from the middle out to the far side', async ({ page }) => {
+    await page.click('[data-kind-for="fill"] [data-kind="radial"]');
+    await stretchTo(page, 300);
+    const g = await onPage(page, 'sq');
+    expect(g.round).toBe(true);
+    expect(g.a).toEqual([250, 150]);
+    expect(g.len).toBeCloseTo(150, 1);
+  });
+
+  test('the Gradient tool lays it where you drag, on a stretched shape too', async ({ page }) => {
+    await stretchTo(page, 300);
+    await page.evaluate(() => window.svgcraft.setTool('gradient'));
+    await dragDoc(page, [120, 120], [360, 180]);
+    const g = await onPage(page, 'sq');
+    expect(g.a[0]).toBeCloseTo(120, 0);
+    expect(g.a[1]).toBeCloseTo(120, 0);
+    expect(g.b[0]).toBeCloseTo(360, 0);
+    expect(g.b[1]).toBeCloseTo(180, 0);
+    // Its end handle sits where it ends.
+    const h = await centre(page.locator('[data-grad-h="b"]'));
+    const want = await toScreen(page, 360, 180);
+    expect(Math.abs(h.x - want.x) + Math.abs(h.y - want.y)).toBeLessThan(2);
   });
 });

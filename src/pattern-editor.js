@@ -11,23 +11,18 @@ function renderPatEditor() {
   if (!p) return;
   $('#sc-pat-title').textContent = `${state.active === 'fill' ? 'Fill' : 'Stroke'} pattern`;
   $('#sc-pat-preview').style.setProperty('--tile', patCss(p, state[state.active], 1));
-  const pick = $('#sc-pat-pick');
-  const inLib = lib.patterns.some((x) => x.id === p.id);
-  pick.replaceChildren(
-    ...(inLib
-      ? []
-      : [Object.assign(document.createElement('option'), { value: '', textContent: p.name })]),
-    ...lib.patterns.map((x) =>
-      Object.assign(document.createElement('option'), { value: x.id, textContent: x.name }),
-    ),
-  );
-  pick.value = inLib ? p.id : '';
+  // The panel marks the same pattern the picker shows.
+  if (lib.patterns.some((x) => x.id === p.id)) libSel.patterns = p.id;
+  for (const t of document.querySelectorAll('#sc-patlib .sc-tile'))
+    t.classList.toggle('sel', t.dataset.id === libSel.patterns);
+  libPickers.patterns?.sync();
   const set = (sel, v) => {
     const el = $(sel);
     if (document.activeElement !== el) el.value = v;
   };
   set('#sc-pat-scale', Math.round((p.scale || 1) * 100));
   set('#sc-pat-angle', Math.round(p.angle || 0));
+  $('#sc-pat-with').checked = !!p.withShape;
 }
 function editPat(fn, final = true) {
   const p = activePat();
@@ -36,10 +31,18 @@ function editPat(fn, final = true) {
   styleChanged(state.active, final);
 }
 function wirePatEditor() {
-  $('#sc-pat-pick').addEventListener('change', (e) => {
-    const x = libItem('patterns', e.target.value);
-    if (x) applyLibPat(x);
+  libPickers.patterns = libPicker($('#sc-pat-pick'), {
+    label: 'Pattern',
+    items: () => lib.patterns,
+    current: activePat,
+    thumb: libPatThumb,
+    pick: (x, e) => applyLibPat(x, e),
+    manage: () => showTab('patterns'),
+    manageLabel: 'Manage in the Patterns panel',
   });
+  $('#sc-pat-with').addEventListener('change', (e) =>
+    editPat((p) => (p.withShape = e.target.checked)),
+  );
   for (const [sel, set] of [
     ['#sc-pat-scale', (p, v) => (p.scale = clamp(v, 5, 5000) / 100)],
     ['#sc-pat-angle', (p, v) => (p.angle = ((((v + 180) % 360) + 360) % 360) - 180)],

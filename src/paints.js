@@ -87,14 +87,15 @@ function readGrad(g) {
   }
   const stops = stopsOf(g).sort((a, b) => a.o - b.o);
   if (!stops.length) return null;
-  return { type, stops, angle };
+  return { type, stops, angle, stretch: g.hasAttribute('data-stretch') };
 }
 // The gradient model behind an element's fill or stroke (computed, so
 // inherited and CSS paints count too), or null.
 const gradFor = (el, attr) => readGrad(document.getElementById(urlId(getComputedStyle(el)[attr])));
 
-function defaultGeo(el, type, angle) {
-  const b = el.getBBox();
+// Across box b at `angle`, edge to edge (radial: from the centre out to
+// the farther side).
+function defaultGeo(b, type, angle) {
   const cx = b.x + b.width / 2;
   const cy = b.y + b.height / 2;
   if (type === 'radial') return { cx, cy, r: Math.max(b.width, b.height) / 2 || 1 };
@@ -104,6 +105,82 @@ function defaultGeo(el, type, angle) {
   const half = (Math.abs(b.width * dx) + Math.abs(b.height * dy)) / 2 || 1;
   return { x1: cx - dx * half, y1: cy - dy * half, x2: cx + dx * half, y2: cy + dy * half };
 }
+// A gradient keeps its angle when its shape is stretched or skewed, and a
+// radial one stays round, unless it's set to stretch with the shape
+// (data-stretch). It's laid out in the shape's space as the page shows it,
+// the shape's turn aside: `toLocal` maps that space to the shape's own (the
+// gradientTransform), `box` is the shape's box in it. After each change the
+// gradient is fitted to that box again, keeping its angle and where it sits
+// in the box (data-fit: its centre as fractions of the box, and its length
+// against the box's).
+function gradSpace(el, stretch) {
+  let b;
+  try {
+    b = el.getBBox();
+  } catch {
+    b = { x: 0, y: 0, width: 0, height: 0 };
+  }
+  const flat = { toLocal: new DOMMatrix(), box: b };
+  if (stretch) return flat;
+  const M = fullM(el);
+  const turn = (Math.atan2(M.b, M.a) * 180) / Math.PI;
+  const Q = new DOMMatrix().rotate(-turn).multiply(new DOMMatrix([M.a, M.b, M.c, M.d, 0, 0]));
+  if (Math.abs(Q.a * Q.d - Q.b * Q.c) < 1e-9) return flat;
+  const pts = [
+    [b.x, b.y],
+    [b.x + b.width, b.y],
+    [b.x, b.y + b.height],
+    [b.x + b.width, b.y + b.height],
+  ].map(([x, y]) => Q.transformPoint(new DOMPoint(x, y)));
+  const xs = pts.map((p) => p.x);
+  const ys = pts.map((p) => p.y);
+  const x = Math.min(...xs);
+  const y = Math.min(...ys);
+  return {
+    toLocal: Q.inverse(),
+    box: { x, y, width: Math.max(...xs) - x, height: Math.max(...ys) - y },
+  };
+}
+const gradSpan = (b, t) => Math.abs(b.width * Math.cos(t)) + Math.abs(b.height * Math.sin(t)) || 1;
+function gradFit(geo, b) {
+  const w = b.width || 1;
+  const h = b.height || 1;
+  if ('r' in geo) return [(geo.cx - b.x) / w, (geo.cy - b.y) / h, geo.r / (Math.max(w, h) / 2)];
+  const t = Math.atan2(geo.y2 - geo.y1, geo.x2 - geo.x1);
+  const len = Math.hypot(geo.x2 - geo.x1, geo.y2 - geo.y1);
+  return [
+    ((geo.x1 + geo.x2) / 2 - b.x) / w,
+    ((geo.y1 + geo.y2) / 2 - b.y) / h,
+    len / gradSpan(b, t),
+  ];
+}
+// Geometry from a fit in box b; a linear one keeps geo's direction.
+function geoFromFit([fx, fy, k], b, geo) {
+  const cx = b.x + fx * (b.width || 1);
+  const cy = b.y + fy * (b.height || 1);
+  if ('r' in geo) return { cx, cy, r: (k * Math.max(b.width || 1, b.height || 1)) / 2 };
+  const t = Math.atan2(geo.y2 - geo.y1, geo.x2 - geo.x1);
+  const half = (k * gradSpan(b, t)) / 2;
+  const [dx, dy] = [Math.cos(t) * half, Math.sin(t) * half];
+  return { x1: cx - dx, y1: cy - dy, x2: cx + dx, y2: cy + dy };
+}
+const nearlyIdentity = (m) =>
+  [m.a - 1, m.b, m.c, m.d - 1, m.e, m.f].every((v) => Math.abs(v) < 1e-6);
+// g's gradientTransform and fit, for el in space sp.
+function layGrad(el, g, sp) {
+  const S = paintSpaceM(el);
+  const T = (S ? S.inverse() : new DOMMatrix()).multiply(sp.toLocal);
+  if (nearlyIdentity(T)) g.removeAttribute('gradientTransform');
+  else g.setAttribute('gradientTransform', matrixAttr(T));
+  if (g.hasAttribute('data-stretch')) return g.removeAttribute('data-fit');
+  g.setAttribute(
+    'data-fit',
+    gradFit(geoOf(g), sp.box)
+      .map((v) => +v.toFixed(5))
+      .join(' '),
+  );
+}
+
 function geoOf(g) {
   const v = (k) => parseFloat(g.getAttribute(k)) || 0;
   return g.localName === 'radialGradient'
@@ -148,22 +225,60 @@ const matrixAttr = (m) =>
 // element (a duplicate) is split off first.
 function setGradPaint(el, attr, model, geo = null) {
   const tag = model.type === 'radial' ? 'radialGradient' : 'linearGradient';
+  const stretch = !!model.stretch;
   const id = paintRef(el, attr);
   let g = id && document.getElementById(id);
   const mine = g && g.hasAttribute('data-sc-grad') && g.localName === tag && defs.contains(g);
-  const keep = mine && !gradReset ? geoOf(g) : null;
+  // Its geometry stays, unless it changes how it's laid out.
+  const keep = mine && !gradReset && g.hasAttribute('data-stretch') === stretch ? geoOf(g) : null;
   if (!mine || refCount(id) > 1) {
     g = mk(tag);
     g.id = newGradId();
     defs.append(g);
   }
-  writeGrad(g, model, geo || keep || defaultGeo(el, model.type, model.angle));
-  // Laid out in el's coordinates, whatever the shapes painting it use.
-  const S = paintSpaceM(el);
-  if (S) g.setAttribute('gradientTransform', matrixAttr(S.inverse()));
-  else g.removeAttribute('gradientTransform');
+  const sp = gradSpace(el, stretch);
+  writeGrad(g, model, geo || keep || defaultGeo(sp.box, model.type, model.angle));
+  g.toggleAttribute('data-stretch', stretch);
+  layGrad(el, g, sp);
   el.style?.removeProperty(attr);
   el.setAttribute(attr, `url(#${g.id})`);
+}
+
+// After shapes are scaled or skewed: their gradients fitted to them again,
+// at their own angle (`els` and what's in them, or the whole drawing).
+// One from before data-fit is taken as laid out in the shape's own space.
+function syncGradients(els) {
+  for (const el of paintedBy(els))
+    for (const attr of ['fill', 'stroke']) {
+      const g = document.getElementById(paintRef(el, attr) || '');
+      if (!g?.hasAttribute('data-sc-grad') || g.hasAttribute('data-stretch')) continue;
+      const sp = gradSpace(el, false);
+      let geo = geoOf(g);
+      let fit = (g.getAttribute('data-fit') || '').split(' ').map(Number);
+      if (fit.length !== 3 || !fit.every(isFinite)) {
+        const Q = sp.toLocal.inverse();
+        const P = (x, y) => Q.transformPoint(new DOMPoint(x, y));
+        if ('r' in geo) {
+          const c = P(geo.cx, geo.cy);
+          const s = Math.sqrt(Math.abs(Q.a * Q.d - Q.b * Q.c));
+          geo = { cx: c.x, cy: c.y, r: geo.r * s };
+        } else {
+          const [a, b] = [P(geo.x1, geo.y1), P(geo.x2, geo.y2)];
+          geo = { x1: a.x, y1: a.y, x2: b.x, y2: b.y };
+        }
+        fit = gradFit(geo, sp.box);
+      }
+      const want = geoFromFit(fit, sp.box, geo);
+      const now = geoOf(g);
+      const T = paintSpaceM(el);
+      const tf = (T ? T.inverse() : new DOMMatrix()).multiply(sp.toLocal);
+      const same =
+        Object.keys(want).every((k) => Math.abs(want[k] - now[k]) < 0.01) &&
+        (nearlyIdentity(tf)
+          ? !g.hasAttribute('gradientTransform')
+          : g.getAttribute('gradientTransform') === matrixAttr(tf));
+      if (!same) setGradPaint(el, attr, { ...readGrad(g), stretch: false }, want);
+    }
 }
 
 function pruneGradients() {
@@ -230,11 +345,38 @@ function patFor(el, attr) {
     svg: p.innerHTML,
     scale: n('data-scale', 1),
     angle: parseFloat(p.getAttribute('data-angle')) || 0,
+    withShape: p.hasAttribute('data-with-shape'),
   };
 }
 // The ink a pattern paint was given (its `color`), for the colour fields.
 const patInk = (el, attr) =>
   hex(document.getElementById(urlId(getComputedStyle(el)[attr])).getAttribute('color'));
+
+// A pattern's transform: its tile starts at the shape's top-left corner and
+// turns with the shape. Unless it scales with the shape (withShape), it
+// keeps its size when the shape is scaled, stretched or skewed: the shape's
+// scale and skew are undone, keeping only its rotation.
+function patTransform(el, model) {
+  let b;
+  try {
+    b = el.getBBox();
+  } catch {
+    b = { x: 0, y: 0 };
+  }
+  const sc = clamp(model.scale || 1, 0.05, 50);
+  let keep = '';
+  if (!model.withShape) {
+    const M = fullM(el);
+    const L = new DOMMatrix([M.a, M.b, M.c, M.d, 0, 0]);
+    const C = L.inverse().rotate((Math.atan2(M.b, M.a) * 180) / Math.PI);
+    if (![C.a - 1, C.b, C.c, C.d - 1].every((v) => Math.abs(v) < 1e-6) && isFinite(C.a))
+      keep = `${matrixAttr(C)} `;
+  }
+  return (
+    (paintSpaceM(el) ? `${matrixAttr(paintSpaceM(el).inverse())} ` : '') +
+    `translate(${f(b.x)} ${f(b.y)}) ${keep}rotate(${f(model.angle || 0)}) scale(${f(sc)})`
+  );
+}
 
 function setPatPaint(el, attr, model, ink) {
   const id = paintRef(el, attr);
@@ -244,20 +386,12 @@ function setPatPaint(el, attr, model, ink) {
     p = mk('pattern', { id: newDefId('sc-pat') });
     defs.append(p);
   }
-  let b;
-  try {
-    b = el.getBBox();
-  } catch {
-    b = { x: 0, y: 0 };
-  }
   const sc = clamp(model.scale || 1, 0.05, 50);
   for (const [k, v] of Object.entries({
     patternUnits: 'userSpaceOnUse',
     width: f(model.w),
     height: f(model.h),
-    patternTransform:
-      (paintSpaceM(el) ? `${matrixAttr(paintSpaceM(el).inverse())} ` : '') +
-      `translate(${f(b.x)} ${f(b.y)}) rotate(${f(model.angle || 0)}) scale(${f(sc)})`,
+    patternTransform: patTransform(el, model),
     color: ink,
     'data-sc-pat': model.id || '',
     'data-name': model.name,
@@ -265,9 +399,31 @@ function setPatPaint(el, attr, model, ink) {
     'data-angle': f(model.angle || 0),
   }))
     p.setAttribute(k, v);
+  p.toggleAttribute('data-with-shape', !!model.withShape);
   if (p.innerHTML !== model.svg) p.innerHTML = model.svg;
   el.style?.removeProperty(attr);
   el.setAttribute(attr, `url(#${p.id})`);
+}
+
+// What in `els` (or the whole drawing) is painted with a url(#…).
+function paintedBy(els) {
+  const Q = '[fill^="url(#"], [stroke^="url(#"]';
+  return els
+    ? els.flatMap((el) => [...(el.matches?.(Q) ? [el] : []), ...el.querySelectorAll(Q)])
+    : [...doc.querySelectorAll(Q)];
+}
+// After shapes are scaled: their patterns back to their own size (`els`
+// and what's in them, or the whole drawing).
+function syncPatterns(els) {
+  for (const el of paintedBy(els))
+    for (const attr of ['fill', 'stroke']) {
+      if (!el.getAttribute(attr)?.startsWith('url(#')) continue;
+      const model = patFor(el, attr);
+      if (!model || model.withShape) continue;
+      const p = document.getElementById(paintRef(el, attr));
+      if (p?.getAttribute('patternTransform') !== patTransform(el, model))
+        setPatPaint(el, attr, model, patInk(el, attr));
+    }
 }
 
 // A CSS background showing the tile, for chips and the Patterns panel.

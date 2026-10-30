@@ -36,6 +36,8 @@ function commit() {
   syncStrokeAlign();
   syncEffects();
   syncClips();
+  syncPatterns();
+  syncGradients();
   pruneGradients();
   hist.splice(hIdx + 1);
   hist.push({ ...snapshot(), label: stepLabel || 'Edit' });

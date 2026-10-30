@@ -921,6 +921,21 @@ or any shape from the Symbols library.
 - **Custom Shape**: any shape from the Symbols library, drawn into the box
   you drag with its proportions kept.
 
+#### Pick a custom shape
+
+![The Custom Shape tool's Shape picker open below the options bar, with the library's shapes as tiles](docs/help/shape-tools-custom.png)
+
+1. Click **Shape** in the options bar: it shows the current shape.
+2. Find one: type in **Search**, or narrow it by category.
+3. Click a tile (or use the arrow keys and Enter). Esc, or a click
+   elsewhere, closes it as it was.
+
+- It's the Symbols library's current shape: clicking a tile in the
+  **Symbols** panel's **Library** picks it too, and the panel marks the
+  one you picked here.
+- **Manage in the Symbols panel** opens the Library, to save, rename or
+  delete shapes.
+
 #### Draw at an exact size
 
 ![The Create Polygon box: width, height, sides and star ratio](docs/help/shape-tools-create.png)
@@ -1545,8 +1560,13 @@ Fill or stroke a shape with a smooth blend of colours.
   deletes it.
 - **Angle**: the direction, in degrees.
 - **Reverse** (⇄) flips the stops.
-- **Presets**: Colour → Transparent, plus everything in the Gradients
-  panel.
+- **Keep angle when stretched** (on by default): stretching or skewing the
+  shape keeps the gradient at its angle, still running across the whole
+  shape, and a radial one stays round. Off, it stretches with the shape.
+- **Presets**: the button beside the title shows the gradient in use (or
+  **Custom**). Click it for the tiles: Colour → Transparent, plus
+  everything in the Gradients panel, which marks the same one. Picking a
+  tile swaps in its stops and keeps the type and angle.
 - **+** saves the gradient to the Gradients panel.
 
 #### Tips
@@ -1557,8 +1577,11 @@ Fill or stroke a shape with a smooth blend of colours.
 
 #### Good to know
 
-- Each shape gets its own gradient in its own coordinates, so angles stay
-  true and the gradient moves, rotates and scales with the shape.
+- Each shape gets its own gradient, which moves, rotates and scales with
+  the shape. With **Keep angle when stretched** on, it's laid out in the
+  shape's space as the page shows it (its `gradientTransform` undoes the
+  shape's stretch and skew), and fitted to the shape again after every
+  change, keeping where it sits in the shape (`data-fit`).
 - Duplicates split off their own copy when edited, and unused gradients
   are removed automatically.
 - Gradients in imported files are read, including ones that borrow stops
@@ -1630,8 +1653,20 @@ tile you make.
 1. Select a shape and make fill or stroke the active paint.
 2. Click a tile in the **Patterns** panel, or set the paint's **Type** to
    Pattern in the Color panel.
-3. Adjust it in the pattern editor: **Scale**, **Angle**, or another
-   pattern from its list.
+3. Adjust it in the pattern editor: **Scale**, **Angle**, **Scale with
+   shape**, or another
+   pattern: click the pattern's name for the library's tiles (the same
+   ones as the Patterns panel, which marks the one in use).
+
+![The pattern editor's picker open, with the library's patterns as tiles](docs/help/patterns-picker.png)
+
+#### Scale with shape
+
+- Off (the default): scaling, stretching or skewing the shape leaves the
+  tiles their size, so a bigger shape shows more of the pattern. They
+  still move and turn with it.
+- On: the tiles grow, shrink and stretch with the shape, as if it were
+  one picture.
 
 #### Make your own
 
@@ -1647,7 +1682,8 @@ tile you make.
   colour re-inks them.
 - The tiles start at the shape's top-left corner.
 - As with gradients, each shape gets its own `<pattern>` in its own
-  coordinates, so the pattern moves and rotates with the shape.
+  coordinates. Unless **Scale with shape** is on, its `patternTransform`
+  undoes the shape's scale and skew, and is kept so as the shape changes.
 - Patterns export as plain SVG.
 
 ### Libraries

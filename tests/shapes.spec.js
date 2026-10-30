@@ -125,9 +125,11 @@ test('Custom Shape draws a library symbol into the box, proportions kept', async
   await page.keyboard.press('u');
   for (let i = 0; i < 5; i++) await page.keyboard.press('Shift+u');
   expect(await tool(page)).toBe('custom');
-  const pick = page.locator('#sc-custom-shape');
-  await expect(pick.locator('option')).not.toHaveCount(0);
-  await pick.selectOption({ label: 'Arrow right' });
+  await page.click('#sc-custom-shape');
+  await page.fill('#sc-libpick-pop input', 'Arrow right');
+  await page.click('#sc-libpick-pop .sc-libpick-tile[aria-label="Arrow right"]');
+  await expect(page.locator('#sc-libpick-pop')).toBeHidden();
+  await expect(page.locator('#sc-custom-shape')).toHaveText('Arrow right');
   await drag(page, [100, 50], [300, 150]);
   const use = last(page);
   expect(await use.evaluate((el) => el.localName)).toBe('use');
