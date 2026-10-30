@@ -203,7 +203,12 @@ function applySwatch(c, a, e) {
 }
 function applyLibGrad(g, e) {
   const k = e?.shiftKey ? otherPaint() : state.active;
-  state[k + 'Grad'] = { type: g.type, angle: g.angle, stops: g.stops.map((x) => ({ ...x })) };
+  state[k + 'Grad'] = {
+    type: g.type,
+    angle: g.angle,
+    stops: g.stops.map((x) => ({ ...x })),
+    stretch: !!state[k + 'Grad']?.stretch,
+  };
   state[k + 'Pat'] = null;
   state[k + 'On'] = true;
   state.gradStop = 0;

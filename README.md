@@ -1560,6 +1560,9 @@ Fill or stroke a shape with a smooth blend of colours.
   deletes it.
 - **Angle**: the direction, in degrees.
 - **Reverse** (⇄) flips the stops.
+- **Keep angle when stretched** (on by default): stretching or skewing the
+  shape keeps the gradient at its angle, still running across the whole
+  shape, and a radial one stays round. Off, it stretches with the shape.
 - **Presets**: the button beside the title shows the gradient in use (or
   **Custom**). Click it for the tiles: Colour → Transparent, plus
   everything in the Gradients panel, which marks the same one. Picking a
@@ -1574,8 +1577,11 @@ Fill or stroke a shape with a smooth blend of colours.
 
 #### Good to know
 
-- Each shape gets its own gradient in its own coordinates, so angles stay
-  true and the gradient moves, rotates and scales with the shape.
+- Each shape gets its own gradient, which moves, rotates and scales with
+  the shape. With **Keep angle when stretched** on, it's laid out in the
+  shape's space as the page shows it (its `gradientTransform` undoes the
+  shape's stretch and skew), and fitted to the shape again after every
+  change, keeping where it sits in the shape (`data-fit`).
 - Duplicates split off their own copy when edited, and unused gradients
   are removed automatically.
 - Gradients in imported files are read, including ones that borrow stops

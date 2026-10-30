@@ -48,6 +48,7 @@ function renderGradEditor() {
   set('#sc-gstop-o', Math.round(s.o * 100));
   set('#sc-grad-angle', g.angle);
   $('#sc-grad-angle-wrap').hidden = g.type === 'radial';
+  $('#sc-grad-keep').checked = !g.stretch;
   $('#sc-gstop-del').disabled = g.stops.length <= 2;
   for (const b of document.querySelectorAll('[data-gtype]'))
     b.setAttribute('aria-checked', b.dataset.gtype === g.type);
@@ -140,6 +141,9 @@ function wireGradEditor() {
     manage: () => showTab('gradients'),
     manageLabel: 'Manage in the Gradients panel',
   });
+  $('#sc-grad-keep').addEventListener('change', (e) =>
+    editGrad((g) => (g.stretch = !e.target.checked)),
+  );
   $('#sc-grad-save').addEventListener('click', () => addLibItem('gradients'));
   $('#sc-grad-reverse').addEventListener('click', () =>
     editGrad((g) => {
@@ -261,7 +265,7 @@ function drawGradAnnotator(z) {
   if (!el) return;
   const ge = document.getElementById(paintRef(el, state.active) || '');
   if (!ge || !ge.hasAttribute('data-sc-grad')) return;
-  const M = fullM(el);
+  const M = fullM(el).multiply(gradSpace(el, ge.hasAttribute('data-stretch')).toLocal);
   const geo = geoOf(ge);
   const radial = ge.localName === 'radialGradient';
   const pt = (x, y) => new DOMPoint(x, y).matrixTransform(M);
