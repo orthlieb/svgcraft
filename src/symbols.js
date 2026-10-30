@@ -226,10 +226,25 @@ function breakSymbolLink() {
   const els = normalizeSel(state.sel).filter(symbolOf);
   if (!els.length) return warn('Select a symbol instance to break its link.');
   if (refuseLocked(els, 'edit')) return;
+  const syms = new Set(els.map(symbolOf));
   const out = new Map(els.map((u) => [u, breakOne(u)]));
+  // A symbol whose last instance that was goes too (Undo brings it back).
+  const gone = [...syms].filter((s) => !allUses(s).some((u) => !s.contains(u)));
+  for (const s of gone) {
+    s.remove();
+    if (symSel === s.id) symSel = null;
+  }
   setSel(state.sel.map((el) => out.get(el) || el));
   commit();
-  say(`Broke the link of ${els.length} instance${els.length === 1 ? '' : 's'}.`);
+  const n = gone.length;
+  say(
+    `Broke the link of ${els.length} instance${els.length === 1 ? '' : 's'}.` +
+      (n
+        ? n === 1
+          ? ` “${symName(gone[0])}” had no other instances, so it’s gone from the Symbols panel.`
+          : ` ${n} symbols had no other instances, so they’re gone from the Symbols panel.`
+        : ''),
+  );
 }
 
 async function renameSymbol(sym = panelSymbol()) {

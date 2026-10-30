@@ -502,6 +502,8 @@ test.describe('Break Link', () => {
       300,
     );
     await makeSymbol(page, 'G', 'a');
+    // A second instance keeps the symbol.
+    await page.evaluate(() => window.svgcraft.placeSymbol(undefined, { x: 300, y: 200 }));
     await menu(page, 'Object', 'breakSymbolLink');
     const fills = await page.evaluate(() => ({
       group: document.querySelector('#sc-doc g rect').getAttribute('fill'),
@@ -510,6 +512,41 @@ test.describe('Break Link', () => {
     expect(fills.symbol).toBe('url(#lg)');
     expect(fills.group).toMatch(/^url\(#lg-\d+\)$/);
     expect(near((await pixels(page, [[50, 50]]))[0], RED)).toBe(true);
+  });
+
+  test('breaking the last instance’s link removes the symbol; undo brings it back', async ({
+    page,
+  }) => {
+    await makeSymbol(page);
+    await page.evaluate(() => window.svgcraft.placeSymbol(undefined, { x: 94, y: 220 }));
+    await select(
+      page,
+      ...(await page.evaluate(() =>
+        [...document.querySelectorAll('#sc-doc use')].map((u, i) => (u.id ||= `u${i}`)),
+      )),
+    );
+    const before = await pixels(page, PROBES);
+    await menu(page, 'Object', 'breakSymbolLink');
+    await expect(uses(page)).toHaveCount(0);
+    await expect(symbols(page)).toHaveCount(0);
+    await expect(page.locator('#sc-msg')).toHaveText(
+      'Broke the link of 2 instances. “Badge” had no other instances, so it’s gone from the Symbols panel.',
+    );
+    expect(await pixels(page, PROBES)).toEqual(before);
+    await page.keyboard.press('Control+z');
+    await expect(symbols(page)).toHaveCount(1);
+    await expect(uses(page)).toHaveCount(2);
+  });
+
+  test('a symbol the broken group still draws stays', async ({ page }) => {
+    await makeSymbol(page, 'Inner', 'b');
+    await page.evaluate(() => (document.querySelector('#sc-doc use').id = 'iu'));
+    await makeSymbol(page, 'Outer', 'a', 'iu');
+    // Outer's only instance: Outer goes; the group holds an Inner instance, so Inner stays.
+    await menu(page, 'Object', 'breakSymbolLink');
+    await expect(symbols(page)).toHaveCount(1);
+    await expect(symbols(page)).toHaveAttribute('data-name', 'Inner');
+    await expect(page.locator('#sc-doc > g > use')).toHaveCount(1);
   });
 });
 
