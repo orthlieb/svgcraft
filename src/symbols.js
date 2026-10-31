@@ -197,7 +197,8 @@ function placeSymbol(sym = panelSymbol(), at = viewCentre(), attrs = {}) {
   if (!sym) return warn('Click a symbol in the Symbols panel first.');
   if (iso && symUses(sym, iso.sym)) return warn('A symbol can’t hold an instance of itself.');
   const u = mk('use', { href: `#${sym.id}`, 'data-name': symName(sym), ...attrs }, doc);
-  const b = bboxDoc(u);
+  // Centred on what it paints, strokes included.
+  const b = paintBox([u]) || bboxDoc(u);
   if (b) setM(u, new DOMMatrix().translate(at.x - (b.x + b.w / 2), at.y - (b.y + b.h / 2)));
   if (state.tool !== 'select') setTool('select');
   setSel([u]);
