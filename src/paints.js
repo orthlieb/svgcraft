@@ -374,7 +374,7 @@ function foreignGeo(el, g) {
 // Shapes under roots painted with another program's gradients get SVGCraft's
 // own, and those left unused are dropped.
 function adoptGradients(roots) {
-  const foreign = new Set();
+  const foreign = new Map(); // original → the [shape, attr]s it painted
   for (const el of roots.flatMap((r) => [
     ...(r.matches?.(GRAD_SHAPES) ? [r] : []),
     ...r.querySelectorAll(GRAD_SHAPES),
@@ -391,14 +391,17 @@ function adoptGradients(roots) {
       if (!('r' in geo))
         model.angle = Math.round((Math.atan2(-(geo.y2 - geo.y1), geo.x2 - geo.x1) * 180) / Math.PI);
       setGradPaint(el, attr, { ...model, stretch: false }, geo);
-      foreign.add(g);
+      const name = gradAttr(g, 'data-name');
+      if (name) document.getElementById(paintRef(el, attr))?.setAttribute('data-name', name);
+      foreign.set(g, [...(foreign.get(g) || []), [el, attr]]);
     }
   }
   // Unused now (nothing paints with it or borrows from it): dropped, the
-  // ones borrowed from last.
+  // ones borrowed from last. One that painted a single shape hands its id
+  // on, so the file's own ids survive.
   for (let gone = true; gone; ) {
     gone = false;
-    for (const g of foreign) {
+    for (const [g, users] of foreign) {
       const ref = CSS.escape(`#${g.id}`);
       const used = [doc, defs].some((r) =>
         r.querySelector(
@@ -412,6 +415,14 @@ function adoptGradients(roots) {
         g.remove();
         foreign.delete(g);
         gone = true;
+        if (users.length === 1) {
+          const [el, attr] = users[0];
+          const mine = document.getElementById(paintRef(el, attr) || '');
+          if (mine) {
+            mine.id = g.id;
+            el.setAttribute(attr, `url(#${g.id})`);
+          }
+        }
       }
     }
   }

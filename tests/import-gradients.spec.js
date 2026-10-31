@@ -58,12 +58,17 @@ test('imported gradients become SVGCraft’s own and draw the same', async ({ pa
   expect((await paint('b')).inline).toBe('');
   // An oval radial and a repeating one can't be matched: left alone.
   for (const id of ['d', 'e']) expect((await paint(id)).own).toBe(false);
-  // The ones no longer used are gone; those still used or borrowed from stay.
-  const ids = await page.$$eval('#sc-defs > *', (gs) => gs.map((g) => g.id));
-  expect(ids).not.toContain('box');
-  expect(ids).not.toContain('turned');
-  expect(ids).not.toContain('round');
-  expect(ids).toEqual(expect.arrayContaining(['stops', 'oval', 'repeat']));
+  // Each painted one shape, so its replacement takes its id; those still
+  // used or borrowed from stay as they were.
+  const ids = await page.$$eval('#sc-defs > *', (gs) =>
+    gs.map((g) => g.id + (g.hasAttribute('data-sc-grad') ? '*' : '')),
+  );
+  expect(ids.sort()).toEqual(['box*', 'oval', 'repeat', 'round*', 'stops', 'turned*']);
+  for (const [el, id] of [
+    ['a', 'box'],
+    ['c', 'round'],
+  ])
+    expect(await page.locator(`#${el}`).getAttribute('fill')).toBe(`url(#${id})`);
 
   const out = await page.evaluate(() => window.svgcraft.serialize());
   expect(await diff(page, SRC, out)).toBeLessThan(0.002);
@@ -82,4 +87,22 @@ test('a placed SVG’s gradients are adopted too, inside its scaled group', asyn
       .hasAttribute('data-sc-grad'),
   );
   expect(own).toBe(true);
+});
+
+test('a gradient shared by two shapes gives each its own; its name goes with them', async ({
+  page,
+}) => {
+  await page.evaluate(() =>
+    window.svgcraft.openSvg(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 100"><defs>' +
+        '<linearGradient id="g" data-name="Sky"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#00f"/></linearGradient></defs>' +
+        '<rect id="a" width="80" height="80" fill="url(#g)"/><rect id="b" x="100" width="80" height="80" fill="url(#g)"/></svg>',
+      'shared.svg',
+    ),
+  );
+  const fills = await page.$$eval('#sc-doc rect', (rs) => rs.map((r) => r.getAttribute('fill')));
+  expect(new Set(fills).size).toBe(2);
+  expect(fills).not.toContain('url(#g)');
+  await expect(page.locator('#sc-defs #g')).toHaveCount(0);
+  await expect(page.locator('#sc-defs [data-sc-grad][data-name="Sky"]')).toHaveCount(2);
 });

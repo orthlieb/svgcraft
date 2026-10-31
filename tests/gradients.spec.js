@@ -316,7 +316,8 @@ test.describe('stroke gradient', () => {
     await page.click('[data-kind-for="stroke"] [data-kind="solid"]');
     expect(await grad(page, 'c', 'stroke')).toBeNull();
     await expect(ourGrads(page)).toHaveCount(2);
-    await expect(page.locator('#sc-defs #imp')).toHaveCount(0);
+    // imp, adopted, keeps its id.
+    await expect(page.locator('#sc-defs #imp[data-sc-grad]')).toHaveCount(1);
     await expect(page.locator('#sc-defs #base')).toHaveCount(1);
 
     // The export carries base and the two in use: the circle's and the rect's.
