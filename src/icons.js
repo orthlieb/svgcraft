@@ -386,7 +386,7 @@ niTemplate.addEventListener('change', () => {
 });
 niDlg.addEventListener('keydown', (e) => {
   e.stopPropagation();
-  if (e.key === 'Enter' && !e.target.closest('[data-ni="cancel"], select')) {
+  if (e.key === 'Enter' && !e.target.closest('button, select')) {
     e.preventDefault();
     closeNewIcon(true);
   } else if (e.key === 'Escape') closeNewIcon(false);

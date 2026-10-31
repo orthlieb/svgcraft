@@ -71,7 +71,7 @@ function renderPeek() {
 function peekLayers() {
   if (!curDoc) return;
   renderPeek();
-  showDialog(peekDlg);
+  showDialog(peekDlg, () => hideDialog(peekDlg));
 }
 function clearPeeks() {
   for (const el of doc.querySelectorAll('[data-sc-peek]')) el.removeAttribute('data-sc-peek');
@@ -187,6 +187,7 @@ function phoneInfo() {
     } else body.append(h, dl);
   }
   showDialog(infoSheet, () => hideDialog(infoSheet));
+  setTimeout(() => $('#sc-pinfo-close').focus(), 0);
 }
 $('#sc-pinfo-close').addEventListener('click', () => hideDialog(infoSheet));
 $('#sc-pinfo-about').addEventListener('click', () => {

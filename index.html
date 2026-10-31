@@ -1462,7 +1462,7 @@
               id="sc-ruler-v"
               aria-label="Vertical ruler — drag right to make a guide"
             ></canvas>
-            <svg id="sc-stage" xmlns="http://www.w3.org/2000/svg">
+            <svg id="sc-stage" xmlns="http://www.w3.org/2000/svg" tabindex="-1" aria-label="Canvas">
               <defs>
                 <pattern id="sc-checker" patternUnits="userSpaceOnUse" width="16" height="16">
                   <rect width="16" height="16" class="sc-check-a" />
@@ -2677,7 +2677,13 @@
               <i data-icon="lock"></i>
             </button>
           </div>
-          <ol class="sc-layers" id="sc-layers"></ol>
+          <ol
+            class="sc-layers"
+            id="sc-layers"
+            role="listbox"
+            aria-label="Layers"
+            aria-multiselectable="true"
+          ></ol>
           <div class="sc-layers-foot">
             <button
               class="sc-ibtn"

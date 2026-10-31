@@ -221,14 +221,42 @@ for (const d of document.querySelectorAll('dialog.sc-dialog')) {
 // Dialogs are native <dialog>s, shown modally: the browser moves them to
 // the top layer, keeps focus inside and makes the page behind inert. Esc
 // (the dialog's cancel) runs the dialog's own Cancel.
-function showDialog(d, onCancel) {
+function showDialog(d, onCancel = () => hideDialog(d)) {
   d.oncancel = (e) => {
     e.preventDefault();
     onCancel();
   };
+  dialogError(d);
   if (!d.open) d.showModal();
   // Where it was dragged to, still on screen if the window got smaller.
   if (d.style.left) winClamp(d);
+}
+// A value a dialog can't take: said in the dialog, above its buttons, with
+// the field marked and focused, and the dialog left open. With no field,
+// clears it (as opening the dialog, or changing the field, does).
+function dialogError(d, field, msg) {
+  for (const el of d.querySelectorAll('[aria-invalid]')) el.removeAttribute('aria-invalid');
+  let err = d.querySelector(':scope .sc-dlg-err');
+  if (!field) {
+    if (err) err.hidden = true;
+    return;
+  }
+  if (!err) {
+    err = document.createElement('p');
+    err.className = 'sc-dlg-err';
+    err.setAttribute('role', 'alert');
+    const foot = d.querySelector('.sc-dialog-foot');
+    if (foot) foot.before(err);
+    else d.append(err);
+    d.addEventListener('input', (e) => {
+      if (e.target.getAttribute('aria-invalid')) dialogError(d);
+    });
+  }
+  err.textContent = msg;
+  err.hidden = false;
+  field.setAttribute('aria-invalid', 'true');
+  field.focus();
+  field.select?.();
 }
 function hideDialog(d) {
   if (d.open) d.close();

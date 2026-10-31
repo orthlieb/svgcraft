@@ -32,6 +32,26 @@ function symbolOf(el) {
 const useM = (u) =>
   getM(u).translate(parseFloat(u.getAttribute('x')) || 0, parseFloat(u.getAttribute('y')) || 0);
 
+// An instance's own fill (or stroke) only reaches the parts of its symbol
+// that don't set one. When every shape in the symbol sets it (on itself or
+// a group inside the symbol), the instance's can't show: this returns the
+// first such shape, to read the colour from; null when some part takes the
+// instance's.
+function symbolOwnPaint(u, key) {
+  const sym = symbolOf(u);
+  if (!sym) return null;
+  const shapes = [...sym.querySelectorAll(SHAPE_SEL)].filter((el) => el.localName !== 'tspan');
+  if (!shapes.length) return null;
+  const sets = (el) => {
+    for (let n = el; n && n !== sym; n = n.parentNode) {
+      const v = n.getAttribute(key) || n.style?.getPropertyValue(key);
+      if (v && v !== 'inherit') return true;
+    }
+    return false;
+  };
+  return shapes.every(sets) ? shapes[0] : null;
+}
+
 // Every instance of sym: in the drawing and inside other symbols.
 function allUses(sym) {
   const roots = [doc, iso?.back, ...symList().filter((s) => s !== iso?.sym)].filter(Boolean);

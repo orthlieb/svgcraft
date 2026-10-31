@@ -16,6 +16,10 @@ function abortGesture() {
 }
 
 stage.addEventListener('pointerdown', (e) => {
+  // Working on the canvas puts the keyboard there too (Tab then hides the
+  // panels, the context-menu key opens its menu).
+  if (document.activeElement !== stage && !e.target.closest?.('[contenteditable="true"]'))
+    stage.focus({ preventScroll: true });
   if (e.isPrimary) pointers.clear();
   pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
   if (pointers.size === 2 && e.pointerType === 'touch') {
@@ -189,6 +193,21 @@ const TOOL_KEYS = {
   z: 'zoom',
 };
 
+// The next (or previous) option of a radio group or tab list, chosen as it
+// gets focus.
+function stepGroup(group, from, key) {
+  const items = [...group.querySelectorAll('[role=radio], [role=tab]')].filter(
+    (el) =>
+      el.closest('[role=radiogroup], [role=tablist]') === group && !el.disabled && el.offsetParent,
+  );
+  const i = items.indexOf(from.closest('[role=radio], [role=tab]'));
+  if (!items.length) return;
+  const step = key === 'ArrowLeft' || key === 'ArrowUp' ? -1 : 1;
+  const next = items[(i + step + items.length) % items.length];
+  next.focus();
+  if (next.getAttribute('aria-checked') !== 'true' && next.getAttribute('aria-selected') !== 'true')
+    next.click();
+}
 window.addEventListener('keydown', (e) => {
   // Previewing on a phone: only viewing keys (zoom, fit, open).
   if (previewMode && !/^[-+=_01]$/.test(e.key) && !((e.ctrlKey || e.metaKey) && /^o$/i.test(e.key)))
@@ -201,6 +220,18 @@ window.addEventListener('keydown', (e) => {
     'input:not([type=range]):not([type=checkbox]), textarea, select',
   );
   if (typing || e.target.isContentEditable) return;
+  // Arrow keys belong to what has focus, not the canvas: in a radio group
+  // or tab list they step through its options (as ARIA has them); a slider
+  // or a popup that already used them keeps them.
+  if (e.key.startsWith('Arrow')) {
+    if (e.defaultPrevented || e.target.matches?.('input[type=range]')) return;
+    const group = e.target.closest?.('[role=radiogroup], [role=tablist]');
+    if (group) {
+      e.preventDefault();
+      stepGroup(group, e.target, e.key);
+      return;
+    }
+  }
   const mod = e.ctrlKey || e.metaKey;
   // Nothing open: only Open (Ctrl+O) means anything.
   if (!curDoc) {
@@ -332,16 +363,15 @@ window.addEventListener('keydown', (e) => {
   } else if (k === 'u') shapeKey(e.shiftKey);
   else if (k === 'a') marqueeKey(e.shiftKey);
   else if (k === 'tab') {
-    // Tab hides the panels (Shift+Tab just the right-hand ones) while
-    // you're working on the canvas; with a control focused it moves focus.
+    // On the canvas, Tab hides the panels (Shift+Tab just the right-hand
+    // ones), as in Photoshop. With nothing focused it goes into the app,
+    // at the menu bar; on a control it moves focus as usual.
     const at = document.activeElement;
-    if (
-      (at && at !== document.body && !stage.contains(at)) ||
-      document.querySelector('dialog[open]')
-    )
-      return;
+    if (document.querySelector('dialog[open]')) return;
+    if (at && at !== document.body && !stage.contains(at)) return;
     e.preventDefault();
-    togglePanels(e.shiftKey);
+    if (at === stage || stage.contains(at)) togglePanels(e.shiftKey);
+    else focusMenuBar();
   } else if (TOOL_KEYS[k]) setTool(TOOL_KEYS[k]);
   else if (k === 'x') swapPaint();
   else if (k === 'd') defaultPaint();
@@ -352,6 +382,34 @@ window.addEventListener('keydown', (e) => {
   else if (k === '-' || k === '_') zoomAt(state.zoom / 1.25);
   else if (k === '0') fit();
   else if (k === '1') zoomAt(1);
+});
+// F10, or Alt pressed and let go on its own: the menu bar (and back).
+function focusMenuBar() {
+  $('.sc-menu-btn')?.focus();
+}
+let altAlone = false;
+window.addEventListener(
+  'keydown',
+  (e) => {
+    altAlone = e.key === 'Alt' && !e.repeat;
+    if (e.key === 'F10' && !e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      e.preventDefault();
+      if (document.activeElement?.closest('.sc-menus')) stage.focus();
+      else focusMenuBar();
+    }
+  },
+  true,
+);
+window.addEventListener('pointerdown', () => (altAlone = false), true);
+window.addEventListener('keyup', (e) => {
+  if (e.key === 'Alt' && altAlone && !document.querySelector('dialog[open]')) {
+    altAlone = false;
+    e.preventDefault();
+    if (document.activeElement?.closest('.sc-menus')) {
+      closeMenus();
+      stage.focus();
+    } else focusMenuBar();
+  }
 });
 window.addEventListener('keyup', (e) => {
   if (e.key === ' ') {

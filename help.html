@@ -1733,7 +1733,10 @@
               </li>
               <li>
                 Click a tab's ✕, middle-click it, or choose <strong>File → Close</strong> → closes
-                the drawing. If it has unsaved changes, you're asked first.
+                the drawing. If it has unsaved changes, you're asked first:
+                <strong>Save</strong> (the default) saves it, then closes it;
+                <strong>Don't Save</strong> closes it without its changes;
+                <strong>Cancel</strong> keeps it open.
               </li>
               <li>
                 A <code>*</code> after the name → the drawing differs from the version last opened
@@ -3989,6 +3992,17 @@
                 layer per shape inside it.
               </li>
             </ul>
+            <h4>With the keyboard</h4>
+            <p>Tab to the list (it lands on the selected row), then:</p>
+            <ul>
+              <li>
+                <strong>↑ ↓</strong> (Home, End): select the row above or below; Shift adds it.
+              </li>
+              <li><strong>Alt+↑ / Alt+↓</strong>: move the layer up or down the stack.</li>
+              <li><strong>F2</strong> or <strong>Enter</strong>: rename it.</li>
+              <li><strong>→ / ←</strong>: open or fold a folder.</li>
+              <li><strong>Shift+F10</strong> (or the menu key): its right-click menu.</li>
+            </ul>
             <h4>Good to know</h4>
             <ul>
               <li>
@@ -4468,8 +4482,9 @@
               <li><strong>Tap</strong> a button on a touch screen to show its tip briefly.</li>
             </ul>
             <p>
-              Tooltips float above everything, panels and menus included, and fade after three
-              seconds.
+              Tooltips float above everything, panels and menus included. One stays while the
+              pointer is on its button (or the button has focus), and goes when you move away,
+              click, or press a key.
             </p>
           </div>
         </section>
@@ -5131,6 +5146,13 @@
               the symbol that don't have a colour of their own. To recolour the artwork itself, edit
               the symbol.
             </p>
+            <ul>
+              <li>
+                When every part of the symbol sets its own fill (or stroke), the Color panel shows
+                the symbol's colour, greyed out, with an <strong>Edit Symbol</strong> link: the
+                instance's own colour couldn't show anywhere.
+              </li>
+            </ul>
           </article>
           <article id="edit-a-symbol" data-find>
             <h3>Edit a symbol</h3>
@@ -5138,7 +5160,7 @@
               <img
                 src="docs/help/edit-a-symbol.png"
                 alt="Editing the Star symbol in place, with the rest of the drawing dimmed and the Done bar at the top"
-                width="946"
+                width="665"
                 height="664"
                 loading="lazy"
               />
@@ -5561,6 +5583,14 @@
                   <td>F1</td>
                   <td>SVGCraft Help</td>
                 </tr>
+                <tr>
+                  <td>F10 (or Alt alone)</td>
+                  <td>The menu bar (and back)</td>
+                </tr>
+                <tr>
+                  <td>Shift+F10 · menu key</td>
+                  <td>The right-click menu of the canvas or layer</td>
+                </tr>
               </tbody>
             </table>
             <h4>Where they differ from Photoshop</h4>
@@ -5580,8 +5610,17 @@
             <h4>Good to know</h4>
             <ul>
               <li>
-                Tab hides the panels only while you're working on the canvas. With a control
-                focused, it moves focus as usual.
+                Tab hides the panels only while you're working on the canvas (after a click on it).
+                With a control focused it moves focus as usual, and with nothing focused it goes to
+                the menu bar.
+              </li>
+              <li>
+                In a menu, the arrows move through it and its submenus, Home and End go to its ends,
+                and a letter to the next command starting with it.
+              </li>
+              <li>
+                In a row of options (Type, Align, Caps…) or a panel's tabs, the arrows move along
+                them.
               </li>
               <li>A shortcut for a menu item that's greyed out does nothing.</li>
             </ul>

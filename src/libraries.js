@@ -174,7 +174,8 @@ const askOk = () => {
 };
 askDlg.addEventListener('keydown', (e) => {
   e.stopPropagation();
-  if (e.key === 'Enter') {
+  // Enter on a button is that button's (the browser clicks it).
+  if (e.key === 'Enter' && !e.target.closest('button')) {
     e.preventDefault();
     askOk();
   } else if (e.key === 'Escape') askDone?.(null);

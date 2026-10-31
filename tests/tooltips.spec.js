@@ -52,16 +52,14 @@ test('a tool tip waits for the delay, then shows beside the tool in the top laye
   expect(s.open).toBe(true);
 });
 
-test('the tip hides itself after ~3 s and stays hidden while hovering on', async ({ page }) => {
+test('the tip stays while hovered, and goes when the pointer leaves', async ({ page }) => {
   const pen = page.locator('[data-tool="pen"]');
   await hoverAndWait(page, pen);
-  await page.waitForTimeout(3000);
+  await page.waitForTimeout(3500);
   const s = await tipState(page);
-  expect(s.hidden).toBe(true);
-  expect(s.open).toBe(false);
-
-  const pr = await pen.boundingBox();
-  await page.mouse.move(pr.x + 5, pr.y + 5);
+  expect(s.hidden).toBe(false);
+  expect(s.open).toBe(true);
+  await page.mouse.move(700, 500);
   await page.waitForTimeout(100);
   expect((await tipState(page)).hidden).toBe(true);
 });

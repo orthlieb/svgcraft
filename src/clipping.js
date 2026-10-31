@@ -177,6 +177,7 @@ function applyStyle(el, key) {
       ts.removeAttribute('fill-opacity');
     }
   for (const t of paintTargets(el)) {
+    if ((key === 'fill' || key === 'stroke') && symbolOwnPaint(t, key)) continue;
     if (key === 'fill' || key === 'stroke') {
       t.style?.removeProperty(key);
       const grad = state[key + 'On'] && state[key + 'Grad'];
@@ -217,22 +218,31 @@ function readStyle(el) {
   const shape = el.matches(SHAPE_SEL) ? el : el.querySelector(SHAPE_SEL);
   const ownCs = getComputedStyle(el);
   state.opacity = parseFloat(ownCs.opacity) || 0;
+  // A symbol instance whose symbol paints every part itself: the Color
+  // panel shows the symbol's paint, and can't change it (see syncStyleUI).
+  const own = { fill: symbolOwnPaint(el, 'fill'), stroke: symbolOwnPaint(el, 'stroke') };
+  state.fillLocked = !!own.fill;
+  state.strokeLocked = !!own.stroke;
   if (shape) {
     const cs = getComputedStyle(shape);
-    const fill = cs.fill;
+    const ocs = {
+      fill: own.fill && getComputedStyle(own.fill),
+      stroke: own.stroke && getComputedStyle(own.stroke),
+    };
+    const fill = (ocs.fill || cs).fill;
     state.fillOn = !!fill && fill !== 'none';
     if (state.fillOn) state.fill = hex(fill) || state.fill;
-    state.fillA = parseFloat(cs.fillOpacity) * colorAlpha(fill);
-    state.fillGrad = gradFor(shape, 'fill');
-    state.fillPat = patFor(shape, 'fill');
-    if (state.fillPat) state.fill = patInk(shape, 'fill') || state.fill;
-    const stroke = cs.stroke;
+    state.fillA = parseFloat((ocs.fill || cs).fillOpacity) * colorAlpha(fill);
+    state.fillGrad = gradFor(own.fill || shape, 'fill');
+    state.fillPat = patFor(own.fill || shape, 'fill');
+    if (state.fillPat) state.fill = patInk(own.fill || shape, 'fill') || state.fill;
+    const stroke = (ocs.stroke || cs).stroke;
     state.strokeOn = !!stroke && stroke !== 'none';
     if (state.strokeOn) state.stroke = hex(stroke) || state.stroke;
-    state.strokeA = parseFloat(cs.strokeOpacity) * colorAlpha(stroke);
-    state.strokeGrad = gradFor(shape, 'stroke');
-    state.strokePat = patFor(shape, 'stroke');
-    if (state.strokePat) state.stroke = patInk(shape, 'stroke') || state.stroke;
+    state.strokeA = parseFloat((ocs.stroke || cs).strokeOpacity) * colorAlpha(stroke);
+    state.strokeGrad = gradFor(own.stroke || shape, 'stroke');
+    state.strokePat = patFor(own.stroke || shape, 'stroke');
+    if (state.strokePat) state.stroke = patInk(own.stroke || shape, 'stroke') || state.stroke;
     state.gradStop = 0;
     state.strokeWidth = strokeW(shape);
     state.strokeAlign = alignOf(shape);

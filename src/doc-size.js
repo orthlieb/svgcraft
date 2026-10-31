@@ -55,7 +55,8 @@ function closeImageSize(ok) {
   if (ok) {
     const w = isPx(+isField('w').value, state.w);
     const h = isPx(+isField('h').value, state.h);
-    if (!(w > 0 && h > 0)) return warn('Enter a width and height above zero.');
+    if (!(w > 0 && h > 0))
+      return dialogError(isDlg, isField(w > 0 ? 'h' : 'w'), 'Enter a width and height above zero.');
     const nw = clamp(w, 1, 20000);
     const nh = clamp(h, 1, 20000);
     hideDialog(isDlg);
@@ -136,7 +137,11 @@ function closeCanvasSize(ok) {
     const nw = whole((rel ? state.w : 0) + fromUnits(+cvField('w').value || 0));
     const nh = whole((rel ? state.h : 0) + fromUnits(+cvField('h').value || 0));
     if (!(nw >= 1 && nh >= 1 && nw <= 20000 && nh <= 20000))
-      return warn('The canvas must be 1 to 20,000 px each way.');
+      return dialogError(
+        cvDlg,
+        cvField(nw >= 1 && nw <= 20000 ? 'h' : 'w'),
+        'The canvas must be 1 to 20,000 px each way.',
+      );
     hideDialog(cvDlg);
     if (Math.abs(nw - state.w) < 1e-6 && Math.abs(nh - state.h) < 1e-6) return;
     const was = docSizeText();
@@ -162,7 +167,7 @@ for (const [dlg, close, btn] of [
 ]) {
   dlg.addEventListener('keydown', (e) => {
     e.stopPropagation();
-    if (e.key === 'Enter' && !e.target.closest(`[${btn}="cancel"], [data-cv-anchor], select`)) {
+    if (e.key === 'Enter' && !e.target.closest('button, [data-cv-anchor], select')) {
       e.preventDefault();
       close(true);
     } else if (e.key === 'Escape') close(false);

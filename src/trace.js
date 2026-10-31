@@ -1091,7 +1091,8 @@ async function openTrace() {
   Object.assign(tr, { img: el, pixels: px.data, w: px.w, h: px.h, M: px.M, layers: null });
   trField('preview').setAttribute('viewBox', `0 0 ${px.w} ${px.h}`);
   showDialog(trDlg, () => closeTrace(false));
-  setTimeout(() => trDlg.querySelector('[data-tr-btn="ok"]').focus(), 0);
+  // Trace waits for the first result, so the keyboard starts on the preset.
+  setTimeout(() => trDlg.querySelector('select, input')?.focus(), 0);
   retrace(0);
 }
 // Trace again (after a pause while settings change); the newest run wins.
@@ -1179,7 +1180,7 @@ for (const k of ['colours', 'threshold', 'speck', 'smooth', 'stacked', 'ignoreBg
   });
 trDlg.addEventListener('keydown', (e) => {
   e.stopPropagation();
-  if (e.key === 'Enter' && !e.target.closest('[data-tr-btn="cancel"], select')) {
+  if (e.key === 'Enter' && !e.target.closest('button, select')) {
     e.preventDefault();
     if (!trDlg.querySelector('[data-tr-btn="ok"]').disabled) closeTrace(true);
   } else if (e.key === 'Escape') closeTrace(false);

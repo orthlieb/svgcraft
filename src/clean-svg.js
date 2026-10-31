@@ -243,7 +243,7 @@ function closeCleanSvg(ok) {
 }
 csDlg.addEventListener('keydown', (e) => {
   e.stopPropagation();
-  if (e.key === 'Enter' && !e.target.closest('[data-cs-btn="cancel"]')) {
+  if (e.key === 'Enter' && !e.target.closest('button')) {
     e.preventDefault();
     closeCleanSvg(true);
   } else if (e.key === 'Escape') closeCleanSvg(false);

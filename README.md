@@ -776,7 +776,9 @@ Work on several drawings at once, each in its own tab.
 - Click a tab → switch to that drawing. Each tab keeps its own drawing, undo
   history and zoom.
 - Click a tab's ✕, middle-click it, or choose **File → Close** → closes the
-  drawing. If it has unsaved changes, you're asked first.
+  drawing. If it has unsaved changes, you're asked first: **Save** (the
+  default) saves it, then closes it; **Don't Save** closes it without its
+  changes; **Cancel** keeps it open.
 - A `*` after the name → the drawing differs from the version last opened
   or saved.
 
@@ -2131,6 +2133,16 @@ part of it.
 - **Imported SVGs** arrive as a folder named after the file, with one layer
   per shape inside it.
 
+#### With the keyboard
+
+Tab to the list (it lands on the selected row), then:
+
+- **↑ ↓** (Home, End): select the row above or below; Shift adds it.
+- **Alt+↑ / Alt+↓**: move the layer up or down the stack.
+- **F2** or **Enter**: rename it.
+- **→ / ←**: open or fold a folder.
+- **Shift+F10** (or the menu key): its right-click menu.
+
 #### Good to know
 
 - Everything works at any depth. Move, scale, rotate, flip, nudge, align,
@@ -2419,8 +2431,9 @@ Hover over any button to find out what it does.
 - **Tab** to a button to show its tip too.
 - **Tap** a button on a touch screen to show its tip briefly.
 
-Tooltips float above everything, panels and menus included, and fade after
-three seconds.
+Tooltips float above everything, panels and menus included. One stays
+while the pointer is on its button (or the button has focus), and goes
+when you move away, click, or press a key.
 
 ## Combine Shapes
 
@@ -2821,6 +2834,10 @@ A colour you give an instance goes onto the instance, so it only shows on
 the parts of the symbol that don't have a colour of their own. To recolour
 the artwork itself, edit the symbol.
 
+- When every part of the symbol sets its own fill (or stroke), the Color
+  panel shows the symbol's colour, greyed out, with an **Edit Symbol** link:
+  the instance's own colour couldn't show anywhere.
+
 ### Edit a symbol
 
 ![Editing the Star symbol in place, with the rest of the drawing dimmed and the Done bar at the top](docs/help/edit-a-symbol.png)
@@ -3021,6 +3038,8 @@ the menus, so they always agree.
 | Alt+Shift+Ctrl+I          | File Info                                          |
 | Alt+↑ · Alt+↓             | Move the animation up · down the list              |
 | F1                        | SVGCraft Help                                      |
+| F10 (or Alt alone)        | The menu bar (and back)                            |
+| Shift+F10 · menu key      | The right-click menu of the canvas or layer        |
 
 #### Where they differ from Photoshop
 
@@ -3036,8 +3055,13 @@ A browser keeps a few keys for itself, so these differ:
 
 #### Good to know
 
-- Tab hides the panels only while you're working on the canvas. With a
-  control focused, it moves focus as usual.
+- Tab hides the panels only while you're working on the canvas (after a
+  click on it). With a control focused it moves focus as usual, and with
+  nothing focused it goes to the menu bar.
+- In a menu, the arrows move through it and its submenus, Home and End go
+  to its ends, and a letter to the next command starting with it.
+- In a row of options (Type, Align, Caps…) or a panel's tabs, the arrows
+  move along them.
 - A shortcut for a menu item that's greyed out does nothing.
 
 ## SVG source

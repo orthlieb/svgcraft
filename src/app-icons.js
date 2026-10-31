@@ -381,11 +381,17 @@ async function exportAppIcons({ web, ios, android, macos }, bg) {
 }
 
 const aiDlg = $('#sc-appicons');
+// Export needs at least one platform ticked.
+const aiPicked = () => [...aiDlg.querySelectorAll('[data-ai]')].some((c) => c.checked);
+const syncAiOk = () => (aiDlg.querySelector('[data-ai-btn="ok"]').disabled = !aiPicked());
+aiDlg.addEventListener('change', syncAiOk);
 function openAppIcons() {
+  syncAiOk();
   showDialog(aiDlg, () => closeAppIcons(false));
   setTimeout(() => aiDlg.querySelector('[data-ai-btn="ok"]').focus(), 0);
 }
 function closeAppIcons(ok) {
+  if (ok && !aiPicked()) return;
   hideDialog(aiDlg);
   if (!ok) return;
   const on = (k) => aiDlg.querySelector(`[data-ai="${k}"]`).checked;
@@ -396,7 +402,7 @@ function closeAppIcons(ok) {
 }
 aiDlg.addEventListener('keydown', (e) => {
   e.stopPropagation();
-  if (e.key === 'Enter' && !e.target.closest('[data-ai-btn="cancel"]')) {
+  if (e.key === 'Enter' && !e.target.closest('button')) {
     e.preventDefault();
     closeAppIcons(true);
   } else if (e.key === 'Escape') closeAppIcons(false);

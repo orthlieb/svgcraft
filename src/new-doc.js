@@ -168,7 +168,11 @@ function closeNewDoc(ok) {
   const w = +ndField('w').value * UNITS[u][1];
   const h = +ndField('h').value * UNITS[u][1];
   if (!(w >= 1 && h >= 1 && w <= 20000 && h <= 20000))
-    return warn('The document must be 1 to 20,000 px each way.');
+    return dialogError(
+      ndDlg,
+      ndField(w >= 1 && w <= 20000 ? 'h' : 'w'),
+      'The document must be 1 to 20,000 px each way.',
+    );
   hideDialog(ndDlg);
   const bg = ndField('bg').value;
   const colour = ndField('colour').value;
@@ -217,7 +221,7 @@ for (const b of ndDlg.querySelectorAll('[data-nd-orient]'))
 ndField('bg').addEventListener('change', ndShow);
 ndDlg.addEventListener('keydown', (e) => {
   e.stopPropagation();
-  if (e.key === 'Enter' && !e.target.closest('[data-nd-btn="cancel"], select, [data-nd-cat]')) {
+  if (e.key === 'Enter' && !e.target.closest('button, select, [data-nd-cat]')) {
     e.preventDefault();
     closeNewDoc(true);
   } else if (e.key === 'Escape') closeNewDoc(false);
