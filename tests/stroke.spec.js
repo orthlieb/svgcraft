@@ -2,7 +2,7 @@ import { test, expect, load, toScreen, tab } from './fixtures.js';
 
 // Stroke caps, joins, dash presets and rounded rectangle corners.
 
-const props = '[data-pane="color"]';
+const props = '#sc-appearance';
 const opt = '.sc-opt.on';
 
 // Drag between two document points.
@@ -333,7 +333,7 @@ test('the stroke settings sit under Stroke in the Color panel, whatever else is 
     'select[data-stroke-dash]',
   ])
     await expect(
-      page.locator(`[data-pane="color"] .sc-paint[data-target="stroke"] ${sel}`),
+      page.locator(`#sc-appearance .sc-paint[data-target="stroke"] ${sel}`),
     ).toBeVisible();
   await expect(page.locator('[data-pane="props"] [data-bind="strokeWidth"]')).toHaveCount(0);
 });

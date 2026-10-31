@@ -545,10 +545,6 @@
             Window
           </button>
           <div class="sc-menu-list" role="menu" hidden>
-            <button role="menuitemcheckbox" data-action="panelColor" aria-checked="false">
-              <i data-icon="palette"></i><span>Color</span>
-            </button>
-            <hr />
             <button role="menuitemcheckbox" data-action="panelProperties" aria-checked="false">
               <i data-icon="sliders"></i><span>Properties</span>
             </button>
@@ -1013,9 +1009,15 @@
           <i data-icon="draw-polygon"></i>Close / open
         </button>
       </div>
+      <div class="sc-opt" data-for="pencil pen rect ellipse triangle polygon line custom text">
+        <span class="sc-opt-label">Fill:</span>
+        <button class="sc-paintbtn" data-paint="fill"></button>
+        <span class="sc-opt-label">Stroke:</span>
+        <button class="sc-paintbtn" data-paint="stroke"></button>
+      </div>
       <div class="sc-opt" data-for="pencil pen rect ellipse triangle polygon line custom">
         <label class="sc-field"
-          ><span class="sc-scrub" data-tip="Drag to adjust">Stroke:</span
+          ><span class="sc-scrub" data-tip="Drag to adjust">Width:</span
           ><input
             type="number"
             data-bind="strokeWidth"
@@ -1410,37 +1412,6 @@
           <i data-icon="magnifying-glass"></i>
         </button>
         <!-- Fill / stroke chips, Photoshop foreground / background style. -->
-        <div class="sc-chips" aria-label="Fill and stroke">
-          <button
-            id="sc-tb-stroke"
-            class="sc-tb-chip sc-tb-stroke"
-            aria-label="Stroke colour (make active)"
-            data-tip="Stroke · click to edit"
-          ></button>
-          <button
-            id="sc-tb-fill"
-            class="sc-tb-chip sc-tb-fill"
-            aria-label="Fill colour (make active)"
-            data-tip="Fill · click to edit"
-          ></button>
-          <!-- Above the chips, as in Photoshop: default colours, swap. -->
-          <button
-            class="sc-tb-mini sc-tb-default"
-            data-action="defaultPaint"
-            aria-label="Default fill and stroke"
-            data-tip="Default fill and stroke"
-          >
-            <span class="sc-tb-def-stroke"></span><span class="sc-tb-def-fill"></span>
-          </button>
-          <button
-            class="sc-tb-mini sc-tb-swap"
-            data-action="swapPaint"
-            aria-label="Swap fill and stroke"
-            data-tip="Swap fill and stroke"
-          >
-            <i data-icon="sc-swap-colours"></i>
-          </button>
-        </div>
       </nav>
 
       <!-- ── Document window ────────────────────────────────────────────── -->
@@ -1572,527 +1543,6 @@
           </button>
         </div>
         <nav class="sc-dock-strip" aria-label="Panel icons"></nav>
-        <section class="sc-pgroup" data-tabs>
-          <div class="sc-ptabs" role="tablist">
-            <button
-              role="tab"
-              aria-selected="true"
-              data-tab="color"
-              aria-label="Color"
-              data-tip="Color"
-            >
-              <i data-icon="palette"></i><span>Color</span>
-            </button>
-            <button
-              class="sc-ibtn sc-ptab-end"
-              id="sc-screen-pick"
-              data-action="pickFromScreen"
-              aria-label="Pick a colour from anywhere on screen"
-              data-tip="Pick a colour from anywhere on screen"
-              hidden
-            >
-              <i data-icon="eye-dropper"></i>
-            </button>
-          </div>
-          <div class="sc-pbody" data-pane="color">
-            <div class="sc-paint" data-target="fill">
-              <div class="sc-paint-head">
-                <button
-                  class="sc-paint-fold"
-                  data-fold="fill"
-                  aria-expanded="true"
-                  aria-label="Show or hide the fill settings"
-                  data-tip="Show or hide the fill settings"
-                ></button>
-                <button
-                  class="sc-chip"
-                  id="sc-fill-chip"
-                  aria-label="Fill colour"
-                  data-tip="Fill colour · click to pick"
-                ></button>
-                <span>Fill</span>
-                <label class="sc-check"><input id="sc-fill-on" type="checkbox" checked /> On</label>
-                <input id="sc-fill-color" type="color" value="#e8a33d" aria-label="Fill colour" />
-                <input
-                  id="sc-fill-hex"
-                  class="sc-hex"
-                  value="#e8a33d"
-                  aria-label="Fill hex"
-                  spellcheck="false"
-                />
-                <button id="sc-fill-swatch"></button>
-              </div>
-              <label class="sc-row"
-                >Alpha <input id="sc-fill-a" type="range" min="0" max="100" value="100" /><output
-                  id="sc-fill-a-out"
-                  >100%</output
-                ></label
-              >
-              <div class="sc-row sc-kind-row">
-                Type
-                <div
-                  class="sc-seg sc-paint-kind"
-                  role="radiogroup"
-                  aria-label="Fill type"
-                  data-kind-for="fill"
-                >
-                  <button
-                    data-kind="solid"
-                    role="radio"
-                    aria-label="Solid colour"
-                    data-tip="Solid colour"
-                  >
-                    <span class="sc-kind-glyph solid"></span>
-                  </button>
-                  <button
-                    data-kind="linear"
-                    role="radio"
-                    aria-label="Linear gradient"
-                    data-tip="Linear gradient"
-                  >
-                    <span class="sc-kind-glyph linear"></span>
-                  </button>
-                  <button
-                    data-kind="radial"
-                    role="radio"
-                    aria-label="Radial gradient"
-                    data-tip="Radial gradient"
-                  >
-                    <span class="sc-kind-glyph radial"></span>
-                  </button>
-                  <button data-kind="pattern" role="radio" aria-label="Pattern" data-tip="Pattern">
-                    <span class="sc-kind-glyph pattern"></span>
-                  </button>
-                </div>
-              </div>
-              <div class="sc-grad sc-paint-editor" id="sc-grad" hidden>
-                <div class="sc-grad-head">
-                  <span class="sc-subhead" id="sc-grad-title">Gradient</span>
-                  <button id="sc-grad-preset"></button>
-                  <button
-                    class="sc-ibtn"
-                    id="sc-grad-save"
-                    aria-label="Save to the Gradients library"
-                    data-tip="Save to the Gradients library"
-                  >
-                    <i data-icon="plus"></i>
-                  </button>
-                  <button
-                    class="sc-ibtn"
-                    id="sc-grad-reverse"
-                    aria-label="Reverse gradient"
-                    data-tip="Reverse"
-                  >
-                    <i data-icon="right-left"></i>
-                  </button>
-                </div>
-                <div class="sc-grad-track" id="sc-grad-track">
-                  <div class="sc-grad-bar" id="sc-grad-bar"></div>
-                  <div class="sc-grad-stops" id="sc-grad-stops"></div>
-                </div>
-                <div class="sc-gstop-row">
-                  <input id="sc-gstop-color" type="color" aria-label="Stop colour" />
-                  <input
-                    id="sc-gstop-hex"
-                    class="sc-hex"
-                    aria-label="Stop hex"
-                    spellcheck="false"
-                  />
-                  <button
-                    class="sc-ibtn"
-                    id="sc-gstop-del"
-                    aria-label="Delete stop"
-                    data-tip="Delete stop"
-                  >
-                    <i data-icon="trash-can"></i>
-                  </button>
-                </div>
-                <div class="sc-gstop-row">
-                  <label class="sc-field" data-tip="Stop opacity"
-                    ><span class="sc-scrub">Opacity</span
-                    ><input
-                      type="number"
-                      id="sc-gstop-a"
-                      min="0"
-                      max="100"
-                      step="1"
-                      aria-label="Stop opacity"
-                    /><span class="sc-unit">%</span></label
-                  >
-                  <label class="sc-field" data-tip="Stop location"
-                    ><span class="sc-scrub">Location</span
-                    ><input
-                      type="number"
-                      id="sc-gstop-o"
-                      min="0"
-                      max="100"
-                      step="1"
-                      aria-label="Stop location"
-                    /><span class="sc-unit">%</span></label
-                  >
-                </div>
-                <div class="sc-gstop-row" id="sc-grad-angle-wrap">
-                  <label class="sc-field" data-tip="Angle (90° runs bottom to top)"
-                    ><span class="sc-scrub">Angle</span
-                    ><input
-                      type="number"
-                      id="sc-grad-angle"
-                      min="-360"
-                      max="360"
-                      step="1"
-                      aria-label="Gradient angle"
-                    /><span class="sc-unit">°</span></label
-                  >
-                </div>
-                <label
-                  class="sc-check"
-                  data-tip="Off: stretching or skewing the shape keeps the gradient’s angle, and a radial one round. On: it stretches with the shape"
-                  ><input type="checkbox" id="sc-grad-stretch" /> Stretch with shape</label
-                >
-                <p class="sc-hint">
-                  Click the bar to add a stop. Drag a stop to move it, or down off the bar to remove
-                  it. The Gradient tool (G) sets the direction on the canvas.
-                </p>
-              </div>
-              <div class="sc-grad sc-paint-editor" id="sc-pat" hidden>
-                <div class="sc-grad-head">
-                  <span class="sc-subhead" id="sc-pat-title">Pattern</span>
-                  <button id="sc-pat-pick"></button>
-                </div>
-                <div class="sc-pat-preview" id="sc-pat-preview"></div>
-                <div class="sc-gstop-row">
-                  <label class="sc-field" data-tip="Pattern scale"
-                    ><span class="sc-scrub">Scale</span
-                    ><input
-                      type="number"
-                      id="sc-pat-scale"
-                      min="5"
-                      max="5000"
-                      step="5"
-                      aria-label="Pattern scale"
-                    /><span class="sc-unit">%</span></label
-                  >
-                  <label class="sc-field" data-tip="Pattern angle"
-                    ><span class="sc-scrub">Angle</span
-                    ><input
-                      type="number"
-                      id="sc-pat-angle"
-                      min="-360"
-                      max="360"
-                      step="1"
-                      aria-label="Pattern angle"
-                    /><span class="sc-unit">°</span></label
-                  >
-                </div>
-                <label
-                  class="sc-check"
-                  data-tip="Off: the tiles keep their size when you scale or stretch the shape. On: they grow and stretch with it"
-                  ><input type="checkbox" id="sc-pat-with" /> Stretch with shape</label
-                >
-                <p class="sc-hint">
-                  The paint's colour inks the built-in patterns. Pick another above; its Custom…
-                  makes and manages patterns.
-                </p>
-              </div>
-            </div>
-            <div class="sc-paint" data-target="stroke">
-              <div class="sc-paint-head">
-                <button
-                  class="sc-paint-fold"
-                  data-fold="stroke"
-                  aria-expanded="true"
-                  aria-label="Show or hide the stroke settings"
-                  data-tip="Show or hide the stroke settings"
-                ></button>
-                <button
-                  class="sc-chip"
-                  id="sc-stroke-chip"
-                  aria-label="Stroke colour"
-                  data-tip="Stroke colour · click to pick"
-                ></button>
-                <span>Stroke</span>
-                <label class="sc-check"
-                  ><input id="sc-stroke-on" type="checkbox" checked /> On</label
-                >
-                <input
-                  id="sc-stroke-color"
-                  type="color"
-                  value="#1f2933"
-                  aria-label="Stroke colour"
-                />
-                <input
-                  id="sc-stroke-hex"
-                  class="sc-hex"
-                  value="#1f2933"
-                  aria-label="Stroke hex"
-                  spellcheck="false"
-                />
-                <button id="sc-stroke-swatch"></button>
-              </div>
-              <label class="sc-row"
-                >Alpha <input id="sc-stroke-a" type="range" min="0" max="100" value="100" /><output
-                  id="sc-stroke-a-out"
-                  >100%</output
-                ></label
-              >
-              <div class="sc-row sc-kind-row">
-                Type
-                <div
-                  class="sc-seg sc-paint-kind"
-                  role="radiogroup"
-                  aria-label="Stroke type"
-                  data-kind-for="stroke"
-                >
-                  <button
-                    data-kind="solid"
-                    role="radio"
-                    aria-label="Solid colour"
-                    data-tip="Solid colour"
-                  >
-                    <span class="sc-kind-glyph solid"></span>
-                  </button>
-                  <button
-                    data-kind="linear"
-                    role="radio"
-                    aria-label="Linear gradient"
-                    data-tip="Linear gradient"
-                  >
-                    <span class="sc-kind-glyph linear"></span>
-                  </button>
-                  <button
-                    data-kind="radial"
-                    role="radio"
-                    aria-label="Radial gradient"
-                    data-tip="Radial gradient"
-                  >
-                    <span class="sc-kind-glyph radial"></span>
-                  </button>
-                  <button data-kind="pattern" role="radio" aria-label="Pattern" data-tip="Pattern">
-                    <span class="sc-kind-glyph pattern"></span>
-                  </button>
-                </div>
-              </div>
-              <!-- How the stroke is drawn: width, alignment, caps, joins, dashes. -->
-              <div class="sc-stroke-opts">
-                <div class="sc-prop-rows">
-                  <span class="sc-opt-label">Width</span
-                  ><label class="sc-field sc-field-bare"
-                    ><input
-                      type="number"
-                      data-bind="strokeWidth"
-                      min="0"
-                      max="200"
-                      step="0.5"
-                      aria-label="Stroke width"
-                    /><span class="sc-unit">px</span></label
-                  >
-                  <span class="sc-opt-label">Align</span>
-                  <div class="sc-seg sc-seg-glyph" role="radiogroup" aria-label="Stroke alignment">
-                    <button
-                      data-stroke-align="inside"
-                      role="radio"
-                      aria-label="Inside — the stroke stays within the shape"
-                      data-tip="Inside — the stroke stays within the shape"
-                    >
-                      <svg class="sc-glyph" viewBox="0 0 24 16" aria-hidden="true">
-                        <path fill-rule="evenodd" d="M6 3h12v10H6z M9 6v4h6V6z" />
-                        <path
-                          d="M6 3h12v10H6z"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="1"
-                          stroke-dasharray="2 1.5"
-                          opacity=".6"
-                        />
-                      </svg>
-                    </button>
-                    <button
-                      data-stroke-align="center"
-                      role="radio"
-                      aria-label="Center — the stroke straddles the outline"
-                      data-tip="Center — the stroke straddles the outline"
-                    >
-                      <svg class="sc-glyph" viewBox="0 0 24 16" aria-hidden="true">
-                        <path fill-rule="evenodd" d="M4.5 1.5h15v13h-15z M7.5 4.5v7h9v-7z" />
-                        <path
-                          d="M6 3h12v10H6z"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="1"
-                          stroke-dasharray="2 1.5"
-                          opacity=".6"
-                        />
-                      </svg>
-                    </button>
-                    <button
-                      data-stroke-align="outside"
-                      role="radio"
-                      aria-label="Outside — the stroke surrounds the shape"
-                      data-tip="Outside — the stroke surrounds the shape"
-                    >
-                      <svg class="sc-glyph" viewBox="0 0 24 16" aria-hidden="true">
-                        <path fill-rule="evenodd" d="M3 0h18v16H3z M6 3v10h12V3z" />
-                        <path
-                          d="M6 3h12v10H6z"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="1"
-                          stroke-dasharray="2 1.5"
-                          opacity=".6"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-                  <span class="sc-opt-label">Caps</span>
-                  <div class="sc-seg sc-seg-glyph" role="radiogroup" aria-label="Line caps">
-                    <button
-                      data-stroke-cap="butt"
-                      role="radio"
-                      aria-label="Butt cap — ends at the point"
-                      data-tip="Butt cap — ends at the point"
-                    >
-                      <svg class="sc-glyph" viewBox="0 0 24 16" aria-hidden="true">
-                        <rect x="2" y="5" width="13" height="6" />
-                        <path
-                          d="M15 1v14"
-                          stroke="currentColor"
-                          stroke-width="1"
-                          stroke-dasharray="2 1.5"
-                          opacity=".6"
-                        />
-                      </svg></button
-                    ><button
-                      data-stroke-cap="round"
-                      role="radio"
-                      aria-label="Round cap"
-                      data-tip="Round cap"
-                    >
-                      <svg class="sc-glyph" viewBox="0 0 24 16" aria-hidden="true">
-                        <path d="M2 5h13a3 3 0 0 1 0 6H2z" />
-                        <path
-                          d="M15 1v14"
-                          stroke="currentColor"
-                          stroke-width="1"
-                          stroke-dasharray="2 1.5"
-                          opacity=".6"
-                        />
-                      </svg></button
-                    ><button
-                      data-stroke-cap="square"
-                      role="radio"
-                      aria-label="Square cap — extends past the point"
-                      data-tip="Square cap — extends past the point"
-                    >
-                      <svg class="sc-glyph" viewBox="0 0 24 16" aria-hidden="true">
-                        <rect x="2" y="5" width="16" height="6" />
-                        <path
-                          d="M15 1v14"
-                          stroke="currentColor"
-                          stroke-width="1"
-                          stroke-dasharray="2 1.5"
-                          opacity=".6"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-                  <span class="sc-opt-label">Joins</span>
-                  <div class="sc-seg sc-seg-glyph" role="radiogroup" aria-label="Corner joins">
-                    <button
-                      data-stroke-join="miter"
-                      role="radio"
-                      aria-label="Miter join"
-                      data-tip="Miter join"
-                    >
-                      <svg class="sc-glyph" viewBox="0 0 24 16" aria-hidden="true">
-                        <path
-                          d="M3 14 12 4l9 10"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="4.5"
-                          stroke-linejoin="miter"
-                        />
-                      </svg></button
-                    ><button
-                      data-stroke-join="round"
-                      role="radio"
-                      aria-label="Round join"
-                      data-tip="Round join"
-                    >
-                      <svg class="sc-glyph" viewBox="0 0 24 16" aria-hidden="true">
-                        <path
-                          d="M3 14 12 4l9 10"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="4.5"
-                          stroke-linejoin="round"
-                        />
-                      </svg></button
-                    ><button
-                      data-stroke-join="bevel"
-                      role="radio"
-                      aria-label="Bevel join"
-                      data-tip="Bevel join"
-                    >
-                      <svg class="sc-glyph" viewBox="0 0 24 16" aria-hidden="true">
-                        <path
-                          d="M3 14 12 4l9 10"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="4.5"
-                          stroke-linejoin="bevel"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-                  <span class="sc-opt-label">Dashes</span
-                  ><select data-stroke-dash aria-label="Dashes">
-                    <option value="solid">Solid</option>
-                    <option value="dash">Dashed</option>
-                    <option value="dot">Dotted</option>
-                    <option value="long">Long dash</option>
-                    <option value="custom">Custom</option>
-                  </select>
-                </div>
-                <div class="sc-dash-custom" id="sc-dash-custom" hidden>
-                  <label class="sc-dash-f"
-                    ><input type="number" min="0" max="100" step="0.5" aria-label="Dash 1" /><span
-                      >Dash</span
-                    ></label
-                  >
-                  <label class="sc-dash-f"
-                    ><input type="number" min="0" max="100" step="0.5" aria-label="Gap 1" /><span
-                      >Gap</span
-                    ></label
-                  >
-                  <label class="sc-dash-f"
-                    ><input type="number" min="0" max="100" step="0.5" aria-label="Dash 2" /><span
-                      >Dash</span
-                    ></label
-                  >
-                  <label class="sc-dash-f"
-                    ><input type="number" min="0" max="100" step="0.5" aria-label="Gap 2" /><span
-                      >Gap</span
-                    ></label
-                  >
-                  <label class="sc-dash-f"
-                    ><input type="number" min="0" max="100" step="0.5" aria-label="Dash 3" /><span
-                      >Dash</span
-                    ></label
-                  >
-                  <label class="sc-dash-f"
-                    ><input type="number" min="0" max="100" step="0.5" aria-label="Gap 3" /><span
-                      >Gap</span
-                    ></label
-                  >
-                  <p class="sc-hint">
-                    In multiples of the stroke width. Leave a pair blank to repeat a shorter
-                    pattern.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
 
         <section class="sc-pgroup" data-tabs>
           <div class="sc-ptabs" role="tablist">
@@ -2434,6 +1884,545 @@
                 >
                   <i data-icon="link-slash"></i>
                 </button>
+              </div>
+            </div>
+            <!-- Appearance: the selection's (and the next shape's) fill and stroke. -->
+            <div class="sc-appearance" id="sc-appearance">
+              <div class="sc-appearance-head">
+                <span class="sc-subhead">Appearance</span>
+                <button
+                  class="sc-ibtn sc-appearance-pick"
+                  id="sc-screen-pick"
+                  data-action="pickFromScreen"
+                  aria-label="Pick a colour from anywhere on screen"
+                  data-tip="Pick a colour from anywhere on screen"
+                  hidden
+                >
+                  <i data-icon="eye-dropper"></i>
+                </button>
+              </div>
+
+              <div class="sc-paint" data-target="fill">
+                <div class="sc-paint-head">
+                  <button
+                    class="sc-paint-fold"
+                    data-fold="fill"
+                    aria-expanded="true"
+                    aria-label="Show or hide the fill settings"
+                    data-tip="Show or hide the fill settings"
+                  ></button>
+                  <button
+                    class="sc-chip"
+                    id="sc-fill-chip"
+                    aria-label="Fill colour"
+                    data-tip="Fill colour · click to pick"
+                  ></button>
+                  <span>Fill</span>
+                  <input id="sc-fill-color" type="color" value="#e8a33d" aria-label="Fill colour" />
+                  <input
+                    id="sc-fill-hex"
+                    class="sc-hex"
+                    value="#e8a33d"
+                    aria-label="Fill hex"
+                    spellcheck="false"
+                  />
+                  <label class="sc-alpha" data-tip="Alpha: how see-through the fill is"
+                    ><input
+                      id="sc-fill-a"
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="1"
+                      value="100"
+                      aria-label="Fill alpha"
+                    /><span class="sc-unit">%</span></label
+                  >
+                  <button id="sc-fill-swatch"></button>
+                </div>
+                <div class="sc-row sc-kind-row">
+                  Type
+                  <div
+                    class="sc-seg sc-paint-kind"
+                    role="radiogroup"
+                    aria-label="Fill type"
+                    data-kind-for="fill"
+                  >
+                  <button data-kind="none" role="radio" aria-label="None" data-tip="None">
+                    <span class="sc-kind-glyph none"></span>
+                  </button>
+                    <button
+                      data-kind="solid"
+                      role="radio"
+                      aria-label="Solid colour"
+                      data-tip="Solid colour"
+                    >
+                      <span class="sc-kind-glyph solid"></span>
+                    </button>
+                    <button
+                      data-kind="linear"
+                      role="radio"
+                      aria-label="Linear gradient"
+                      data-tip="Linear gradient"
+                    >
+                      <span class="sc-kind-glyph linear"></span>
+                    </button>
+                    <button
+                      data-kind="radial"
+                      role="radio"
+                      aria-label="Radial gradient"
+                      data-tip="Radial gradient"
+                    >
+                      <span class="sc-kind-glyph radial"></span>
+                    </button>
+                    <button
+                      data-kind="pattern"
+                      role="radio"
+                      aria-label="Pattern"
+                      data-tip="Pattern"
+                    >
+                      <span class="sc-kind-glyph pattern"></span>
+                    </button>
+                  </div>
+                </div>
+                <div class="sc-grad sc-paint-editor" id="sc-grad" hidden>
+                  <div class="sc-grad-head">
+                    <span class="sc-subhead" id="sc-grad-title">Gradient</span>
+                    <button id="sc-grad-preset"></button>
+                    <button
+                      class="sc-ibtn"
+                      id="sc-grad-save"
+                      aria-label="Save to the Gradients library"
+                      data-tip="Save to the Gradients library"
+                    >
+                      <i data-icon="plus"></i>
+                    </button>
+                    <button
+                      class="sc-ibtn"
+                      id="sc-grad-reverse"
+                      aria-label="Reverse gradient"
+                      data-tip="Reverse"
+                    >
+                      <i data-icon="right-left"></i>
+                    </button>
+                  </div>
+                  <div class="sc-grad-track" id="sc-grad-track">
+                    <div class="sc-grad-bar" id="sc-grad-bar"></div>
+                    <div class="sc-grad-stops" id="sc-grad-stops"></div>
+                  </div>
+                  <div class="sc-gstop-row">
+                    <input id="sc-gstop-color" type="color" aria-label="Stop colour" />
+                    <input
+                      id="sc-gstop-hex"
+                      class="sc-hex"
+                      aria-label="Stop hex"
+                      spellcheck="false"
+                    />
+                    <button
+                      class="sc-ibtn"
+                      id="sc-gstop-del"
+                      aria-label="Delete stop"
+                      data-tip="Delete stop"
+                    >
+                      <i data-icon="trash-can"></i>
+                    </button>
+                  </div>
+                  <div class="sc-gstop-row">
+                    <label class="sc-field" data-tip="Stop opacity"
+                      ><span class="sc-scrub">Opacity</span
+                      ><input
+                        type="number"
+                        id="sc-gstop-a"
+                        min="0"
+                        max="100"
+                        step="1"
+                        aria-label="Stop opacity"
+                      /><span class="sc-unit">%</span></label
+                    >
+                    <label class="sc-field" data-tip="Stop location"
+                      ><span class="sc-scrub">Location</span
+                      ><input
+                        type="number"
+                        id="sc-gstop-o"
+                        min="0"
+                        max="100"
+                        step="1"
+                        aria-label="Stop location"
+                      /><span class="sc-unit">%</span></label
+                    >
+                  </div>
+                  <div class="sc-gstop-row" id="sc-grad-angle-wrap">
+                    <label class="sc-field" data-tip="Angle (90° runs bottom to top)"
+                      ><span class="sc-scrub">Angle</span
+                      ><input
+                        type="number"
+                        id="sc-grad-angle"
+                        min="-360"
+                        max="360"
+                        step="1"
+                        aria-label="Gradient angle"
+                      /><span class="sc-unit">°</span></label
+                    >
+                  </div>
+                  <label
+                    class="sc-check"
+                    data-tip="Off: stretching or skewing the shape keeps the gradient’s angle, and a radial one round. On: it stretches with the shape"
+                    ><input type="checkbox" id="sc-grad-stretch" /> Stretch with shape</label
+                  >
+                  <p class="sc-hint">
+                    Click the bar to add a stop. Drag a stop to move it, or down off the bar to
+                    remove it. The Gradient tool (G) sets the direction on the canvas.
+                  </p>
+                </div>
+                <div class="sc-grad sc-paint-editor" id="sc-pat" hidden>
+                  <div class="sc-grad-head">
+                    <span class="sc-subhead" id="sc-pat-title">Pattern</span>
+                    <button id="sc-pat-pick"></button>
+                  </div>
+                  <div class="sc-pat-preview" id="sc-pat-preview"></div>
+                  <div class="sc-gstop-row">
+                    <label class="sc-field" data-tip="Pattern scale"
+                      ><span class="sc-scrub">Scale</span
+                      ><input
+                        type="number"
+                        id="sc-pat-scale"
+                        min="5"
+                        max="5000"
+                        step="5"
+                        aria-label="Pattern scale"
+                      /><span class="sc-unit">%</span></label
+                    >
+                    <label class="sc-field" data-tip="Pattern angle"
+                      ><span class="sc-scrub">Angle</span
+                      ><input
+                        type="number"
+                        id="sc-pat-angle"
+                        min="-360"
+                        max="360"
+                        step="1"
+                        aria-label="Pattern angle"
+                      /><span class="sc-unit">°</span></label
+                    >
+                  </div>
+                  <label
+                    class="sc-check"
+                    data-tip="Off: the tiles keep their size when you scale or stretch the shape. On: they grow and stretch with it"
+                    ><input type="checkbox" id="sc-pat-with" /> Stretch with shape</label
+                  >
+                  <p class="sc-hint">
+                    The paint's colour inks the built-in patterns. Pick another above; its Custom…
+                    makes and manages patterns.
+                  </p>
+                </div>
+              </div>
+              <div class="sc-paint" data-target="stroke">
+                <div class="sc-paint-head">
+                  <button
+                    class="sc-paint-fold"
+                    data-fold="stroke"
+                    aria-expanded="true"
+                    aria-label="Show or hide the stroke settings"
+                    data-tip="Show or hide the stroke settings"
+                  ></button>
+                  <button
+                    class="sc-chip"
+                    id="sc-stroke-chip"
+                    aria-label="Stroke colour"
+                    data-tip="Stroke colour · click to pick"
+                  ></button>
+                  <span>Stroke</span>
+                  <input
+                    id="sc-stroke-color"
+                    type="color"
+                    value="#1f2933"
+                    aria-label="Stroke colour"
+                  />
+                  <input
+                    id="sc-stroke-hex"
+                    class="sc-hex"
+                    value="#1f2933"
+                    aria-label="Stroke hex"
+                    spellcheck="false"
+                  />
+                  <label class="sc-alpha" data-tip="Alpha: how see-through the stroke is"
+                    ><input
+                      id="sc-stroke-a"
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="1"
+                      value="100"
+                      aria-label="Stroke alpha"
+                    /><span class="sc-unit">%</span></label
+                  >
+                  <button id="sc-stroke-swatch"></button>
+                </div>
+                <div class="sc-row sc-kind-row">
+                  Type
+                  <div
+                    class="sc-seg sc-paint-kind"
+                    role="radiogroup"
+                    aria-label="Stroke type"
+                    data-kind-for="stroke"
+                  >
+                  <button data-kind="none" role="radio" aria-label="None" data-tip="None">
+                    <span class="sc-kind-glyph none"></span>
+                  </button>
+                    <button
+                      data-kind="solid"
+                      role="radio"
+                      aria-label="Solid colour"
+                      data-tip="Solid colour"
+                    >
+                      <span class="sc-kind-glyph solid"></span>
+                    </button>
+                    <button
+                      data-kind="linear"
+                      role="radio"
+                      aria-label="Linear gradient"
+                      data-tip="Linear gradient"
+                    >
+                      <span class="sc-kind-glyph linear"></span>
+                    </button>
+                    <button
+                      data-kind="radial"
+                      role="radio"
+                      aria-label="Radial gradient"
+                      data-tip="Radial gradient"
+                    >
+                      <span class="sc-kind-glyph radial"></span>
+                    </button>
+                    <button
+                      data-kind="pattern"
+                      role="radio"
+                      aria-label="Pattern"
+                      data-tip="Pattern"
+                    >
+                      <span class="sc-kind-glyph pattern"></span>
+                    </button>
+                  </div>
+                </div>
+                <!-- How the stroke is drawn: width, alignment, caps, joins, dashes. -->
+                <div class="sc-stroke-opts">
+                  <div class="sc-prop-rows">
+                    <span class="sc-opt-label">Width</span
+                    ><label class="sc-field sc-field-bare"
+                      ><input
+                        type="number"
+                        data-bind="strokeWidth"
+                        min="0"
+                        max="200"
+                        step="0.5"
+                        aria-label="Stroke width"
+                      /><span class="sc-unit">px</span></label
+                    >
+                    <span class="sc-opt-label">Align</span>
+                    <div
+                      class="sc-seg sc-seg-glyph"
+                      role="radiogroup"
+                      aria-label="Stroke alignment"
+                    >
+                      <button
+                        data-stroke-align="inside"
+                        role="radio"
+                        aria-label="Inside — the stroke stays within the shape"
+                        data-tip="Inside — the stroke stays within the shape"
+                      >
+                        <svg class="sc-glyph" viewBox="0 0 24 16" aria-hidden="true">
+                          <path fill-rule="evenodd" d="M6 3h12v10H6z M9 6v4h6V6z" />
+                          <path
+                            d="M6 3h12v10H6z"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1"
+                            stroke-dasharray="2 1.5"
+                            opacity=".6"
+                          />
+                        </svg>
+                      </button>
+                      <button
+                        data-stroke-align="center"
+                        role="radio"
+                        aria-label="Center — the stroke straddles the outline"
+                        data-tip="Center — the stroke straddles the outline"
+                      >
+                        <svg class="sc-glyph" viewBox="0 0 24 16" aria-hidden="true">
+                          <path fill-rule="evenodd" d="M4.5 1.5h15v13h-15z M7.5 4.5v7h9v-7z" />
+                          <path
+                            d="M6 3h12v10H6z"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1"
+                            stroke-dasharray="2 1.5"
+                            opacity=".6"
+                          />
+                        </svg>
+                      </button>
+                      <button
+                        data-stroke-align="outside"
+                        role="radio"
+                        aria-label="Outside — the stroke surrounds the shape"
+                        data-tip="Outside — the stroke surrounds the shape"
+                      >
+                        <svg class="sc-glyph" viewBox="0 0 24 16" aria-hidden="true">
+                          <path fill-rule="evenodd" d="M3 0h18v16H3z M6 3v10h12V3z" />
+                          <path
+                            d="M6 3h12v10H6z"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1"
+                            stroke-dasharray="2 1.5"
+                            opacity=".6"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                    <span class="sc-opt-label">Caps</span>
+                    <div class="sc-seg sc-seg-glyph" role="radiogroup" aria-label="Line caps">
+                      <button
+                        data-stroke-cap="butt"
+                        role="radio"
+                        aria-label="Butt cap — ends at the point"
+                        data-tip="Butt cap — ends at the point"
+                      >
+                        <svg class="sc-glyph" viewBox="0 0 24 16" aria-hidden="true">
+                          <rect x="2" y="5" width="13" height="6" />
+                          <path
+                            d="M15 1v14"
+                            stroke="currentColor"
+                            stroke-width="1"
+                            stroke-dasharray="2 1.5"
+                            opacity=".6"
+                          />
+                        </svg></button
+                      ><button
+                        data-stroke-cap="round"
+                        role="radio"
+                        aria-label="Round cap"
+                        data-tip="Round cap"
+                      >
+                        <svg class="sc-glyph" viewBox="0 0 24 16" aria-hidden="true">
+                          <path d="M2 5h13a3 3 0 0 1 0 6H2z" />
+                          <path
+                            d="M15 1v14"
+                            stroke="currentColor"
+                            stroke-width="1"
+                            stroke-dasharray="2 1.5"
+                            opacity=".6"
+                          />
+                        </svg></button
+                      ><button
+                        data-stroke-cap="square"
+                        role="radio"
+                        aria-label="Square cap — extends past the point"
+                        data-tip="Square cap — extends past the point"
+                      >
+                        <svg class="sc-glyph" viewBox="0 0 24 16" aria-hidden="true">
+                          <rect x="2" y="5" width="16" height="6" />
+                          <path
+                            d="M15 1v14"
+                            stroke="currentColor"
+                            stroke-width="1"
+                            stroke-dasharray="2 1.5"
+                            opacity=".6"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                    <span class="sc-opt-label">Joins</span>
+                    <div class="sc-seg sc-seg-glyph" role="radiogroup" aria-label="Corner joins">
+                      <button
+                        data-stroke-join="miter"
+                        role="radio"
+                        aria-label="Miter join"
+                        data-tip="Miter join"
+                      >
+                        <svg class="sc-glyph" viewBox="0 0 24 16" aria-hidden="true">
+                          <path
+                            d="M3 14 12 4l9 10"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="4.5"
+                            stroke-linejoin="miter"
+                          />
+                        </svg></button
+                      ><button
+                        data-stroke-join="round"
+                        role="radio"
+                        aria-label="Round join"
+                        data-tip="Round join"
+                      >
+                        <svg class="sc-glyph" viewBox="0 0 24 16" aria-hidden="true">
+                          <path
+                            d="M3 14 12 4l9 10"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="4.5"
+                            stroke-linejoin="round"
+                          />
+                        </svg></button
+                      ><button
+                        data-stroke-join="bevel"
+                        role="radio"
+                        aria-label="Bevel join"
+                        data-tip="Bevel join"
+                      >
+                        <svg class="sc-glyph" viewBox="0 0 24 16" aria-hidden="true">
+                          <path
+                            d="M3 14 12 4l9 10"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="4.5"
+                            stroke-linejoin="bevel"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                    <span class="sc-opt-label">Dashes</span
+                    ><select data-stroke-dash aria-label="Dashes">
+                      <option value="solid">Solid</option>
+                      <option value="dash">Dashed</option>
+                      <option value="dot">Dotted</option>
+                      <option value="long">Long dash</option>
+                      <option value="custom">Custom</option>
+                    </select>
+                  </div>
+                  <div class="sc-dash-custom" id="sc-dash-custom" hidden>
+                    <label class="sc-dash-f"
+                      ><input type="number" min="0" max="100" step="0.5" aria-label="Dash 1" /><span
+                        >Dash</span
+                      ></label
+                    >
+                    <label class="sc-dash-f"
+                      ><input type="number" min="0" max="100" step="0.5" aria-label="Gap 1" /><span
+                        >Gap</span
+                      ></label
+                    >
+                    <label class="sc-dash-f"
+                      ><input type="number" min="0" max="100" step="0.5" aria-label="Dash 2" /><span
+                        >Dash</span
+                      ></label
+                    >
+                    <label class="sc-dash-f"
+                      ><input type="number" min="0" max="100" step="0.5" aria-label="Gap 2" /><span
+                        >Gap</span
+                      ></label
+                    >
+                    <label class="sc-dash-f"
+                      ><input type="number" min="0" max="100" step="0.5" aria-label="Dash 3" /><span
+                        >Dash</span
+                      ></label
+                    >
+                    <label class="sc-dash-f"
+                      ><input type="number" min="0" max="100" step="0.5" aria-label="Gap 3" /><span
+                        >Gap</span
+                      ></label
+                    >
+                    <p class="sc-hint">
+                      In multiples of the stroke width. Leave a pair blank to repeat a shorter
+                      pattern.
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
             <div class="sc-shapeprops" id="sc-shape-props" hidden>
@@ -4581,6 +4570,7 @@
     <script src="src/symbols.js"></script>
     <script src="src/shapes.js"></script>
     <script src="src/lib-window.js"></script>
+    <script src="src/paint-pop.js"></script>
     <script src="src/input.js"></script>
     <script src="src/controls.js"></script>
     <script src="src/actions.js"></script>

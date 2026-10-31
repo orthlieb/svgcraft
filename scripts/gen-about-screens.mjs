@@ -86,7 +86,7 @@ await clickDoc(page, 70, 90);
 await page.keyboard.press('g');
 // Lay it again from the centre out, so its handles show on the canvas.
 await dragDoc(page, [400, 235], [740, 470]);
-await page.click('[data-tab="color"]');
+await page.click('[data-tab="props"]');
 await shot(page, 'gradients');
 
 // 4. Editing points on the palette board, with one point picked.

@@ -163,12 +163,10 @@ function syncStyleUI() {
       sec.before(note);
     }
     if (note) note.hidden = !locked;
-    $(`#sc-${k}-on`).checked = state[k + 'On'];
     $(`#sc-${k}-color`).value = state[k];
     $(`#sc-${k}-hex`).value = state[k];
     const a = Math.round(state[k + 'A'] * 100);
-    $(`#sc-${k}-a`).value = a;
-    $(`#sc-${k}-a-out`).textContent = a + '%';
+    if (document.activeElement !== $(`#sc-${k}-a`)) $(`#sc-${k}-a`).value = a;
     const chip = $(`#sc-${k}-chip`);
     chip.classList.toggle('none', !state[k + 'On']);
     const g = state[k + 'On'] && state[k + 'Grad'];
@@ -184,7 +182,7 @@ function syncStyleUI() {
               .toString(16)
               .padStart(2, '0'),
     );
-    const kind = pt ? 'pattern' : g ? g.type : 'solid';
+    const kind = !state[k + 'On'] ? 'none' : pt ? 'pattern' : g ? g.type : 'solid';
     for (const b of document.querySelectorAll(`[data-kind-for="${k}"] [data-kind]`))
       b.setAttribute('aria-checked', b.dataset.kind === kind);
     chip.closest('.sc-paint').classList.toggle('active', state.active === k);
@@ -208,17 +206,12 @@ function syncStyleUI() {
   renderPatEditor();
   for (const b of document.querySelectorAll('[data-gtype]'))
     b.setAttribute('aria-checked', b.dataset.gtype === (activeGrad()?.type || state.gradType));
-  // Toolbar chips (Photoshop's foreground / background squares).
-  for (const k of ['fill', 'stroke']) {
-    const chip = $(`#sc-tb-${k}`);
-    chip.classList.toggle('none', !state[k + 'On']);
-    chip.classList.toggle('active', state.active === k);
-    chip.style.setProperty('--chip', $(`#sc-${k}-chip`).style.getPropertyValue('--chip'));
-  }
+
   // Every field bound to the same setting (options bar + panels) shows it.
   const show = { strokeWidth: f(state.strokeWidth), opacity: Math.round(state.opacity * 100) };
   for (const el of document.querySelectorAll('[data-bind]'))
     if (document.activeElement !== el) el.value = show[el.dataset.bind];
+  if (typeof syncPaintButtons === 'function') syncPaintButtons();
 }
 
 // Push a style change to the selection; `final` commits it to history.
@@ -255,10 +248,6 @@ function styleChanged(key, final) {
 
 function wireStyle() {
   for (const k of ['fill', 'stroke']) {
-    $(`#sc-${k}-on`).addEventListener('change', (e) => {
-      state[k + 'On'] = e.target.checked;
-      styleChanged(k, true);
-    });
     const color = $(`#sc-${k}-color`);
     color.addEventListener('input', () => {
       state[k] = color.value;
@@ -279,7 +268,9 @@ function wireStyle() {
     });
     const a = $(`#sc-${k}-a`);
     a.addEventListener('input', () => {
-      state[k + 'A'] = a.value / 100;
+      const v = parseFloat(a.value);
+      if (!isFinite(v)) return;
+      state[k + 'A'] = clamp(v, 0, 100) / 100;
       styleChanged(k, false);
     });
     a.addEventListener('change', () => styleChanged(k, true));
@@ -330,15 +321,6 @@ function wireStyle() {
     el.addEventListener('change', () => {
       read();
       styleChanged(k, true);
-      syncStyleUI();
-    });
-  }
-  // Clicking the active toolbar chip opens its colour picker; otherwise it
-  // just becomes the active paint.
-  for (const k of ['fill', 'stroke']) {
-    $(`#sc-tb-${k}`).addEventListener('click', () => {
-      if (state.active === k) $(`#sc-${k}-color`).click();
-      state.active = k;
       syncStyleUI();
     });
   }

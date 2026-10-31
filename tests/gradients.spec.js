@@ -77,7 +77,7 @@ const centre = async (loc) => {
 
 test.beforeEach(async ({ page }) => {
   await page.evaluate((t) => window.svgcraft.openSvg(t, 'g.svg'), DOC);
-  await tab(page, 'color');
+  await tab(page, 'props');
   await pick(page, 'r');
 });
 
@@ -98,7 +98,7 @@ async function addGreenStop(page) {
   await page.mouse.click(bar.x + bar.width * 0.5, bar.y + bar.height / 2);
   await tab(page, 'swatches');
   await page.click('#sc-palette button[aria-label="#16a34a"]');
-  await tab(page, 'color');
+  await tab(page, 'props');
 }
 
 test.describe('gradient editor', () => {
@@ -142,7 +142,7 @@ test.describe('gradient editor', () => {
     await expect(page.locator('#sc-gstop-o')).toHaveValue('50');
     await tab(page, 'swatches');
     await page.click('#sc-palette button[aria-label="#16a34a"]');
-    await tab(page, 'color');
+    await tab(page, 'props');
     expect((await grad(page, 'r')).stops).toEqual([
       '0:#facc15',
       '0.33:#f97316',
@@ -260,7 +260,7 @@ test('a duplicate shares the gradient until one of them is edited', async ({ pag
   expect(b).toBe(a);
   await expect(ourGrads(page)).toHaveCount(1);
 
-  await tab(page, 'color');
+  await tab(page, 'props');
   await page.click('#sc-grad-preset');
   await page.click('#sc-libpick-pop .sc-libpick-tile[data-id="ocean"]');
   const [a2, b2] = await fills();
@@ -413,7 +413,7 @@ test.describe('stretching the shape', () => {
       window.svgcraft.state.sel = [document.getElementById('sq')];
       window.svgcraft.setTool('select');
     });
-    await tab(page, 'color');
+    await tab(page, 'props');
   });
 
   test('a linear gradient keeps its angle and still spans the shape', async ({ page }) => {
@@ -436,7 +436,7 @@ test.describe('stretching the shape', () => {
     // Off: it stretches with the shape, its angle with it.
     await page.evaluate(() => (window.svgcraft.state.sel = [document.getElementById('sq')]));
     await page.evaluate(() => window.svgcraft.setTool('select'));
-    await tab(page, 'color');
+    await tab(page, 'props');
     await page.locator('[data-kind-for="fill"]').scrollIntoViewIfNeeded();
     await page.check('#sc-grad-stretch');
     await stretchTo(page, 400);

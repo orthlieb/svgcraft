@@ -69,7 +69,7 @@ test('dragging a scrubby label changes the stroke width everywhere', async ({ pa
   await page.mouse.move(lb.x + 40, lb.y + 5, { steps: 6 });
   await page.mouse.up();
   expect(await page.evaluate(() => window.svgcraft.state.strokeWidth)).toBe(8);
-  await expect(page.locator('[data-pane="color"] [data-bind=strokeWidth]')).toHaveValue('8');
+  await expect(page.locator('#sc-appearance [data-bind=strokeWidth]')).toHaveValue('8');
 });
 
 test.describe('toolbar paint chips', () => {
@@ -222,14 +222,14 @@ test('panel groups collapse to their tabs, and stay that way', async ({ page }) 
   await chevron(colour).click();
   await expect(colour).toHaveClass(/collapsed/);
   await expect(chevron(colour)).toHaveAttribute('aria-expanded', 'false');
-  await expect(page.locator('[data-pane="color"]')).toBeHidden();
+  await expect(page.locator('#sc-appearance')).toBeHidden();
   // Layers takes the room.
   expect(await layersH()).toBeGreaterThan(tall);
 
   // Clicking a tab opens the group on that tab.
-  await tab(page, 'color');
+  await tab(page, 'props');
   await expect(colour).not.toHaveClass(/collapsed/);
-  await expect(page.locator('[data-pane="color"]')).toBeVisible();
+  await expect(page.locator('#sc-appearance')).toBeVisible();
 
   // Double-clicking the tab bar folds it; selecting text switches to
   // Character without unfolding it, Type → Character does.
@@ -301,7 +301,7 @@ test('» collapses the panels to icons that pop each panel out', async ({ page }
   await page.reload();
   await expect(toggle).toHaveAttribute('aria-expanded', 'false');
   await toggle.click();
-  await expect(page.locator('[data-pane="color"]')).toBeVisible();
+  await expect(page.locator('#sc-appearance')).toBeVisible();
   expect((await panel.boundingBox()).width).toBeGreaterThan(250);
   await expect(props).toHaveClass(/collapsed/);
 });

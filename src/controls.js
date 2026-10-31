@@ -185,7 +185,7 @@ for (const sel of document.querySelectorAll('select[data-stroke-dash]'))
     state.dash = sel.value;
     styleChanged('dash', true);
     // Custom's dash / gap fields sit under Stroke in the Color panel.
-    if (state.dash === 'custom') showTab('color');
+    if (state.dash === 'custom') showTab('props');
   });
 for (const inp of $('#sc-dash-custom').querySelectorAll('input'))
   inp.addEventListener('change', () => {

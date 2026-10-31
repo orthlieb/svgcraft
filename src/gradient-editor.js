@@ -96,6 +96,11 @@ function editGrad(fn, final = true) {
 // Switch a paint between solid / linear / radial.
 function setPaintKind(k, kind) {
   state.active = k;
+  if (kind === 'none') {
+    state[k + 'On'] = false;
+    return styleChanged(k, true);
+  }
+  if (kind === 'solid') state[k + 'On'] = true;
   if (kind !== 'pattern') state[k + 'Pat'] = null;
   if (kind === 'solid') state[k + 'Grad'] = null;
   else if (kind === 'pattern') {

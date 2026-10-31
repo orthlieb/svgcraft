@@ -3,7 +3,7 @@
 
 // The panel group holding Color, Swatches, Gradients and Patterns, and the
 // one holding Properties, Character … Animation, History.
-const COLOR_GROUP = '.sc-pgroup:has([data-tab="color"])';
+const COLOR_GROUP = '.sc-pgroup:has([data-tab="props"])';
 const PROPS_GROUP = '.sc-pgroup:has([data-tab="props"])';
 
 // Drag the mouse through document points, as a hand would.
@@ -423,7 +423,7 @@ export default [
     async shoot(h) {
       await h.select('Frame');
       await tall(h, COLOR_GROUP);
-      await h.page.selectOption('.sc-pbody[data-pane="color"] [data-stroke-dash]', 'custom');
+      await h.page.selectOption('.sc-appearance [data-stroke-dash]', 'custom');
       await h.shot(null, await panel(h, COLOR_GROUP));
     },
   },

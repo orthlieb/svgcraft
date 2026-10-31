@@ -213,7 +213,6 @@ if (stored(DOCK_KEY) === 'icons') setDockIcons(true, false);
 // Each panel by name (ticked when it's showing), the floating / docked
 // windows, and the workspace: collapse to icons, hide the panels, reset.
 const PANEL_TABS = {
-  Color: 'color',
   Properties: 'props',
   Character: 'character',
   Paragraph: 'paragraph',

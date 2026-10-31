@@ -130,7 +130,7 @@ test('Reset Workspace puts panels, docked windows and dialogs back', async ({ pa
   await expect(page.locator('#sc-msg')).toContainText('Workspace reset.');
   await expect(page.locator('#sc-panel > .sc-pgroup.collapsed')).toHaveCount(0);
   expect(await page.evaluate(() => document.body.classList.contains('sc-dock-icons'))).toBe(false);
-  await expect(page.locator('[data-tab="color"]')).toHaveAttribute('aria-selected', 'true');
+  await expect(page.locator('[data-tab="props"]')).toHaveAttribute('aria-selected', 'true');
   // Both windows docked, the column back to its standard width.
   expect(await page.$$eval('#sc-dock > :not([hidden])', (els) => els.map((e) => e.id))).toEqual([
     'sc-iconprev',
