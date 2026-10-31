@@ -96,9 +96,10 @@ await shot(page, 'points');
 
 // 5. The Symbols library.
 await clickDoc(page, 400, 200);
-await page.click('[data-tab="symbols"]');
+await page.evaluate(() => window.openLibraries('symbols'));
 await page.click('[data-symview="lib"]');
 await shot(page, 'symbols');
+await page.evaluate(() => window.closeLibraries());
 
 // 6. The SVG source viewer.
 await page.keyboard.press('Control+u');

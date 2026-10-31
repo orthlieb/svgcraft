@@ -287,12 +287,14 @@ you like.
 
 #### The panels
 
-- **Color**, **Swatches**, **Gradients** and **Patterns**: the fill and
-  stroke, with the stroke's width, alignment, caps, joins and dashes.
-- **Properties**, **Character**, **Paragraph**, **Symbols**, **Animation**
-  and **History**. Properties has the shape's settings, the document size,
+- **Color**: the fill and stroke, with the stroke's width, alignment,
+  caps, joins and dashes.
+- **Properties**, **Character**, **Paragraph**, **Animation** and
+  **History**. Properties has the shape's settings, the document size,
   and the grid and snap.
 - **Layers**: see [Layers](#layers).
+- Swatches, gradients, patterns and symbols are made and managed in the
+  [Libraries](#libraries) window (**Window → Libraries**).
 
 #### Good to know
 
@@ -315,6 +317,7 @@ Open any panel by name, or put the workspace back as it was.
 
 #### Options
 
+- **Libraries**: opens or closes the [Libraries](#libraries) window.
 - **SVG Source** (Ctrl+U) and **Icon Preview** (Ctrl+Alt+P): open or close
   them (see [Split view](#split-view)).
 - **Collapse Panels to Icons**: the icon strip.
@@ -931,9 +934,9 @@ or any shape from the Symbols library.
    elsewhere, closes it as it was.
 
 - It's the Symbols library's current shape: clicking a tile in the
-  **Symbols** panel's **Library** picks it too, and the panel marks the
-  one you picked here.
-- **Manage in the Symbols panel** opens the Library, to save, rename or
+  **Libraries** window's **Symbols** tab picks it too (in its
+  **Library**), and the window marks the one you picked here.
+- **Custom…** opens the Libraries window's Symbols, to save, rename or
   delete shapes.
 
 #### Draw at an exact size
@@ -1565,9 +1568,11 @@ Fill or stroke a shape with a smooth blend of colours.
   shape, and a radial one stays round. Off, it stretches with the shape.
 - **Presets**: the button beside the title shows the gradient in use (or
   **Custom**). Click it for the tiles: Colour → Transparent, plus
-  everything in the Gradients panel, which marks the same one. Picking a
+  everything in the Gradients library, which marks the same one. Picking a
   tile swaps in its stops and keeps the type and angle.
-- **+** saves the gradient to the Gradients panel.
+- **+** saves the gradient to the Gradients library.
+- **Custom…**, in the picker, opens the [Libraries](#libraries) window's
+  Gradients to rename, delete, import or export them.
 
 #### Tips
 
@@ -1645,18 +1650,19 @@ Round the corners of a rectangle, all together or one at a time.
 
 ### Patterns
 
-![The Patterns panel and the pattern editor, with Crosshatch picked](docs/help/patterns.png)
+![The pattern editor in the Color panel's Fill, with Crosshatch picked](docs/help/patterns.png)
 
 Fill or stroke a shape with a repeating tile: stripes, dots, bricks, or a
 tile you make.
 
 1. Select a shape and make fill or stroke the active paint.
-2. Click a tile in the **Patterns** panel, or set the paint's **Type** to
+2. Set the paint's **Type** to
    Pattern in the Color panel.
 3. Adjust it in the pattern editor: **Scale**, **Angle**, **Scale with
    shape**, or another
    pattern: click the pattern's name for the library's tiles (the same
-   ones as the Patterns panel, which marks the one in use).
+   ones as the Libraries window's Patterns, which marks the one in use).
+   **Custom…** opens that window, to make and manage patterns.
 
 ![The pattern editor's picker open, with the library's patterns as tiles](docs/help/patterns-picker.png)
 
@@ -1688,10 +1694,21 @@ tile you make.
 
 ### Libraries
 
-![The Swatches panel and its library bar](docs/help/libraries.png)
+![The Libraries window on its Swatches tab, with its library bar](docs/help/libraries.png)
 
-Keep your own colours, gradients and patterns to hand, and share them
-with other apps.
+Make, keep and manage your own colours, gradients, patterns and symbols,
+and share them with other apps.
+
+1. Choose **Window → Libraries**, or **Custom…** in any picker (a swatch,
+   gradient, pattern or custom shape): the window opens on that tab.
+2. Pick a tab: **Swatches**, **Gradients**, **Patterns** or **Symbols**.
+3. Manage the tiles with the bar below them.
+
+Using them is done where you work: the [Color](#colours) panel's Fill and
+Stroke pick swatches, gradients and patterns from their own pickers, and
+the Custom Shape tool draws a symbol.
+
+#### The tiles
 
 - **Apply**: click a tile to apply it to the active paint, or Shift-click
   it to apply it to the other one.
@@ -1700,15 +1717,21 @@ with other apps.
   a name.
 - **Rename**: double-click a tile, or use the pencil button.
 - **Delete**: Alt-click a tile, or use the bin button.
-- **Reset** (↺): brings back the built-in set for that panel.
+- **Reset** (↺): brings back the built-in set for that tab.
 
-The **Swatches**, **Gradients** and **Patterns** panels all work this
-way. They're saved in this browser (localStorage), like Photoshop's
-presets.
+Swatches, Gradients and Patterns all work this way; Symbols has its own
+bar (see [Symbols](#symbols)). They're saved in this browser
+(localStorage), like Photoshop's presets.
+
+#### Good to know
+
+- The window floats over the canvas: drag its title bar to move it, its
+  corner to size it. Esc or ✕ closes it, and it opens again on the tab you
+  last used.
 
 #### Export
 
-**Export**, on any of the panels, saves the whole library, symbols
+**Export**, on any of the tabs, saves the whole library, symbols
 included, as one `svgcraft-library.zip`:
 
 - `svgcraft-library.json`: everything, for SVGCraft.
@@ -1765,8 +1788,17 @@ how see-through they are.
    stroke chips at the bottom of the toolbar) to make it the active
    paint.
 2. Tick **On** to paint it, or untick it for none.
-3. Pick a colour with the colour picker, type a hex code, or click a
-   swatch in the Swatches panel.
+3. Pick a colour with the colour picker, type a hex code, or pick a swatch
+   with the swatches button beside the hex code (its **Custom…** opens the
+   [Libraries](#libraries) window's Swatches).
+4. For a gradient or a pattern, set the paint's **Type**: its editor
+   opens inside that paint's section, under the Type.
+
+#### Fill and Stroke
+
+- Each folds to its first row with the arrow at its left, to save room;
+  SVGCraft remembers which you folded.
+- The stroke's width, alignment, caps, joins and dashes sit under Stroke.
 
 #### Transparency
 
@@ -2722,7 +2754,8 @@ Each size is drawn from the vector art, not scaled from one big bitmap.
 
 A symbol is artwork you reuse: draw it once, place it as often as you like,
 and change every copy at once by editing the symbol, as in Illustrator. The
-**Symbols** panel sits next to Properties, Character and Paragraph.
+symbols are in the [Libraries](#libraries) window's **Symbols** tab
+(**Window → Libraries**).
 
 ### Make a symbol
 
@@ -2741,11 +2774,11 @@ uses go with it.
 
 ### Place a symbol
 
-![The Symbols panel's This drawing view, with a new Star instance placed on the canvas](docs/help/place-a-symbol.png)
+![The Libraries window's Symbols tab, This drawing, with a new Star instance placed on the canvas](docs/help/place-a-symbol.png)
 
 Add another copy (an instance) of a symbol to the drawing.
 
-- Click a symbol in the Symbols panel, then the **Place** (clone) button →
+- Click a symbol in the Libraries window's Symbols tab, then the **Place** (clone) button →
   an instance in the middle of the view.
 - Double-click a symbol → the same.
 - Drag a symbol onto the canvas → an instance where you let go.
@@ -2773,7 +2806,7 @@ go its own way.
   broken-link button). They get their own copies of any gradients or
   effects inside.
 - Breaking the link of a symbol's last instance removes the symbol from the
-  Symbols panel too (Undo brings it back).
+  Libraries window too (Undo brings it back).
 
 #### Colour
 
@@ -2812,11 +2845,11 @@ keeps you editing.
 
 ### The Symbols library
 
-![The Symbols panel's Library view, showing the built-in Weather icons](docs/help/the-symbols-library.png)
+![The Libraries window's Symbols tab, Library view, showing the built-in Weather icons](docs/help/the-symbols-library.png)
 
 Keep symbols to use in any drawing, and use the built-in icons.
 
-1. In the Symbols panel, switch from **This drawing** to **Library**.
+1. In the Libraries window's Symbols tab, switch from **This drawing** to **Library**.
 2. Find a symbol with the category menu and the search box, which matches
    names and categories.
 3. Place it with the **Place** (clone) button, by double-clicking it, or by
@@ -2852,7 +2885,7 @@ ten instances.
   Charts, Faces and Places.
 - They're placed 64 px tall, in the current fill colour.
 - They don't set a colour of their own, so the instance's fill paints them:
-  select an instance and pick a colour in the Color or Swatches panel to
+  select an instance and pick a colour in the Color panel to
   recolour it.
 - Each icon's `<symbol>` carries its credit
   (`data-credit="Font Awesome Free 6.7.2 — CC BY 4.0"`), so the attribution

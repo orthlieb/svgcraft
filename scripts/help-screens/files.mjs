@@ -29,18 +29,15 @@ const STARS = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 560">
   <use data-name="Badge" href="#sc-sym-2" transform="translate(560 360) scale(1.4)"/>
 </svg>`;
 
-// Pick the Symbols tab, with room to show it in full (as if its splitter
-// had been dragged down).
-async function symbolsTab(h, height = '330px') {
+// The Libraries window's Symbols tab, `height` tall, beside the panels.
+async function symbolsTab(h, height = '360px') {
   await h.tab('symbols');
-  await h.page.evaluate(
-    (height) =>
-      document
-        .querySelector('[data-tab="symbols"]')
-        .closest('.sc-pgroup')
-        .style.setProperty('--h', height),
-    height,
-  );
+  await h.page.evaluate((height) => {
+    const w = document.getElementById('sc-libraries');
+    w.style.height = height;
+    w.style.left = `${innerWidth - w.offsetWidth - 330}px`;
+    w.style.top = '96px';
+  }, height);
 }
 
 // Drop the symbol stars in and pick the Symbols tab.
@@ -49,7 +46,7 @@ async function stars(h, height) {
   await symbolsTab(h, height);
 }
 
-const panelGroup = (h, tab) => h.page.locator(`.sc-pgroup:has([data-tab="${tab}"])`);
+const libWindow = (h) => h.page.locator('#sc-libraries');
 
 // The docked SVG Source pane and the part of the canvas next to it.
 async function sourceShot(h) {
@@ -133,9 +130,11 @@ export default [
       await h.page.locator('#sc-symlib > *').first().click();
       await h.page.click('[data-sym-act="place"]');
       await h.redraw();
-      // The Symbols panel and the canvas beside it.
-      const g = await panelGroup(h, 'symbols').boundingBox();
-      await h.shot(null, { clip: { x: 360, y: g.y, width: 1280 - 360, height: g.height } });
+      // The Libraries window's Symbols and the canvas beside it.
+      const g = await libWindow(h).boundingBox();
+      await h.shot(null, {
+        clip: { x: 200, y: g.y, width: g.x + g.width - 200, height: g.height },
+      });
     },
   },
   {
@@ -180,7 +179,7 @@ export default [
       await h.page.selectOption('#sc-libsym-cat', { label: 'Weather' }).catch(() => {});
       await h.page.waitForTimeout(150);
       await h.page.locator('#sc-libsyms > *').first().click();
-      await h.shot(panelGroup(h, 'symbols'), { pad: 0 });
+      await h.shot('#sc-libraries', { pad: 0 });
     },
   },
   {

@@ -91,7 +91,7 @@ async function definePattern() {
   libSel.patterns = item.id;
   saveLibrary();
   openLibraries('patterns');
-  say(`Defined “${item.name}”. Click it in the Patterns panel to fill with it.`);
+  say(`Defined “${item.name}”. Pick it as a fill or stroke’s pattern.`);
 }
 
 // Copy every defs entry the nodes point at (url(#…) or href="#…"), and what

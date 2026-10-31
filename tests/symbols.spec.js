@@ -430,7 +430,11 @@ test.describe('Edit Symbol', () => {
     await page.click('#sc-symlib .sc-sym-tile');
     await page.click('[data-sym-act="edit"]');
     await expect(page.locator('#sc-iso')).toBeVisible();
+    // Esc in the Libraries window closes it; Esc again finishes editing.
     await page.keyboard.press('Escape');
+    await expect(page.locator('#sc-libraries')).toBeHidden();
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#sc-iso')).toBeHidden();
     await menu(page, 'Object', 'editSymbol');
     await expect(page.locator('#sc-iso')).toBeVisible();
     // Undo / redo while editing stay in the editing.
@@ -530,7 +534,7 @@ test.describe('Break Link', () => {
     await expect(uses(page)).toHaveCount(0);
     await expect(symbols(page)).toHaveCount(0);
     await expect(page.locator('#sc-msg')).toHaveText(
-      'Broke the link of 2 instances. “Badge” had no other instances, so it’s gone from the Symbols panel.',
+      'Broke the link of 2 instances. “Badge” had no other instances, so it’s gone from the drawing’s symbols.',
     );
     expect(await pixels(page, PROBES)).toEqual(before);
     await page.keyboard.press('Control+z');

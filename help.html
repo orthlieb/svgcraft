@@ -903,16 +903,19 @@
             <h4>The panels</h4>
             <ul>
               <li>
-                <strong>Color</strong>, <strong>Swatches</strong>, <strong>Gradients</strong> and
-                <strong>Patterns</strong>: the fill and stroke, with the stroke's width, alignment,
+                <strong>Color</strong>: the fill and stroke, with the stroke's width, alignment,
                 caps, joins and dashes.
               </li>
               <li>
                 <strong>Properties</strong>, <strong>Character</strong>, <strong>Paragraph</strong>,
-                <strong>Symbols</strong>, <strong>Animation</strong> and <strong>History</strong>.
-                Properties has the shape's settings, the document size, and the grid and snap.
+                <strong>Animation</strong> and <strong>History</strong>. Properties has the shape's
+                settings, the document size, and the grid and snap.
               </li>
               <li><strong>Layers</strong>: see <a href="#layers">Layers</a>.</li>
+              <li>
+                Swatches, gradients, patterns and symbols are made and managed in the
+                <a href="#libraries">Libraries</a> window (<strong>Window → Libraries</strong>).
+              </li>
             </ul>
             <h4>Good to know</h4>
             <ul>
@@ -934,7 +937,7 @@
                 src="docs/help/window-menu.png"
                 alt="The Window menu, with every panel by name"
                 width="242"
-                height="497"
+                height="419"
                 loading="lazy"
               />
             </figure>
@@ -948,6 +951,10 @@
             </ul>
             <h4>Options</h4>
             <ul>
+              <li>
+                <strong>Libraries</strong>: opens or closes the
+                <a href="#libraries">Libraries</a> window.
+              </li>
               <li>
                 <strong>SVG Source</strong> (Ctrl+U) and <strong>Icon Preview</strong> (Ctrl+Alt+P):
                 open or close them (see <a href="#split-view">Split view</a>).
@@ -1609,7 +1616,7 @@
                 src="docs/help/history-panel.png"
                 alt="The History panel, gone back one step: the Desaturate step after it is dimmed"
                 width="271"
-                height="185"
+                height="184"
                 loading="lazy"
               />
             </figure>
@@ -1983,7 +1990,7 @@
                 src="docs/help/shape-tools-custom.png"
                 alt="The Custom Shape tool's Shape picker open below the options bar, with the library's shapes as tiles"
                 width="316"
-                height="393"
+                height="399"
                 loading="lazy"
               />
             </figure>
@@ -1998,11 +2005,11 @@
             <ul>
               <li>
                 It's the Symbols library's current shape: clicking a tile in the
-                <strong>Symbols</strong> panel's <strong>Library</strong> picks it too, and the
-                panel marks the one you picked here.
+                <strong>Libraries</strong> window's <strong>Symbols</strong> tab picks it too (in
+                its <strong>Library</strong>), and the window marks the one you picked here.
               </li>
               <li>
-                <strong>Manage in the Symbols panel</strong> opens the Library, to save, rename or
+                <strong>Custom…</strong> opens the Libraries window's Symbols, to save, rename or
                 delete shapes.
               </li>
             </ul>
@@ -3048,10 +3055,15 @@
               <li>
                 <strong>Presets</strong>: the button beside the title shows the gradient in use (or
                 <strong>Custom</strong>). Click it for the tiles: Colour → Transparent, plus
-                everything in the Gradients panel, which marks the same one. Picking a tile swaps in
-                its stops and keeps the type and angle.
+                everything in the Gradients library, which marks the same one. Picking a tile swaps
+                in its stops and keeps the type and angle.
               </li>
-              <li><strong>+</strong> saves the gradient to the Gradients panel.</li>
+              <li><strong>+</strong> saves the gradient to the Gradients library.</li>
+              <li>
+                <strong>Custom…</strong>, in the picker, opens the
+                <a href="#libraries">Libraries</a> window's Gradients to rename, delete, import or
+                export them.
+              </li>
             </ul>
             <h4>Tips</h4>
             <ul>
@@ -3087,7 +3099,7 @@
                 src="docs/help/stroke-options.png"
                 alt="The stroke settings in the Color panel, with Custom dashes"
                 width="271"
-                height="455"
+                height="459"
                 loading="lazy"
               />
             </figure>
@@ -3185,9 +3197,9 @@
             <figure>
               <img
                 src="docs/help/patterns.png"
-                alt="The Patterns panel and the pattern editor, with Crosshatch picked"
+                alt="The pattern editor in the Color panel's Fill, with Crosshatch picked"
                 width="271"
-                height="472"
+                height="579"
                 loading="lazy"
               />
             </figure>
@@ -3197,15 +3209,13 @@
             </p>
             <ol>
               <li>Select a shape and make fill or stroke the active paint.</li>
-              <li>
-                Click a tile in the <strong>Patterns</strong> panel, or set the paint's
-                <strong>Type</strong> to Pattern in the Color panel.
-              </li>
+              <li>Set the paint's <strong>Type</strong> to Pattern in the Color panel.</li>
               <li>
                 Adjust it in the pattern editor: <strong>Scale</strong>, <strong>Angle</strong>,
                 <strong>Scale with shape</strong>, or another pattern: click the pattern's name for
-                the library's tiles (the same ones as the Patterns panel, which marks the one in
-                use).
+                the library's tiles (the same ones as the Libraries window's Patterns, which marks
+                the one in use). <strong>Custom…</strong> opens that window, to make and manage
+                patterns.
               </li>
             </ol>
             <figure>
@@ -3213,7 +3223,7 @@
                 src="docs/help/patterns-picker.png"
                 alt="The pattern editor's picker open, with the library's patterns as tiles"
                 width="316"
-                height="314"
+                height="320"
                 loading="lazy"
               />
             </figure>
@@ -3259,15 +3269,33 @@
             <figure>
               <img
                 src="docs/help/libraries.png"
-                alt="The Swatches panel and its library bar"
-                width="271"
-                height="179"
+                alt="The Libraries window on its Swatches tab, with its library bar"
+                width="460"
+                height="230"
                 loading="lazy"
               />
             </figure>
             <p>
-              Keep your own colours, gradients and patterns to hand, and share them with other apps.
+              Make, keep and manage your own colours, gradients, patterns and symbols, and share
+              them with other apps.
             </p>
+            <ol>
+              <li>
+                Choose <strong>Window → Libraries</strong>, or <strong>Custom…</strong> in any
+                picker (a swatch, gradient, pattern or custom shape): the window opens on that tab.
+              </li>
+              <li>
+                Pick a tab: <strong>Swatches</strong>, <strong>Gradients</strong>,
+                <strong>Patterns</strong> or <strong>Symbols</strong>.
+              </li>
+              <li>Manage the tiles with the bar below them.</li>
+            </ol>
+            <p>
+              Using them is done where you work: the <a href="#colours">Color</a> panel's Fill and
+              Stroke pick swatches, gradients and patterns from their own pickers, and the Custom
+              Shape tool draws a symbol.
+            </p>
+            <h4>The tiles</h4>
             <ul>
               <li>
                 <strong>Apply</strong>: click a tile to apply it to the active paint, or Shift-click
@@ -3280,16 +3308,23 @@
               </li>
               <li><strong>Rename</strong>: double-click a tile, or use the pencil button.</li>
               <li><strong>Delete</strong>: Alt-click a tile, or use the bin button.</li>
-              <li><strong>Reset</strong> (↺): brings back the built-in set for that panel.</li>
+              <li><strong>Reset</strong> (↺): brings back the built-in set for that tab.</li>
             </ul>
             <p>
-              The <strong>Swatches</strong>, <strong>Gradients</strong> and
-              <strong>Patterns</strong> panels all work this way. They're saved in this browser
-              (localStorage), like Photoshop's presets.
+              Swatches, Gradients and Patterns all work this way; Symbols has its own bar (see
+              <a href="#symbols">Symbols</a>). They're saved in this browser (localStorage), like
+              Photoshop's presets.
             </p>
+            <h4>Good to know</h4>
+            <ul>
+              <li>
+                The window floats over the canvas: drag its title bar to move it, its corner to size
+                it. Esc or ✕ closes it, and it opens again on the tab you last used.
+              </li>
+            </ul>
             <h4>Export</h4>
             <p>
-              <strong>Export</strong>, on any of the panels, saves the whole library, symbols
+              <strong>Export</strong>, on any of the tabs, saves the whole library, symbols
               included, as one <code>svgcraft-library.zip</code>:
             </p>
             <ul>
@@ -3359,7 +3394,7 @@
                 src="docs/help/colours.png"
                 alt="The Color panel: fill and stroke, each with its switch, colour, hex, alpha and type"
                 width="271"
-                height="376"
+                height="380"
                 loading="lazy"
               />
             </figure>
@@ -3375,10 +3410,23 @@
               </li>
               <li>Tick <strong>On</strong> to paint it, or untick it for none.</li>
               <li>
-                Pick a colour with the colour picker, type a hex code, or click a swatch in the
-                Swatches panel.
+                Pick a colour with the colour picker, type a hex code, or pick a swatch with the
+                swatches button beside the hex code (its <strong>Custom…</strong> opens the
+                <a href="#libraries">Libraries</a> window's Swatches).
+              </li>
+              <li>
+                For a gradient or a pattern, set the paint's <strong>Type</strong>: its editor opens
+                inside that paint's section, under the Type.
               </li>
             </ol>
+            <h4>Fill and Stroke</h4>
+            <ul>
+              <li>
+                Each folds to its first row with the arrow at its left, to save room; SVGCraft
+                remembers which you folded.
+              </li>
+              <li>The stroke's width, alignment, caps, joins and dashes sit under Stroke.</li>
+            </ul>
             <h4>Transparency</h4>
             <ul>
               <li>
@@ -3633,7 +3681,7 @@
                 src="docs/help/character-panel.png"
                 alt="The Character panel: font, style, size, leading, tracking, shift and the type toggles"
                 width="275"
-                height="193"
+                height="192"
                 loading="lazy"
               />
             </figure>
@@ -3675,7 +3723,7 @@
                 src="docs/help/paragraph-panel.png"
                 alt="The Paragraph panel: alignment, box width and Convert to Point Text"
                 width="275"
-                height="193"
+                height="192"
                 loading="lazy"
               />
             </figure>
@@ -4652,7 +4700,7 @@
                 src="docs/help/fonts-for-outlines.png"
                 alt="The font picker's system fonts, which outline with open stand-ins"
                 width="280"
-                height="337"
+                height="336"
                 loading="lazy"
               />
             </figure>
@@ -4972,8 +5020,10 @@
           <div class="intro" data-find>
             <p>
               A symbol is artwork you reuse: draw it once, place it as often as you like, and change
-              every copy at once by editing the symbol, as in Illustrator. The
-              <strong>Symbols</strong> panel sits next to Properties, Character and Paragraph.
+              every copy at once by editing the symbol, as in Illustrator. The symbols are in the
+              <a href="#libraries">Libraries</a> window's <strong>Symbols</strong> tab (<strong
+                >Window → Libraries</strong
+              >).
             </p>
           </div>
           <article id="make-a-symbol" data-find>
@@ -5006,17 +5056,17 @@
             <figure>
               <img
                 src="docs/help/place-a-symbol.png"
-                alt="The Symbols panel's This drawing view, with a new Star instance placed on the canvas"
-                width="920"
-                height="253"
+                alt="The Libraries window's Symbols tab, This drawing, with a new Star instance placed on the canvas"
+                width="750"
+                height="360"
                 loading="lazy"
               />
             </figure>
             <p>Add another copy (an instance) of a symbol to the drawing.</p>
             <ul>
               <li>
-                Click a symbol in the Symbols panel, then the <strong>Place</strong> (clone) button
-                → an instance in the middle of the view.
+                Click a symbol in the Libraries window's Symbols tab, then the
+                <strong>Place</strong> (clone) button → an instance in the middle of the view.
               </li>
               <li>Double-click a symbol → the same.</li>
               <li>Drag a symbol onto the canvas → an instance where you let go.</li>
@@ -5041,7 +5091,7 @@
                 src="docs/help/symbol-instances.png"
                 alt="Symbol instances on the canvas and in the Layers panel, marked with a clover"
                 width="760"
-                height="428"
+                height="426"
                 loading="lazy"
               />
             </figure>
@@ -5061,8 +5111,8 @@
                 broken-link button). They get their own copies of any gradients or effects inside.
               </li>
               <li>
-                Breaking the link of a symbol's last instance removes the symbol from the Symbols
-                panel too (Undo brings it back).
+                Breaking the link of a symbol's last instance removes the symbol from the Libraries
+                window too (Undo brings it back).
               </li>
             </ul>
             <h4>Colour</h4>
@@ -5129,16 +5179,16 @@
             <figure>
               <img
                 src="docs/help/the-symbols-library.png"
-                alt="The Symbols panel's Library view, showing the built-in Weather icons"
-                width="271"
-                height="278"
+                alt="The Libraries window's Symbols tab, Library view, showing the built-in Weather icons"
+                width="460"
+                height="400"
                 loading="lazy"
               />
             </figure>
             <p>Keep symbols to use in any drawing, and use the built-in icons.</p>
             <ol>
               <li>
-                In the Symbols panel, switch from <strong>This drawing</strong> to
+                In the Libraries window's Symbols tab, switch from <strong>This drawing</strong> to
                 <strong>Library</strong>.
               </li>
               <li>
@@ -5191,7 +5241,7 @@
               <li>They're placed 64 px tall, in the current fill colour.</li>
               <li>
                 They don't set a colour of their own, so the instance's fill paints them: select an
-                instance and pick a colour in the Color or Swatches panel to recolour it.
+                instance and pick a colour in the Color panel to recolour it.
               </li>
               <li>
                 Each icon's <code>&lt;symbol&gt;</code> carries its credit (<code

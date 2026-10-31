@@ -121,9 +121,15 @@ function helpers(page, id) {
       if (click) await item.click();
       else await item.hover();
     },
-    // Show a panel tab (color, swatches, gradients, patterns, props,
-    // character, paragraph, symbols, animation, history, layers…).
-    tab: (name) => page.click(`[data-tab="${name}"]`),
+    // Show a panel tab (color, props, character, paragraph, animation,
+    // history…), or a tab of the Libraries window (swatches, gradients,
+    // patterns, symbols), which opens it.
+    tab: async (name) => {
+      if (['swatches', 'gradients', 'patterns', 'symbols'].includes(name))
+        return page.evaluate((n) => window.openLibraries(n), name);
+      await page.evaluate(() => window.closeLibraries());
+      await page.click(`[data-tab="${name}"]`);
+    },
     // A test bitmap placed in the drawing (and selected): a flat logo.
     async placeImage() {
       await page.evaluate(() => {

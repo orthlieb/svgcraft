@@ -29,7 +29,7 @@ function renderGradEditor() {
   state.gradStop = clamp(state.gradStop || 0, 0, g.stops.length - 1);
   const s = g.stops[state.gradStop];
   $('#sc-grad-bar').style.backgroundImage = `${gradCss(g)}, var(--checker)`;
-  // The Gradients panel marks the one the picker shows, if it's there.
+  // The Libraries window's Gradients marks the one the picker shows, if it's there.
   const key = stopsKey(g.stops);
   const same = lib.gradients.find((x) => stopsKey(x.stops) === key);
   if (same) libSel.gradients = same.id;

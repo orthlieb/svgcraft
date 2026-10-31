@@ -161,7 +161,7 @@ async function makeSymbol() {
   if (refuseLocked(els, 'edit')) return;
   const name = await ask('Make Symbol', {
     value: `Symbol ${symList().length + 1}`,
-    text: 'The selection becomes a symbol in the Symbols panel, and an instance of it takes its place.',
+    text: 'The selection becomes a symbol (in Window → Libraries, Symbols), and an instance of it takes its place.',
     ok: 'Make',
   });
   if (!name || !els.every((el) => doc.contains(el))) return;
@@ -183,7 +183,7 @@ async function makeSymbol() {
   symSel = sym.id;
   setSel([u]);
   commit();
-  say(`Made the symbol “${symName(sym)}”. Place more instances from the Symbols panel.`);
+  say(`Made the symbol “${symName(sym)}”. Place more from Window → Libraries, Symbols.`);
 }
 
 const viewCentre = () => {
@@ -241,8 +241,8 @@ function breakSymbolLink() {
     `Broke the link of ${els.length} instance${els.length === 1 ? '' : 's'}.` +
       (n
         ? n === 1
-          ? ` “${symName(gone[0])}” had no other instances, so it’s gone from the Symbols panel.`
-          : ` ${n} symbols had no other instances, so they’re gone from the Symbols panel.`
+          ? ` “${symName(gone[0])}” had no other instances, so it’s gone from the drawing’s symbols.`
+          : ` ${n} symbols had no other instances, so they’re gone from the drawing’s symbols.`
         : ''),
   );
 }

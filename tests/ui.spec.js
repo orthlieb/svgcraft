@@ -109,9 +109,9 @@ test.describe('toolbar paint chips', () => {
 });
 
 test('panel tabs switch panes', async ({ page }) => {
-  await page.click('[data-tab=swatches]');
-  await expect(page.locator('#sc-palette')).toBeVisible();
-  await expect(page.locator('[data-pane=color]')).toBeHidden();
+  await tab(page, 'character');
+  await expect(page.locator('[data-pane=character]')).toBeVisible();
+  await expect(page.locator('[data-pane=props]')).toBeHidden();
 });
 
 test('the zoom field sets the zoom and the document title', async ({ page }) => {
@@ -227,9 +227,9 @@ test('panel groups collapse to their tabs, and stay that way', async ({ page }) 
   expect(await layersH()).toBeGreaterThan(tall);
 
   // Clicking a tab opens the group on that tab.
-  await tab(page, 'swatches');
+  await tab(page, 'color');
   await expect(colour).not.toHaveClass(/collapsed/);
-  await expect(page.locator('[data-pane="swatches"]')).toBeVisible();
+  await expect(page.locator('[data-pane="color"]')).toBeVisible();
 
   // Double-clicking the tab bar folds it; selecting text switches to
   // Character without unfolding it, Type → Character does.
@@ -268,17 +268,17 @@ test('» collapses the panels to icons that pop each panel out', async ({ page }
   await expect(toggle).toHaveAttribute('aria-expanded', 'false');
   expect((await panel.boundingBox()).width).toBeLessThan(50);
   await expect(page.locator('#sc-panel > .sc-pgroup:visible')).toHaveCount(0);
-  await expect(page.locator('.sc-dock-icon')).toHaveCount(11);
+  await expect(page.locator('.sc-dock-icon')).toHaveCount(7);
 
   // An icon pops its panel out, on that tab, left of the strip.
-  await icon('Swatches').click();
+  await icon('Character').click();
   await expect(popout).toHaveCount(1);
-  await expect(page.locator('[data-pane="swatches"]')).toBeVisible();
-  await expect(icon('Swatches')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('[data-pane="character"]')).toBeVisible();
+  await expect(icon('Character')).toHaveAttribute('aria-pressed', 'true');
   const pb = await popout.boundingBox();
   expect(pb.x + pb.width).toBeLessThanOrEqual((await panel.boundingBox()).x);
   // The same icon again puts it away; another icon swaps it.
-  await icon('Swatches').click();
+  await icon('Character').click();
   await expect(popout).toHaveCount(0);
   await icon('Properties').click();
   await expect(page.locator('[data-pane="props"]')).toBeVisible();

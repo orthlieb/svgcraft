@@ -73,11 +73,11 @@ const plain = (lib) =>
   );
 
 // Export from a panel's button; returns the zip's files as strings.
-async function exportZip(page, tab = 'swatches') {
-  await page.click(`[data-tab="${tab}"]`);
+async function exportZip(page, kind = 'swatches') {
+  await tab(page, kind);
   const [dl] = await Promise.all([
     page.waitForEvent('download'),
-    page.click(`[data-lib="${tab}"] [data-lib-act="export"]`),
+    page.click(`[data-lib="${kind}"] [data-lib-act="export"]`),
   ]);
   expect(dl.suggestedFilename()).toBe('svgcraft-library.zip');
   const files = readZip(fs.readFileSync(await dl.path()));

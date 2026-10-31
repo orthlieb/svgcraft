@@ -105,8 +105,10 @@ export async function pickMarquee(page, shape) {
 export const LIB_TABS = ['swatches', 'gradients', 'patterns', 'symbols'];
 export async function tab(page, name) {
   if (LIB_TABS.includes(name)) {
-    if (await page.locator('#sc-libraries').isHidden())
+    if (await page.locator('#sc-libraries').isHidden()) {
       await menu(page, 'Window', 'toggleLibraries');
+      await parkLibraries(page);
+    }
     return page.click(`#sc-libraries [data-tab="${name}"]`);
   }
   await closeLibraries(page);
@@ -115,3 +117,11 @@ export async function tab(page, name) {
 export async function closeLibraries(page) {
   if (await page.locator('#sc-libraries').isVisible()) await page.click('#sc-lib-close');
 }
+// Out of the way of the canvas and the toolbars: bottom right, over the
+// lower panels.
+export const parkLibraries = (page) =>
+  page.evaluate(() => {
+    const w = document.getElementById('sc-libraries');
+    w.style.left = `${innerWidth - w.offsetWidth - 4}px`;
+    w.style.top = `${innerHeight - w.offsetHeight - 24}px`;
+  });
