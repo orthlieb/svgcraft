@@ -255,8 +255,8 @@ The pointer shows what a click will do:
 
 - the Move tool's arrow and cross;
 - Edit Points' white arrow;
-- a cross or lasso for picking points, with + while Shift adds and −
-  while Alt takes away;
+- the arrow, a cross or the lasso for picking points, with + while Shift
+  adds and − while Alt takes away;
 - the pen's nib, with \* to start a path and o over its first point to
   close it;
 - the pencil, the eyedropper and the type I-beam;
@@ -1099,9 +1099,13 @@ Reshape a path, or a basic shape, by moving its points and curve handles.
 #### Picking points
 
 - Shift-click points to pick several, or drag round them.
-- Choose what a drag picks with from the Edit Points button's flyout (as
-  with the Shape tools), or step through them with Shift+A: **Rectangle
-  Select**, **Ellipse Select** (an oval) or **Lasso Select** (freeform).
+- Choose how points are picked from the Edit Points button's flyout (as
+  with the Shape tools), or step through them with Shift+A:
+  - **Point Select** (the arrow): click a point to pick just it,
+    Shift-click to add one and Alt-click to take one away. A drag off the
+    points picks nothing, so it can't catch points by accident.
+  - **Rectangle Select**, **Ellipse Select** (an oval) or **Lasso Select**
+    (freeform): drag round the points to pick them.
 - A drag begun with Shift adds to what's picked, and one
   begun with Alt takes points away. Alt pressed during a drag grows a
   rectangle or oval from its centre.
@@ -1596,8 +1600,15 @@ Fill or stroke a shape with a smooth blend of colours.
   change, keeping where it sits in the shape (`data-fit`).
 - Duplicates split off their own copy when edited, and unused gradients
   are removed automatically.
-- Gradients in imported files are read, including ones that borrow stops
-  from another gradient.
+- Gradients in opened or placed files become SVGCraft's own, drawing
+  the same, so they have handles straight away: ones laid out in the
+  shape's box, turned or stretched by a `gradientTransform`, or borrowing
+  stops from another gradient. One used by a single shape keeps its id;
+  one shared by several gives each its own copy. A few can't be matched
+  and stay as they were, without handles: a radial gradient stretched
+  into an oval or with its focus off-centre, and a repeating or
+  reflecting one. Picking its **Type** again in Appearance makes it
+  SVGCraft's own, keeping its colours.
 
 ### Stroke options
 

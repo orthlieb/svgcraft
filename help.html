@@ -845,8 +845,8 @@
               <li>the Move tool's arrow and cross;</li>
               <li>Edit Points' white arrow;</li>
               <li>
-                a cross or lasso for picking points, with + while Shift adds and − while Alt takes
-                away;
+                the arrow, a cross or the lasso for picking points, with + while Shift adds and −
+                while Alt takes away;
               </li>
               <li>the pen's nib, with * to start a path and o over its first point to close it;</li>
               <li>the pencil, the eyedropper and the type I-beam;</li>
@@ -2287,10 +2287,19 @@
             <ul>
               <li>Shift-click points to pick several, or drag round them.</li>
               <li>
-                Choose what a drag picks with from the Edit Points button's flyout (as with the
-                Shape tools), or step through them with Shift+A: <strong>Rectangle Select</strong>,
-                <strong>Ellipse Select</strong> (an oval) or
-                <strong>Lasso Select</strong> (freeform).
+                Choose how points are picked from the Edit Points button's flyout (as with the Shape
+                tools), or step through them with Shift+A:
+                <ul>
+                  <li>
+                    <strong>Point Select</strong> (the arrow): click a point to pick just it,
+                    Shift-click to add one and Alt-click to take one away. A drag off the points
+                    picks nothing, so it can't catch points by accident.
+                  </li>
+                  <li>
+                    <strong>Rectangle Select</strong>, <strong>Ellipse Select</strong> (an oval) or
+                    <strong>Lasso Select</strong> (freeform): drag round the points to pick them.
+                  </li>
+                </ul>
               </li>
               <li>
                 A drag begun with Shift adds to what's picked, and one begun with Alt takes points
@@ -3099,8 +3108,14 @@
                 automatically.
               </li>
               <li>
-                Gradients in imported files are read, including ones that borrow stops from another
-                gradient.
+                Gradients in opened or placed files become SVGCraft's own, drawing the same, so they
+                have handles straight away: ones laid out in the shape's box, turned or stretched by
+                a <code>gradientTransform</code>, or borrowing stops from another gradient. One used
+                by a single shape keeps its id; one shared by several gives each its own copy. A few
+                can't be matched and stay as they were, without handles: a radial gradient stretched
+                into an oval or with its focus off-centre, and a repeating or reflecting one.
+                Picking its <strong>Type</strong> again in Appearance makes it SVGCraft's own,
+                keeping its colours.
               </li>
             </ul>
           </article>
