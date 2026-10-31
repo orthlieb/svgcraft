@@ -3,8 +3,9 @@
 
 // Tooltips -------------------------------------------------------------
 // One shared box for every [data-tip]. It's a popover, so it sits in the top
-// layer above menus, panels and dialogs, and hides itself after a few
-// seconds. Tools add data-tip-desc for a second, explanatory line. A tip
+// layer above menus, panels and dialogs. It stays while the pointer is on
+// its control or the control has focus, and goes when they leave, on a
+// press, or on any key (a tap on a touch screen shows it for a few seconds). Tools add data-tip-desc for a second, explanatory line. A tip
 // ends with the control's shortcut in parentheses, "Move (V)".
 const tip = document.createElement('div');
 tip.className = 'sc-tip';
@@ -13,7 +14,7 @@ tip.setAttribute('aria-hidden', 'true');
 if ('popover' in tip) tip.popover = 'manual';
 document.body.append(tip);
 const TIP_DELAY = 450;
-const TIP_LIFE = 3000;
+const TIP_LIFE = 0; // 0: until the pointer or focus leaves
 let tipFor = null;
 let tipWait = 0;
 let tipLife = 0;
@@ -91,7 +92,7 @@ function showTip(el, life = TIP_LIFE) {
   }
   placeTip(el);
   tip.classList.add('on');
-  tipLife = setTimeout(hideTip, life);
+  if (life) tipLife = setTimeout(hideTip, life);
 }
 
 function hideTip() {
@@ -144,3 +145,8 @@ document.addEventListener('focusout', () => {
 document.addEventListener('keydown', hideTip, true);
 document.addEventListener('wheel', hideTip, { capture: true, passive: true });
 window.addEventListener('blur', hideTip);
+// An icon-only control's accessible name is its tip, when it hasn't one
+// of its own (the tip itself is hidden from screen readers).
+for (const el of document.querySelectorAll('button[data-tip], [role="button"][data-tip]'))
+  if (!el.getAttribute('aria-label') && !el.textContent.trim())
+    el.setAttribute('aria-label', el.dataset.tip);

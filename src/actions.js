@@ -268,6 +268,26 @@ function closeSubs() {
     sm.querySelector('.sc-sub-btn').setAttribute('aria-expanded', 'false');
   }
 }
+// Home / End, and a letter: the next item whose name starts with it, as
+// menus do. True when the key was one of those.
+function menuJump(e, items) {
+  if (!items.length) return false;
+  const at = items.indexOf(document.activeElement);
+  let to = -1;
+  if (e.key === 'Home') to = 0;
+  else if (e.key === 'End') to = items.length - 1;
+  else if (e.key.length === 1 && /\S/.test(e.key) && !e.ctrlKey && !e.metaKey && !e.altKey) {
+    const ch = e.key.toLowerCase();
+    const name = (b) =>
+      (b.querySelector(':scope > span')?.textContent || b.textContent).trim().toLowerCase();
+    for (let i = 1; i <= items.length && to < 0; i++) {
+      const j = (at + i + items.length) % items.length;
+      if (name(items[j]).startsWith(ch)) to = j;
+    }
+  } else return false;
+  items[to]?.focus();
+  return true;
+}
 function openSub(sm, focusFirst) {
   closeSubs();
   const btn = sm.querySelector('.sc-sub-btn');
@@ -284,7 +304,18 @@ for (const sm of document.querySelectorAll('.sc-submenu')) {
   const btn = sm.querySelector('.sc-sub-btn');
   btn.addEventListener('pointerenter', () => openSub(sm));
   btn.addEventListener('click', () => openSub(sm, true));
-  sm.querySelector('.sc-sub-list').addEventListener('keydown', (e) => {
+  const list = sm.querySelector('.sc-sub-list');
+  list.addEventListener('keydown', (e) => {
+    // Up and down (and Home, End, a letter) within the submenu.
+    const items = [...list.querySelectorAll(':scope > button:not(:disabled):not([hidden])')];
+    const at = items.indexOf(document.activeElement);
+    const step = { ArrowDown: 1, ArrowUp: -1 }[e.key];
+    if (step || menuJump(e, items)) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (step && items.length) items[(at + step + items.length) % items.length].focus();
+      return;
+    }
     if (e.key !== 'ArrowLeft' && e.key !== 'Escape') return;
     e.preventDefault();
     e.stopPropagation();
@@ -354,12 +385,21 @@ menus.forEach((m, mi) => {
         btn.focus();
       },
     };
-    if (!keys[e.key]) return;
+    if (!keys[e.key] && !menuJump(e, items)) return;
     e.preventDefault();
     e.stopPropagation();
-    keys[e.key]();
+    keys[e.key]?.();
   });
 });
+// The menu bar's titles: left and right move along it, as in a menu bar.
+menus.forEach((m, mi) =>
+  m.querySelector('.sc-menu-btn').addEventListener('keydown', (e) => {
+    const d = { ArrowRight: 1, ArrowLeft: -1 }[e.key];
+    if (!d || openMenu) return;
+    e.preventDefault();
+    menus[(mi + d + menus.length) % menus.length].querySelector('.sc-menu-btn').focus();
+  }),
+);
 document.addEventListener('pointerdown', (e) => {
   if (openMenu && !openMenu.contains(e.target)) closeMenus();
 });

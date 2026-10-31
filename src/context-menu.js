@@ -141,10 +141,10 @@ ctx.addEventListener('keydown', (e) => {
       list.parentElement.querySelector('.sc-sub-btn').focus();
     },
   };
-  if (!keys[e.key]) return;
+  if (!keys[e.key] && !menuJump(e, items)) return;
   e.preventDefault();
   e.stopPropagation();
-  keys[e.key]();
+  keys[e.key]?.();
 });
 document.addEventListener('pointerdown', (e) => {
   if (!ctx.hidden && !ctx.contains(e.target)) closeCtx();
@@ -310,6 +310,14 @@ stage.addEventListener('contextmenu', (e) => {
   // Editing text: the browser's own menu (cut, copy, paste, spelling).
   if (e.target.closest?.('[contenteditable="true"], input, textarea')) return;
   e.preventDefault();
+  // From the keyboard: the key handler below opens it.
+  if (
+    e.button !== 2 &&
+    e.pointerType !== 'mouse' &&
+    e.pointerType !== 'touch' &&
+    e.pointerType !== 'pen'
+  )
+    return;
   if (!curDoc) return;
   // Right-clicking a layer outside the selection selects it first, as a
   // click with the Move tool would.
@@ -386,4 +394,36 @@ $('#sc-layers').addEventListener('contextmenu', (e) => {
   if (e.target.closest('.sc-eye')) return openCtx(eyeItems(el), e.clientX, e.clientY);
   if (!state.sel.includes(el)) setSel([el]);
   openCtx(layerRowItems(el), e.clientX, e.clientY);
+});
+
+// Shift+F10, or the context-menu key: the right-click menu of what has the
+// keyboard: the canvas (at the selection, or the middle of the view), or a
+// layer row.
+window.addEventListener('keydown', (e) => {
+  if (!(e.key === 'ContextMenu' || (e.key === 'F10' && e.shiftKey))) return;
+  if (!curDoc || document.querySelector('dialog[open]')) return;
+  const at = document.activeElement;
+  const row = at?.closest?.('#sc-layers li');
+  if (row?.layerEl) {
+    e.preventDefault();
+    const r = row.getBoundingClientRect();
+    if (!state.sel.includes(row.layerEl)) setSel([row.layerEl]);
+    openCtx(layerRowItems(row.layerEl), r.left + 24, r.bottom);
+    return ctx.querySelector(':scope > button:not(:disabled)')?.focus();
+  }
+  if (at && at !== document.body && at !== stage) return;
+  e.preventDefault();
+  const b = state.sel.length && paintBox(state.sel);
+  const s = stage.getBoundingClientRect();
+  let x = s.left + s.width / 2;
+  let y = s.top + s.height / 2;
+  if (b) {
+    const m = view.getScreenCTM();
+    const p = new DOMPoint(b.x + b.w / 2, b.y + b.h / 2).matrixTransform(m);
+    x = clamp(p.x, s.left, s.right);
+    y = clamp(p.y, s.top, s.bottom);
+  }
+  openCtx(canvasMenu(x, y), x, y);
+  // From the keyboard: on its first item.
+  ctx.querySelector(':scope > button:not(:disabled)')?.focus();
 });

@@ -187,6 +187,7 @@ function phoneInfo() {
     } else body.append(h, dl);
   }
   showDialog(infoSheet, () => hideDialog(infoSheet));
+  setTimeout(() => $('#sc-pinfo-close').focus(), 0);
 }
 $('#sc-pinfo-close').addEventListener('click', () => hideDialog(infoSheet));
 $('#sc-pinfo-about').addEventListener('click', () => {

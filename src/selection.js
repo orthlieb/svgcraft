@@ -255,6 +255,10 @@ let rangeAnchor = null;
 
 function renderLayers() {
   const ol = $('#sc-layers');
+  // The row with the keyboard keeps it through the redraw.
+  const focused = ol.contains(document.activeElement)
+    ? document.activeElement.closest('li')?.layerEl
+    : null;
   ol.replaceChildren();
   if (!items().length) {
     const li = document.createElement('li');
@@ -273,6 +277,18 @@ function renderLayers() {
     }
   };
   walk(doc, 0);
+  // One row takes Tab (the selected one, else the top), the arrows the rest;
+  // the selection's row is scrolled into view.
+  const rowsNow = [...ol.children].filter((r) => r.layerEl);
+  const home = rowsNow.find((r) => r.classList.contains('sel')) || rowsNow[0];
+  if (home) home.tabIndex = 0;
+  const back = focused && rowsNow.find((r) => r.layerEl === focused);
+  if (back) {
+    back.tabIndex = 0;
+    if (home !== back) home.tabIndex = -1;
+    back.focus({ preventScroll: true });
+  }
+  rowsNow.find((r) => r.classList.contains('sel'))?.scrollIntoView({ block: 'nearest' });
   fillThumbs(ol);
   syncLayerHead();
 }
@@ -285,6 +301,10 @@ function layerRow(el, depth, open) {
   li.style.paddingLeft = `${4 + depth * 16}px`;
   li.layerEl = el;
   li.draggable = true;
+  li.tabIndex = -1;
+  li.setAttribute('role', 'option');
+  li.setAttribute('aria-selected', state.sel.includes(el));
+  if (isGroup) li.setAttribute('aria-expanded', open);
 
   const twisty = document.createElement('button');
   twisty.className = 'sc-twisty';
@@ -299,7 +319,10 @@ function layerRow(el, depth, open) {
       else folded.delete(key);
       renderLayers();
     });
-  } else twisty.tabIndex = -1;
+  } else {
+    twisty.tabIndex = -1;
+    twisty.setAttribute('aria-hidden', 'true');
+  }
 
   const eye = document.createElement('button');
   eye.className = 'sc-eye';
@@ -404,6 +427,36 @@ function layerRow(el, depth, open) {
     if (e.target.closest('.sc-eye, .sc-twisty, input')) return;
     setSel([el]);
     ifAllowed('layerStyle');
+  });
+  // The keyboard: up and down select the next row (Shift adds it), Alt+up
+  // and down move the layer up and down the stack, F2 or Enter renames,
+  // right and left open and fold a group.
+  li.addEventListener('keydown', (e) => {
+    if (e.target !== li) return;
+    const rows = [...$('#sc-layers').children].filter((r) => r.layerEl);
+    const i = rows.indexOf(li);
+    const k = e.key;
+    let done = true;
+    if ((k === 'ArrowUp' || k === 'ArrowDown') && e.altKey)
+      ifAllowed(k === 'ArrowUp' ? 'forward' : 'backward');
+    else if (k === 'ArrowUp' || k === 'ArrowDown' || k === 'Home' || k === 'End') {
+      const to = rows[{ ArrowUp: i - 1, ArrowDown: i + 1, Home: 0, End: rows.length - 1 }[k]];
+      if (to) {
+        if (e.shiftKey) setSel([...new Set([...state.sel, to.layerEl])]);
+        else {
+          rangeAnchor = to.layerEl;
+          setSel([to.layerEl]);
+        }
+        const now = [...$('#sc-layers').children].find((r) => r.layerEl === to.layerEl);
+        now?.focus();
+      }
+    } else if (k === 'F2' || k === 'Enter') renameLayer(el, name);
+    else if ((k === 'ArrowRight' && isGroup && !open) || (k === 'ArrowLeft' && isGroup && open))
+      twisty.click();
+    else done = false;
+    if (!done) return;
+    e.preventDefault();
+    e.stopPropagation();
   });
   wireLayerDrag(li, el);
   return li;

@@ -291,6 +291,13 @@ async function closeAdjust(ok) {
   );
 }
 for (const dlg of document.querySelectorAll('.sc-adjust')) {
+  // Enter is OK, as in the other dialogs (a focused button is its own).
+  dlg.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' || e.target.closest('button, select')) return;
+    e.preventDefault();
+    e.target.dispatchEvent?.(new Event('change', { bubbles: true }));
+    closeAdjust(true);
+  });
   dlg.querySelector('[data-adj-btn="ok"]').addEventListener('click', () => closeAdjust(true));
   dlg.querySelector('[data-adj-btn="cancel"]').addEventListener('click', () => closeAdjust(false));
   dlg.querySelector('[data-adj-preview]').addEventListener('change', adjPreview);
