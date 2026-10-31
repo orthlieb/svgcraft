@@ -373,7 +373,9 @@ test.describe('Create Outlines', () => {
     const original = await docHtml(page);
     await select(page, 't');
     await page.keyboard.press('Control+Shift+O');
-    await expect(page.locator('#sc-alert-text')).toHaveText('“Locked” is locked.');
+    await expect(page.locator('#sc-alert-text')).toHaveText(
+      '“Locked” is locked: Layer → Unlock, or click its lock in Layers, to change it.',
+    );
     expect(await docHtml(page)).toBe(original);
   });
 

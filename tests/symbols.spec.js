@@ -430,9 +430,8 @@ test.describe('Edit Symbol', () => {
     await page.click('#sc-symlib .sc-sym-tile');
     await page.click('[data-sym-act="edit"]');
     await expect(page.locator('#sc-iso')).toBeVisible();
-    // Esc in the Libraries window closes it; Esc again finishes editing.
-    await page.keyboard.press('Escape');
-    await expect(page.locator('#sc-libraries')).toBeHidden();
+    // Esc finishes editing (Edit is greyed out while editing, so the
+    // Libraries window doesn't keep the keyboard).
     await page.keyboard.press('Escape');
     await expect(page.locator('#sc-iso')).toBeHidden();
     await menu(page, 'Object', 'editSymbol');
