@@ -189,6 +189,21 @@ const TOOL_KEYS = {
   z: 'zoom',
 };
 
+// The next (or previous) option of a radio group or tab list, chosen as it
+// gets focus.
+function stepGroup(group, from, key) {
+  const items = [...group.querySelectorAll('[role=radio], [role=tab]')].filter(
+    (el) =>
+      el.closest('[role=radiogroup], [role=tablist]') === group && !el.disabled && el.offsetParent,
+  );
+  const i = items.indexOf(from.closest('[role=radio], [role=tab]'));
+  if (!items.length) return;
+  const step = key === 'ArrowLeft' || key === 'ArrowUp' ? -1 : 1;
+  const next = items[(i + step + items.length) % items.length];
+  next.focus();
+  if (next.getAttribute('aria-checked') !== 'true' && next.getAttribute('aria-selected') !== 'true')
+    next.click();
+}
 window.addEventListener('keydown', (e) => {
   // Previewing on a phone: only viewing keys (zoom, fit, open).
   if (previewMode && !/^[-+=_01]$/.test(e.key) && !((e.ctrlKey || e.metaKey) && /^o$/i.test(e.key)))
@@ -201,6 +216,18 @@ window.addEventListener('keydown', (e) => {
     'input:not([type=range]):not([type=checkbox]), textarea, select',
   );
   if (typing || e.target.isContentEditable) return;
+  // Arrow keys belong to what has focus, not the canvas: in a radio group
+  // or tab list they step through its options (as ARIA has them); a slider
+  // or a popup that already used them keeps them.
+  if (e.key.startsWith('Arrow')) {
+    if (e.defaultPrevented || e.target.matches?.('input[type=range]')) return;
+    const group = e.target.closest?.('[role=radiogroup], [role=tablist]');
+    if (group) {
+      e.preventDefault();
+      stepGroup(group, e.target, e.key);
+      return;
+    }
+  }
   const mod = e.ctrlKey || e.metaKey;
   // Nothing open: only Open (Ctrl+O) means anything.
   if (!curDoc) {

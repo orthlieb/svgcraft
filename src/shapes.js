@@ -322,11 +322,16 @@ function openCreateShape(kind, at) {
   setTimeout(() => csField('w').select(), 0);
 }
 function closeCreateShape(ok) {
-  hideDialog(csDialog);
-  if (!ok) return;
+  if (!ok) return hideDialog(csDialog);
   const w = fromUnits(+csField('w').value);
   const h = fromUnits(+csField('h').value);
-  if (!(w > 0 && h > 0)) return warn('Enter a width and height above zero.');
+  if (!(w > 0 && h > 0))
+    return dialogError(
+      csDialog,
+      csField(w > 0 ? 'h' : 'w'),
+      'Enter a width and height above zero.',
+    );
+  hideDialog(csDialog);
   Object.assign(createShape, { w, h });
   const { kind, at } = createShape;
   const c = csField('centre').checked;
@@ -362,7 +367,7 @@ function closeCreateShape(ok) {
 }
 csDialog.addEventListener('keydown', (e) => {
   e.stopPropagation();
-  if (e.key === 'Enter' && !e.target.closest('[data-cs-shape-btn="cancel"]')) {
+  if (e.key === 'Enter' && !e.target.closest('button')) {
     e.preventDefault();
     closeCreateShape(true);
   } else if (e.key === 'Escape') closeCreateShape(false);

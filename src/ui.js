@@ -146,6 +146,23 @@ function setStrokeWidthBy(d) {
 
 function syncStyleUI() {
   for (const k of ['fill', 'stroke']) {
+    // Set inside the symbol: shown, not editable, with the way to change it.
+    const sec = $(`.sc-paint[data-target="${k}"]`);
+    const locked = !!state[k + 'Locked'] && state.sel.length > 0;
+    sec.inert = locked;
+    sec.classList.toggle('sc-paint-locked', locked);
+    let note = sec.previousElementSibling?.matches('.sc-paint-note')
+      ? sec.previousElementSibling
+      : null;
+    if (locked && !note) {
+      note = document.createElement('p');
+      note.className = 'sc-paint-note';
+      note.innerHTML =
+        `The symbol sets this ${k} itself. ` +
+        '<button class="sc-linkbtn" data-action="editSymbol">Edit Symbol</button> to change it.';
+      sec.before(note);
+    }
+    if (note) note.hidden = !locked;
     $(`#sc-${k}-on`).checked = state[k + 'On'];
     $(`#sc-${k}-color`).value = state[k];
     $(`#sc-${k}-hex`).value = state[k];
@@ -216,6 +233,11 @@ function styleChanged(key, final) {
   // Lock All: the layer keeps its own look (the panels go back to showing it).
   if (refuseLocked(targets, 'edit')) {
     readStyle(targets[0]);
+    return;
+  }
+  if ((key === 'fill' || key === 'stroke') && targets.every((el) => symbolOwnPaint(el, key))) {
+    readStyle(targets[0]);
+    warn(`The symbol sets its own ${key}: Edit Symbol (double-click the instance) to change it.`);
     return;
   }
   for (const el of targets) applyStyle(el, key);

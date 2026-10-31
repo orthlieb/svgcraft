@@ -196,17 +196,26 @@ test('a reload keeps the zoom of the active tab', async ({ page }) => {
   expect(await page.evaluate(() => window.svgcraft.state.zoom)).toBeCloseTo(2.5);
 });
 
-test('closing a changed tab asks first; Cancel keeps it, Close drops it', async ({ page }) => {
+test('closing a changed tab asks first; Cancel keeps it, Don’t Save drops it', async ({ page }) => {
   await drawRect(page);
   await menu(page, 'File', 'new');
   await page.click('[data-nd-btn="ok"]');
   await tabs(page).first().locator('.sc-doctab-x').click();
   await expect(page.locator('#sc-ask')).toBeVisible();
-  await expect(page.locator('#sc-ask-title')).toHaveText('Close Untitled-1.svg?');
+  await expect(page.locator('#sc-ask-title')).toHaveText(
+    'Save changes to Untitled-1.svg before closing?',
+  );
+  // Save is the default; Enter on a focused Cancel cancels.
+  await expect(page.locator('#sc-ask [data-ask="ok"]')).toHaveText('Save');
+  await page.focus('#sc-ask [data-ask="cancel"]');
+  await page.keyboard.press('Enter');
+  await expect(page.locator('#sc-ask')).toBeHidden();
+  await expect(tabs(page)).toHaveCount(2);
+  await tabs(page).first().locator('.sc-doctab-x').click();
   await page.click('#sc-ask [data-ask="cancel"]');
   await expect(tabs(page)).toHaveCount(2);
   await tabs(page).first().locator('.sc-doctab-x').click();
-  await page.click('#sc-ask [data-ask="ok"]');
+  await page.click('#sc-ask [data-ask="alt"]');
   expect(await tabNames(page)).toEqual(['Untitled-2.svg']);
 });
 
@@ -230,7 +239,7 @@ test('with every tab closed, only New and Open work until one is made', async ({
   await page.evaluate(() => window.svgcraft.markSaved?.());
   await tabs(page).first().locator('.sc-doctab-x').click();
   const ask = page.locator('#sc-ask');
-  if (await ask.isVisible()) await ask.locator('button', { hasText: 'Close' }).click();
+  if (await ask.isVisible()) await ask.locator('[data-ask="alt"]').click();
   await expect(tabs(page)).toHaveCount(0);
   await expect(page.locator('#sc-nodoc')).toBeVisible();
   await expect(page.locator('#sc-stage')).toBeHidden();

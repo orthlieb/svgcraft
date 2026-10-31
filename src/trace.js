@@ -1179,7 +1179,7 @@ for (const k of ['colours', 'threshold', 'speck', 'smooth', 'stacked', 'ignoreBg
   });
 trDlg.addEventListener('keydown', (e) => {
   e.stopPropagation();
-  if (e.key === 'Enter' && !e.target.closest('[data-tr-btn="cancel"], select')) {
+  if (e.key === 'Enter' && !e.target.closest('button, select')) {
     e.preventDefault();
     if (!trDlg.querySelector('[data-tr-btn="ok"]').disabled) closeTrace(true);
   } else if (e.key === 'Escape') closeTrace(false);

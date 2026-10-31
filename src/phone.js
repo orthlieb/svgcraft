@@ -71,7 +71,7 @@ function renderPeek() {
 function peekLayers() {
   if (!curDoc) return;
   renderPeek();
-  showDialog(peekDlg);
+  showDialog(peekDlg, () => hideDialog(peekDlg));
 }
 function clearPeeks() {
   for (const el of doc.querySelectorAll('[data-sc-peek]')) el.removeAttribute('data-sc-peek');

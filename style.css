@@ -4076,3 +4076,34 @@ body.sc-no-right .sc-main {
 .sc-libdock {
   border-left: 1px solid var(--line);
 }
+
+/* A symbol instance whose symbol sets this paint itself: shown, not edited. */
+.sc-paint-locked {
+  opacity: 0.55;
+}
+.sc-paint-note {
+  margin: 4px 6px 2px;
+  color: var(--text-dim);
+  font-size: 11px;
+}
+.sc-linkbtn {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* A value a dialog can't take (dialogError in src/core.js). */
+.sc-dlg-err {
+  margin: 4px 0 0;
+  color: var(--danger);
+}
+.sc-dlg-err[hidden] {
+  display: none;
+}
+.sc-dialog [aria-invalid='true'] {
+  border-color: var(--danger);
+}

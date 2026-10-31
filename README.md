@@ -776,7 +776,9 @@ Work on several drawings at once, each in its own tab.
 - Click a tab → switch to that drawing. Each tab keeps its own drawing, undo
   history and zoom.
 - Click a tab's ✕, middle-click it, or choose **File → Close** → closes the
-  drawing. If it has unsaved changes, you're asked first.
+  drawing. If it has unsaved changes, you're asked first: **Save** (the
+  default) saves it, then closes it; **Don't Save** closes it without its
+  changes; **Cancel** keeps it open.
 - A `*` after the name → the drawing differs from the version last opened
   or saved.
 
@@ -2820,6 +2822,10 @@ go its own way.
 A colour you give an instance goes onto the instance, so it only shows on
 the parts of the symbol that don't have a colour of their own. To recolour
 the artwork itself, edit the symbol.
+
+- When every part of the symbol sets its own fill (or stroke), the Color
+  panel shows the symbol's colour, greyed out, with an **Edit Symbol** link:
+  the instance's own colour couldn't show anywhere.
 
 ### Edit a symbol
 

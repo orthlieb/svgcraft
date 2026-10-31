@@ -269,13 +269,23 @@ function openDoc(text, name, handle) {
   afterChange();
 }
 
+// A drawing with unsaved changes asks first, as Photoshop does: Save (the
+// default) saves it and then closes it, unless the save didn't happen;
+// Don't Save drops the changes; Cancel keeps it open.
 async function closeDoc(d) {
   if (dirty(d)) {
-    const ok = await ask(`Close ${d.name}.svg?`, {
-      text: 'It has changes you haven’t saved. Close it anyway?',
-      ok: 'Close',
+    if (d !== curDoc) switchDoc(d);
+    const r = await ask(`Save changes to ${d.name}.svg before closing?`, {
+      text: 'Your changes will be lost if you don’t save them.',
+      ok: 'Save',
+      alt: 'Don’t Save',
     });
-    if (!ok) return;
+    if (!r) return;
+    if (r !== 'alt') {
+      if (d !== curDoc) switchDoc(d);
+      await saveDoc();
+      if (dirty(d)) return;
+    }
   }
   const i = docs.indexOf(d);
   if (i < 0) return;
