@@ -323,8 +323,8 @@ Open any panel by name, or put the workspace back as it was.
 - **Collapse Panels to Icons**: the icon strip.
 - **Hide Panels** (Tab): hides the panels, and Tab brings them back.
 - **Reset Workspace**: every panel open on its first tab, the icon strip
-  and hiding undone, SVG Source and Icon Preview docked at the standard
-  width, and dialogs back where they first open.
+  and hiding undone, SVG Source, Icon Preview and Libraries docked at the
+  standard widths, and dialogs back where they first open.
 
 ### Split view
 
@@ -338,6 +338,9 @@ Watch the SVG source or the Icon Preview beside your drawing as you work.
    divider and use the arrow keys.
 3. With both open they stack, Icon Preview above SVG Source. Drag the
    divider between them to share the height.
+
+[Libraries](#libraries) docks in a column of its own, between this column
+and the panels.
 
 #### Good to know
 
@@ -1725,9 +1728,13 @@ bar (see [Symbols](#symbols)). They're saved in this browser
 
 #### Good to know
 
-- The window floats over the canvas: drag its title bar to move it, its
-  corner to size it. Esc or ✕ closes it, and it opens again on the tab you
-  last used.
+- It opens docked in a column of its own between the canvas and the
+  panels. Drag the column's left edge (or focus it and use the arrow keys)
+  to change its width.
+- Its title bar's float button turns it into a window you can move and
+  size over the canvas; the same button docks it back. SVGCraft remembers
+  which, and the column's width.
+- Esc or ✕ closes it, and it opens again on the tab you last used.
 
 #### Export
 

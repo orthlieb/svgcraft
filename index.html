@@ -1537,6 +1537,18 @@
               hidden
             ></div>
           </div>
+          <!-- The Libraries window docks in a column of its own, by the
+               panels (src/lib-window.js). -->
+          <div
+            class="sc-splitter"
+            id="sc-libdock-splitter"
+            role="separator"
+            aria-orientation="vertical"
+            aria-label="Resize the Libraries column"
+            tabindex="0"
+            hidden
+          ></div>
+          <div class="sc-dock sc-libdock" id="sc-libdock" hidden></div>
         </div>
       </div>
 
@@ -3856,6 +3868,9 @@
         <span class="sc-src-grip" aria-hidden="true">⠿</span>
         <i data-icon="book-bookmark"></i>
         <span class="sc-src-name" id="sc-lib-title">Libraries</span>
+        <button class="sc-src-x" id="sc-lib-dock" aria-label="Float" data-tip="Float">
+          <i data-icon="up-right-from-square"></i>
+        </button>
         <button class="sc-src-x" id="sc-lib-close" aria-label="Close" data-tip="Close (Esc)">
           <i data-icon="xmark"></i>
         </button>

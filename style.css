@@ -4069,3 +4069,10 @@ body.sc-no-right .sc-main {
   grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
   max-height: none;
 }
+/* The Libraries column: Libraries docked by the panels, filling it. */
+.sc-libdock .sc-libwin[data-docked] {
+  flex: 1 1 auto;
+}
+.sc-libdock {
+  border-left: 1px solid var(--line);
+}

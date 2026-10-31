@@ -63,6 +63,40 @@ test('Libraries opens its window, ticked, on the tab last used; Esc or ✕ close
   await expect(win).toBeHidden();
 });
 
+test('Libraries docks in a column of its own by the panels; it floats, resizes and resets', async ({
+  page,
+}) => {
+  const win = page.locator('#sc-libraries');
+  const col = page.locator('#sc-libdock');
+  const stageW = () => page.locator('#sc-stage').evaluate((s) => s.getBoundingClientRect().width);
+  const w0 = await stageW();
+  await menu(page, 'Window', 'toggleLibraries');
+  // Docked: in its column, between the canvas and the panels.
+  await expect(col.locator('#sc-libraries')).toBeVisible();
+  const c = await col.boundingBox();
+  const panels = await page.locator('#sc-panel').boundingBox();
+  expect(Math.abs(c.x + c.width - panels.x)).toBeLessThan(3);
+  expect(await stageW()).toBeLessThan(w0 - 200);
+  // Wider by the keyboard on its edge, and remembered.
+  await page.focus('#sc-libdock-splitter');
+  await page.keyboard.press('Shift+ArrowLeft');
+  expect(Math.round((await col.boundingBox()).width)).toBe(Math.round(c.width) + 50);
+  // Float: the column goes, the canvas gets its room back.
+  await page.click('#sc-lib-dock');
+  await expect(col).toBeHidden();
+  await expect(win).toBeVisible();
+  expect(await win.evaluate((w) => w.parentElement === document.body)).toBe(true);
+  expect(await stageW()).toBeCloseTo(w0, 0);
+  // Closed and opened again: still floating.
+  await page.click('#sc-lib-close');
+  await menu(page, 'Window', 'toggleLibraries');
+  await expect(col).toBeHidden();
+  // Reset Workspace docks it again at the standard width.
+  await menu(page, 'Window', 'resetWorkspace');
+  await expect(col.locator('#sc-libraries')).toBeVisible();
+  expect(Math.round((await col.boundingBox()).width)).toBe(Math.round(c.width));
+});
+
 test('SVG Source and Icon Preview open from Window, not View', async ({ page }) => {
   await page.click('.sc-menu-btn:text-is("View")');
   for (const act of ['toggleSource', 'toggleIconPreview', 'togglePanels'])

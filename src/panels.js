@@ -274,6 +274,7 @@ actions.resetWorkspace = () => {
     store(d.key, null);
     if (dockRoomQuery.matches) setDocked(d, true, false);
   }
+  resetLibraries();
   for (const dlg of document.querySelectorAll('dialog.sc-dialog'))
     dlg.style.left = dlg.style.top = dlg.style.transform = '';
   syncDock();
