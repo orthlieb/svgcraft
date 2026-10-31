@@ -428,6 +428,7 @@ function openSvg(text, name, { keepSaved = false, step = 'Open', keepView = fals
   }
   state.units = s.units;
   setSize(s.w * s.k, s.h * s.k);
+  adoptGradients(s.nodes);
   const smil = adoptSmil([...s.nodes, ...defs.children], s.smilLost);
   state.guides = s.guides;
   state.meta = s.meta;
@@ -464,6 +465,7 @@ function placeSvg(text, name = 'Pasted SVG') {
     setM(g, new DOMMatrix().translate(tx, ty).scale(k).translate(-s.minX, -s.minY));
     state.sel = [g];
   }
+  adoptGradients(s.nodes);
   const smil = adoptSmil([...s.nodes, ...defs.children], s.smilLost);
   loadDocFonts();
   setTool('select');
