@@ -32,7 +32,6 @@ test('the toolbar runs in Photoshop’s order', async ({ page }) => {
     'eyedropper',
     'pencil',
     'eraser',
-    'gradient',
     'pen',
     'text',
     'node',

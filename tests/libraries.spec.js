@@ -316,7 +316,7 @@ test.describe('pattern paint', () => {
     expect(await attr(page, 'a', 'fill')).toMatch(/^url\(#sc-pat-/);
   });
 
-  test('swap, solid, export and the gradient tool all hand it over cleanly', async ({ page }) => {
+  test('swap, solid, export and a gradient all hand it over cleanly', async ({ page }) => {
     await page.keyboard.press('x');
     expect(await attr(page, 'a', 'stroke')).toMatch(/^url\(#sc-pat-/);
     expect(await attr(page, 'a', 'fill')).not.toMatch(/url/);
@@ -333,17 +333,9 @@ test.describe('pattern paint', () => {
     await select(page, 'a');
     expect(await page.evaluate(() => window.svgcraft.state.fillPat?.name)).toBe('Checks');
 
-    await page.evaluate(() => window.svgcraft.setTool('gradient'));
-    const [x1, y1, x2, y2] = await page.evaluate(() => {
-      const m = document.getElementById('sc-doc').getScreenCTM();
-      const a = new DOMPoint(30, 60).matrixTransform(m);
-      const b = new DOMPoint(110, 60).matrixTransform(m);
-      return [a.x, a.y, b.x, b.y];
-    });
-    await page.mouse.move(x1, y1);
-    await page.mouse.down();
-    await page.mouse.move(x2, y2, { steps: 4 });
-    await page.mouse.up();
+    // A gradient Type replaces the pattern (the Gradient tool is gone).
+    await tab(page, 'props');
+    await page.click('[data-kind-for="fill"] [data-kind="linear"]');
     expect((await paintDef(page, 'a')).tag).toBe('linearGradient');
   });
 });
