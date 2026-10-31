@@ -83,7 +83,10 @@ test('the Layers list by keyboard: select, restack, rename', async ({ page }) =>
   await select(page, 'b');
   const row = (name) => page.locator('#sc-layers li', { hasText: name });
   await expect(row('Disc')).toHaveAttribute('tabindex', '0');
-  await row('Disc').focus();
+  // Tab into the list: it lands on the selected row.
+  await page.locator('.sc-layers-lock button').last().focus();
+  await page.keyboard.press('Tab');
+  await expect(row('Disc')).toBeFocused();
   await page.keyboard.press('ArrowDown');
   await expect(row('Box')).toBeFocused();
   expect(await page.evaluate(() => window.svgcraft.state.sel.map((e) => e.id))).toEqual(['a']);

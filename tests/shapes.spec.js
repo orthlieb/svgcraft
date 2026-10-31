@@ -241,8 +241,8 @@ test('Photoshop’s keys: P B, D, Ctrl+D, Ctrl+J, brackets, rulers, guides, grid
   await page.keyboard.press('Control+Alt+c');
   await expect(page.locator('#sc-canvassize')).toBeVisible();
   await page.keyboard.press('Escape');
-  // Tab hides the panels, Shift+Tab just the right-hand ones.
-  await page.evaluate(() => document.activeElement?.blur());
+  // On the canvas, Tab hides the panels, Shift+Tab just the right-hand ones.
+  await page.locator('#sc-stage').focus();
   await page.keyboard.press('Tab');
   await expect(page.locator('#sc-panel')).toBeHidden();
   await expect(page.locator('.sc-tools')).toBeHidden();
