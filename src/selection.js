@@ -249,6 +249,14 @@ function fillThumbs(list) {
   idle(step);
 }
 
+// Whether the Layers rows take the arrow keys: when the list was reached by
+// the keyboard (Tab), not by a click.
+let layerKeys = false;
+$('#sc-layers').addEventListener('pointerdown', () => (layerKeys = false), true);
+$('#sc-layers').addEventListener('keyup', (e) => {
+  if (e.key === 'Tab') layerKeys = true;
+});
+
 // Groups the user folded in the Layers panel, keyed by tree path.
 const folded = new Set();
 let rangeAnchor = null;
@@ -431,8 +439,10 @@ function layerRow(el, depth, open) {
   // The keyboard: up and down select the next row (Shift adds it), Alt+up
   // and down move the layer up and down the stack, F2 or Enter renames,
   // right and left open and fold a group.
+  // A row clicked with the mouse leaves the arrows to nudge the layer, as
+  // in Photoshop; reached by the keyboard, the row takes them.
   li.addEventListener('keydown', (e) => {
-    if (e.target !== li) return;
+    if (e.target !== li || !layerKeys) return;
     const rows = [...$('#sc-layers').children].filter((r) => r.layerEl);
     const i = rows.indexOf(li);
     const k = e.key;
