@@ -112,7 +112,10 @@ test('Image Size in percent, unlinked, without scaling effects; Cancel', async (
   await menu(page, 'Image', 'imageSize');
   await page.fill('[data-is="w"]', '0');
   await page.click('[data-is-btn="ok"]');
-  await expect(page.locator('#sc-alert-text')).toHaveText('Enter a width and height above zero.');
+  // Said in the dialog, which stays open.
+  await expect(page.locator('#sc-imagesize .sc-dlg-err')).toHaveText(
+    'Enter a width and height above zero.',
+  );
   await page.keyboard.press('Escape');
   expect((await st(page)).w).toBe(100);
 });
@@ -173,7 +176,8 @@ test('Canvas Size: relative, and anchored to a corner or an edge', async ({ page
   await menu(page, 'Image', 'canvasSize');
   await page.fill('[data-cv="w"]', '0');
   await page.click('[data-cv-btn="ok"]');
-  await expect(page.locator('#sc-alert-text')).toHaveText(
+  await expect(page.locator('#sc-canvassize .sc-dlg-err')).toHaveText(
     'The canvas must be 1 to 20,000 px each way.',
   );
+  await expect(page.locator('#sc-canvassize')).toBeVisible();
 });

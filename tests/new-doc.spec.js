@@ -87,9 +87,10 @@ test('a background is a locked Background layer; Recent remembers', async ({ pag
   // Too big is refused; Cancel makes nothing.
   await page.fill('[data-nd="w"]', '50000');
   await page.click('[data-nd-btn="ok"]');
-  await expect(page.locator('#sc-alert-text')).toHaveText(
+  await expect(page.locator('#sc-newdoc .sc-dlg-err')).toHaveText(
     'The document must be 1 to 20,000 px each way.',
   );
+  await expect(page.locator('[data-nd="w"]')).toHaveAttribute('aria-invalid', 'true');
   await page.click('[data-nd-btn="cancel"]');
   await expect(page.locator('#sc-doctabs .sc-doctab')).toHaveCount(2);
   // Icon templates hand over to New Icon.
