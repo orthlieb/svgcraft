@@ -148,8 +148,8 @@ function wireGradEditor() {
         g.stops = x.stops.map((s) => ({ ...s }));
         state.gradStop = 0;
       }),
-    manage: () => showTab('gradients'),
-    manageLabel: 'Manage in the Gradients panel',
+    manage: () => openLibraries('gradients'),
+    manageTip: 'Make, save and manage gradients in the Libraries window',
   });
   $('#sc-grad-keep').addEventListener('change', (e) =>
     editGrad((g) => (g.stretch = !e.target.checked)),

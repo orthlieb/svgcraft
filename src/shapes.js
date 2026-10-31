@@ -128,10 +128,10 @@ libPickers.symbols = libPicker($('#sc-custom-shape'), {
   cats: true,
   pick: (it) => pickLibSymbol(it.id),
   manage: () => {
-    showTab('symbols');
+    openLibraries('symbols');
     setSymView('lib');
   },
-  manageLabel: 'Manage in the Symbols panel',
+  manageTip: 'Save, rename and manage shapes in the Libraries window',
 });
 // An instance of the shape, fitted (proportions kept) and centred in box.
 function placeCustom(box) {

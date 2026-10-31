@@ -37,8 +37,8 @@ function wirePatEditor() {
     current: activePat,
     thumb: libPatThumb,
     pick: (x, e) => applyLibPat(x, e),
-    manage: () => showTab('patterns'),
-    manageLabel: 'Manage in the Patterns panel',
+    manage: () => openLibraries('patterns'),
+    manageTip: 'Make and manage patterns in the Libraries window',
   });
   $('#sc-pat-with').addEventListener('change', (e) =>
     editPat((p) => (p.withShape = e.target.checked)),
@@ -90,7 +90,7 @@ async function definePattern() {
   lib.patterns.push(item);
   libSel.patterns = item.id;
   saveLibrary();
-  showTab('patterns');
+  openLibraries('patterns');
   say(`Defined “${item.name}”. Click it in the Patterns panel to fill with it.`);
 }
 

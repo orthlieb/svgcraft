@@ -3977,16 +3977,31 @@ body.sc-no-right .sc-main {
   font-size: 11px;
   text-align: center;
 }
-.sc-libpick-manage {
-  align-self: flex-start;
-  padding: 2px 0;
-  border: 0;
-  background: none;
-  color: var(--accent);
-  font-size: 11px;
+.sc-libpick-foot {
+  display: flex;
+  justify-content: flex-end;
 }
-.sc-libpick-manage:hover {
-  text-decoration: underline;
+/* Swatches: an icon button, and small tiles without names. */
+.sc-libpick.sc-libpick-compact {
+  justify-content: center;
+  width: 24px;
+  padding: 0;
+}
+.sc-libpick-compact svg {
+  width: 13px;
+  height: 13px;
+  fill: currentColor;
+}
+.sc-libpick-small .sc-libpick-grid {
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  gap: 3px;
+}
+.sc-libpick-small .sc-libpick-tile {
+  padding: 0;
+  aspect-ratio: 1;
+}
+.sc-libpick-small .sc-libpick-tile-thumb {
+  height: 100%;
 }
 
 /* ---- Color panel: Fill and Stroke fold to their first row ------------------- */
@@ -4030,4 +4045,27 @@ body.sc-no-right .sc-main {
 .sc-paint-editor .sc-gstop-row {
   flex-wrap: wrap;
   gap: 4px 6px;
+}
+
+/* ---- Window → Libraries ------------------------------------------------------ */
+.sc-libwin {
+  width: min(460px, calc(100vw - 16px));
+  height: min(520px, calc(100vh - 120px));
+}
+.sc-libwin-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+/* Tiles as many as fit, at their own size, rather than a set number. */
+.sc-libwin .sc-palette {
+  grid-template-columns: repeat(auto-fill, minmax(26px, 1fr));
+}
+.sc-libwin .sc-lib-grid {
+  grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+}
+.sc-libwin .sc-sym-grid {
+  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+  max-height: none;
 }

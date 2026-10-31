@@ -548,15 +548,6 @@
             <button role="menuitemcheckbox" data-action="panelColor" aria-checked="false">
               <i data-icon="palette"></i><span>Color</span>
             </button>
-            <button role="menuitemcheckbox" data-action="panelSwatches" aria-checked="false">
-              <i data-icon="swatchbook"></i><span>Swatches</span>
-            </button>
-            <button role="menuitemcheckbox" data-action="panelGradients" aria-checked="false">
-              <i data-icon="sc-gradient"></i><span>Gradients</span>
-            </button>
-            <button role="menuitemcheckbox" data-action="panelPatterns" aria-checked="false">
-              <i data-icon="chess-board"></i><span>Patterns</span>
-            </button>
             <hr />
             <button role="menuitemcheckbox" data-action="panelProperties" aria-checked="false">
               <i data-icon="sliders"></i><span>Properties</span>
@@ -566,9 +557,6 @@
             </button>
             <button role="menuitemcheckbox" data-action="panelParagraph" aria-checked="false">
               <i data-icon="paragraph"></i><span>Paragraph</span>
-            </button>
-            <button role="menuitemcheckbox" data-action="panelSymbols" aria-checked="false">
-              <i data-icon="clover"></i><span>Symbols</span>
             </button>
             <button role="menuitemcheckbox" data-action="panelAnimation" aria-checked="false">
               <i data-icon="film"></i><span>Animation</span>
@@ -581,6 +569,9 @@
               <i data-icon="layer-group"></i><span>Layers</span>
             </button>
             <hr />
+            <button role="menuitemcheckbox" data-action="toggleLibraries" aria-checked="false">
+              <i data-icon="book-bookmark"></i><span>Libraries</span>
+            </button>
             <button role="menuitemcheckbox" data-action="toggleSource" aria-checked="false">
               <i data-icon="code"></i><span>SVG Source</span><kbd>Ctrl+U</kbd>
             </button>
@@ -1575,33 +1566,6 @@
               <i data-icon="palette"></i><span>Color</span>
             </button>
             <button
-              role="tab"
-              aria-selected="false"
-              data-tab="swatches"
-              aria-label="Swatches"
-              data-tip="Swatches"
-            >
-              <i data-icon="swatchbook"></i><span>Swatches</span>
-            </button>
-            <button
-              role="tab"
-              aria-selected="false"
-              data-tab="gradients"
-              aria-label="Gradients"
-              data-tip="Gradients"
-            >
-              <i data-icon="sc-gradient"></i><span>Gradients</span>
-            </button>
-            <button
-              role="tab"
-              aria-selected="false"
-              data-tab="patterns"
-              aria-label="Patterns"
-              data-tip="Patterns"
-            >
-              <i data-icon="chess-board"></i><span>Patterns</span>
-            </button>
-            <button
               class="sc-ibtn sc-ptab-end"
               id="sc-screen-pick"
               data-action="pickFromScreen"
@@ -1637,6 +1601,7 @@
                   aria-label="Fill hex"
                   spellcheck="false"
                 />
+                <button id="sc-fill-swatch"></button>
               </div>
               <label class="sc-row"
                 >Alpha <input id="sc-fill-a" type="range" min="0" max="100" value="100" /><output
@@ -1842,6 +1807,7 @@
                   aria-label="Stroke hex"
                   spellcheck="false"
                 />
+                <button id="sc-stroke-swatch"></button>
               </div>
               <label class="sc-row"
                 >Alpha <input id="sc-stroke-a" type="range" min="0" max="100" value="100" /><output
@@ -2106,176 +2072,6 @@
               </div>
             </div>
           </div>
-          <div class="sc-pbody" data-pane="swatches" hidden>
-            <div class="sc-palette" id="sc-palette" aria-label="Swatches"></div>
-            <div class="sc-lib-bar" data-lib="swatches">
-              <button
-                class="sc-ibtn"
-                data-lib-act="add"
-                aria-label="Add the current colour as a swatch"
-                data-tip="Add the current colour as a swatch"
-              >
-                <i data-icon="plus"></i>
-              </button>
-              <button
-                class="sc-ibtn"
-                data-lib-act="rename"
-                aria-label="Rename the selected item"
-                data-tip="Rename the selected item (or double-click it)"
-              >
-                <i data-icon="pen"></i>
-              </button>
-              <button
-                class="sc-ibtn"
-                data-lib-act="delete"
-                aria-label="Delete the selected item"
-                data-tip="Delete the selected item (or Alt-click it)"
-              >
-                <i data-icon="trash-can"></i>
-              </button>
-              <span class="sc-lib-gap"></span>
-              <button
-                class="sc-ibtn"
-                data-lib-act="export"
-                aria-label="Export library"
-                data-tip="Export the whole library as a zip: an SVGCraft library plus GIMP palette, CSS and SVG files for other apps"
-              >
-                <i data-icon="file-export"></i>
-              </button>
-              <button
-                class="sc-ibtn"
-                data-lib-act="import"
-                aria-label="Import library"
-                data-tip="Import a library zip, or a GIMP palette (.gpl) or gradient (.ggr), or an SVG’s gradients, patterns and symbols"
-              >
-                <i data-icon="file-import"></i>
-              </button>
-              <button
-                class="sc-ibtn"
-                data-lib-act="reset"
-                aria-label="Reset to defaults"
-                data-tip="Reset this panel to the built-in set"
-              >
-                <i data-icon="rotate-left"></i>
-              </button>
-            </div>
-            <p class="sc-hint">
-              A swatch goes to the active paint. Shift-click sends it to the other one.
-            </p>
-          </div>
-          <div class="sc-pbody" data-pane="gradients" hidden>
-            <div class="sc-palette sc-lib-grid" id="sc-gradlib" aria-label="Gradients"></div>
-            <div class="sc-lib-bar" data-lib="gradients">
-              <button
-                class="sc-ibtn"
-                data-lib-act="add"
-                aria-label="Save the active gradient"
-                data-tip="Save the active gradient"
-              >
-                <i data-icon="plus"></i>
-              </button>
-              <button
-                class="sc-ibtn"
-                data-lib-act="rename"
-                aria-label="Rename the selected item"
-                data-tip="Rename the selected item (or double-click it)"
-              >
-                <i data-icon="pen"></i>
-              </button>
-              <button
-                class="sc-ibtn"
-                data-lib-act="delete"
-                aria-label="Delete the selected item"
-                data-tip="Delete the selected item (or Alt-click it)"
-              >
-                <i data-icon="trash-can"></i>
-              </button>
-              <span class="sc-lib-gap"></span>
-              <button
-                class="sc-ibtn"
-                data-lib-act="export"
-                aria-label="Export library"
-                data-tip="Export the whole library as a zip: an SVGCraft library plus GIMP palette, CSS and SVG files for other apps"
-              >
-                <i data-icon="file-export"></i>
-              </button>
-              <button
-                class="sc-ibtn"
-                data-lib-act="import"
-                aria-label="Import library"
-                data-tip="Import a library zip, or a GIMP palette (.gpl) or gradient (.ggr), or an SVG’s gradients, patterns and symbols"
-              >
-                <i data-icon="file-import"></i>
-              </button>
-              <button
-                class="sc-ibtn"
-                data-lib-act="reset"
-                aria-label="Reset to defaults"
-                data-tip="Reset this panel to the built-in set"
-              >
-                <i data-icon="rotate-left"></i>
-              </button>
-            </div>
-            <p class="sc-hint">Click a gradient to apply it to the active paint.</p>
-          </div>
-          <div class="sc-pbody" data-pane="patterns" hidden>
-            <div class="sc-palette sc-lib-grid" id="sc-patlib" aria-label="Patterns"></div>
-            <div class="sc-lib-bar" data-lib="patterns">
-              <button
-                class="sc-ibtn"
-                data-lib-act="add"
-                aria-label="Define a pattern from the selection"
-                data-tip="Define a pattern from the selection"
-              >
-                <i data-icon="plus"></i>
-              </button>
-              <button
-                class="sc-ibtn"
-                data-lib-act="rename"
-                aria-label="Rename the selected item"
-                data-tip="Rename the selected item (or double-click it)"
-              >
-                <i data-icon="pen"></i>
-              </button>
-              <button
-                class="sc-ibtn"
-                data-lib-act="delete"
-                aria-label="Delete the selected item"
-                data-tip="Delete the selected item (or Alt-click it)"
-              >
-                <i data-icon="trash-can"></i>
-              </button>
-              <span class="sc-lib-gap"></span>
-              <button
-                class="sc-ibtn"
-                data-lib-act="export"
-                aria-label="Export library"
-                data-tip="Export the whole library as a zip: an SVGCraft library plus GIMP palette, CSS and SVG files for other apps"
-              >
-                <i data-icon="file-export"></i>
-              </button>
-              <button
-                class="sc-ibtn"
-                data-lib-act="import"
-                aria-label="Import library"
-                data-tip="Import a library zip, or a GIMP palette (.gpl) or gradient (.ggr), or an SVG’s gradients, patterns and symbols"
-              >
-                <i data-icon="file-import"></i>
-              </button>
-              <button
-                class="sc-ibtn"
-                data-lib-act="reset"
-                aria-label="Reset to defaults"
-                data-tip="Reset this panel to the built-in set"
-              >
-                <i data-icon="rotate-left"></i>
-              </button>
-            </div>
-            <p class="sc-hint">
-              Click a pattern to apply it to the active paint. Built-in patterns are drawn in the
-              paint's colour. Edit → Define Pattern turns the selection into a pattern.
-            </p>
-          </div>
         </section>
 
         <section class="sc-pgroup" data-tabs>
@@ -2306,15 +2102,6 @@
               data-tip="Paragraph"
             >
               <i data-icon="paragraph"></i><span>Paragraph</span>
-            </button>
-            <button
-              role="tab"
-              aria-selected="false"
-              data-tab="symbols"
-              aria-label="Symbols"
-              data-tip="Symbols"
-            >
-              <i data-icon="clover"></i><span>Symbols</span>
             </button>
             <button
               role="tab"
@@ -2427,154 +2214,6 @@
                   PNG and app icons use the still drawing.
                 </p>
               </div>
-            </div>
-          </div>
-          <div class="sc-pbody" data-pane="symbols" hidden>
-            <div class="sc-seg sc-symview" role="radiogroup" aria-label="Symbols to show">
-              <button role="radio" aria-checked="true" data-symview="doc">This drawing</button>
-              <button role="radio" aria-checked="false" data-symview="lib">Library</button>
-            </div>
-            <div data-symview-pane="doc">
-              <div class="sc-sym-grid" id="sc-symlib" aria-label="Symbols"></div>
-              <div class="sc-lib-bar">
-                <button
-                  class="sc-ibtn"
-                  data-sym-act="make"
-                  aria-label="Make a symbol from the selection"
-                  data-tip="Make a symbol from the selection · Object → Make Symbol"
-                >
-                  <i data-icon="plus"></i>
-                </button>
-                <button
-                  class="sc-ibtn"
-                  data-sym-act="place"
-                  aria-label="Place an instance"
-                  data-tip="Place an instance in the middle of the view (or double-click the symbol, or drag it onto the canvas)"
-                >
-                  <i data-icon="clone"></i>
-                </button>
-                <button
-                  class="sc-ibtn"
-                  data-sym-act="edit"
-                  aria-label="Edit symbol"
-                  data-tip="Edit the symbol: every instance follows"
-                >
-                  <i data-icon="pen-nib"></i>
-                </button>
-                <button
-                  class="sc-ibtn"
-                  data-sym-act="break"
-                  aria-label="Break link to symbol"
-                  data-tip="Break the selected instances' link: they become ordinary groups"
-                >
-                  <i data-icon="link-slash"></i>
-                </button>
-                <span class="sc-lib-gap"></span>
-                <button
-                  class="sc-ibtn"
-                  data-sym-act="rename"
-                  aria-label="Rename the symbol"
-                  data-tip="Rename the symbol (or double-click its name)"
-                >
-                  <i data-icon="pen"></i>
-                </button>
-                <button
-                  class="sc-ibtn"
-                  data-sym-act="save"
-                  aria-label="Save to Library"
-                  data-tip="Save the symbol to your Symbols library, to use in any drawing"
-                >
-                  <i data-icon="book-bookmark"></i>
-                </button>
-                <button
-                  class="sc-ibtn"
-                  data-sym-act="delete"
-                  aria-label="Delete the symbol"
-                  data-tip="Delete the symbol"
-                >
-                  <i data-icon="trash-can"></i>
-                </button>
-              </div>
-              <p class="sc-hint">
-                Object → Make Symbol turns the selection into a symbol. Its instances all follow
-                when you edit it: double-click one, or use Edit Symbol.
-              </p>
-            </div>
-            <div data-symview-pane="lib" hidden>
-              <div class="sc-libsym-filter">
-                <select id="sc-libsym-cat" aria-label="Category"></select>
-                <input
-                  id="sc-libsym-q"
-                  type="search"
-                  placeholder="Search"
-                  aria-label="Search the library"
-                  spellcheck="false"
-                />
-              </div>
-              <div class="sc-sym-grid" id="sc-libsyms" aria-label="Library symbols"></div>
-              <div class="sc-lib-bar" data-lib="symbols">
-                <button
-                  class="sc-ibtn"
-                  data-lib-act="add"
-                  aria-label="Save to Library"
-                  data-tip="Save the drawing's selected symbol (or the selected instance's) to the library"
-                >
-                  <i data-icon="plus"></i>
-                </button>
-                <button
-                  class="sc-ibtn"
-                  data-lib-act="place"
-                  aria-label="Place in the drawing"
-                  data-tip="Place in the middle of the view (or double-click it, or drag it onto the canvas)"
-                >
-                  <i data-icon="clone"></i>
-                </button>
-                <button
-                  class="sc-ibtn"
-                  data-lib-act="rename"
-                  aria-label="Rename the selected item"
-                  data-tip="Rename the selected item (or double-click its name)"
-                >
-                  <i data-icon="pen"></i>
-                </button>
-                <button
-                  class="sc-ibtn"
-                  data-lib-act="delete"
-                  aria-label="Delete the selected item"
-                  data-tip="Delete the selected item (or Alt-click it)"
-                >
-                  <i data-icon="trash-can"></i>
-                </button>
-                <span class="sc-lib-gap"></span>
-                <button
-                  class="sc-ibtn"
-                  data-lib-act="export"
-                  aria-label="Export library"
-                  data-tip="Export the whole library as a zip: an SVGCraft library plus GIMP palette, CSS and SVG files for other apps"
-                >
-                  <i data-icon="file-export"></i>
-                </button>
-                <button
-                  class="sc-ibtn"
-                  data-lib-act="import"
-                  aria-label="Import library"
-                  data-tip="Import a library zip, or a GIMP palette (.gpl) or gradient (.ggr), or an SVG’s gradients, patterns and symbols"
-                >
-                  <i data-icon="file-import"></i>
-                </button>
-                <button
-                  class="sc-ibtn"
-                  data-lib-act="reset"
-                  aria-label="Reset to defaults"
-                  data-tip="Reset the library's symbols to the built-in icons"
-                >
-                  <i data-icon="rotate-left"></i>
-                </button>
-              </div>
-              <p class="sc-hint">
-                Symbols kept across drawings. Placing one adds it to this drawing's symbols. The
-                built-in icons (Font Awesome Free, CC BY 4.0) take the instance's fill colour.
-              </p>
             </div>
           </div>
           <div class="sc-pbody sc-char" data-pane="character" hidden>
@@ -4201,6 +3840,386 @@
       hidden
     />
 
+    <!-- Window → Libraries: making and managing swatches, gradients,
+         patterns and symbols. Using them is done where you work: the Color
+         panel's pickers, the Custom Shape tool's, the canvas. -->
+    <div
+      class="sc-src sc-libwin"
+      id="sc-libraries"
+      role="dialog"
+      aria-modal="false"
+      aria-labelledby="sc-lib-title"
+      data-tabs
+      hidden
+    >
+      <div class="sc-src-titlebar" id="sc-lib-titlebar">
+        <span class="sc-src-grip" aria-hidden="true">⠿</span>
+        <i data-icon="book-bookmark"></i>
+        <span class="sc-src-name" id="sc-lib-title">Libraries</span>
+        <button class="sc-src-x" id="sc-lib-close" aria-label="Close" data-tip="Close (Esc)">
+          <i data-icon="xmark"></i>
+        </button>
+      </div>
+      <div class="sc-ptabs" role="tablist">
+        <button
+          role="tab"
+          aria-selected="true"
+          data-tab="swatches"
+          aria-label="Swatches"
+          data-tip="Swatches"
+        >
+          <i data-icon="swatchbook"></i><span>Swatches</span>
+        </button>
+        <button
+          role="tab"
+          aria-selected="false"
+          data-tab="gradients"
+          aria-label="Gradients"
+          data-tip="Gradients"
+        >
+          <i data-icon="sc-gradient"></i><span>Gradients</span>
+        </button>
+        <button
+          role="tab"
+          aria-selected="false"
+          data-tab="patterns"
+          aria-label="Patterns"
+          data-tip="Patterns"
+        >
+          <i data-icon="chess-board"></i><span>Patterns</span>
+        </button>
+        <button
+          role="tab"
+          aria-selected="false"
+          data-tab="symbols"
+          aria-label="Symbols"
+          data-tip="Symbols"
+        >
+          <i data-icon="clover"></i><span>Symbols</span>
+        </button>
+      </div>
+      <div class="sc-libwin-body">
+        <div class="sc-pbody" data-pane="swatches">
+          <div class="sc-palette" id="sc-palette" aria-label="Swatches"></div>
+          <div class="sc-lib-bar" data-lib="swatches">
+            <button
+              class="sc-ibtn"
+              data-lib-act="add"
+              aria-label="Add the current colour as a swatch"
+              data-tip="Add the current colour as a swatch"
+            >
+              <i data-icon="plus"></i>
+            </button>
+            <button
+              class="sc-ibtn"
+              data-lib-act="rename"
+              aria-label="Rename the selected item"
+              data-tip="Rename the selected item (or double-click it)"
+            >
+              <i data-icon="pen"></i>
+            </button>
+            <button
+              class="sc-ibtn"
+              data-lib-act="delete"
+              aria-label="Delete the selected item"
+              data-tip="Delete the selected item (or Alt-click it)"
+            >
+              <i data-icon="trash-can"></i>
+            </button>
+            <span class="sc-lib-gap"></span>
+            <button
+              class="sc-ibtn"
+              data-lib-act="export"
+              aria-label="Export library"
+              data-tip="Export the whole library as a zip: an SVGCraft library plus GIMP palette, CSS and SVG files for other apps"
+            >
+              <i data-icon="file-export"></i>
+            </button>
+            <button
+              class="sc-ibtn"
+              data-lib-act="import"
+              aria-label="Import library"
+              data-tip="Import a library zip, or a GIMP palette (.gpl) or gradient (.ggr), or an SVG’s gradients, patterns and symbols"
+            >
+              <i data-icon="file-import"></i>
+            </button>
+            <button
+              class="sc-ibtn"
+              data-lib-act="reset"
+              aria-label="Reset to defaults"
+              data-tip="Reset this panel to the built-in set"
+            >
+              <i data-icon="rotate-left"></i>
+            </button>
+          </div>
+          <p class="sc-hint">
+            A swatch goes to the active paint. Shift-click sends it to the other one.
+          </p>
+        </div>
+        <div class="sc-pbody" data-pane="gradients" hidden>
+          <div class="sc-palette sc-lib-grid" id="sc-gradlib" aria-label="Gradients"></div>
+          <div class="sc-lib-bar" data-lib="gradients">
+            <button
+              class="sc-ibtn"
+              data-lib-act="add"
+              aria-label="Save the active gradient"
+              data-tip="Save the active gradient"
+            >
+              <i data-icon="plus"></i>
+            </button>
+            <button
+              class="sc-ibtn"
+              data-lib-act="rename"
+              aria-label="Rename the selected item"
+              data-tip="Rename the selected item (or double-click it)"
+            >
+              <i data-icon="pen"></i>
+            </button>
+            <button
+              class="sc-ibtn"
+              data-lib-act="delete"
+              aria-label="Delete the selected item"
+              data-tip="Delete the selected item (or Alt-click it)"
+            >
+              <i data-icon="trash-can"></i>
+            </button>
+            <span class="sc-lib-gap"></span>
+            <button
+              class="sc-ibtn"
+              data-lib-act="export"
+              aria-label="Export library"
+              data-tip="Export the whole library as a zip: an SVGCraft library plus GIMP palette, CSS and SVG files for other apps"
+            >
+              <i data-icon="file-export"></i>
+            </button>
+            <button
+              class="sc-ibtn"
+              data-lib-act="import"
+              aria-label="Import library"
+              data-tip="Import a library zip, or a GIMP palette (.gpl) or gradient (.ggr), or an SVG’s gradients, patterns and symbols"
+            >
+              <i data-icon="file-import"></i>
+            </button>
+            <button
+              class="sc-ibtn"
+              data-lib-act="reset"
+              aria-label="Reset to defaults"
+              data-tip="Reset this panel to the built-in set"
+            >
+              <i data-icon="rotate-left"></i>
+            </button>
+          </div>
+          <p class="sc-hint">Click a gradient to apply it to the active paint.</p>
+        </div>
+        <div class="sc-pbody" data-pane="patterns" hidden>
+          <div class="sc-palette sc-lib-grid" id="sc-patlib" aria-label="Patterns"></div>
+          <div class="sc-lib-bar" data-lib="patterns">
+            <button
+              class="sc-ibtn"
+              data-lib-act="add"
+              aria-label="Define a pattern from the selection"
+              data-tip="Define a pattern from the selection"
+            >
+              <i data-icon="plus"></i>
+            </button>
+            <button
+              class="sc-ibtn"
+              data-lib-act="rename"
+              aria-label="Rename the selected item"
+              data-tip="Rename the selected item (or double-click it)"
+            >
+              <i data-icon="pen"></i>
+            </button>
+            <button
+              class="sc-ibtn"
+              data-lib-act="delete"
+              aria-label="Delete the selected item"
+              data-tip="Delete the selected item (or Alt-click it)"
+            >
+              <i data-icon="trash-can"></i>
+            </button>
+            <span class="sc-lib-gap"></span>
+            <button
+              class="sc-ibtn"
+              data-lib-act="export"
+              aria-label="Export library"
+              data-tip="Export the whole library as a zip: an SVGCraft library plus GIMP palette, CSS and SVG files for other apps"
+            >
+              <i data-icon="file-export"></i>
+            </button>
+            <button
+              class="sc-ibtn"
+              data-lib-act="import"
+              aria-label="Import library"
+              data-tip="Import a library zip, or a GIMP palette (.gpl) or gradient (.ggr), or an SVG’s gradients, patterns and symbols"
+            >
+              <i data-icon="file-import"></i>
+            </button>
+            <button
+              class="sc-ibtn"
+              data-lib-act="reset"
+              aria-label="Reset to defaults"
+              data-tip="Reset this panel to the built-in set"
+            >
+              <i data-icon="rotate-left"></i>
+            </button>
+          </div>
+          <p class="sc-hint">
+            Click a pattern to apply it to the active paint. Built-in patterns are drawn in the
+            paint's colour. Edit → Define Pattern turns the selection into a pattern.
+          </p>
+        </div>
+        <div class="sc-pbody" data-pane="symbols" hidden>
+          <div class="sc-seg sc-symview" role="radiogroup" aria-label="Symbols to show">
+            <button role="radio" aria-checked="true" data-symview="doc">This drawing</button>
+            <button role="radio" aria-checked="false" data-symview="lib">Library</button>
+          </div>
+          <div data-symview-pane="doc">
+            <div class="sc-sym-grid" id="sc-symlib" aria-label="Symbols"></div>
+            <div class="sc-lib-bar">
+              <button
+                class="sc-ibtn"
+                data-sym-act="make"
+                aria-label="Make a symbol from the selection"
+                data-tip="Make a symbol from the selection · Object → Make Symbol"
+              >
+                <i data-icon="plus"></i>
+              </button>
+              <button
+                class="sc-ibtn"
+                data-sym-act="place"
+                aria-label="Place an instance"
+                data-tip="Place an instance in the middle of the view (or double-click the symbol, or drag it onto the canvas)"
+              >
+                <i data-icon="clone"></i>
+              </button>
+              <button
+                class="sc-ibtn"
+                data-sym-act="edit"
+                aria-label="Edit symbol"
+                data-tip="Edit the symbol: every instance follows"
+              >
+                <i data-icon="pen-nib"></i>
+              </button>
+              <button
+                class="sc-ibtn"
+                data-sym-act="break"
+                aria-label="Break link to symbol"
+                data-tip="Break the selected instances' link: they become ordinary groups"
+              >
+                <i data-icon="link-slash"></i>
+              </button>
+              <span class="sc-lib-gap"></span>
+              <button
+                class="sc-ibtn"
+                data-sym-act="rename"
+                aria-label="Rename the symbol"
+                data-tip="Rename the symbol (or double-click its name)"
+              >
+                <i data-icon="pen"></i>
+              </button>
+              <button
+                class="sc-ibtn"
+                data-sym-act="save"
+                aria-label="Save to Library"
+                data-tip="Save the symbol to your Symbols library, to use in any drawing"
+              >
+                <i data-icon="book-bookmark"></i>
+              </button>
+              <button
+                class="sc-ibtn"
+                data-sym-act="delete"
+                aria-label="Delete the symbol"
+                data-tip="Delete the symbol"
+              >
+                <i data-icon="trash-can"></i>
+              </button>
+            </div>
+            <p class="sc-hint">
+              Object → Make Symbol turns the selection into a symbol. Its instances all follow when
+              you edit it: double-click one, or use Edit Symbol.
+            </p>
+          </div>
+          <div data-symview-pane="lib" hidden>
+            <div class="sc-libsym-filter">
+              <select id="sc-libsym-cat" aria-label="Category"></select>
+              <input
+                id="sc-libsym-q"
+                type="search"
+                placeholder="Search"
+                aria-label="Search the library"
+                spellcheck="false"
+              />
+            </div>
+            <div class="sc-sym-grid" id="sc-libsyms" aria-label="Library symbols"></div>
+            <div class="sc-lib-bar" data-lib="symbols">
+              <button
+                class="sc-ibtn"
+                data-lib-act="add"
+                aria-label="Save to Library"
+                data-tip="Save the drawing's selected symbol (or the selected instance's) to the library"
+              >
+                <i data-icon="plus"></i>
+              </button>
+              <button
+                class="sc-ibtn"
+                data-lib-act="place"
+                aria-label="Place in the drawing"
+                data-tip="Place in the middle of the view (or double-click it, or drag it onto the canvas)"
+              >
+                <i data-icon="clone"></i>
+              </button>
+              <button
+                class="sc-ibtn"
+                data-lib-act="rename"
+                aria-label="Rename the selected item"
+                data-tip="Rename the selected item (or double-click its name)"
+              >
+                <i data-icon="pen"></i>
+              </button>
+              <button
+                class="sc-ibtn"
+                data-lib-act="delete"
+                aria-label="Delete the selected item"
+                data-tip="Delete the selected item (or Alt-click it)"
+              >
+                <i data-icon="trash-can"></i>
+              </button>
+              <span class="sc-lib-gap"></span>
+              <button
+                class="sc-ibtn"
+                data-lib-act="export"
+                aria-label="Export library"
+                data-tip="Export the whole library as a zip: an SVGCraft library plus GIMP palette, CSS and SVG files for other apps"
+              >
+                <i data-icon="file-export"></i>
+              </button>
+              <button
+                class="sc-ibtn"
+                data-lib-act="import"
+                aria-label="Import library"
+                data-tip="Import a library zip, or a GIMP palette (.gpl) or gradient (.ggr), or an SVG’s gradients, patterns and symbols"
+              >
+                <i data-icon="file-import"></i>
+              </button>
+              <button
+                class="sc-ibtn"
+                data-lib-act="reset"
+                aria-label="Reset to defaults"
+                data-tip="Reset the library's symbols to the built-in icons"
+              >
+                <i data-icon="rotate-left"></i>
+              </button>
+            </div>
+            <p class="sc-hint">
+              Symbols kept across drawings. Placing one adds it to this drawing's symbols. The
+              built-in icons (Font Awesome Free, CC BY 4.0) take the instance's fill colour.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Window → SVG Source: a read-only view of the saved markup, docked
          beside the canvas or floating. -->
     <div
@@ -4473,6 +4492,7 @@
     <script src="src/pattern-editor.js"></script>
     <script src="src/symbols.js"></script>
     <script src="src/shapes.js"></script>
+    <script src="src/lib-window.js"></script>
     <script src="src/input.js"></script>
     <script src="src/controls.js"></script>
     <script src="src/actions.js"></script>
