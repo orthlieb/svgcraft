@@ -535,7 +535,7 @@ kbd {
 .sc-chips {
   position: relative;
   width: 38px;
-  height: 52px;
+  height: 55px;
   margin-top: 8px;
   flex: none;
 }
@@ -562,15 +562,16 @@ kbd {
   background: var(--chip, transparent);
 }
 /* Fill in front at the top left, stroke behind it at the bottom right:
-   Photoshop's foreground and background colours. */
+   Photoshop's foreground and background colours. Low enough that the
+   active chip's outline (3px out) clears the buttons above. */
 .sc-tb-fill {
   left: 1px;
-  top: 14px;
+  top: 17px;
   z-index: 1;
 }
 .sc-tb-stroke {
   left: 14px;
-  top: 27px;
+  top: 30px;
 }
 /* A stroke chip is drawn hollow, Illustrator-style, so it can't be mistaken for fill. */
 .sc-tb-stroke::after {
