@@ -138,7 +138,9 @@ const paintPop = (() => {
   pop.addEventListener('toggle', (e) => {
     if (e.newState !== 'closed' || !paintPopFor) return;
     libPickShut = { btn: paintPopFor.btn, at: performance.now() };
-    closePaintPop(false);
+    // Esc (the browser's) goes back to the button; a click elsewhere doesn't.
+    const away = document.activeElement && document.activeElement !== document.body;
+    closePaintPop(!away || paintPop.contains(document.activeElement));
   });
   pop.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
@@ -232,6 +234,10 @@ const ppCustom = (tab, tip) => {
 
 function renderPaintPop() {
   const { k, mode } = paintPopFor;
+  // Redrawn as the paint changes: the control that had the keyboard keeps it.
+  const had = paintPop.contains(document.activeElement)
+    ? document.activeElement.getAttribute('aria-label')
+    : null;
   for (const b of paintPop.querySelectorAll('[data-mode]'))
     b.setAttribute('aria-checked', b.dataset.mode === mode);
   const body = paintPop.querySelector('.sc-paintpop-body');
@@ -332,4 +338,5 @@ function renderPaintPop() {
     );
   }
   body.replaceChildren(...out);
+  if (had) paintPop.querySelector(`[aria-label="${CSS.escape(had)}"]`)?.focus();
 }

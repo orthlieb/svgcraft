@@ -108,7 +108,7 @@ test.describe('imported dasharray', () => {
   });
 });
 
-test('Custom in the options bar opens the Color panel', async ({ page }) => {
+test('Custom in the options bar opens Properties → Appearance', async ({ page }) => {
   const group = page.locator('#sc-panel > .sc-pgroup').first();
   await group.locator('.sc-pcollapse').click();
   await expect(group).toHaveClass(/collapsed/);

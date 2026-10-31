@@ -192,11 +192,11 @@ test('Photoshop’s keys: P B, D, Ctrl+D, Ctrl+J, brackets, rulers, guides, grid
   expect(await tool(page)).toBe('pen');
   await page.keyboard.press('b');
   expect(await tool(page)).toBe('pencil');
-  // D: black fill, white stroke.
+  // D: black fill, no stroke.
   await page.keyboard.press('d');
   expect(
-    await page.evaluate(() => [window.svgcraft.state.fill, window.svgcraft.state.stroke]),
-  ).toEqual(['#000000', '#ffffff']);
+    await page.evaluate(() => [window.svgcraft.state.fill, window.svgcraft.state.strokeOn]),
+  ).toEqual(['#000000', false]);
   // Ctrl+J duplicates, Ctrl+D deselects.
   await page.keyboard.press('v');
   await page.evaluate(() => (window.svgcraft.state.sel = [document.getElementById('a')]));
@@ -268,7 +268,6 @@ test('tips end with the shortcut, as the menus show it', async ({ page }) => {
   expect(await title('[data-tool="pencil"]')).toBe('Pencil (B)');
   expect(await title('#sc-shape-btn')).toBe('Rectangle (U)');
   expect(await title('#sc-redo')).toBe('Redo (Ctrl+Shift+Z)');
-  expect(await title('.sc-tb-swap')).toBe('Swap fill and stroke (X)');
   // Tips with no shortcut are as they were.
   expect(await title('#sc-theme-btn')).toBe('Switch to light');
 });

@@ -239,19 +239,16 @@ for the eraser, or the point commands for Edit Points.
 
 ### The toolbar
 
-![The toolbar, with the fill and stroke chips and their default and swap buttons at the bottom](docs/help/the-toolbar.png)
+![The toolbar, with the Move tool chosen and the Shape tools' button below](docs/help/the-toolbar.png)
 
-Pick a tool, and the colours it paints with.
+Pick a tool.
 
 - Click a tool to use it.
 - A small corner mark means more tools share its button. Hold the button
   down, right-click it, Alt-click it or click the mark to pick another
   from its flyout.
-- Click the fill or stroke chip (at the bottom) to make it the active
-  paint. Click it again to pick a colour.
-- Above the chips, as in Photoshop: the little black-and-white squares set
-  the default colours (D: black fill, white stroke), and the curved arrow
-  swaps fill and stroke (X).
+- What a drawing tool paints with is in its options bar: see
+  [Fill and stroke](#fill-and-stroke).
 
 #### Pointers
 
@@ -283,18 +280,17 @@ you like.
 - Click **»** above the panels to shrink the column to a strip of icons,
   leaving more room for the canvas. Click **«** to bring the panels back.
 
-![The panels collapsed to icons, with the Color panel popped out beside the strip](docs/help/docked-panels-icons.png)
+![The panels collapsed to icons, with Properties popped out beside the strip](docs/help/docked-panels-icons.png)
 
 - With the panels as icons, click an icon to pop its panel out beside the
   strip. A click elsewhere, or Esc, puts it away.
 
 #### The panels
 
-- **Color**: the fill and stroke, with the stroke's width, alignment,
-  caps, joins and dashes.
 - **Properties**, **Character**, **Paragraph**, **Animation** and
   **History**. Properties has the selection's **Transform** (X, Y, W and
   H, typed in the document's units, with a link to keep the proportions),
+  its **Appearance** (fill and stroke: see [Fill and stroke](#fill-and-stroke)),
   the shape's settings, the document size, and the grid and snap.
 - Selecting text shows the Character tab; selecting something else
   afterwards goes back to the tab you had.
@@ -1089,8 +1085,8 @@ Copy a style or a colour from something already in the drawing.
 #### Tips
 
 - Alt-click sends the colour to the other paint (fill or stroke).
-- In Chromium browsers, the eyedropper button on the Color panel picks a
-  colour from anywhere on the screen.
+- In Chromium browsers, the eyedropper button beside Properties'
+  **Appearance** picks a colour from anywhere on the screen.
 
 ### Edit points
 
@@ -1554,13 +1550,14 @@ Rub out whole objects, or cut gaps in lines.
 
 ### Gradients
 
-![The Color panel's gradient editor with a four-stop gradient](docs/help/gradients.png)
+![Properties' gradient editor under Fill, with a four-stop gradient](docs/help/gradients.png)
 
 Fill or stroke a shape with a smooth blend of colours.
 
-1. Select a shape and, in the **Color** panel, click **Fill** or
-   **Stroke** to make it the active paint.
-2. Set its **Type** to Linear or Radial (or back to Solid).
+1. Pick one from **Fill** (or **Stroke**) → **Gradient** in a drawing
+   tool's options bar, or select a shape and, in Properties →
+   **Appearance**, set the paint's **Type** to Linear or Radial.
+2. Click **Fill** or **Stroke** in Appearance to make it the active paint.
 3. Edit the stops in the gradient editor below.
 4. To set the direction on the canvas, pick the **Gradient** tool (G) and
    drag across the selection. Shift snaps to 45°, and a radial gradient
@@ -1605,14 +1602,14 @@ Fill or stroke a shape with a smooth blend of colours.
 
 ### Stroke options
 
-![The stroke settings in the Color panel, with Custom dashes](docs/help/stroke-options.png)
+![The stroke settings in Properties → Appearance, with Custom dashes](docs/help/stroke-options.png)
 
 Set how outlines look: thickness, position, ends, corners and dashes.
 
 1. Select a shape, or pick a drawing tool to set the stroke for what you
    draw next.
-2. Set the stroke under **Stroke** in the **Color** panel, or in the
-   drawing tool's options bar. Both show whatever other panel is open.
+2. Set the stroke under **Stroke** in Properties → **Appearance**, or in
+   the drawing tool's options bar.
 
 #### Settings
 
@@ -1620,10 +1617,10 @@ Set how outlines look: thickness, position, ends, corners and dashes.
 - **Align**: **Inside**, **Center** or **Outside**, as in Photoshop, for
   closed shapes (rectangles, ellipses, polygons and closed paths).
 - **Caps**: butt, round or square line ends.
-- **Joins**: miter, round or bevel corners (in the Color panel).
+- **Joins**: miter, round or bevel corners (in Appearance).
 - **Dashes**: **Solid**, **Dashed**, **Dotted** or **Long dash**.
-- **Custom** dashes: opens Photoshop's dash / gap fields in the Color
-  panel: up to three dash-and-gap pairs, in stroke widths. Imported dash
+- **Custom** dashes: opens Photoshop's dash / gap fields in
+  Appearance: up to three dash-and-gap pairs, in stroke widths. Imported dash
   patterns show up there too.
 
 #### Good to know
@@ -1661,15 +1658,15 @@ Round the corners of a rectangle, all together or one at a time.
 
 ### Patterns
 
-![The pattern editor in the Color panel's Fill, with Crosshatch picked](docs/help/patterns.png)
+![The pattern editor in Properties' Fill, with Crosshatch picked](docs/help/patterns.png)
 
 Fill or stroke a shape with a repeating tile: stripes, dots, bricks, or a
 tile you make.
 
-1. Select a shape and make fill or stroke the active paint.
-2. Set the paint's **Type** to
-   Pattern in the Color panel.
-3. Adjust it in the pattern editor: **Scale**, **Angle**, **Stretch with
+1. Pick one from **Fill** (or **Stroke**) → **Pattern** in a drawing
+   tool's options bar, or select a shape and, in Properties →
+   **Appearance**, set the paint's **Type** to Pattern.
+2. Adjust it in the pattern editor: **Scale**, **Angle**, **Stretch with
    shape**, or another
    pattern: click the pattern's name for the library's tiles (the same
    ones as the Libraries window's Patterns, which marks the one in use).
@@ -1715,9 +1712,9 @@ and share them with other apps.
 2. Pick a tab: **Swatches**, **Gradients**, **Patterns** or **Symbols**.
 3. Manage the tiles with the bar below them.
 
-Using them is done where you work: the [Color](#colours) panel's Fill and
-Stroke pick swatches, gradients and patterns from their own pickers, and
-the Custom Shape tool draws a symbol.
+Using them is done where you work: [Fill and stroke](#fill-and-stroke)
+pick swatches, gradients and patterns from their dropdowns, and the Custom
+Shape tool draws a symbol.
 
 #### The tiles
 
@@ -1793,40 +1790,58 @@ It reads:
 - Pattern tiles and symbols from a file are sanitised like imported
   drawings.
 
-### Colours
+### Fill and stroke
 
-![The Color panel: fill and stroke, each with its switch, colour, hex, alpha and type](docs/help/colours.png)
+![The Rectangle tool's Fill dropdown: this drawing's colours, the swatches, and a hex and alpha](docs/help/fill-and-stroke.png)
 
-Set the fill and stroke colours of what you draw or have selected, and
-how see-through they are.
+Every shape has its own fill and stroke: set them for what you draw, or for
+what's selected.
 
-1. Click **Fill** or **Stroke** in the **Color** panel (or the fill and
-   stroke chips at the bottom of the toolbar) to make it the active
-   paint.
-2. Tick **On** to paint it, or untick it for none.
-3. Click the paint's swatch for the colour picker, type a hex code, or pick a swatch
-   with the swatches button beside the hex code (its **Custom…** opens the
-   [Libraries](#libraries) window's Swatches).
-4. For a gradient or a pattern, set the paint's **Type**: its editor
-   opens inside that paint's section, under the Type.
+1. With a drawing tool (a shape, the Pen, the Pencil, Type), click **Fill**
+   or **Stroke** in the options bar.
+2. Choose how it paints: **None**, **Colour**, **Gradient** or **Pattern**.
+3. For a colour, click one of **This drawing**'s colours (the ones it
+   already uses, most used first) or a **Swatch**, or type a hex code and
+   its alpha. For a gradient or a pattern, click one of its tiles.
+4. Draw: the new shape has it. The shape you just drew stays selected, so a
+   change goes on it too.
 
-#### Fill and Stroke
+#### Appearance (Properties)
 
-- Each folds to its first row with the arrow at its left, to save room;
-  SVGCraft remembers which you folded.
+![Properties' Appearance: Fill and Stroke, each with its colour, hex, alpha and type](docs/help/colours.png)
+
+The selected shape's fill and stroke in full, with the Move tool or any
+other:
+
+- **Fill** and **Stroke**: the swatch (click it for the colour picker),
+  the hex code, the **alpha** (how see-through the colour is, 0–100%) and
+  the swatches button. Each folds to its first row with the arrow at its
+  left.
+- **Type**: **None**, **Solid**, **Linear** or **Radial** gradient, or
+  **Pattern**. A gradient's or pattern's editor opens under it (see
+  [Gradients](#gradients) and [Patterns](#patterns)).
 - The stroke's width, alignment, caps, joins and dashes sit under Stroke.
+- In Chromium browsers, the eyedropper button beside **Appearance** picks a
+  colour from anywhere on the screen.
 
 #### Transparency
 
-- **Alpha**, under Fill and under Stroke: how see-through each paint is.
+- **Alpha**, part of each colour: how see-through the fill or the stroke
+  is.
 - **Opacity**, in the Layers panel: how see-through the whole object is.
-- The three are separate, and the artboard's checkerboard shows the
-  result.
+- They're separate, so a see-through fill can have a solid outline.
 
 #### Shortcuts
 
-- X (or **Edit → Swap Fill and Stroke**) swaps fill and stroke.
+- **X** (or **Edit → Swap Fill and Stroke**) swaps fill and stroke.
+- **D**: the default, a black fill and no stroke.
 - Shift-click a swatch to apply it to the other paint.
+
+#### Good to know
+
+- The swatches are kept in this browser and managed in the
+  [Libraries](#libraries) window; **Custom…** in the dropdown opens it.
+  This drawing's colours need no managing: they're what's in the file.
 
 ### Selecting, moving and arranging
 
@@ -2916,7 +2931,7 @@ ten instances.
   Charts, Faces and Places.
 - They're placed 64 px tall, in the current fill colour.
 - They don't set a colour of their own, so the instance's fill paints them:
-  select an instance and pick a colour in the Color panel to
+  select an instance and pick a colour in Properties → Appearance to
   recolour it.
 - Each icon's `<symbol>` carries its credit
   (`data-credit="Font Awesome Free 6.7.2 — CC BY 4.0"`), so the attribution
@@ -3015,7 +3030,7 @@ the menus, so they always agree.
 | R O L                     | Rectangle · Ellipse · Line                         |
 | T G H Z                   | Type · Gradient · Hand · Zoom                      |
 | Space (hold)              | Pan                                                |
-| D · X                     | Default fill and stroke (black, white) · swap them |
+| D · X                     | Default paint (black fill, no stroke) · swap them  |
 | [ ]                       | Stroke width down / up                             |
 | Ctrl+Z / Ctrl+Shift+Z     | Undo / redo (Ctrl+Y redoes too)                    |
 | Ctrl+C / X / V            | Copy / cut / paste (as SVG)                        |

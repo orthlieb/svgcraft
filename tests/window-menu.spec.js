@@ -20,11 +20,11 @@ test('a panel by name opens on its tab, ticked; chosen again it folds away', asy
   expect(await ticked(page, 'panelCharacter')).toBe(true);
   expect(await ticked(page, 'panelProperties')).toBe(false);
   await menu(page, 'Window', 'panelCharacter');
-  await expect(group(page, 1)).toHaveClass(/collapsed/);
+  await expect(group(page, 0)).toHaveClass(/collapsed/);
   // Layers, folded, unfolds.
-  await group(page, 2).locator('.sc-pcollapse').click();
+  await group(page, 1).locator('.sc-pcollapse').click();
   await menu(page, 'Window', 'panelLayers');
-  await expect(group(page, 2)).not.toHaveClass(/collapsed/);
+  await expect(group(page, 1)).not.toHaveClass(/collapsed/);
 });
 
 test('a panel brings the panels back from Tab, or pops out of the icon strip', async ({ page }) => {

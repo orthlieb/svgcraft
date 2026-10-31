@@ -765,12 +765,14 @@ function swapPaint() {
   }
 }
 
-// D: Photoshop's default colours, a black fill and a white stroke (on the
-// selection too, as X swaps them there).
+// D: the default paint, a black fill and no stroke (on the selection too,
+// as X swaps them there).
 function defaultPaint() {
   Object.assign(state, {
     fill: '#000000',
-    stroke: '#ffffff',
+    stroke: '#000000',
+    fillOn: true,
+    strokeOn: false,
     fillA: 1,
     strokeA: 1,
     fillGrad: null,

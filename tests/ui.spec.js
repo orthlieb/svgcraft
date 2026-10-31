@@ -72,39 +72,25 @@ test('dragging a scrubby label changes the stroke width everywhere', async ({ pa
   await expect(page.locator('#sc-appearance [data-bind=strokeWidth]')).toHaveValue('8');
 });
 
-test.describe('toolbar paint chips', () => {
-  test('clicking the stroke chip makes stroke the active paint', async ({ page }) => {
-    await page.click('#sc-tb-stroke', { position: { x: 17, y: 17 } });
-    expect(await page.evaluate(() => window.svgcraft.state.active)).toBe('stroke');
-    await expect(page.locator('.sc-paint[data-target=stroke]')).toHaveClass(/\bactive\b/);
+test.describe('X and D', () => {
+  const paints = (page) =>
+    page.evaluate(() => {
+      const s = window.svgcraft.state;
+      return [s.fill, s.fillOn, s.stroke, s.strokeOn];
+    });
+  test('X swaps fill and stroke', async ({ page }) => {
+    const [f, , st] = await paints(page);
+    await page.locator('#sc-stage').focus();
+    await page.keyboard.press('x');
+    const [f2, , st2] = await paints(page);
+    expect([f2, st2]).toEqual([st, f]);
   });
-
-  test('the swap button exchanges fill and stroke', async ({ page }) => {
-    const paints = () =>
-      page.evaluate(() => [window.svgcraft.state.fill, window.svgcraft.state.stroke]);
-    expect(await paints()).toEqual(['#e8a33d', '#1f2933']);
-    await page.click('.sc-tb-swap');
-    expect(await paints()).toEqual(['#1f2933', '#e8a33d']);
-  });
-
-  test('the default button sets black fill and white stroke; there is no None button', async ({
-    page,
-  }) => {
-    await page.click('.sc-tb-default');
-    expect(
-      await page.evaluate(() => [window.svgcraft.state.fill, window.svgcraft.state.stroke]),
-    ).toEqual(['#000000', '#ffffff']);
-    // As in Photoshop: the two small buttons sit above the chips.
-    const box = (s) => page.locator(s).boundingBox();
-    const [def, swap, fill] = [
-      await box('.sc-tb-default'),
-      await box('.sc-tb-swap'),
-      await box('#sc-tb-fill'),
-    ];
-    expect(def.y + def.height).toBeLessThanOrEqual(fill.y + 1);
-    expect(swap.y + swap.height).toBeLessThanOrEqual(fill.y + 1);
-    expect(def.x).toBeLessThan(swap.x);
-    await expect(page.locator('.sc-chips [data-action="paintNone"]')).toHaveCount(0);
+  test('D: a black fill and no stroke', async ({ page }) => {
+    await page.locator('#sc-stage').focus();
+    await page.keyboard.press('d');
+    expect(await paints(page)).toEqual(['#000000', true, '#000000', false]);
+    // There are no paint chips in the toolbar any more.
+    await expect(page.locator('.sc-chips')).toHaveCount(0);
   });
 });
 
@@ -139,7 +125,7 @@ test('the options bar shows the tool icon', async ({ page }) => {
 // the others have it as their tooltip. Animation has a tab of its own.
 test('panel tabs show icons, and the open tab its name', async ({ page }) => {
   const tabs = page.locator('[role="tab"][data-tab]');
-  await expect(tabs).toHaveCount(10);
+  await expect(tabs).toHaveCount(9);
   for (const t of await tabs.all()) {
     await expect(t.locator('svg')).toHaveCount(1);
     expect(await t.getAttribute('data-tip')).toBe(await t.getAttribute('aria-label'));
@@ -213,22 +199,22 @@ test('a greyed-out item’s shortcut does nothing', async ({ page }) => {
 
 test('panel groups collapse to their tabs, and stay that way', async ({ page }) => {
   const groups = page.locator('#sc-panel > .sc-pgroup');
-  const colour = groups.nth(0);
-  const props = groups.nth(1);
+  const props = groups.nth(0);
+  const layers = groups.nth(1);
   const chevron = (g) => g.locator('.sc-pcollapse');
-  const layersH = () => groups.nth(2).evaluate((g) => g.getBoundingClientRect().height);
+  const layersH = () => layers.evaluate((g) => g.getBoundingClientRect().height);
 
   const tall = await layersH();
-  await chevron(colour).click();
-  await expect(colour).toHaveClass(/collapsed/);
-  await expect(chevron(colour)).toHaveAttribute('aria-expanded', 'false');
+  await chevron(props).click();
+  await expect(props).toHaveClass(/collapsed/);
+  await expect(chevron(props)).toHaveAttribute('aria-expanded', 'false');
   await expect(page.locator('#sc-appearance')).toBeHidden();
   // Layers takes the room.
   expect(await layersH()).toBeGreaterThan(tall);
 
   // Clicking a tab opens the group on that tab.
   await tab(page, 'props');
-  await expect(colour).not.toHaveClass(/collapsed/);
+  await expect(props).not.toHaveClass(/collapsed/);
   await expect(page.locator('#sc-appearance')).toBeVisible();
 
   // Double-clicking the tab bar folds it; selecting text switches to
@@ -236,11 +222,6 @@ test('panel groups collapse to their tabs, and stay that way', async ({ page }) 
   await props.locator('.sc-ptabs').dblclick({ position: { x: 200, y: 10 } });
   await expect(props).toHaveClass(/collapsed/);
   await load(page, '<text id="t" x="10" y="40">Hi</text>');
-  await page.evaluate(() => {
-    const s = window.svgcraft;
-    s.setTool('select');
-    s.setSel?.([document.getElementById('t')]);
-  });
   await page.locator('#sc-layers li').first().click();
   await expect(page.locator('[data-tab="character"]')).toHaveAttribute('aria-selected', 'true');
   await expect(props).toHaveClass(/collapsed/);
@@ -248,11 +229,11 @@ test('panel groups collapse to their tabs, and stay that way', async ({ page }) 
   await expect(props).not.toHaveClass(/collapsed/);
 
   // Remembered after a reload.
-  await chevron(groups.nth(2)).click();
+  await chevron(layers).click();
   await page.reload();
-  await expect(groups.nth(2)).toHaveClass(/collapsed/);
+  await expect(layers).toHaveClass(/collapsed/);
   await expect(page.locator('#sc-layers')).toBeHidden();
-  await expect(colour).not.toHaveClass(/collapsed/);
+  await expect(props).not.toHaveClass(/collapsed/);
 });
 
 test('» collapses the panels to icons that pop each panel out', async ({ page }) => {
@@ -260,7 +241,7 @@ test('» collapses the panels to icons that pop each panel out', async ({ page }
   const toggle = page.locator('.sc-dock-toggle');
   const icon = (name) => page.locator(`.sc-dock-icon[data-tip="${name}"]`);
   const popout = page.locator('#sc-panel > .sc-pgroup.sc-popout');
-  const props = page.locator('#sc-panel > .sc-pgroup').nth(1);
+  const props = page.locator('#sc-panel > .sc-pgroup').nth(0);
   // Fold Properties first: a pop-out shows it open, and leaves it folded.
   await props.locator('.sc-pcollapse').click();
 
@@ -268,7 +249,7 @@ test('» collapses the panels to icons that pop each panel out', async ({ page }
   await expect(toggle).toHaveAttribute('aria-expanded', 'false');
   expect((await panel.boundingBox()).width).toBeLessThan(50);
   await expect(page.locator('#sc-panel > .sc-pgroup:visible')).toHaveCount(0);
-  await expect(page.locator('.sc-dock-icon')).toHaveCount(7);
+  await expect(page.locator('.sc-dock-icon')).toHaveCount(6);
 
   // An icon pops its panel out, on that tab, left of the strip.
   await icon('Character').click();
@@ -301,7 +282,7 @@ test('» collapses the panels to icons that pop each panel out', async ({ page }
   await page.reload();
   await expect(toggle).toHaveAttribute('aria-expanded', 'false');
   await toggle.click();
-  await expect(page.locator('#sc-appearance')).toBeVisible();
+  await expect(page.locator('#sc-layers')).toBeVisible();
   expect((await panel.boundingBox()).width).toBeGreaterThan(250);
   await expect(props).toHaveClass(/collapsed/);
 });

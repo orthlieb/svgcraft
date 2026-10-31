@@ -319,12 +319,8 @@ test.describe('rect corner radii', () => {
   });
 });
 
-test('the stroke settings sit under Stroke in the Color panel, whatever else is open', async ({
-  page,
-}) => {
-  // The Symbols tab shares a group with Properties: the stroke settings
-  // still show.
-  await tab(page, 'symbols');
+test('the stroke settings sit under Stroke in Properties → Appearance', async ({ page }) => {
+  await tab(page, 'props');
   for (const sel of [
     '[data-bind="strokeWidth"]',
     '[data-stroke-align="center"]',
@@ -335,5 +331,4 @@ test('the stroke settings sit under Stroke in the Color panel, whatever else is 
     await expect(
       page.locator(`#sc-appearance .sc-paint[data-target="stroke"] ${sel}`),
     ).toBeVisible();
-  await expect(page.locator('[data-pane="props"] [data-bind="strokeWidth"]')).toHaveCount(0);
 });

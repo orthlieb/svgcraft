@@ -20,7 +20,6 @@ document.addEventListener(
 
 // Each panel tab's topic (the Layers group is "layers").
 const TAB_HELP = {
-  color: 'colours',
   swatches: 'libraries',
   gradients: 'gradients',
   patterns: 'patterns',
