@@ -2,7 +2,7 @@
 // Each button shows its paint; its dropdown chooses None, a colour (this
 // drawing's colours, the swatches, or any colour with its alpha), a gradient
 // or a pattern, for the next shape and the selection.
-import { test, expect, load } from './fixtures.js';
+import { test, expect, load, select, tab } from './fixtures.js';
 
 const SCENE =
   '<rect id="a" x="20" y="20" width="100" height="80" fill="#2563eb" fill-opacity="0.5"/>' +
@@ -87,4 +87,35 @@ test('a gradient or a pattern from the dropdown goes on the shape just drawn', a
     'aria-selected',
     'true',
   );
+});
+
+test('Appearance’s hex is empty for a gradient or no paint, and typing one makes it solid', async ({
+  page,
+}) => {
+  await load(
+    page,
+    '<defs><linearGradient id="g"><stop offset="0" stop-color="#ff0000"/><stop offset="1" stop-color="#0000ff"/></linearGradient></defs>' +
+      '<rect id="a" x="20" y="20" width="100" height="80" fill="url(#g)" stroke="none"/>' +
+      '<rect id="b" x="150" y="20" width="100" height="80" fill="#2563eb"/>',
+  );
+  await tab(page, 'props');
+  const hexOf = (k) => page.locator(`#sc-${k}-hex`);
+  await select(page, 'a');
+  await page.evaluate(() => window.syncStyleUI());
+  await expect(hexOf('fill')).toHaveValue('');
+  await expect(hexOf('fill')).toHaveAttribute('placeholder', 'Gradient');
+  await expect(hexOf('stroke')).toHaveValue('');
+  await expect(hexOf('stroke')).toHaveAttribute('placeholder', 'None');
+  // A solid one shows its colour.
+  await select(page, 'b');
+  await page.evaluate(() => window.syncStyleUI());
+  await expect(hexOf('fill')).toHaveValue('#2563eb');
+  await expect(hexOf('fill')).toHaveAttribute('placeholder', '');
+  // Typed into the gradient's: solid.
+  await select(page, 'a');
+  await page.evaluate(() => window.syncStyleUI());
+  await hexOf('fill').fill('00ff00');
+  await hexOf('fill').press('Enter');
+  await expect(page.locator('#a')).toHaveAttribute('fill', '#00ff00');
+  await expect(hexOf('fill')).toHaveAttribute('placeholder', '');
 });

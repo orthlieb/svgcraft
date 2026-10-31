@@ -166,7 +166,16 @@ function syncStyleUI() {
     }
     if (note) note.hidden = !locked;
     $(`#sc-${k}-color`).value = state[k];
-    $(`#sc-${k}-hex`).value = state[k];
+    // The hex is the solid colour (or a pattern's ink). A gradient or no
+    // paint has none: empty, saying which; typing one makes it solid.
+    const hexEl = $(`#sc-${k}-hex`);
+    const noHex = !state[k + 'On']
+      ? 'None'
+      : !state[k + 'Pat'] && state[k + 'Grad']
+        ? 'Gradient'
+        : '';
+    if (document.activeElement !== hexEl) hexEl.value = noHex ? '' : state[k];
+    hexEl.placeholder = noHex;
     const a = Math.round(state[k + 'A'] * 100);
     if (document.activeElement !== $(`#sc-${k}-a`)) $(`#sc-${k}-a`).value = a;
     const chip = $(`#sc-${k}-chip`);
