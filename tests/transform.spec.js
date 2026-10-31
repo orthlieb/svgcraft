@@ -381,7 +381,7 @@ test.describe('Free Transform', () => {
   });
 });
 
-test('the rotate handle shows Photoshop’s curved arrow, held while turning', async ({ page }) => {
+test('the rotate handle shows a curved arrow, held while turning', async ({ page }) => {
   await load(page, RECT);
   await page.click('#r');
   const rot = page.locator('[data-handle="rot"]');

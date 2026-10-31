@@ -1,4 +1,4 @@
-// Panel group heights, as in Photoshop: a tabbed group keeps its height
+// Panel group heights: a tabbed group keeps its height
 // (its content scrolls inside), so the Layers list doesn't move under the
 // pointer; dividers resize the groups; Layers always keeps room.
 import { test, expect, load } from './fixtures.js';

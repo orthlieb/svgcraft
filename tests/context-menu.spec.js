@@ -1,4 +1,4 @@
-// Right-click menus: on the canvas (Photoshop's "layers here" list, then
+// Right-click menus: on the canvas (the "layers here" list, then
 // what the selection can do) and in the Layers panel (a row, or its eye).
 import { test, expect, load, select, toScreen } from './fixtures.js';
 

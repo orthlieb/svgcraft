@@ -1,4 +1,4 @@
-// Window → History: every step named as Photoshop names them, click one to
+// Window → History: every step named by what it did, click one to
 // go back, and a new change drops the steps after it.
 import { test, expect, load, select } from './fixtures.js';
 

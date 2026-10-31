@@ -104,7 +104,7 @@ test('File → New opens another tab; each tab keeps its drawing and history', a
 });
 
 test('the + button in the tab bar makes a new document', async ({ page }) => {
-  // It opens File → New…, as in Photoshop.
+  // It opens File → New….
   await page.click('#sc-doctabs .sc-doctab-new');
   await expect(page.locator('#sc-newdoc')).toBeVisible();
   await page.keyboard.press('Enter');

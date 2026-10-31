@@ -1,6 +1,6 @@
 import { test, expect, menu } from './fixtures.js';
 
-// File → New…: Photoshop's New Document dialog, with presets by category,
+// File → New…: the New Document dialog, with presets by category,
 // any units, orientation, a background layer, and what you made last.
 
 const st = (page) =>

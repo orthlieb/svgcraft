@@ -29,7 +29,7 @@ const pickPoints = (page, id, picked) =>
     [id, picked],
   );
 
-test('the menus in Photoshop’s order: Layer between Image and Object, Window before Help', async ({
+test('the menus in the familiar order: Layer between Image and Object, Window before Help', async ({
   page,
 }) => {
   await expect(page.locator('.sc-menu-btn')).toHaveText([

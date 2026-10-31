@@ -44,10 +44,12 @@ const attr = (page, id, a) => page.locator(`#${id}`).getAttribute(a);
 const stops = (page, id) =>
   page.$$eval(`#${id} stop`, (ss) => ss.map((s) => s.getAttribute('stop-color')));
 
+// g is shared by a and b. Reflecting, it isn't adopted on load (which would
+// give each shape its own); across the whole box it draws as if padded.
 const SCENE = async (page) =>
   load(
     page,
-    '<defs><linearGradient id="g"><stop offset="0" stop-color="#ff0000"/><stop offset="1" stop-color="#00ff00"/></linearGradient></defs>' +
+    '<defs><linearGradient id="g" spreadMethod="reflect"><stop offset="0" stop-color="#ff0000"/><stop offset="1" stop-color="#00ff00"/></linearGradient></defs>' +
       '<rect id="a" x="10" y="10" width="40" height="40" fill="url(#g)" stroke="#0000ff" stroke-width="4"/>' +
       '<rect id="b" x="60" y="10" width="40" height="40" fill="url(#g)"/>' +
       '<circle id="c" cx="150" cy="30" r="20" style="fill:#ff0000;stroke:rgba(0,0,255,0.5)"' +
@@ -59,7 +61,7 @@ const SCENE = async (page) =>
 test('Desaturate greys the whole drawing; one undo step', async ({ page }) => {
   await SCENE(page);
   await page.keyboard.press('Shift+Control+u');
-  // Photoshop's Desaturate: (max + min) / 2.
+  // Desaturate: (max + min) / 2.
   await expect.poll(() => attr(page, 'a', 'stroke')).toBe('#808080');
   expect(await stops(page, 'g')).toEqual(['#808080', '#808080']);
   expect(await attr(page, 'c', 'style')).toMatch(/fill:\s*#808080/);
@@ -85,7 +87,7 @@ test('with layers selected only they change; a shared gradient gets a copy', asy
   expect(await attr(page, 'c', 'style')).toMatch(/fill:\s*#ff0000/);
 });
 
-test('Black & White: Photoshop’s hue sliders, previewed; Cancel puts it back', async ({ page }) => {
+test('Black & White: hue sliders, previewed; Cancel puts it back', async ({ page }) => {
   await SCENE(page);
   await page.keyboard.press('Alt+Shift+Control+b');
   const dlg = page.locator('#sc-bw');

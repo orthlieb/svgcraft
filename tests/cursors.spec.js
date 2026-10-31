@@ -1,7 +1,7 @@
 /* global cursorFor -- src/cursors.js, in the page */
 import { test, expect, toScreen, pickMarquee } from './fixtures.js';
 
-// Photoshop's pointers (src/cursors.js): each tool's, and the badges that
+// The pointers (src/cursors.js): each tool's, and the badges that
 // Shift, Alt and the pointer's place add.
 
 const stageCursor = (page) => page.$eval('#sc-stage', (s) => s.style.cursor);
@@ -24,7 +24,7 @@ test.beforeEach(async ({ page }) => {
   );
 });
 
-test('each tool has its Photoshop pointer', async ({ page }) => {
+test('each tool has its own pointer', async ({ page }) => {
   for (const [key, name] of [
     ['v', 'move+move'],
     ['b', 'pencil'],

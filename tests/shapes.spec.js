@@ -1,6 +1,6 @@
 import { test, expect, load, menu, toScreen } from './fixtures.js';
 
-// The Shape tool group (U), Photoshop's: Rectangle, Ellipse, Triangle,
+// The Shape tool group (U): Rectangle, Ellipse, Triangle,
 // Polygon / Star, Line with arrowheads and Custom Shape, one toolbar
 // button with a flyout; a click without dragging asks for an exact size.
 
@@ -180,7 +180,7 @@ test('a click without dragging asks for an exact size', async ({ page }) => {
   await expect(page.locator('#sc-doc > *')).toHaveCount(n);
 });
 
-test('Photoshop’s keys: P B, D, Ctrl+D, Ctrl+J, brackets, rulers, guides, grid, Tab', async ({
+test('the familiar keys: P B, D, Ctrl+D, Ctrl+J, brackets, rulers, guides, grid, Tab', async ({
   page,
 }) => {
   await load(

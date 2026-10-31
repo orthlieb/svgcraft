@@ -1,4 +1,4 @@
-// The Layers panel: the imported tree, Photoshop-style row selection,
+// The Layers panel: the imported tree, the familiar row selection,
 // grouping, drag-and-drop restacking (which must never move anything on
 // screen), collapsing, editing nested layers and canvas auto-select.
 import { test, expect } from './fixtures.js';

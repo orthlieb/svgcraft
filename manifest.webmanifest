@@ -1,7 +1,7 @@
 {
   "name": "SVGCraft",
   "short_name": "SVGCraft",
-  "description": "A Photoshop-style SVG editor that runs in your browser.",
+  "description": "A familiar-feeling SVG editor that runs in your browser.",
   "id": "./",
   "start_url": "./",
   "scope": "./",
