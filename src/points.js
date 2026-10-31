@@ -370,11 +370,13 @@ const clone = (subs) =>
 tools.node = {
   hint: 'Click a shape to edit its points · Drag points or handles (Alt breaks a smooth point) · Double-click a line to add a point, a point to toggle corner / smooth · Del removes points · Esc ends',
   // Over a shape to pick up: Direct Selection's white arrow. Elsewhere the
-  // marquee's: a cross, or the lasso; + with Shift, − with Alt.
+  // marquee's: a cross, or the lasso; + with Shift, − with Alt. Point
+  // Select has no marquee, so it keeps the arrow, with the same badges.
   get cursor() {
+    const badge = keysDown.shift ? '+add' : keysDown.alt ? '+sub' : '';
+    if (state.marquee === 'arrow' && this.el) return cursorFor['direct' + badge];
     if (this.over || !this.el) return cursorFor.direct;
     const lasso = state.marquee === 'lasso';
-    const badge = keysDown.shift ? '+add' : keysDown.alt ? '+sub' : '';
     return cursorFor[(lasso ? 'lasso' : 'cross') + badge];
   },
   el: null,
@@ -494,6 +496,14 @@ tools.node = {
     }
     if (node) {
       const [si, ni] = node.dataset.node.split(':').map(Number);
+      // Point Select: Shift adds the point to the pick, Alt takes it away.
+      if (state.marquee === 'arrow' && (e.shiftKey || e.altKey)) {
+        const rest = this.picked.filter(([a, b]) => a !== si || b !== ni);
+        this.picked = e.altKey ? rest : [...rest, [si, ni]];
+        this.redraw();
+        this.g = null;
+        return;
+      }
       if (e.shiftKey) {
         this.picked = this.isPicked(si, ni)
           ? this.picked.filter(([a, b]) => a !== si || b !== ni)
@@ -520,6 +530,16 @@ tools.node = {
       return;
     }
     if (!el && !this.el) return;
+    // Point Select picks single points only: a click off them clears the
+    // pick (Shift or Alt keeps it).
+    if (state.marquee === 'arrow') {
+      this.g = null;
+      if (!e.shiftKey && !e.altKey && this.picked.length) {
+        this.picked = [];
+        this.redraw();
+      }
+      return;
+    }
     // As in Photoshop, a drag begun with Alt takes points away from what's
     // picked, and one begun with Shift adds to it.
     const cut = e.altKey;

@@ -119,7 +119,13 @@ for (const b of document.querySelectorAll('[data-eraser]')) {
 // from its toolbar flyout like the Shape tools (remembered). Shift+A steps
 // through them.
 const MARQUEE_KEY = 'svgcraft.pointMarquee';
-const MARQUEES = { rect: 'Rectangle Select', oval: 'Ellipse Select', lasso: 'Lasso Select' };
+// arrow picks one point at a time (Shift adds), as Direct Selection does.
+const MARQUEES = {
+  arrow: 'Point Select',
+  rect: 'Rectangle Select',
+  oval: 'Ellipse Select',
+  lasso: 'Lasso Select',
+};
 const nodeBtn = $('#sc-node-btn');
 const nodeFlyout = toolFlyout(nodeBtn, $('#sc-node-menu'));
 function setMarquee(shape, save) {

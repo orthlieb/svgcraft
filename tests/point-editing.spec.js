@@ -377,9 +377,48 @@ test('the selection shapes sit in Edit Points’ toolbar flyout, like the Shape 
   await expect(menu).toBeHidden();
   expect(await page.evaluate(() => window.svgcraft.state.tool)).toBe('node');
   await page.keyboard.press('Shift+A');
-  expect(await checked()).toBe('rect');
+  expect(await checked()).toBe('arrow');
   await page.keyboard.press('Shift+A');
-  expect(await checked()).toBe('oval');
+  expect(await checked()).toBe('rect');
   // The options bar no longer carries them.
   await expect(page.locator('.sc-opt [data-marquee]')).toHaveCount(0);
+});
+
+test('Point Select picks single points: Shift adds, Alt takes away, no marquee', async ({
+  page,
+}) => {
+  await page.evaluate(() =>
+    window.svgcraft.openSvg(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">' +
+        '<path id="p" d="M300 200L500 200L500 400L300 400Z" fill="#2563eb"/></svg>',
+      'square.svg',
+    ),
+  );
+  await pickMarquee(page, 'arrow');
+  await page.evaluate(() => window.svgcraft.tools.node.target(document.getElementById('p')));
+  await expect(nodes(page)).toHaveCount(4);
+  const picked = () =>
+    page.evaluate(() => window.svgcraft.tools.node.picked.map(([, n]) => n).sort((a, b) => a - b));
+  const click = async (x, y, modifiers = []) => {
+    const p = await toScreen(page, x, y);
+    for (const m of modifiers) await page.keyboard.down(m);
+    await page.mouse.click(p.x, p.y);
+    for (const m of modifiers) await page.keyboard.up(m);
+  };
+  await click(300, 200);
+  expect(await picked()).toEqual([0]);
+  await click(500, 200);
+  expect(await picked()).toEqual([1]);
+  await click(500, 400, ['Shift']);
+  await click(300, 400, ['Shift']);
+  expect(await picked()).toEqual([1, 2, 3]);
+  await click(500, 400, ['Alt']);
+  expect(await picked()).toEqual([1, 3]);
+  // A drag off the points draws no marquee and picks nothing.
+  await drag(page, [250, 150], [550, 450]);
+  expect(await picked()).toEqual([]);
+  await expect(page.locator('#sc-marquee:not([hidden]), .sc-marquee')).toHaveCount(0);
+  // A drag on a point moves it.
+  await drag(page, [300, 200], [320, 220]);
+  expect(await pathD(page)).toMatch(/^M\s*320[ ,]220/);
 });

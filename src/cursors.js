@@ -57,7 +57,7 @@ const badged = (key, base, x, y, fallback, badges) => {
     cursorFor[b ? `${key}+${b}` : key] = svgCursor(base + (b ? BADGE[b] : ''), x, y, fallback);
 };
 badged('move', inked(ARROW), 3, 1, 'default', ['move']);
-badged('direct', inked(ARROW, false), 3, 1, 'default', ['add']);
+badged('direct', inked(ARROW, false), 3, 1, 'default', ['add', 'sub']);
 badged('cross', lined(CROSS, 1), 10, 10, 'crosshair', ['add', 'sub']);
 badged('lasso', lined(LASSO, 1.4), 6, 21, 'crosshair', ['add', 'sub']);
 badged('pen', iconInk('pen-nib', 1, 1, 14), 1, 15, 'crosshair', ['new', 'close']);
