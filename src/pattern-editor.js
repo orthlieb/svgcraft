@@ -7,9 +7,9 @@ function renderPatEditor() {
   renderPatTiles();
   const p = activePat();
   const box = $('#sc-pat');
+  placePaintEditor(box);
   box.hidden = !p;
   if (!p) return;
-  $('#sc-pat-title').textContent = `${state.active === 'fill' ? 'Fill' : 'Stroke'} pattern`;
   $('#sc-pat-preview').style.setProperty('--tile', patCss(p, state[state.active], 1));
   // The panel marks the same pattern the picker shows.
   if (lib.patterns.some((x) => x.id === p.id)) libSel.patterns = p.id;

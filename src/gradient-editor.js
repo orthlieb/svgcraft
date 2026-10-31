@@ -10,14 +10,24 @@ const gradPresets = () => [
 ];
 const stopsKey = (stops) => stops.map((s) => `${s.o}|${s.c}|${s.a ?? 1}`).join(',');
 
+// The gradient and pattern editors sit in the active paint's section of
+// the Color panel, under its Type (and above a stroke's options).
+function placePaintEditor(box) {
+  const row = $(`.sc-paint[data-target="${state.active}"] .sc-kind-row`);
+  if (!row) return;
+  const grad = $('#sc-grad');
+  const want = box === grad || grad.parentNode !== row.parentNode ? row : grad;
+  if (box.previousElementSibling !== want) want.after(box);
+}
+
 function renderGradEditor() {
   const g = activeGrad();
   const box = $('#sc-grad');
+  placePaintEditor(box);
   box.hidden = !g;
   if (!g) return;
   state.gradStop = clamp(state.gradStop || 0, 0, g.stops.length - 1);
   const s = g.stops[state.gradStop];
-  $('#sc-grad-title').textContent = `${state.active === 'fill' ? 'Fill' : 'Stroke'} gradient`;
   $('#sc-grad-bar').style.backgroundImage = `${gradCss(g)}, var(--checker)`;
   // The Gradients panel marks the one the picker shows, if it's there.
   const key = stopsKey(g.stops);

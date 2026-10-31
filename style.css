@@ -3988,3 +3988,46 @@ body.sc-no-right .sc-main {
 .sc-libpick-manage:hover {
   text-decoration: underline;
 }
+
+/* ---- Color panel: Fill and Stroke fold to their first row ------------------- */
+.sc-paint-fold {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 16px;
+  height: 22px;
+  margin-left: -4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-dim);
+}
+.sc-paint-fold:hover {
+  color: var(--text);
+}
+.sc-paint-fold svg {
+  width: 10px;
+  height: 10px;
+  fill: currentColor;
+  transition: transform 0.12s ease;
+}
+.sc-paint.folded > :not(.sc-paint-head) {
+  display: none;
+}
+.sc-paint.folded > .sc-paint-head {
+  margin-bottom: 0;
+}
+/* The gradient / pattern editor, in the active paint's section: a little
+   narrower than the panel, so its rows give a little. */
+.sc-paint-editor {
+  margin-top: 8px;
+  padding-top: 8px;
+}
+.sc-paint-editor .sc-grad-head .sc-libpick {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+.sc-paint-editor .sc-gstop-row {
+  flex-wrap: wrap;
+  gap: 4px 6px;
+}

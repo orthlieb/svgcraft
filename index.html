@@ -1616,6 +1616,13 @@
             <div class="sc-paint" data-target="fill">
               <div class="sc-paint-head">
                 <button
+                  class="sc-paint-fold"
+                  data-fold="fill"
+                  aria-expanded="true"
+                  aria-label="Show or hide the fill settings"
+                  data-tip="Show or hide the fill settings"
+                ></button>
+                <button
                   class="sc-chip"
                   id="sc-fill-chip"
                   aria-label="Make fill the active paint"
@@ -1674,9 +1681,145 @@
                   </button>
                 </div>
               </div>
+              <div class="sc-grad sc-paint-editor" id="sc-grad" hidden>
+                <div class="sc-grad-head">
+                  <span class="sc-subhead" id="sc-grad-title">Gradient</span>
+                  <button id="sc-grad-preset"></button>
+                  <button
+                    class="sc-ibtn"
+                    id="sc-grad-save"
+                    aria-label="Save to the Gradients panel"
+                    data-tip="Save to the Gradients panel"
+                  >
+                    <i data-icon="plus"></i>
+                  </button>
+                  <button
+                    class="sc-ibtn"
+                    id="sc-grad-reverse"
+                    aria-label="Reverse gradient"
+                    data-tip="Reverse"
+                  >
+                    <i data-icon="right-left"></i>
+                  </button>
+                </div>
+                <div class="sc-grad-track" id="sc-grad-track">
+                  <div class="sc-grad-bar" id="sc-grad-bar"></div>
+                  <div class="sc-grad-stops" id="sc-grad-stops"></div>
+                </div>
+                <div class="sc-gstop-row">
+                  <input id="sc-gstop-color" type="color" aria-label="Stop colour" />
+                  <input
+                    id="sc-gstop-hex"
+                    class="sc-hex"
+                    aria-label="Stop hex"
+                    spellcheck="false"
+                  />
+                  <button
+                    class="sc-ibtn"
+                    id="sc-gstop-del"
+                    aria-label="Delete stop"
+                    data-tip="Delete stop"
+                  >
+                    <i data-icon="trash-can"></i>
+                  </button>
+                </div>
+                <div class="sc-gstop-row">
+                  <label class="sc-field" data-tip="Stop opacity"
+                    ><span class="sc-scrub">Opacity</span
+                    ><input
+                      type="number"
+                      id="sc-gstop-a"
+                      min="0"
+                      max="100"
+                      step="1"
+                      aria-label="Stop opacity"
+                    /><span class="sc-unit">%</span></label
+                  >
+                  <label class="sc-field" data-tip="Stop location"
+                    ><span class="sc-scrub">Location</span
+                    ><input
+                      type="number"
+                      id="sc-gstop-o"
+                      min="0"
+                      max="100"
+                      step="1"
+                      aria-label="Stop location"
+                    /><span class="sc-unit">%</span></label
+                  >
+                </div>
+                <div class="sc-gstop-row" id="sc-grad-angle-wrap">
+                  <label class="sc-field" data-tip="Angle (90° runs bottom to top)"
+                    ><span class="sc-scrub">Angle</span
+                    ><input
+                      type="number"
+                      id="sc-grad-angle"
+                      min="-360"
+                      max="360"
+                      step="1"
+                      aria-label="Gradient angle"
+                    /><span class="sc-unit">°</span></label
+                  >
+                </div>
+                <label
+                  class="sc-check"
+                  data-tip="On: stretching or skewing the shape keeps the gradient’s angle, and a radial one round. Off: it stretches with the shape"
+                  ><input type="checkbox" id="sc-grad-keep" /> Keep angle when stretched</label
+                >
+                <p class="sc-hint">
+                  Click the bar to add a stop. Drag a stop to move it, or down off the bar to remove
+                  it. The Gradient tool (G) sets the direction on the canvas.
+                </p>
+              </div>
+              <div class="sc-grad sc-paint-editor" id="sc-pat" hidden>
+                <div class="sc-grad-head">
+                  <span class="sc-subhead" id="sc-pat-title">Pattern</span>
+                  <button id="sc-pat-pick"></button>
+                </div>
+                <div class="sc-pat-preview" id="sc-pat-preview"></div>
+                <div class="sc-gstop-row">
+                  <label class="sc-field" data-tip="Pattern scale"
+                    ><span class="sc-scrub">Scale</span
+                    ><input
+                      type="number"
+                      id="sc-pat-scale"
+                      min="5"
+                      max="5000"
+                      step="5"
+                      aria-label="Pattern scale"
+                    /><span class="sc-unit">%</span></label
+                  >
+                  <label class="sc-field" data-tip="Pattern angle"
+                    ><span class="sc-scrub">Angle</span
+                    ><input
+                      type="number"
+                      id="sc-pat-angle"
+                      min="-360"
+                      max="360"
+                      step="1"
+                      aria-label="Pattern angle"
+                    /><span class="sc-unit">°</span></label
+                  >
+                </div>
+                <label
+                  class="sc-check"
+                  data-tip="Off: the tiles keep their size when you scale the shape"
+                  ><input type="checkbox" id="sc-pat-with" /> Scale with shape</label
+                >
+                <p class="sc-hint">
+                  The paint's colour inks the built-in patterns. Pick another above, or in the
+                  Patterns panel.
+                </p>
+              </div>
             </div>
             <div class="sc-paint" data-target="stroke">
               <div class="sc-paint-head">
+                <button
+                  class="sc-paint-fold"
+                  data-fold="stroke"
+                  aria-expanded="true"
+                  aria-label="Show or hide the stroke settings"
+                  data-tip="Show or hide the stroke settings"
+                ></button>
                 <button
                   class="sc-chip"
                   id="sc-stroke-chip"
@@ -1962,130 +2105,6 @@
                 </div>
               </div>
             </div>
-          </div>
-          <div class="sc-pbody sc-grad" id="sc-grad" hidden>
-            <div class="sc-grad-head">
-              <span class="sc-subhead" id="sc-grad-title">Fill gradient</span>
-              <button id="sc-grad-preset"></button>
-              <button
-                class="sc-ibtn"
-                id="sc-grad-save"
-                aria-label="Save to the Gradients panel"
-                data-tip="Save to the Gradients panel"
-              >
-                <i data-icon="plus"></i>
-              </button>
-              <button
-                class="sc-ibtn"
-                id="sc-grad-reverse"
-                aria-label="Reverse gradient"
-                data-tip="Reverse"
-              >
-                <i data-icon="right-left"></i>
-              </button>
-            </div>
-            <div class="sc-grad-track" id="sc-grad-track">
-              <div class="sc-grad-bar" id="sc-grad-bar"></div>
-              <div class="sc-grad-stops" id="sc-grad-stops"></div>
-            </div>
-            <div class="sc-gstop-row">
-              <input id="sc-gstop-color" type="color" aria-label="Stop colour" />
-              <input id="sc-gstop-hex" class="sc-hex" aria-label="Stop hex" spellcheck="false" />
-              <button
-                class="sc-ibtn"
-                id="sc-gstop-del"
-                aria-label="Delete stop"
-                data-tip="Delete stop"
-              >
-                <i data-icon="trash-can"></i>
-              </button>
-            </div>
-            <div class="sc-gstop-row">
-              <label class="sc-field" data-tip="Stop opacity"
-                ><span class="sc-scrub">Opacity</span
-                ><input
-                  type="number"
-                  id="sc-gstop-a"
-                  min="0"
-                  max="100"
-                  step="1"
-                  aria-label="Stop opacity"
-                /><span class="sc-unit">%</span></label
-              >
-              <label class="sc-field" data-tip="Stop location"
-                ><span class="sc-scrub">Location</span
-                ><input
-                  type="number"
-                  id="sc-gstop-o"
-                  min="0"
-                  max="100"
-                  step="1"
-                  aria-label="Stop location"
-                /><span class="sc-unit">%</span></label
-              >
-            </div>
-            <div class="sc-gstop-row" id="sc-grad-angle-wrap">
-              <label class="sc-field" data-tip="Angle (90° runs bottom to top)"
-                ><span class="sc-scrub">Angle</span
-                ><input
-                  type="number"
-                  id="sc-grad-angle"
-                  min="-360"
-                  max="360"
-                  step="1"
-                  aria-label="Gradient angle"
-                /><span class="sc-unit">°</span></label
-              >
-            </div>
-            <label
-              class="sc-check"
-              data-tip="On: stretching or skewing the shape keeps the gradient’s angle, and a radial one round. Off: it stretches with the shape"
-              ><input type="checkbox" id="sc-grad-keep" /> Keep angle when stretched</label
-            >
-            <p class="sc-hint">
-              Click the bar to add a stop. Drag a stop to move it, or down off the bar to remove it.
-              The Gradient tool (G) sets the direction on the canvas.
-            </p>
-          </div>
-          <div class="sc-pbody sc-grad" id="sc-pat" hidden>
-            <div class="sc-grad-head">
-              <span class="sc-subhead" id="sc-pat-title">Fill pattern</span>
-              <button id="sc-pat-pick"></button>
-            </div>
-            <div class="sc-pat-preview" id="sc-pat-preview"></div>
-            <div class="sc-gstop-row">
-              <label class="sc-field" data-tip="Pattern scale"
-                ><span class="sc-scrub">Scale</span
-                ><input
-                  type="number"
-                  id="sc-pat-scale"
-                  min="5"
-                  max="5000"
-                  step="5"
-                  aria-label="Pattern scale"
-                /><span class="sc-unit">%</span></label
-              >
-              <label class="sc-field" data-tip="Pattern angle"
-                ><span class="sc-scrub">Angle</span
-                ><input
-                  type="number"
-                  id="sc-pat-angle"
-                  min="-360"
-                  max="360"
-                  step="1"
-                  aria-label="Pattern angle"
-                /><span class="sc-unit">°</span></label
-              >
-            </div>
-            <label
-              class="sc-check"
-              data-tip="Off: the tiles keep their size when you scale the shape"
-              ><input type="checkbox" id="sc-pat-with" /> Scale with shape</label
-            >
-            <p class="sc-hint">
-              The paint's colour inks the built-in patterns. Pick another above, or in the Patterns
-              panel.
-            </p>
           </div>
           <div class="sc-pbody" data-pane="swatches" hidden>
             <div class="sc-palette" id="sc-palette" aria-label="Swatches"></div>

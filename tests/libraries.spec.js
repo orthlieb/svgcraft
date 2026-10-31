@@ -155,6 +155,8 @@ test.describe('gradients', () => {
     });
 
     await page.evaluate(() => (window.svgcraft.state.fillGrad.stops[0].c = '#00ff00'));
+    // The gradient editor is in the Color panel's Fill.
+    await tab(page, 'color');
     await page.click('#sc-grad-save');
     await answer(page, 'My grad');
     expect((await stored(page)).gradients.at(-1)).toMatchObject({ name: 'My grad' });
@@ -166,6 +168,7 @@ test.describe('gradients', () => {
     await page.keyboard.press('Escape');
 
     await select(page, 'b');
+    await tab(page, 'gradients');
     await tiles(page, 'sc-gradlib').last().click();
     expect((await paintDef(page, 'b')).stops[0]).toBe('#00ff00');
 
@@ -193,6 +196,8 @@ test.describe('pattern paint', () => {
     await select(page, 'a');
     await tab(page, 'patterns');
     await tiles(page, 'sc-patlib').nth(2).click(); // Dots
+    // The pattern editor is in the Color panel's Fill.
+    await tab(page, 'color');
   });
 
   test('applies a pattern inked with the paint colour', async ({ page }) => {

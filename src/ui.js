@@ -1,6 +1,8 @@
 // SVGCraft — UI wiring: tool metadata, panels and the layer list.
 'use strict';
 
+const PAINT_FOLD_KEY = 'svgcraft.paintFold'; // { fill, stroke }: folded in the Color panel
+
 // ---------------------------------------------------------------------
 // UI wiring
 // ---------------------------------------------------------------------
@@ -265,10 +267,28 @@ function wireStyle() {
     });
     $(`#sc-${k}-chip`)
       .closest('.sc-paint')
-      .addEventListener('pointerdown', () => {
+      .addEventListener('pointerdown', (e) => {
+        if (e.target.closest('.sc-paint-fold')) return;
         state.active = k;
         syncStyleUI();
       });
+  }
+  // Fill and Stroke fold to their first row; kept for next time.
+  const folded = stored(PAINT_FOLD_KEY, {}) || {};
+  for (const b of document.querySelectorAll('[data-fold]')) {
+    const sec = b.closest('.sc-paint');
+    const set = (on) => {
+      sec.classList.toggle('folded', on);
+      b.setAttribute('aria-expanded', !on);
+      b.innerHTML = icon(on ? 'chevron-right' : 'chevron-down');
+    };
+    set(!!folded[b.dataset.fold]);
+    b.addEventListener('click', () => {
+      const on = !sec.classList.contains('folded');
+      set(on);
+      folded[b.dataset.fold] = on;
+      store(PAINT_FOLD_KEY, folded);
+    });
   }
   for (const el of document.querySelectorAll('[data-bind]')) {
     const key = el.dataset.bind;
