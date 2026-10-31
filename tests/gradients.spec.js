@@ -271,7 +271,7 @@ test('a duplicate shares the gradient until one of them is edited', async ({ pag
   const [a, b] = await fills();
   expect(a).toMatch(/^url\(#sc-grad-\d+\)$/);
   expect(b).toBe(a);
-  await expect(ourGrads(page)).toHaveCount(1);
+  await expect(ourGrads(page)).toHaveCount(2);
 
   await tab(page, 'props');
   await page.click('#sc-grad-preset');
@@ -280,7 +280,7 @@ test('a duplicate shares the gradient until one of them is edited', async ({ pag
   expect(a2).toMatch(/^url\(#sc-grad-\d+\)$/);
   expect(b2).toMatch(/^url\(#sc-grad-\d+\)$/);
   expect(a2).not.toBe(b2);
-  await expect(ourGrads(page)).toHaveCount(2);
+  await expect(ourGrads(page)).toHaveCount(3);
 });
 
 test('an imported gradient (href chain, bounding-box units) is read into the editor', async ({
@@ -310,15 +310,16 @@ test.describe('stroke gradient', () => {
     expectGeom(g, { x1: 590, y1: 150, x2: 710, y2: 150 });
   });
 
-  test('going back to Solid prunes our gradient but keeps imported ones', async ({ page }) => {
-    await expect(ourGrads(page)).toHaveCount(2);
+  test('going back to Solid prunes our gradient but keeps the others', async ({ page }) => {
+    // The rect's, the circle's stroke, and its fill (imp, adopted on load).
+    await expect(ourGrads(page)).toHaveCount(3);
     await page.click('[data-kind-for="stroke"] [data-kind="solid"]');
     expect(await grad(page, 'c', 'stroke')).toBeNull();
-    await expect(ourGrads(page)).toHaveCount(1);
-    await expect(page.locator('#sc-defs #imp')).toHaveCount(1);
+    await expect(ourGrads(page)).toHaveCount(2);
+    await expect(page.locator('#sc-defs #imp')).toHaveCount(0);
     await expect(page.locator('#sc-defs #base')).toHaveCount(1);
 
-    // The export carries every gradient still in use: base, imp, the rect's.
+    // The export carries base and the two in use: the circle's and the rect's.
     const svg = await page.evaluate(() => window.svgcraft.serialize());
     expect(svg.match(/<(linear|radial)Gradient/g)).toHaveLength(3);
 
