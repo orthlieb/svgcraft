@@ -129,8 +129,8 @@ export default [
     id: 'the-toolbar',
     async shoot(h) {
       const b = await h.page.locator('.sc-tools').boundingBox();
-      // Down to the bottom of the fill and stroke chips.
-      const c = await h.page.locator('.sc-chips').boundingBox();
+      // Down to the last tool.
+      const c = await h.page.locator('.sc-tools > button').last().boundingBox();
       await h.shot(null, {
         clip: { x: b.x, y: b.y, width: b.width + 4, height: c.y + c.height + 6 - b.y },
       });

@@ -197,8 +197,8 @@ test.describe('committed rich text', () => {
   });
 
   test('auto leading follows each line’s own largest size', async ({ page }) => {
-    // The app's rule (layoutText: "auto leading = 120% of its largest size, as
-    // in Photoshop") sets each line's baseline from the previous one by 1.2 × the
+    // The app's rule (layoutText: "auto leading = 120% of its largest size")
+    // sets each line's baseline from the previous one by 1.2 × the
     // largest size *on that line*. "second line" is all 32px, so the gap is
     // 1.2 × 32 = 38.4 — the 48px "brave" above it doesn't push it down. (The
     // original check script expected 57.6 = 1.2 × 48, which contradicts this.)

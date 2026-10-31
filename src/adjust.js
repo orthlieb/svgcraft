@@ -2,7 +2,7 @@
 // and Image → Mode → Grayscale, rewriting the colours themselves.
 'use strict';
 
-// As in Photoshop these change the pixels, here the paint: every colour in
+// Where a bitmap editor changes the pixels, these change the paint: every colour in
 // the selected layers (or the whole drawing, with nothing selected) is
 // rewritten in the file — fills, strokes, gradient stops, patterns,
 // symbols and markers they use, Layer Style colours, and embedded images
@@ -52,12 +52,12 @@ const formatColor = ([r, g, b, a]) =>
 const lumaOf = (r, g, b) => 0.299 * r + 0.587 * g + 0.114 * b;
 const BW_DEFAULTS = { r: 40, y: 60, g: 40, c: 60, b: 20, m: 80 };
 const ADJUST = {
-  // Photoshop's Desaturate: the HSL lightness.
+  // Desaturate: the HSL lightness.
   desaturate: () => (r, g, b) => (Math.max(r, g, b) + Math.min(r, g, b)) / 2,
   // Mode → Grayscale: the brightness the eye sees.
   grayscale: () => lumaOf,
   // Black & White: the darkest channel, plus each hue's share of the rest,
-  // weighted by its slider (Photoshop's model).
+  // weighted by its slider (the usual model).
   bw: (w) => (r, g, b) => {
     const ch = [
       ['r', r],
@@ -319,7 +319,7 @@ const adjSchedule = () => {
   adjFrame = requestAnimationFrame(adjPreview);
 };
 
-// Black & White…: Photoshop's six hue sliders, its defaults.
+// Black & White…: six hue sliders, with the usual defaults.
 const bwDlg = $('#sc-bw');
 const bwWeights = () =>
   Object.fromEntries(

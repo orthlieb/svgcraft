@@ -1,7 +1,7 @@
 // SVGCraft — Layer → Merge Down / Merge Layers / Merge Group, Merge Visible.
 'use strict';
 
-// Photoshop's merges bake layers into one layer of pixels. Here the layers
+// A bitmap editor's merges bake layers into one layer of pixels. Here the layers
 // stay vectors and nothing on screen changes:
 // - shapes alike in every way that shows (fill, stroke, opacity, dashes…)
 //   become one path: side by side, their outlines are simply joined;
@@ -13,8 +13,8 @@
 //   blue one become a group of one red path and the blue shape. A shape
 //   only joins others lower down when nothing between them overlaps it,
 //   so the stacking, and the picture, stay as they were.
-// The merged layer takes the place of the topmost one and, as in
-// Photoshop, Merge Down keeps the lower layer's name, the others the
+// The merged layer takes the place of the topmost one and, as usual,
+// Merge Down keeps the lower layer's name, the others the
 // topmost's.
 
 // What a shape looks like, apart from where it is.

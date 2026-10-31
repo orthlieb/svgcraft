@@ -4,7 +4,7 @@
 // ---- Transform Again --------------------------------------------------
 // The last transform is kept relative to the centre of what it was applied
 // to, so repeating it rotates / scales about the new selection's centre
-// (and Again with Copy builds Photoshop-style step-and-repeat patterns).
+// (and Again with Copy builds step-and-repeat patterns).
 let lastT = null;
 function noteTransform(T, box) {
   if (!T || !box) return;
@@ -36,7 +36,7 @@ function transformAgain(copy) {
   commit();
 }
 
-// ---- Free Transform session (Photoshop's Ctrl+T) ------------------------
+// ---- Free Transform session (Ctrl+T) ------------------------
 // Handles act per mode (free / scale / rotate / skew), the options bar
 // shows X Y W H, angle and skew; Enter commits, Esc rolls the whole
 // session back.

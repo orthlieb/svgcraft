@@ -356,7 +356,7 @@ tools.text = {
   hint: 'Click to add point text, or drag a box for paragraph text · Click text to edit it · Ctrl+Enter or click away finishes, Esc cancels',
   cursor: cursorFor.text,
   down(e, p) {
-    // As in Photoshop, a click while typing only commits the text (the
+    // A click while typing only commits the text (the
     // editor's blur does that); the next click starts a new layer.
     if (typeEdit) {
       this.hit = this.g = null;

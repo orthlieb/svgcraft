@@ -1,4 +1,4 @@
-// Photoshop's habits: the toolbar's order, the Layers panel's footer,
+// Familiar conventions: the toolbar's order, the Layers panel's footer,
 // Alt-click to show one layer, double-click a row for Layer Style, and
 // Edit → Cut / Copy / Paste.
 import { test, expect, menuOff } from './fixtures.js';
@@ -23,7 +23,7 @@ const shown = (page) =>
     els.filter((e) => e.getAttribute('display') !== 'none').map((e) => e.dataset.name),
   );
 
-test('the toolbar runs in Photoshop’s order', async ({ page }) => {
+test('the toolbar runs in the familiar order', async ({ page }) => {
   const order = await page.$$eval('.sc-tools > button', (bs) =>
     bs.map((b) => b.dataset.tool || b.id),
   );
@@ -32,7 +32,6 @@ test('the toolbar runs in Photoshop’s order', async ({ page }) => {
     'eyedropper',
     'pencil',
     'eraser',
-    'gradient',
     'pen',
     'text',
     'node',

@@ -1,4 +1,4 @@
-// Window → History: every step named as Photoshop names them, click one to
+// Window → History: every step named by what it did, click one to
 // go back, and a new change drops the steps after it.
 import { test, expect, load, select } from './fixtures.js';
 
@@ -17,8 +17,8 @@ test('steps are named by what made them; clicking one goes back to it', async ({
   await page.click('.sc-menu-btn:text-is("Object")');
   await page.click('.sc-menu-list:not([hidden]) [data-action="flipH"]');
   await page.keyboard.press('Control+g');
-  const w = page.locator('[data-pane="color"] [data-bind="strokeWidth"]');
-  await page.click('[data-tab="color"]');
+  const w = page.locator('#sc-appearance [data-bind="strokeWidth"]');
+  await page.click('[data-tab="props"]');
   await w.fill('7');
   await w.press('Enter');
   await page.click('[data-tab="history"]');

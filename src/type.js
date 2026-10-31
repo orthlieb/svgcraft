@@ -2,7 +2,7 @@
 'use strict';
 
 // ---------------------------------------------------------------------
-// Type (Photoshop-style)
+// Type
 //
 // A text layer is <text x y> with one <tspan data-line> per line, each
 // absolutely positioned (x = the alignment anchor, y = baseline + n ×
@@ -311,7 +311,7 @@ function applyType(el, t, text) {
 // ---- rich text: runs ----------------------------------------------------
 // A layer's content is a list of runs { t, o }: t is text (newlines
 // included) and o holds only the character settings that differ from the
-// layer's own (Photoshop's per-character styling). In the SVG each run is
+// layer's own (per-character styling). In the SVG each run is
 // a nested <tspan data-run> carrying just those attributes.
 const RUN_KEYS = [
   'family',
@@ -521,8 +521,8 @@ function wrapChars(chars, w, t) {
 const leadingOf = (t) => t.leading || t.size * 1.2;
 
 // Write content (a string, runs, or the layer's own runs) into the layer:
-// wrap, place each line (auto leading = 120% of its largest size, as in
-// Photoshop) and group characters back into run tspans.
+// wrap, place each line (auto leading = 120% of its largest size, the
+// usual rule) and group characters back into run tspans.
 function layoutText(el, content) {
   const runs = mergeRuns(
     content == null ? rawRuns(el) : typeof content === 'string' ? [{ t: content, o: {} }] : content,

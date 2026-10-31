@@ -497,10 +497,11 @@ test.describe('Break Link', () => {
     expect(near(px[1], RED)).toBe(true);
   });
 
+  // (A reflecting gradient isn't adopted on import, so it keeps its id.)
   test('carried defs get fresh ids', async ({ page }) => {
     await load(
       page,
-      '<defs><linearGradient id="lg"><stop offset="0" stop-color="#dc2626"/><stop offset="1" stop-color="#dc2626"/></linearGradient></defs><rect width="400" height="300" fill="#fff"/><rect id="a" x="20" y="20" width="60" height="60" fill="url(#lg)"/>',
+      '<defs><linearGradient id="lg" spreadMethod="reflect"><stop offset="0" stop-color="#dc2626"/><stop offset="1" stop-color="#dc2626"/></linearGradient></defs><rect width="400" height="300" fill="#fff"/><rect id="a" x="20" y="20" width="60" height="60" fill="url(#lg)"/>',
       400,
       300,
     );

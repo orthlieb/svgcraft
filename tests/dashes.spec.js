@@ -3,7 +3,7 @@ import { test, expect, load, select, stageBox } from './fixtures.js';
 // Custom dash / gap fields: data-dash records the pattern in stroke widths,
 // stroke-dasharray holds it scaled by the current stroke width.
 
-const props = '[data-pane="color"]';
+const props = '#sc-appearance';
 
 // data-dash and stroke-dasharray of #a.
 const attrs = (page) =>
@@ -22,7 +22,7 @@ async function setField(page, i, v) {
 }
 
 async function openProps(page) {
-  await page.click('[data-tab="color"]');
+  await page.click('[data-tab="props"]');
   await expect(page.locator(`${props} select[data-stroke-dash]`)).toBeVisible();
 }
 
@@ -108,14 +108,14 @@ test.describe('imported dasharray', () => {
   });
 });
 
-test('Custom in the options bar opens the Color panel', async ({ page }) => {
+test('Custom in the options bar opens Properties → Appearance', async ({ page }) => {
   const group = page.locator('#sc-panel > .sc-pgroup').first();
   await group.locator('.sc-pcollapse').click();
   await expect(group).toHaveClass(/collapsed/);
   await page.keyboard.press('r');
   await page.selectOption('.sc-opt.on select[data-stroke-dash]', 'custom');
   await expect(group).not.toHaveClass(/collapsed/);
-  await expect(page.locator('[data-pane="color"]')).toBeVisible();
+  await expect(page.locator('#sc-appearance')).toBeVisible();
 });
 
 test('a newly drawn shape gets the custom pattern', async ({ page }) => {

@@ -3,7 +3,8 @@
 
 // ---- gradients --------------------------------------------------------------
 // A paint gradient is { type: 'linear' | 'radial', stops: [{ o, c, a }],
-// angle } (angle as in Photoshop: 0° = left → right, 90° = bottom → top).
+// angle } (angle anticlockwise from 3 o'clock: 0° = left → right,
+// 90° = bottom → top).
 // Each shape gets a gradient of its own, in its own coordinates
 // (userSpaceOnUse), so angles stay true on wide shapes and the gradient
 // travels with the shape. Ours carry data-sc-grad; unused ones are pruned.
@@ -33,7 +34,7 @@ let gradReset = false; // next gradient write re-derives geometry (angle / type 
 const cloneGrad = (g) => g && { ...g, stops: g.stops.map((s) => ({ ...s })) };
 const stopList = (g) => g.stops.map((s) => `${cssColor(s.c, s.a)} ${f(s.o * 100)}%`).join(', ');
 // CSS previews: a left-to-right bar for the editor, the real look for chips
-// (CSS angles run clockwise from "to top"; Photoshop's anticlockwise from 3 o'clock).
+// (CSS angles run clockwise from "to top"; paint angles anticlockwise from 3 o'clock).
 const gradCss = (g) => `linear-gradient(90deg, ${stopList(g)})`;
 const chipCss = (g) =>
   g.type === 'radial'
@@ -285,6 +286,146 @@ function pruneGradients() {
   const kept = keptIds();
   for (const g of defs.querySelectorAll(':scope > [data-sc-grad], :scope > [data-sc-pat]'))
     if (!refCount(g.id) && !doc.querySelector(`[style*="#${g.id}"]`) && !kept.has(g.id)) g.remove();
+}
+
+// ---- imported gradients --------------------------------------------------------
+// Another program's gradient may sit in the shape's box (objectBoundingBox),
+// carry a gradientTransform or borrow its geometry down an href chain, and
+// SVGCraft's handles read none of that. So on import each shape painted with
+// one is given a gradient of SVGCraft's own that draws the same. One that
+// can't be matched stays as it was: a radial one stretched out of round or
+// with its focus off-centre, a repeating (spreadMethod) one, or one in page
+// units given in %.
+function gradAttr(g, k) {
+  for (let n = g, i = 0; n && i < 6; i++) {
+    if (n.hasAttribute(k)) return n.getAttribute(k);
+    const h = n.getAttribute('href') || n.getAttributeNS(XLINK, 'href');
+    n = h ? document.getElementById(h.slice(1)) : null;
+  }
+  return null;
+}
+// g's geometry in el's paint space (gradSpace), or null if it can't be had.
+function foreignGeo(el, g) {
+  const radial = g.localName === 'radialGradient';
+  const obb = (gradAttr(g, 'gradientUnits') || 'objectBoundingBox') === 'objectBoundingBox';
+  if ((gradAttr(g, 'spreadMethod') || 'pad') !== 'pad') return null;
+  if (radial && parseFloat(gradAttr(g, 'fr')) > 0) return null;
+  const dflt = radial
+    ? { cx: '50%', cy: '50%', r: '50%' }
+    : { x1: '0%', y1: '0%', x2: '100%', y2: '0%' };
+  const num = (k) => {
+    const v = String(gradAttr(g, k) ?? dflt[k] ?? '').trim();
+    if (v.endsWith('%')) return obb ? parseFloat(v) / 100 : NaN;
+    return parseFloat(v);
+  };
+  const geo = Object.fromEntries(Object.keys(dflt).map((k) => [k, num(k)]));
+  if (!Object.values(geo).every(isFinite)) return null;
+  if (radial)
+    for (const [fk, ck] of [
+      ['fx', 'cx'],
+      ['fy', 'cy'],
+    ])
+      if (gradAttr(g, fk) !== null && Math.abs(num(fk) - geo[ck]) > 1e-6) return null;
+  // Gradient space → the shape's own → its paint space.
+  let T = new DOMMatrix();
+  if (obb) {
+    let b;
+    try {
+      b = el.getBBox();
+    } catch {
+      return null;
+    }
+    if (!(b.width > 0 && b.height > 0)) return null;
+    T = new DOMMatrix([b.width, 0, 0, b.height, b.x, b.y]);
+  }
+  const gt = gradAttr(g, 'gradientTransform');
+  if (gt) {
+    const list = mk('linearGradient', { gradientTransform: gt }).gradientTransform.baseVal;
+    for (let i = 0; i < list.numberOfItems; i++) {
+      const m = list.getItem(i).matrix;
+      T = T.multiply(new DOMMatrix([m.a, m.b, m.c, m.d, m.e, m.f]));
+    }
+  }
+  const U = gradSpace(el, false).toLocal.inverse().multiply(T);
+  const { a, b, c, d } = U;
+  const det = a * d - b * c;
+  if (Math.abs(det) < 1e-12) return null;
+  if (radial) {
+    // Only a turn, a flip and an even scale keep a circle round.
+    const k = Math.sqrt(Math.abs(det));
+    const round =
+      (Math.abs(a - d) < 1e-6 * k && Math.abs(b + c) < 1e-6 * k) ||
+      (Math.abs(a + d) < 1e-6 * k && Math.abs(b - c) < 1e-6 * k);
+    if (!round || !(geo.r > 0)) return null;
+    const p = U.transformPoint(new DOMPoint(geo.cx, geo.cy));
+    return { cx: p.x, cy: p.y, r: geo.r * k };
+  }
+  // A linear gradient stays linear under any affine map, but its line turns
+  // to stay square to the bands: the gradient vector goes by L⁻ᵀ.
+  const [vx, vy] = [geo.x2 - geo.x1, geo.y2 - geo.y1];
+  const v2 = vx * vx + vy * vy;
+  if (!(v2 > 0)) return null;
+  const wx = (d * vx - b * vy) / det / v2;
+  const wy = (-c * vx + a * vy) / det / v2;
+  const w2 = wx * wx + wy * wy;
+  const p = U.transformPoint(new DOMPoint(geo.x1, geo.y1));
+  return { x1: p.x, y1: p.y, x2: p.x + wx / w2, y2: p.y + wy / w2 };
+}
+// Shapes under roots painted with another program's gradients get SVGCraft's
+// own, and those left unused are dropped.
+function adoptGradients(roots) {
+  const foreign = new Map(); // original → the [shape, attr]s it painted
+  for (const el of roots.flatMap((r) => [
+    ...(r.matches?.(GRAD_SHAPES) ? [r] : []),
+    ...r.querySelectorAll(GRAD_SHAPES),
+  ])) {
+    if (el.localName === 'use' || el.closest('defs, symbol, mask, clipPath, pattern')) continue;
+    for (const attr of ['fill', 'stroke']) {
+      const id = urlId(el.style?.getPropertyValue(attr) || el.getAttribute(attr));
+      const g = id && document.getElementById(id);
+      if (!g || g.hasAttribute('data-sc-grad') || !/^(linear|radial)Gradient$/.test(g.localName))
+        continue;
+      const geo = foreignGeo(el, g);
+      const model = geo && readGrad(g);
+      if (!model) continue;
+      if (!('r' in geo))
+        model.angle = Math.round((Math.atan2(-(geo.y2 - geo.y1), geo.x2 - geo.x1) * 180) / Math.PI);
+      setGradPaint(el, attr, { ...model, stretch: false }, geo);
+      const name = gradAttr(g, 'data-name');
+      if (name) document.getElementById(paintRef(el, attr))?.setAttribute('data-name', name);
+      foreign.set(g, [...(foreign.get(g) || []), [el, attr]]);
+    }
+  }
+  // Unused now (nothing paints with it or borrows from it): dropped, the
+  // ones borrowed from last. One that painted a single shape hands its id
+  // on, so the file's own ids survive.
+  for (let gone = true; gone; ) {
+    gone = false;
+    for (const [g, users] of foreign) {
+      const ref = CSS.escape(`#${g.id}`);
+      const used = [doc, defs].some((r) =>
+        r.querySelector(
+          `[fill*="${ref})"], [stroke*="${ref})"], [style*="${ref})"], [href="${ref}"]`,
+        ),
+      );
+      const borrowed = [...defs.querySelectorAll('linearGradient, radialGradient')].some(
+        (n) => n !== g && n.getAttributeNS(XLINK, 'href') === `#${g.id}`,
+      );
+      if (!used && !borrowed && g.isConnected) {
+        g.remove();
+        foreign.delete(g);
+        gone = true;
+        if (users.length === 1) {
+          const [el, attr] = users[0];
+          const mine = document.getElementById(paintRef(el, attr) || '');
+          if (mine) {
+            mine.id = g.id;
+            el.setAttribute(attr, `url(#${g.id})`);
+          }
+        }
+      }
+    }
+  }
 }
 
 // ---- patterns -----------------------------------------------------------------

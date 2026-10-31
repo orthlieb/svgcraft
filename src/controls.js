@@ -119,7 +119,13 @@ for (const b of document.querySelectorAll('[data-eraser]')) {
 // from its toolbar flyout like the Shape tools (remembered). Shift+A steps
 // through them.
 const MARQUEE_KEY = 'svgcraft.pointMarquee';
-const MARQUEES = { rect: 'Rectangle Select', oval: 'Ellipse Select', lasso: 'Lasso Select' };
+// arrow picks one point at a time (Shift adds), as Direct Selection does.
+const MARQUEES = {
+  arrow: 'Point Select',
+  rect: 'Rectangle Select',
+  oval: 'Ellipse Select',
+  lasso: 'Lasso Select',
+};
 const nodeBtn = $('#sc-node-btn');
 const nodeFlyout = toolFlyout(nodeBtn, $('#sc-node-menu'));
 function setMarquee(shape, save) {
@@ -185,14 +191,14 @@ for (const sel of document.querySelectorAll('select[data-stroke-dash]'))
     state.dash = sel.value;
     styleChanged('dash', true);
     // Custom's dash / gap fields sit under Stroke in the Color panel.
-    if (state.dash === 'custom') showTab('color');
+    if (state.dash === 'custom') showTab('props');
   });
 for (const inp of $('#sc-dash-custom').querySelectorAll('input'))
   inp.addEventListener('change', () => {
     const vals = [...$('#sc-dash-custom').querySelectorAll('input')].map((x) =>
       x.value === '' ? null : Math.max(0, +x.value || 0),
     );
-    // Blank fields end the pattern, as in Photoshop.
+    // Blank fields end the pattern.
     const end = vals.indexOf(null);
     const pat = end < 0 ? vals : vals.slice(0, end);
     if (!pat.some((n) => n > 0)) return syncStyleUI();
@@ -263,7 +269,7 @@ $('#sc-scrubby').addEventListener('change', (e) => {
   state.scrubby = e.target.checked;
   syncZoomOpts();
 });
-// Double-clicking the Zoom tool goes to 100%, as in Photoshop.
+// Double-clicking the Zoom tool goes to 100%.
 $('[data-tool="zoom"]').addEventListener('dblclick', () => zoomAt(1));
 // Shift and Alt change the pointer: the Zoom tool's in / out, the
 // selection badges (src/cursors.js).

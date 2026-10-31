@@ -3,7 +3,7 @@
 
 // The panel group holding Color, Swatches, Gradients and Patterns, and the
 // one holding Properties, Character … Animation, History.
-const COLOR_GROUP = '.sc-pgroup:has([data-tab="color"])';
+const COLOR_GROUP = '.sc-pgroup:has([data-tab="props"])';
 const PROPS_GROUP = '.sc-pgroup:has([data-tab="props"])';
 
 // Drag the mouse through document points, as a hand would.
@@ -415,7 +415,9 @@ export default [
       await h.page.waitForSelector('#sc-grad-preset:visible');
       await h.page.click('#sc-grad-preset');
       await h.page.click('#sc-libpick-pop .sc-libpick-tile[data-id="sunset"]');
-      await h.shot(null, await panel(h, COLOR_GROUP));
+      await h.page.click('[data-fold="stroke"]');
+      await h.shot('#sc-appearance', { pad: 6 });
+      await h.page.click('[data-fold="stroke"]');
     },
   },
   {
@@ -423,8 +425,8 @@ export default [
     async shoot(h) {
       await h.select('Frame');
       await tall(h, COLOR_GROUP);
-      await h.page.selectOption('.sc-pbody[data-pane="color"] [data-stroke-dash]', 'custom');
-      await h.shot(null, await panel(h, COLOR_GROUP));
+      await h.page.selectOption('.sc-appearance [data-stroke-dash]', 'custom');
+      await h.shot('#sc-appearance', { pad: 6 });
     },
   },
   {
@@ -454,7 +456,9 @@ export default [
       await h.page.click('[aria-label="Fill type"] [data-kind="pattern"]');
       await h.page.click('#sc-pat-pick');
       await h.page.click('#sc-libpick-pop .sc-libpick-tile[data-id="crosshatch"]');
-      await h.shot(null, await panel(h, COLOR_GROUP));
+      await h.page.click('[data-fold="stroke"]');
+      await h.shot('#sc-appearance', { pad: 6 });
+      await h.page.click('[data-fold="stroke"]');
       await h.page.click('#sc-pat-pick');
       await h.page.waitForSelector('#sc-libpick-pop:not([hidden])');
       await h.shot(['#sc-libpick-pop', '#sc-pat-pick'], { pad: 8, name: 'patterns-picker' });
@@ -473,12 +477,23 @@ export default [
     },
   },
   {
+    id: 'fill-and-stroke',
+    async shoot(h) {
+      await h.open(SHAPES, 'shapes.svg', 800, 340);
+      await h.page.evaluate(() => window.svgcraft.setTool('rect'));
+      await h.page.click('.sc-paintbtn[data-paint="fill"]');
+      await h.page.waitForSelector('#sc-paintpop:not([hidden])');
+      await h.page.mouse.move(5, 600);
+      await h.shot(['#sc-paintpop', '.sc-opt.on:has(.sc-paintbtn)'], { pad: 8 });
+    },
+  },
+  {
     id: 'colours',
     async shoot(h) {
       await h.open(SHAPES, 'shapes.svg', 800, 340);
       await h.select('Disc');
       await tall(h, COLOR_GROUP);
-      await h.shot(null, await panel(h, COLOR_GROUP));
+      await h.shot('#sc-appearance', { pad: 6 });
     },
   },
   {

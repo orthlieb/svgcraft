@@ -142,8 +142,8 @@ function releaseClip() {
   commit();
 }
 
-// Blend mode (Photoshop's Layers-panel menu) is CSS mix-blend-mode on the
-// layer. Groups also have Photoshop's Pass Through, their default: nothing
+// Blend mode (the Layers-panel menu) is CSS mix-blend-mode on the
+// layer. Groups also have Pass Through, their default: nothing
 // set, so their layers blend with what's below the group. A group set to
 // Normal is isolated (CSS isolation), so its layers blend only with each
 // other; any other mode isolates it anyway.

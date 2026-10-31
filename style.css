@@ -1,4 +1,4 @@
-/* SVGCraft — Photoshop-style workspace.
+/* SVGCraft — a familiar image-editor workspace.
    Layout: menu bar / options bar / [toolbar | document window | docked panels] / status bar.
    Light values sit on :root; dark values redefine the same tokens (OS dark mode
    unless the user picked Light, or an explicit Dark choice). */
@@ -462,7 +462,7 @@ kbd {
   align-items: center;
   gap: 5px;
 }
-/* Scrubby label: drag sideways to change the field (Photoshop's trick). */
+/* Scrubby label: drag sideways to change the field. */
 .sc-scrub {
   cursor: ew-resize;
   user-select: none;
@@ -569,7 +569,7 @@ kbd {
   background: var(--chip, transparent);
 }
 /* Fill in front at the top left, stroke behind it at the bottom right:
-   Photoshop's foreground and background colours. Low enough that the
+   the familiar foreground and background colours. Low enough that the
    active chip's outline (3px out) clears the buttons above. */
 .sc-tb-fill {
   left: 1px;
@@ -3343,7 +3343,7 @@ body.sc-no-doc .sc-status > * {
   height: 15px;
   fill: currentColor;
 }
-/* Photoshop's corner mark: this button holds more tools. */
+/* The corner mark: this button holds more tools. */
 .sc-tool-more {
   position: absolute;
   right: 3px;
@@ -3545,7 +3545,7 @@ body.sc-no-doc .sc-status > * {
   }
 }
 
-/* Tab / Shift+Tab: the panels hidden, as in Photoshop. */
+/* Tab / Shift+Tab: the panels hidden. */
 body.sc-no-panels .sc-tools,
 body.sc-no-panels .sc-options,
 body.sc-no-panels #sc-panel,
@@ -4212,4 +4212,137 @@ body.sc-no-doc .sc-tools {
   border: 0;
   opacity: 0;
   pointer-events: none;
+}
+
+/* ---- Fill and Stroke in the options bar (src/paint-pop.js) -------------------- */
+.sc-paintbtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 26px;
+  padding: 0 4px 0 2px;
+  border: 1px solid var(--field-line);
+  border-radius: 3px;
+  background: var(--field);
+  color: var(--text);
+}
+.sc-paintbtn[aria-expanded='true'] {
+  outline: 2px solid var(--accent-hi);
+  outline-offset: -1px;
+}
+.sc-paintbtn-sw {
+  width: 22px;
+  height: 20px;
+  border-radius: 2px;
+  background: var(--tile, none);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2);
+}
+.sc-paintbtn-sw.none {
+  background:
+    linear-gradient(
+      to top right,
+      transparent calc(50% - 1px),
+      var(--danger) calc(50% - 1px),
+      var(--danger) calc(50% + 1px),
+      transparent calc(50% + 1px)
+    ),
+    #fff;
+}
+.sc-paintpop {
+  width: min(320px, calc(100vw - 16px));
+}
+.sc-paintpop-modes {
+  display: flex;
+}
+.sc-paintpop-modes button {
+  flex: 1;
+}
+.sc-paintpop-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.sc-paintpop-body .sc-subhead {
+  margin: 2px 0 0;
+}
+.sc-paintpop-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.sc-paintpop-grid.small {
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  gap: 3px;
+}
+.sc-paintpop-tile {
+  padding: 0;
+  aspect-ratio: 1;
+}
+.sc-paintpop-tile .sc-libpick-tile-thumb {
+  height: 100%;
+}
+.sc-paintpop-colour {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.sc-paintpop-colour input[type='color'] {
+  width: 28px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--field-line);
+  border-radius: 3px;
+  background: none;
+}
+.sc-paintpop-colour .sc-hex {
+  width: 80px;
+}
+.sc-paintpop-colour input[type='number'] {
+  width: 52px;
+}
+
+/* Properties → Appearance: the fill and stroke (the old Color panel). */
+.sc-appearance {
+  margin-bottom: 8px;
+}
+.sc-appearance-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.sc-appearance-head .sc-subhead {
+  margin: 0;
+}
+.sc-alpha {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+.sc-alpha input[type='number'] {
+  width: 52px;
+}
+/* None, among the paint types: a red slash on white. */
+.sc-kind-glyph.none {
+  background:
+    linear-gradient(
+      to top right,
+      transparent calc(50% - 1px),
+      var(--danger) calc(50% - 1px),
+      var(--danger) calc(50% + 1px),
+      transparent calc(50% + 1px)
+    ),
+    #fff;
+}
+/* The Fill / Stroke row fits the panel: the chip never shrinks. */
+.sc-paint-head {
+  gap: 4px;
+}
+.sc-paint-head .sc-chip {
+  flex: none;
+}
+.sc-paint-head .sc-hex {
+  width: 66px;
 }

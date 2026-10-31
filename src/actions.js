@@ -125,7 +125,7 @@ const actions = {
 $('#sc-screen-pick').hidden = !('EyeDropper' in window);
 
 // When each action can run: menu items and buttons for any other are
-// greyed out (as in Photoshop) whenever its rule says no. Actions with no
+// greyed out whenever its rule says no. Actions with no
 // rule are always available; the commands still check and explain.
 const selN = () => normalizeSel(state.sel).length;
 const anySel = () => state.sel.length > 0;
@@ -211,7 +211,7 @@ const actionRules = {
   clearGuides: () => state.guides.length > 0,
 };
 // Run an action (or `run`) only when its rule allows it: a shortcut for a
-// greyed-out item does nothing, as in Photoshop.
+// greyed-out item does nothing.
 // With nothing open, only these work.
 const NO_DOC_ACTIONS = new Set([
   'new',
@@ -254,7 +254,7 @@ function syncActions() {
     const kids = [...sm.querySelectorAll('.sc-sub-list > button:not([hidden])')];
     sm.querySelector('.sc-sub-btn').disabled = kids.length > 0 && kids.every((b) => b.disabled);
   }
-  // Ctrl+E is Merge Down, Merge Layers or Merge Group, as in Photoshop.
+  // Ctrl+E is Merge Down, Merge Layers or Merge Group.
   for (const b of document.querySelectorAll('[data-action="mergeDown"] span'))
     b.textContent = curDoc ? mergeLabel() : 'Merge Down';
 }

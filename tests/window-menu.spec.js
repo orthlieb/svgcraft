@@ -20,11 +20,11 @@ test('a panel by name opens on its tab, ticked; chosen again it folds away', asy
   expect(await ticked(page, 'panelCharacter')).toBe(true);
   expect(await ticked(page, 'panelProperties')).toBe(false);
   await menu(page, 'Window', 'panelCharacter');
-  await expect(group(page, 1)).toHaveClass(/collapsed/);
+  await expect(group(page, 0)).toHaveClass(/collapsed/);
   // Layers, folded, unfolds.
-  await group(page, 2).locator('.sc-pcollapse').click();
+  await group(page, 1).locator('.sc-pcollapse').click();
   await menu(page, 'Window', 'panelLayers');
-  await expect(group(page, 2)).not.toHaveClass(/collapsed/);
+  await expect(group(page, 1)).not.toHaveClass(/collapsed/);
 });
 
 test('a panel brings the panels back from Tab, or pops out of the icon strip', async ({ page }) => {
@@ -130,7 +130,7 @@ test('Reset Workspace puts panels, docked windows and dialogs back', async ({ pa
   await expect(page.locator('#sc-msg')).toContainText('Workspace reset.');
   await expect(page.locator('#sc-panel > .sc-pgroup.collapsed')).toHaveCount(0);
   expect(await page.evaluate(() => document.body.classList.contains('sc-dock-icons'))).toBe(false);
-  await expect(page.locator('[data-tab="color"]')).toHaveAttribute('aria-selected', 'true');
+  await expect(page.locator('[data-tab="props"]')).toHaveAttribute('aria-selected', 'true');
   // Both windows docked, the column back to its standard width.
   expect(await page.$$eval('#sc-dock > :not([hidden])', (els) => els.map((e) => e.id))).toEqual([
     'sc-iconprev',

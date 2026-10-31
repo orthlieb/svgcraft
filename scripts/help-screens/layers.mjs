@@ -273,7 +273,7 @@ export default [
       await still(
         h,
         [
-          '#sc-options > :first-child',
+          '#sc-options .sc-opt-tool',
           '#sc-options [data-action="combineExclude"]',
           '#sc-stage-wrap',
         ],

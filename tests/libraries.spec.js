@@ -155,7 +155,7 @@ test.describe('gradients', () => {
 
     await page.evaluate(() => (window.svgcraft.state.fillGrad.stops[0].c = '#00ff00'));
     // The gradient editor is in the Color panel's Fill.
-    await tab(page, 'color');
+    await tab(page, 'props');
     await page.click('#sc-grad-save');
     await answer(page, 'My grad');
     expect((await stored(page)).gradients.at(-1)).toMatchObject({ name: 'My grad' });
@@ -171,7 +171,7 @@ test.describe('gradients', () => {
     await tiles(page, 'sc-gradlib').last().click();
     expect((await paintDef(page, 'b')).stops[0]).toBe('#00ff00');
 
-    await tab(page, 'color');
+    await tab(page, 'props');
     await page.click('[data-kind-for="fill"] [data-kind="solid"]');
     await tab(page, 'gradients');
     // No gradient in use: nothing to save.
@@ -181,7 +181,7 @@ test.describe('gradients', () => {
   test('built-in presets keep their names as values', async ({ page }) => {
     await load(page, TWO_RECTS, 300, 200);
     await select(page, 'a');
-    await tab(page, 'color');
+    await tab(page, 'props');
     await page.click('[data-kind-for="fill"] [data-kind="linear"]');
     await page.click('#sc-grad-preset');
     await page.click('#sc-libpick-pop .sc-libpick-tile[data-id="ocean"]');
@@ -196,7 +196,7 @@ test.describe('pattern paint', () => {
     await tab(page, 'patterns');
     await tiles(page, 'sc-patlib').nth(2).click(); // Dots
     // The pattern editor is in the Color panel's Fill.
-    await tab(page, 'color');
+    await tab(page, 'props');
   });
 
   test('applies a pattern inked with the paint colour', async ({ page }) => {
@@ -210,7 +210,7 @@ test.describe('pattern paint', () => {
   });
 
   test('colour re-inks it; scale and angle transform it; it renders', async ({ page }) => {
-    await tab(page, 'color');
+    await tab(page, 'props');
     await page.fill('#sc-fill-hex', '#ff0000');
     await page.press('#sc-fill-hex', 'Enter');
     expect(await paintDef(page, 'a')).toMatchObject({ tag: 'pattern', color: '#ff0000' });
@@ -287,7 +287,7 @@ test.describe('pattern paint', () => {
     expect(await tile()).toEqual({ sx: 1, sy: 1, deg: 0 });
     // Stretch with shape: they stretch with it.
     await select(page, 'a');
-    await tab(page, 'color');
+    await tab(page, 'props');
     await expect(page.locator('#sc-pat-with')).not.toBeChecked();
     await page.check('#sc-pat-with');
     expect(await tile()).toEqual({ sx: 2, sy: 1, deg: 0 });
@@ -316,12 +316,12 @@ test.describe('pattern paint', () => {
     expect(await attr(page, 'a', 'fill')).toMatch(/^url\(#sc-pat-/);
   });
 
-  test('swap, solid, export and the gradient tool all hand it over cleanly', async ({ page }) => {
+  test('swap, solid, export and a gradient all hand it over cleanly', async ({ page }) => {
     await page.keyboard.press('x');
     expect(await attr(page, 'a', 'stroke')).toMatch(/^url\(#sc-pat-/);
     expect(await attr(page, 'a', 'fill')).not.toMatch(/url/);
     await page.keyboard.press('x');
-    await tab(page, 'color');
+    await tab(page, 'props');
     await page.click('[data-kind-for="fill"] [data-kind="solid"]');
     expect(await attr(page, 'a', 'fill')).not.toMatch(/url/);
     await expect(page.locator('#sc-defs pattern')).toHaveCount(0);
@@ -333,17 +333,9 @@ test.describe('pattern paint', () => {
     await select(page, 'a');
     expect(await page.evaluate(() => window.svgcraft.state.fillPat?.name)).toBe('Checks');
 
-    await page.evaluate(() => window.svgcraft.setTool('gradient'));
-    const [x1, y1, x2, y2] = await page.evaluate(() => {
-      const m = document.getElementById('sc-doc').getScreenCTM();
-      const a = new DOMPoint(30, 60).matrixTransform(m);
-      const b = new DOMPoint(110, 60).matrixTransform(m);
-      return [a.x, a.y, b.x, b.y];
-    });
-    await page.mouse.move(x1, y1);
-    await page.mouse.down();
-    await page.mouse.move(x2, y2, { steps: 4 });
-    await page.mouse.up();
+    // A gradient Type replaces the pattern (the Gradient tool is gone).
+    await tab(page, 'props');
+    await page.click('[data-kind-for="fill"] [data-kind="linear"]');
     expect((await paintDef(page, 'a')).tag).toBe('linearGradient');
   });
 });

@@ -34,11 +34,11 @@ function setPaintAttr(el, name, value, defaultValue) {
   else el.setAttribute(name, value);
 }
 
-// Dash patterns in multiples of the stroke width, as Photoshop sizes them.
+// Dash patterns in multiples of the stroke width.
 // Round and square caps add half a width to each end of a dash, so the
 // pattern is shortened to keep the look (and turns dots round).
 // data-dash holds a preset name or, for Custom, the dash / gap lengths in
-// stroke widths ("4 2 1 2"), as Photoshop's dash / gap fields do.
+// stroke widths ("4 2 1 2"), as the dash / gap fields show them.
 const customDash = (d) => (/^[\d.]/.test(d || '') ? d.split(/[\s,]+/).map(Number) : null);
 function dashArray(dash, w, cap) {
   w = Math.max(w || 1, 0.25);

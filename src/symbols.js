@@ -765,12 +765,14 @@ function swapPaint() {
   }
 }
 
-// D: Photoshop's default colours, a black fill and a white stroke (on the
-// selection too, as X swaps them there).
+// D: the default paint, a black fill and no stroke (on the selection too,
+// as X swaps them there).
 function defaultPaint() {
   Object.assign(state, {
     fill: '#000000',
-    stroke: '#ffffff',
+    stroke: '#000000',
+    fillOn: true,
+    strokeOn: false,
     fillA: 1,
     strokeA: 1,
     fillGrad: null,
@@ -803,7 +805,7 @@ function bindNumber(id, key) {
 }
 
 // Scrubby labels: drag a field's label sideways to change its value
-// (Shift = 10× faster), as in Photoshop's options bar.
+// (Shift = 10× faster).
 function wireScrubbers() {
   for (const lab of document.querySelectorAll('.sc-scrub')) {
     const input = lab.parentElement.querySelector('input');

@@ -81,7 +81,7 @@ function redo() {
   if (hIdx < hist.length - 1) restoreInIso(hist[++hIdx]);
 }
 
-// The History panel, as in Photoshop: every step since the drawing was
+// The History panel: every step since the drawing was
 // opened (the last 150); click one to go back to it. Steps after the
 // current one are dimmed until a new change replaces them.
 function goToStep(i) {

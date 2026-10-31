@@ -2,7 +2,7 @@
 'use strict';
 
 // ---- stroke alignment ---------------------------------------------------
-// Photoshop's Align: Inside / Center / Outside. SVG strokes are always
+// Align: Inside / Center / Outside. SVG strokes are always
 // centred, so an aligned stroke is drawn twice as wide (stroke-width holds
 // 2× the width you set) and half of it is hidden: an inside stroke is
 // clipped to the shape; an outside one paints under the fill

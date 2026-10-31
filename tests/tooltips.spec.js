@@ -68,11 +68,9 @@ test('sweeping to the next tool shows its tip straight away; leaving hides it', 
   page,
 }) => {
   await hoverAndWait(page, page.locator('[data-tool="eraser"]'));
-  await page.locator('[data-tool="gradient"]').hover();
+  await page.locator('[data-tool="pen"]').hover();
   await page.waitForTimeout(60);
-  expect((await tipState(page)).text).toBe(
-    'Gradient (G)Drag across a shape to lay a linear or radial gradient.',
-  );
+  expect((await tipState(page)).text).toBe(PEN_TIP);
   await page.mouse.move(700, 450);
   await page.waitForTimeout(60);
   expect((await tipState(page)).hidden).toBe(true);
@@ -118,7 +116,7 @@ test('a tip shows in the top layer above an open modal dialog', async ({ page })
 
 test('keyboard focus shows the tip', async ({ page }) => {
   await page.mouse.move(700, 450);
-  await page.locator('[data-tool="gradient"]').focus();
+  await page.locator('[data-tool="eraser"]').focus();
   await page.keyboard.press('Tab');
   await page.waitForTimeout(50);
   const s = await tipState(page);

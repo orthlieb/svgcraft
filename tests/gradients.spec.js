@@ -66,10 +66,6 @@ async function dragPx(page, from, to, steps = 5) {
   await page.mouse.up();
 }
 
-async function dragDoc(page, a, z, steps = 5) {
-  await dragPx(page, await toScreen(page, ...a), await toScreen(page, ...z), steps);
-}
-
 const centre = async (loc) => {
   const b = await loc.boundingBox();
   return { x: b.x + b.width / 2, y: b.y + b.height / 2 };
@@ -77,12 +73,30 @@ const centre = async (loc) => {
 
 test.beforeEach(async ({ page }) => {
   await page.evaluate((t) => window.svgcraft.openSvg(t, 'g.svg'), DOC);
-  await tab(page, 'color');
+  await tab(page, 'props');
   await pick(page, 'r');
 });
 
 // Fill → Linear on the rect.
 const makeLinear = (page) => page.click('[data-kind-for="fill"] [data-kind="linear"]');
+
+// Lay a gradient by its handles, as the Move tool drags them: the start
+// handle to doc point a, then the end handle to b.
+async function lay(page, a, b, steps = 4) {
+  await page.evaluate(() => window.svgcraft.setTool('select'));
+  await dragPx(
+    page,
+    await centre(page.locator('[data-grad-h="a"]')),
+    await toScreen(page, ...a),
+    steps,
+  );
+  await dragPx(
+    page,
+    await centre(page.locator('[data-grad-h="b"]')),
+    await toScreen(page, ...b),
+    steps,
+  );
+}
 
 // Linear, angle 90, sunset preset.
 async function sunset(page) {
@@ -98,7 +112,7 @@ async function addGreenStop(page) {
   await page.mouse.click(bar.x + bar.width * 0.5, bar.y + bar.height / 2);
   await tab(page, 'swatches');
   await page.click('#sc-palette button[aria-label="#16a34a"]');
-  await tab(page, 'color');
+  await tab(page, 'props');
 }
 
 test.describe('gradient editor', () => {
@@ -142,7 +156,7 @@ test.describe('gradient editor', () => {
     await expect(page.locator('#sc-gstop-o')).toHaveValue('50');
     await tab(page, 'swatches');
     await page.click('#sc-palette button[aria-label="#16a34a"]');
-    await tab(page, 'color');
+    await tab(page, 'props');
     expect((await grad(page, 'r')).stops).toEqual([
       '0:#facc15',
       '0.33:#f97316',
@@ -202,14 +216,13 @@ test.describe('gradient editor', () => {
   });
 });
 
-test.describe('Gradient tool', () => {
+test.describe('gradient handles (Move tool)', () => {
   test.beforeEach(async ({ page }) => {
     await makeLinear(page);
-    await page.keyboard.press('g');
-    await dragDoc(page, [150, 120], [450, 180], 6);
+    await lay(page, [150, 120], [450, 180]);
   });
 
-  test('dragging across a shape sets the gradient line and angle', async ({ page }) => {
+  test('dragging its handles sets the gradient line and angle', async ({ page }) => {
     const g = await grad(page, 'r');
     expect(g).toMatchObject({ tag: 'linearGradient', units: 'userSpaceOnUse' });
     expectGeom(g, { x1: 150, y1: 120, x2: 450, y2: 180 });
@@ -235,7 +248,7 @@ test.describe('Gradient tool', () => {
       document.getElementById('r').setAttribute('transform', 'rotate(30 300 150)');
       window.svgcraft.commit();
     });
-    await dragDoc(page, [200, 150], [400, 160], 4);
+    await lay(page, [200, 150], [400, 160]);
     const p = await page.evaluate(() => {
       const el = document.getElementById('r');
       const g = document.getElementById(el.getAttribute('fill').match(/#([^)]+)/)[1]);
@@ -258,16 +271,16 @@ test('a duplicate shares the gradient until one of them is edited', async ({ pag
   const [a, b] = await fills();
   expect(a).toMatch(/^url\(#sc-grad-\d+\)$/);
   expect(b).toBe(a);
-  await expect(ourGrads(page)).toHaveCount(1);
+  await expect(ourGrads(page)).toHaveCount(2);
 
-  await tab(page, 'color');
+  await tab(page, 'props');
   await page.click('#sc-grad-preset');
   await page.click('#sc-libpick-pop .sc-libpick-tile[data-id="ocean"]');
   const [a2, b2] = await fills();
   expect(a2).toMatch(/^url\(#sc-grad-\d+\)$/);
   expect(b2).toMatch(/^url\(#sc-grad-\d+\)$/);
   expect(a2).not.toBe(b2);
-  await expect(ourGrads(page)).toHaveCount(2);
+  await expect(ourGrads(page)).toHaveCount(3);
 });
 
 test('an imported gradient (href chain, bounding-box units) is read into the editor', async ({
@@ -297,15 +310,17 @@ test.describe('stroke gradient', () => {
     expectGeom(g, { x1: 590, y1: 150, x2: 710, y2: 150 });
   });
 
-  test('going back to Solid prunes our gradient but keeps imported ones', async ({ page }) => {
-    await expect(ourGrads(page)).toHaveCount(2);
+  test('going back to Solid prunes our gradient but keeps the others', async ({ page }) => {
+    // The rect's, the circle's stroke, and its fill (imp, adopted on load).
+    await expect(ourGrads(page)).toHaveCount(3);
     await page.click('[data-kind-for="stroke"] [data-kind="solid"]');
     expect(await grad(page, 'c', 'stroke')).toBeNull();
-    await expect(ourGrads(page)).toHaveCount(1);
-    await expect(page.locator('#sc-defs #imp')).toHaveCount(1);
+    await expect(ourGrads(page)).toHaveCount(2);
+    // imp, adopted, keeps its id.
+    await expect(page.locator('#sc-defs #imp[data-sc-grad]')).toHaveCount(1);
     await expect(page.locator('#sc-defs #base')).toHaveCount(1);
 
-    // The export carries every gradient still in use: base, imp, the rect's.
+    // The export carries base and the two in use: the circle's and the rect's.
     const svg = await page.evaluate(() => window.svgcraft.serialize());
     expect(svg.match(/<(linear|radial)Gradient/g)).toHaveLength(3);
 
@@ -413,7 +428,7 @@ test.describe('stretching the shape', () => {
       window.svgcraft.state.sel = [document.getElementById('sq')];
       window.svgcraft.setTool('select');
     });
-    await tab(page, 'color');
+    await tab(page, 'props');
   });
 
   test('a linear gradient keeps its angle and still spans the shape', async ({ page }) => {
@@ -436,7 +451,7 @@ test.describe('stretching the shape', () => {
     // Off: it stretches with the shape, its angle with it.
     await page.evaluate(() => (window.svgcraft.state.sel = [document.getElementById('sq')]));
     await page.evaluate(() => window.svgcraft.setTool('select'));
-    await tab(page, 'color');
+    await tab(page, 'props');
     await page.locator('[data-kind-for="fill"]').scrollIntoViewIfNeeded();
     await page.check('#sc-grad-stretch');
     await stretchTo(page, 400);
@@ -458,10 +473,11 @@ test.describe('stretching the shape', () => {
     expect(g.len).toBeCloseTo(150, 1);
   });
 
-  test('the Gradient tool lays it where you drag, on a stretched shape too', async ({ page }) => {
+  test('its handles lay it where you drag them, on a stretched shape too', async ({ page }) => {
     await stretchTo(page, 300);
-    await page.evaluate(() => window.svgcraft.setTool('gradient'));
-    await dragDoc(page, [120, 120], [360, 180]);
+    await tab(page, 'props');
+    await makeLinear(page);
+    await lay(page, [120, 120], [360, 180]);
     const g = await onPage(page, 'sq');
     expect(g.a[0]).toBeCloseTo(120, 0);
     expect(g.a[1]).toBeCloseTo(120, 0);

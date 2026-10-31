@@ -1,6 +1,6 @@
-// SVGCraft — Photoshop's pointers: drawn here as SVG cursors, black outlined
+// SVGCraft — the familiar pointers: drawn here as SVG cursors, black outlined
 // in white (or white in black) so they show on any colour, with the small
-// badges Photoshop adds: + to add to a selection, − to take away, * to
+// badges: + to add to a selection, − to take away, * to
 // start a new path, o to close one.
 'use strict';
 
@@ -47,7 +47,7 @@ const BADGE = {
 };
 const ARROW = 'M3 1.5v15.25l3.9-3.65 2.55 5.9 2.55-1.1-2.5-5.85h5.4Z';
 // The marquees' thin cross, the lasso's rope (its tip the hotspot) and
-// Photoshop's curved, two-headed rotate arrow.
+// the curved, two-headed rotate arrow.
 const CROSS = 'M10 2.5v15M2.5 10h15';
 const LASSO =
   'M6 15.5c-3-1.5-3.6-5-1.4-8.1C7 4 12 2.5 15.6 4.1c3 1.4 3.2 4.7.4 7-2.6 2.2-7 2.9-9.6 1.6M6.6 12.6c-.8 2-.6 3.6.4 4.6s1 2.6-.6 3.8';
@@ -57,7 +57,7 @@ const badged = (key, base, x, y, fallback, badges) => {
     cursorFor[b ? `${key}+${b}` : key] = svgCursor(base + (b ? BADGE[b] : ''), x, y, fallback);
 };
 badged('move', inked(ARROW), 3, 1, 'default', ['move']);
-badged('direct', inked(ARROW, false), 3, 1, 'default', ['add']);
+badged('direct', inked(ARROW, false), 3, 1, 'default', ['add', 'sub']);
 badged('cross', lined(CROSS, 1), 10, 10, 'crosshair', ['add', 'sub']);
 badged('lasso', lined(LASSO, 1.4), 6, 21, 'crosshair', ['add', 'sub']);
 badged('pen', iconInk('pen-nib', 1, 1, 14), 1, 15, 'crosshair', ['new', 'close']);

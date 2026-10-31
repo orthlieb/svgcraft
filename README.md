@@ -14,9 +14,9 @@ and what comes next.
 
 ## Workspace
 
-SVGCraft is laid out like Photoshop: menus along the top, the tool's
-options under them, tools down the left, panels down the right, and your
-drawings in tabs in the middle. It edits on tablets and larger screens;
+SVGCraft is laid out like the image editors you already know: menus
+along the top, the tool's options under them, tools down the left, panels
+down the right, and your drawings in tabs in the middle. It edits on tablets and larger screens;
 a phone gets a preview to look at drawings.
 
 ### On a phone
@@ -156,7 +156,7 @@ Find your way round the editor. From top to bottom:
 
 ![The Layer menu, with Clipping Mask's items greyed out for a single selected layer](docs/help/the-menu-bar.png)
 
-Find every command, in Photoshop's order.
+Find every command, in the menu you'd expect.
 
 - Click a menu to open it, then hover to switch between menus. The arrow
   keys move around too.
@@ -181,8 +181,7 @@ Find every command, in Photoshop's order.
 
 ![The canvas's right-click menu on the palette, with Layers Here listing the red paint, the board and the backdrop under the pointer](docs/help/right-click-menus.png)
 
-Reach what the selection can do without going to the menu bar, as in
-Photoshop.
+Reach what the selection can do without going to the menu bar.
 
 - **Right-click a layer** on the canvas: it's selected (unless it's
   already in the selection) and the menu lists what the selection can do:
@@ -239,28 +238,25 @@ for the eraser, or the point commands for Edit Points.
 
 ### The toolbar
 
-![The toolbar, with the fill and stroke chips and their default and swap buttons at the bottom](docs/help/the-toolbar.png)
+![The toolbar, with the Move tool chosen and the Shape tools' button below](docs/help/the-toolbar.png)
 
-Pick a tool, and the colours it paints with.
+Pick a tool.
 
 - Click a tool to use it.
 - A small corner mark means more tools share its button. Hold the button
   down, right-click it, Alt-click it or click the mark to pick another
   from its flyout.
-- Click the fill or stroke chip (at the bottom) to make it the active
-  paint. Click it again to pick a colour.
-- Above the chips, as in Photoshop: the little black-and-white squares set
-  the default colours (D: black fill, white stroke), and the curved arrow
-  swaps fill and stroke (X).
+- What a drawing tool paints with is in its options bar: see
+  [Fill and stroke](#fill-and-stroke).
 
 #### Pointers
 
-The pointer shows what a click will do, as in Photoshop:
+The pointer shows what a click will do:
 
 - the Move tool's arrow and cross;
 - Edit Points' white arrow;
-- a cross or lasso for picking points, with + while Shift adds and −
-  while Alt takes away;
+- the arrow, a cross or the lasso for picking points, with + while Shift
+  adds and − while Alt takes away;
 - the pen's nib, with \* to start a path and o over its first point to
   close it;
 - the pencil, the eyedropper and the type I-beam;
@@ -283,18 +279,17 @@ you like.
 - Click **»** above the panels to shrink the column to a strip of icons,
   leaving more room for the canvas. Click **«** to bring the panels back.
 
-![The panels collapsed to icons, with the Color panel popped out beside the strip](docs/help/docked-panels-icons.png)
+![The panels collapsed to icons, with Properties popped out beside the strip](docs/help/docked-panels-icons.png)
 
 - With the panels as icons, click an icon to pop its panel out beside the
   strip. A click elsewhere, or Esc, puts it away.
 
 #### The panels
 
-- **Color**: the fill and stroke, with the stroke's width, alignment,
-  caps, joins and dashes.
 - **Properties**, **Character**, **Paragraph**, **Animation** and
   **History**. Properties has the selection's **Transform** (X, Y, W and
   H, typed in the document's units, with a link to keep the proportions),
+  its **Appearance** (fill and stroke: see [Fill and stroke](#fill-and-stroke)),
   the shape's settings, the document size, and the grid and snap.
 - Selecting text shows the Character tab; selecting something else
   afterwards goes back to the tab you had.
@@ -304,7 +299,7 @@ you like.
 
 #### Good to know
 
-- Each group keeps its height whatever its tab shows, as in Photoshop.
+- Each group keeps its height whatever its tab shows.
   Longer content scrolls inside it, so selecting something never shuffles
   the panels below.
 - Layers takes the rest of the height and always keeps room.
@@ -491,7 +486,7 @@ paper or screen size.
 
 #### Good to know
 
-- Strokes, type and effects stay in pixels, as in Photoshop.
+- Strokes, type and effects stay in pixels.
 - Inside, the drawing is always in pixels (96 per inch), so changing units
   changes nothing but the numbers.
 - A drawing in mm, cm, in or pt is saved with its real-world width and
@@ -605,7 +600,7 @@ it.
 
 - **Constrain proportions**: change the width and the height follows, and
   the other way round.
-- **Scale effects** (on by default, Photoshop's Scale Styles): scales
+- **Scale effects** (on by default): scales
   layer-effect distances and sizes too (shadow, glow, blur).
 
 #### Good to know
@@ -645,8 +640,8 @@ Add room round the drawing, or trim it, without scaling anything.
 
 ![The Black & White dialog, previewing the drawing in grey](docs/help/grayscale-and-black-white.png)
 
-Turn a drawing, or just some layers, grey or pure black and white, as in
-Photoshop. The colours themselves change, so the saved SVG really is grey.
+Turn a drawing, or just some layers, grey or pure black and white. The
+colours themselves change, so the saved SVG really is grey.
 
 1. Select the layers to change, or select nothing to change the whole
    drawing.
@@ -657,9 +652,9 @@ Photoshop. The colours themselves change, so the saved SVG really is grey.
 
 - **Image → Adjustments → Desaturate** (Shift+Ctrl+U): every colour to the
   grey of the same lightness. No dialog.
-- **Image → Adjustments → Black & White…** (Alt+Shift+Ctrl+B): Photoshop's
-  six hue sliders (Reds, Yellows, Greens, Cyans, Blues, Magentas) and its
-  defaults, previewed live. **Default** puts the sliders back.
+- **Image → Adjustments → Black & White…** (Alt+Shift+Ctrl+B): six
+  hue sliders (Reds, Yellows, Greens, Cyans, Blues, Magentas) with the
+  usual defaults, previewed live. **Default** puts the sliders back.
 - **Image → Adjustments → Threshold…**: pure black and white, split at a
   **Level** you set, previewed live.
 - **Image → Mode → Grayscale**: the brightness the eye sees. No dialog.
@@ -717,7 +712,7 @@ Select everything, nothing, or everything you haven't selected.
 
 ![The History panel, gone back one step: the Desaturate step after it is dimmed](docs/help/history-panel.png)
 
-Go back to any earlier point in your work, as in Photoshop.
+Go back to any earlier point in your work.
 
 1. Open the panel with **Window → History**.
 2. Click a step to go back to it. The steps after it dim.
@@ -744,7 +739,7 @@ or a sheet of paper.
 4. Click **Create** (or press Enter, or double-click a preset). The drawing
    opens in a new tab.
 
-Every open drawing gets a tab, as in Photoshop: see
+Every open drawing gets a tab: see
 [Open, close and switch tabs](#open-close-and-switch-tabs),
 [Save and Save As](#save-and-save-as) and [Export](#export).
 
@@ -760,8 +755,8 @@ Every open drawing gets a tab, as in Photoshop: see
 #### Settings
 
 - **Background**: Transparent, or a White, Black or custom colour. A colour
-  becomes a "Background" layer at the bottom, locked in place as in
-  Photoshop. Recolour it, or unlock and delete it.
+  becomes a "Background" layer at the bottom, locked in place. Recolour
+  it, or unlock and delete it.
 - **Icon templates…**: switches to New Icon, for app and toolbar icons.
 
 #### Good to know
@@ -797,7 +792,7 @@ Work on several drawings at once, each in its own tab.
   changes size (a pane docking, panels folding, the window resized, a phone
   turned) until you zoom or pan it yourself. A fitted drawing comes back
   fitted, whatever size the window is then.
-- Closing the last tab leaves a blank workspace, as in Photoshop. Only New,
+- Closing the last tab leaves a blank workspace. Only New,
   Open (or dropping a file on it) and the view settings work until a
   drawing is open, and it stays blank after a reload.
 
@@ -954,7 +949,7 @@ or any shape from the Symbols library.
 
 ![The Create Polygon box: width, height, sides and star ratio](docs/help/shape-tools-create.png)
 
-Click without dragging (with any Shape tool but Line) for Photoshop's
+Click without dragging (with any Shape tool but Line) to open the
 **Create** box:
 
 - **Width** and **Height**, in the document's units.
@@ -1014,8 +1009,7 @@ Draw precise paths, point by point, with straight lines and smooth curves.
 
 ![Free Transform rotating a rectangle, with its X, Y, W, H, angle and skew fields in the options bar](docs/help/free-transform-and-edit-transform.png)
 
-Scale, rotate and skew the selection by hand or by exact numbers, as in
-Photoshop.
+Scale, rotate and skew the selection by hand or by exact numbers.
 
 1. Select what to change and choose **Edit → Free Transform** (Alt+T).
 2. Drag a corner to scale, or the top knob to rotate. Or type exact
@@ -1064,8 +1058,7 @@ Line objects up with each other, or space them out evenly.
 
 #### Good to know
 
-- With one object selected, it aligns to the artboard instead, as in
-  Photoshop.
+- With one object selected, it aligns to the artboard instead.
 
 ### Eyedropper
 
@@ -1089,8 +1082,8 @@ Copy a style or a colour from something already in the drawing.
 #### Tips
 
 - Alt-click sends the colour to the other paint (fill or stroke).
-- In Chromium browsers, the eyedropper button on the Color panel picks a
-  colour from anywhere on the screen.
+- In Chromium browsers, the eyedropper button beside Properties'
+  **Appearance** picks a colour from anywhere on the screen.
 
 ### Edit points
 
@@ -1106,10 +1099,14 @@ Reshape a path, or a basic shape, by moving its points and curve handles.
 #### Picking points
 
 - Shift-click points to pick several, or drag round them.
-- Choose what a drag picks with from the Edit Points button's flyout (as
-  with the Shape tools), or step through them with Shift+A: **Rectangle
-  Select**, **Ellipse Select** (an oval) or **Lasso Select** (freeform).
-- As in Photoshop, a drag begun with Shift adds to what's picked, and one
+- Choose how points are picked from the Edit Points button's flyout (as
+  with the Shape tools), or step through them with Shift+A:
+  - **Point Select** (the arrow): click a point to pick just it,
+    Shift-click to add one and Alt-click to take one away. A drag off the
+    points picks nothing, so it can't catch points by accident.
+  - **Rectangle Select**, **Ellipse Select** (an oval) or **Lasso Select**
+    (freeform): drag round the points to pick them.
+- A drag begun with Shift adds to what's picked, and one
   begun with Alt takes points away. Alt pressed during a drag grows a
   rectangle or oval from its centre.
 
@@ -1351,9 +1348,8 @@ another layer's animations, or with a pause between its runs.
 
 ![A brush set to Swing, its pivot ⊕ dragged to the end of its handle, beside the Animation tab's Pivot fields](docs/help/pivot.png)
 
-Choose the point an animation turns or grows about, as you'd move the
-reference point in Photoshop's Free Transform: a clock hand turning about
-its end, a sign swinging from its hook, a badge growing out of a corner.
+Choose the point an animation turns or grows about: a clock hand turning
+about its end, a sign swinging from its hook, a badge growing out of a corner.
 
 1. Select the layer and open the **Animation** tab.
 2. Pick an animation that turns or grows: Spin, Pulse, Swing, Heartbeat,
@@ -1507,8 +1503,8 @@ Get close to the detail, or step back to see the whole drawing.
 
 #### The page itself doesn't zoom
 
-- The browser's zoom keys (Ctrl/⌘ + =, − and 0) zoom the canvas instead,
-  like Photoshop's.
+- The browser's zoom keys (Ctrl/⌘ + =, − and 0) zoom the canvas instead
+  of the page.
 - Ctrl/⌘ + wheel or a pinch only ever zooms the canvas, never the panels.
 - On phones and tablets the page can't be pinched or double-tapped
   bigger.
@@ -1554,17 +1550,20 @@ Rub out whole objects, or cut gaps in lines.
 
 ### Gradients
 
-![The Color panel's gradient editor with a four-stop gradient](docs/help/gradients.png)
+![Properties' gradient editor under Fill, with a four-stop gradient](docs/help/gradients.png)
 
 Fill or stroke a shape with a smooth blend of colours.
 
-1. Select a shape and, in the **Color** panel, click **Fill** or
-   **Stroke** to make it the active paint.
-2. Set its **Type** to Linear or Radial (or back to Solid).
+1. Pick one from **Fill** (or **Stroke**) → **Gradient** in a drawing
+   tool's options bar, or select a shape and, in Properties →
+   **Appearance**, set the paint's **Type** to Linear or Radial.
+2. Click **Fill** or **Stroke** in Appearance to make it the active paint.
 3. Edit the stops in the gradient editor below.
-4. To set the direction on the canvas, pick the **Gradient** tool (G) and
-   drag across the selection. Shift snaps to 45°, and a radial gradient
-   drags from the centre outwards. Drag the end handles to adjust it.
+4. To set its direction and span on the canvas, drag its handles: a
+   shape painted with a gradient shows them (for the active paint, Fill or
+   Stroke) while you use the Move tool. A linear gradient runs from the
+   round handle to the other; a radial one spreads from its centre out to
+   the outer handle.
 
 #### The gradient editor
 
@@ -1588,8 +1587,9 @@ Fill or stroke a shape with a smooth blend of colours.
 #### Tips
 
 - With a gradient active, clicking a swatch recolours the selected stop.
-- The Gradient tool's options bar switches between **Linear** and
-  **Radial** for the active paint of the selection.
+- **Linear** and **Radial** are paint types, beside **Solid** in
+  Appearance; switching keeps the stops.
+- There's no Gradient tool: its handles are the Move tool's.
 
 #### Good to know
 
@@ -1600,35 +1600,42 @@ Fill or stroke a shape with a smooth blend of colours.
   change, keeping where it sits in the shape (`data-fit`).
 - Duplicates split off their own copy when edited, and unused gradients
   are removed automatically.
-- Gradients in imported files are read, including ones that borrow stops
-  from another gradient.
+- Gradients in opened or placed files become SVGCraft's own, drawing
+  the same, so they have handles straight away: ones laid out in the
+  shape's box, turned or stretched by a `gradientTransform`, or borrowing
+  stops from another gradient. One used by a single shape keeps its id;
+  one shared by several gives each its own copy. A few can't be matched
+  and stay as they were, without handles: a radial gradient stretched
+  into an oval or with its focus off-centre, and a repeating or
+  reflecting one. Picking its **Type** again in Appearance makes it
+  SVGCraft's own, keeping its colours.
 
 ### Stroke options
 
-![The stroke settings in the Color panel, with Custom dashes](docs/help/stroke-options.png)
+![The stroke settings in Properties → Appearance, with Custom dashes](docs/help/stroke-options.png)
 
 Set how outlines look: thickness, position, ends, corners and dashes.
 
 1. Select a shape, or pick a drawing tool to set the stroke for what you
    draw next.
-2. Set the stroke under **Stroke** in the **Color** panel, or in the
-   drawing tool's options bar. Both show whatever other panel is open.
+2. Set the stroke under **Stroke** in Properties → **Appearance**, or in
+   the drawing tool's options bar.
 
 #### Settings
 
 - **Width**: the thickness, in px.
-- **Align**: **Inside**, **Center** or **Outside**, as in Photoshop, for
-  closed shapes (rectangles, ellipses, polygons and closed paths).
+- **Align**: **Inside**, **Center** or **Outside**, for closed shapes
+  (rectangles, ellipses, polygons and closed paths).
 - **Caps**: butt, round or square line ends.
-- **Joins**: miter, round or bevel corners (in the Color panel).
+- **Joins**: miter, round or bevel corners (in Appearance).
 - **Dashes**: **Solid**, **Dashed**, **Dotted** or **Long dash**.
-- **Custom** dashes: opens Photoshop's dash / gap fields in the Color
-  panel: up to three dash-and-gap pairs, in stroke widths. Imported dash
+- **Custom** dashes: opens the dash / gap fields in
+  Appearance: up to three dash-and-gap pairs, in stroke widths. Imported dash
   patterns show up there too.
 
 #### Good to know
 
-- Dash lengths are in multiples of the stroke width, as in Photoshop, so
+- Dash lengths are in multiples of the stroke width, so
   they keep their proportions when the width changes.
 - Dashes allow for round and square caps, which extend each dash, so
   dotted lines come out as round dots.
@@ -1651,7 +1658,7 @@ Round the corners of a rectangle, all together or one at a time.
 - **On a selected rectangle**: edit its four corners under **Corner
   radius** in Properties. The link toggle changes them all together.
 - **On the canvas**: drag the round handles inside the corners. Alt-drag
-  moves a single corner, as in Photoshop's live corners.
+  moves a single corner.
 
 #### In the file
 
@@ -1661,15 +1668,15 @@ Round the corners of a rectangle, all together or one at a time.
 
 ### Patterns
 
-![The pattern editor in the Color panel's Fill, with Crosshatch picked](docs/help/patterns.png)
+![The pattern editor in Properties' Fill, with Crosshatch picked](docs/help/patterns.png)
 
 Fill or stroke a shape with a repeating tile: stripes, dots, bricks, or a
 tile you make.
 
-1. Select a shape and make fill or stroke the active paint.
-2. Set the paint's **Type** to
-   Pattern in the Color panel.
-3. Adjust it in the pattern editor: **Scale**, **Angle**, **Stretch with
+1. Pick one from **Fill** (or **Stroke**) → **Pattern** in a drawing
+   tool's options bar, or select a shape and, in Properties →
+   **Appearance**, set the paint's **Type** to Pattern.
+2. Adjust it in the pattern editor: **Scale**, **Angle**, **Stretch with
    shape**, or another
    pattern: click the pattern's name for the library's tiles (the same
    ones as the Libraries window's Patterns, which marks the one in use).
@@ -1687,8 +1694,8 @@ tile you make.
 
 #### Make your own
 
-- Select what the tile should hold and choose **Edit → Define Pattern…**,
-  as in Photoshop. The tile is the size of the selection's visible box.
+- Select what the tile should hold and choose **Edit → Define Pattern…**.
+  The tile is the size of the selection's visible box.
 - It looks the same as it does on the canvas, including transforms,
   gradients and clip paths.
 
@@ -1715,9 +1722,9 @@ and share them with other apps.
 2. Pick a tab: **Swatches**, **Gradients**, **Patterns** or **Symbols**.
 3. Manage the tiles with the bar below them.
 
-Using them is done where you work: the [Color](#colours) panel's Fill and
-Stroke pick swatches, gradients and patterns from their own pickers, and
-the Custom Shape tool draws a symbol.
+Using them is done where you work: [Fill and stroke](#fill-and-stroke)
+pick swatches, gradients and patterns from their dropdowns, and the Custom
+Shape tool draws a symbol.
 
 #### The tiles
 
@@ -1733,7 +1740,7 @@ the Custom Shape tool draws a symbol.
 
 Swatches, Gradients and Patterns all work this way; Symbols has its own
 bar (see [Symbols](#symbols)). They're saved in this browser
-(localStorage), like Photoshop's presets.
+(localStorage).
 
 #### Good to know
 
@@ -1793,40 +1800,58 @@ It reads:
 - Pattern tiles and symbols from a file are sanitised like imported
   drawings.
 
-### Colours
+### Fill and stroke
 
-![The Color panel: fill and stroke, each with its switch, colour, hex, alpha and type](docs/help/colours.png)
+![The Rectangle tool's Fill dropdown: this drawing's colours, the swatches, and a hex and alpha](docs/help/fill-and-stroke.png)
 
-Set the fill and stroke colours of what you draw or have selected, and
-how see-through they are.
+Every shape has its own fill and stroke: set them for what you draw, or for
+what's selected.
 
-1. Click **Fill** or **Stroke** in the **Color** panel (or the fill and
-   stroke chips at the bottom of the toolbar) to make it the active
-   paint.
-2. Tick **On** to paint it, or untick it for none.
-3. Click the paint's swatch for the colour picker, type a hex code, or pick a swatch
-   with the swatches button beside the hex code (its **Custom…** opens the
-   [Libraries](#libraries) window's Swatches).
-4. For a gradient or a pattern, set the paint's **Type**: its editor
-   opens inside that paint's section, under the Type.
+1. With a drawing tool (a shape, the Pen, the Pencil, Type), click **Fill**
+   or **Stroke** in the options bar.
+2. Choose how it paints: **None**, **Colour**, **Gradient** or **Pattern**.
+3. For a colour, click one of **This drawing**'s colours (the ones it
+   already uses, most used first) or a **Swatch**, or type a hex code and
+   its alpha. For a gradient or a pattern, click one of its tiles.
+4. Draw: the new shape has it. The shape you just drew stays selected, so a
+   change goes on it too.
 
-#### Fill and Stroke
+#### Appearance (Properties)
 
-- Each folds to its first row with the arrow at its left, to save room;
-  SVGCraft remembers which you folded.
+![Properties' Appearance: Fill and Stroke, each with its colour, hex, alpha and type](docs/help/colours.png)
+
+The selected shape's fill and stroke in full, with the Move tool or any
+other:
+
+- **Fill** and **Stroke**: the swatch (click it for the colour picker),
+  the hex code, the **alpha** (how see-through the colour is, 0–100%) and
+  the swatches button. Each folds to its first row with the arrow at its
+  left.
+- **Type**: **None**, **Solid**, **Linear** or **Radial** gradient, or
+  **Pattern**. A gradient's or pattern's editor opens under it (see
+  [Gradients](#gradients) and [Patterns](#patterns)).
 - The stroke's width, alignment, caps, joins and dashes sit under Stroke.
+- In Chromium browsers, the eyedropper button beside **Appearance** picks a
+  colour from anywhere on the screen.
 
 #### Transparency
 
-- **Alpha**, under Fill and under Stroke: how see-through each paint is.
+- **Alpha**, part of each colour: how see-through the fill or the stroke
+  is.
 - **Opacity**, in the Layers panel: how see-through the whole object is.
-- The three are separate, and the artboard's checkerboard shows the
-  result.
+- They're separate, so a see-through fill can have a solid outline.
 
 #### Shortcuts
 
-- X (or **Edit → Swap Fill and Stroke**) swaps fill and stroke.
+- **X** (or **Edit → Swap Fill and Stroke**) swaps fill and stroke.
+- **D**: the default, a black fill and no stroke.
 - Shift-click a swatch to apply it to the other paint.
+
+#### Good to know
+
+- The swatches are kept in this browser and managed in the
+  [Libraries](#libraries) window; **Custom…** in the dropdown opens it.
+  This drawing's colours need no managing: they're what's in the file.
 
 ### Selecting, moving and arranging
 
@@ -1865,9 +1890,8 @@ Pick objects, then move, resize, rotate, group and stack them.
 
 ## Type
 
-Set headlines, labels and blocks of text with the Type tool (T), which works
-like Photoshop's. Text stays live and editable, and saves as ordinary SVG
-text.
+Set headlines, labels and blocks of text with the Type tool (T). Text
+stays live and editable, and saves as ordinary SVG text.
 
 ### Add text
 
@@ -1947,7 +1971,7 @@ catalogue.
 
 ![The word Lights selected while editing, given wider tracking and an underline](docs/help/style-individual-characters.png)
 
-Give some characters their own font, size or colour, as in Photoshop.
+Give some characters their own font, size or colour.
 
 1. Edit the text (click it with the Type tool).
 2. Select characters: drag, double-click a word, or Shift+arrows.
@@ -1962,7 +1986,7 @@ Give some characters their own font, size or colour, as in Photoshop.
   caret.
 - With nothing selected while editing, a change applies to the whole layer.
 - Applying a setting to a selected layer when you're not editing styles the
-  whole layer and clears that setting from its characters, as in Photoshop.
+  whole layer and clears that setting from its characters.
 - Auto leading is 120% of the largest size on each line. Paragraph text
   wraps by the real width of every run.
 
@@ -1984,7 +2008,7 @@ selected.
 - **Size**, in px.
 - **Lead** (leading, line spacing): leave it empty for Auto, 120% of the
   size.
-- **Track** (tracking): in thousandths of an em, as in Photoshop.
+- **Track** (tracking): in thousandths of an em.
 - **Shift** (baseline shift), in px.
 - Toggles: **All Caps**, **Small Caps**, **Superscript**, **Subscript**,
   **Underline** and **Strikethrough**.
@@ -2123,8 +2147,8 @@ Text on a path is standard SVG, so other browsers and editors show it.
 
 ## Layers
 
-The Layers panel works like Photoshop's. Every shape is a layer, groups are
-folders, and you select, stack, hide, lock, blend and style layers from it.
+In the Layers panel every shape is a layer and groups are folders. You
+select, stack, hide, lock, blend and style layers from it.
 
 ### Layer rows and folders
 
@@ -2199,8 +2223,7 @@ Change what's in front, or copy and delete layers, by dragging their rows.
 - **Into a group:** drop on the middle of a folder.
 - **To the back:** drop on the empty space at the bottom of the list.
 - **Copy in place:** drop rows on the New button (the plus square) at the
-  bottom of the panel, as in Photoshop. The copies go just above the
-  originals.
+  bottom of the panel. The copies go just above the originals.
 - **Delete:** drop rows on the bin.
 
 Dragging a selected row moves the whole selection.
@@ -2219,7 +2242,7 @@ Hide layers you're not working on, and lock the ones you don't want to
 change by accident.
 
 - **Hide or show:** click a row's eye.
-- **Show just one layer:** Alt-click its eye, as in Photoshop. Every other
+- **Show just one layer:** Alt-click its eye. Every other
   layer hides (the groups it's in stay shown). Alt-click it again and the
   others come back as they were. Right-clicking the eye offers Hide All
   Other Layers and Show All Other Layers too.
@@ -2289,7 +2312,7 @@ Make a layer see-through, or mix it with the layers below.
 - **Normal**, **Darken**, **Multiply**, **Color Burn**, **Lighten**,
   **Screen**, **Color Dodge**, **Overlay**, **Soft Light**, **Hard Light**,
   **Difference**, **Exclusion**, **Hue**, **Saturation**, **Color** and
-  **Luminosity**, as in Photoshop.
+  **Luminosity**.
 - **Pass Through** (groups only): the group's layers blend with whatever is
   below the group. A new group starts out on Pass Through.
 
@@ -2306,8 +2329,8 @@ Make a layer see-through, or mix it with the layers below.
 
 ![The Layer menu with two layers selected, offering Merge Layers](docs/help/merge-layers.png)
 
-Turn several layers into one, as in Photoshop, but the result stays vector
-and nothing on screen changes.
+Turn several layers into one. The result stays vector and nothing on
+screen changes.
 
 1. Select what to merge.
 2. Choose **Layer → Merge Down** (Ctrl+E). The menu item names what it will
@@ -2363,7 +2386,7 @@ everything back.
 
 ![The Layer → New submenu, with Layer via Copy and Layer via Cut](docs/help/layer-via-copy-cut.png)
 
-Put the selected part of a layer on a new layer above it, as in Photoshop.
+Put the selected part of a layer on a new layer above it.
 
 1. Select layers, or pick points with Edit Points.
 2. Choose **Layer → New → Layer via Copy** (Ctrl+J) or **Layer via Cut**
@@ -2389,8 +2412,8 @@ The new layer is selected with the Move tool.
 
 ![The Layer Style dialog, editing a drop shadow on the Title layer](docs/help/layer-style-fx.png)
 
-Add shadows, glows, an overlay or a blur to a layer, as with Photoshop's
-Layer Style dialog.
+Add shadows, glows, an overlay or a blur to a layer with the Layer Style
+dialog.
 
 1. Select the layer.
 2. Open the dialog: click the **fx** button at the bottom of the Layers
@@ -2422,7 +2445,7 @@ Both are in the layer's right-click menu too.
 
 #### Good to know
 
-- Angles, distances and sizes are in document pixels, as in Photoshop, so a
+- Angles, distances and sizes are in document pixels, so a
   rotated or scaled layer still casts its shadow the same way.
 - Each layer gets its own SVG `<filter>`, which follows the layer as it
   changes and is exported with it.
@@ -2444,7 +2467,7 @@ when you move away, click, or press a key.
 
 ## Combine Shapes
 
-Merge shapes into one path, as Photoshop and Illustrator do.
+Merge shapes into one path.
 
 ### Combine selected shapes
 
@@ -2543,8 +2566,8 @@ stay grouped, the group renamed as a plain group (Group 1 …).
 
 ## Create Outlines
 
-Turn text into shapes, as Illustrator's Create Outlines and Photoshop's
-Convert to Shape do, so the drawing no longer needs its fonts.
+Turn text into shapes, as Illustrator's Create Outlines does, so the
+drawing no longer needs its fonts.
 
 ### Turn text into outlines
 
@@ -2916,7 +2939,7 @@ ten instances.
   Charts, Faces and Places.
 - They're placed 64 px tall, in the current fill colour.
 - They don't set a colour of their own, so the instance's fill paints them:
-  select an instance and pick a colour in the Color panel to
+  select an instance and pick a colour in Properties → Appearance to
   recolour it.
 - Each icon's `<symbol>` carries its credit
   (`data-credit="Font Awesome Free 6.7.2 — CC BY 4.0"`), so the attribution
@@ -2941,7 +2964,7 @@ Metadata).
 
 Say what the drawing is, who made it and how others may use it.
 
-1. Choose **File → File Info…** (Alt+Shift+Ctrl+I, as in Photoshop).
+1. Choose **File → File Info…** (Alt+Shift+Ctrl+I).
 2. Fill in the fields you want.
 3. Click **OK**. It's one undo step and puts the \* on the tab. Cancel or
    Esc throws the edits away.
@@ -3003,9 +3026,9 @@ Anything else is refused with a note under the fields.
 
 ![The Edit menu, with each command's shortcut beside it](docs/help/shortcuts.png)
 
-The keys follow Photoshop's. Every menu shows its commands' shortcuts, and
-every tooltip ends with its control's shortcut in parentheses, taken from
-the menus, so they always agree.
+The familiar image-editor shortcuts work here. Every menu shows its
+commands' shortcuts, and every tooltip ends with its control's shortcut
+in parentheses, taken from the menus, so they always agree.
 
 | Key                       | Action                                             |
 | ------------------------- | -------------------------------------------------- |
@@ -3013,9 +3036,9 @@ the menus, so they always agree.
 | P B E I                   | Pen · Pencil · Eraser · Eyedropper                 |
 | U · Shift+U               | Shape tool · next shape in the group               |
 | R O L                     | Rectangle · Ellipse · Line                         |
-| T G H Z                   | Type · Gradient · Hand · Zoom                      |
+| T H Z                     | Type · Hand · Zoom                                 |
 | Space (hold)              | Pan                                                |
-| D · X                     | Default fill and stroke (black, white) · swap them |
+| D · X                     | Default paint (black fill, no stroke) · swap them  |
 | [ ]                       | Stroke width down / up                             |
 | Ctrl+Z / Ctrl+Shift+Z     | Undo / redo (Ctrl+Y redoes too)                    |
 | Ctrl+C / X / V            | Copy / cut / paste (as SVG)                        |
@@ -3048,9 +3071,9 @@ the menus, so they always agree.
 | F10 (or Alt alone)        | The menu bar (and back)                            |
 | Shift+F10 · menu key      | The right-click menu of the canvas or layer        |
 
-#### Where they differ from Photoshop
+#### Where they differ from the usual keys
 
-A browser keeps a few keys for itself, so these differ:
+A browser keeps a few keys for itself, so these are different here:
 
 - Free Transform is Alt+T (Ctrl+T opens a tab).
 - Layer via Cut is Alt+Shift+J (Ctrl+Shift+J opens the console in Chrome

@@ -102,7 +102,7 @@ test.describe('the pattern editor', () => {
     await select(page, 'a');
     await tab(page, 'patterns');
     await page.locator('#sc-patlib .sc-tile').nth(2).click(); // Dots
-    await page.click('[data-tab="color"]');
+    await page.click('[data-tab="props"]');
   });
 
   test('the button shows the pattern; a tile in its popup swaps it', async ({ page }) => {

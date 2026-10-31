@@ -8,7 +8,7 @@
 // status bar. A drawing in mm, cm, in or pt is saved with real-world
 // width and height (width="210mm"), so print and cutting software know
 // its size; the viewBox stays in pixels. Strokes, type and effects stay in
-// pixels, as in Photoshop.
+// pixels.
 // name, px per unit, a round grid size in that unit.
 const UNITS = {
   px: ['Pixels', 1, 20],
