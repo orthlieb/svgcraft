@@ -99,6 +99,8 @@ function updateOptions() {
 }
 
 function setTool(name) {
+  // The Gradient tool's handles are the Move tool's now.
+  if (name === 'gradient') name = 'select';
   if (!tools[name]) return;
   // A phone only previews: the Hand tool (pan) is all there is.
   if (previewMode && name !== 'hand') name = 'hand';

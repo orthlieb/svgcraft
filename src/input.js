@@ -188,7 +188,6 @@ const TOOL_KEYS = {
   l: 'line',
   t: 'text',
   i: 'eyedropper',
-  g: 'gradient',
   h: 'hand',
   z: 'zoom',
 };

@@ -45,23 +45,6 @@ async function clickDoc(page, x, y, tool = 'select') {
   await page.mouse.click(p.x, p.y);
 }
 
-// Drag between two document points.
-async function dragDoc(page, from, to) {
-  const at = (p) =>
-    page.evaluate(([x, y]) => {
-      const q = new DOMPoint(x, y).matrixTransform(
-        document.getElementById('sc-doc').getScreenCTM(),
-      );
-      return { x: q.x, y: q.y };
-    }, p);
-  const a = await at(from);
-  const b = await at(to);
-  await page.mouse.move(a.x, a.y);
-  await page.mouse.down();
-  await page.mouse.move(b.x, b.y, { steps: 8 });
-  await page.mouse.up();
-}
-
 async function shot(page, name) {
   await page.mouse.move(0, 0);
   await page.waitForTimeout(300);
@@ -81,11 +64,8 @@ await page.click('#sc-fx [data-fx-page="ds"] button');
 await shot(page, 'layer-style');
 await page.keyboard.press('Escape');
 
-// 3. The gradient editor and the Gradient tool, on the radial backdrop.
+// 3. The gradient editor and its handles on the canvas, on the radial backdrop.
 await clickDoc(page, 70, 90);
-await page.keyboard.press('g');
-// Lay it again from the centre out, so its handles show on the canvas.
-await dragDoc(page, [400, 235], [740, 470]);
 await page.click('[data-tab="props"]');
 await shot(page, 'gradients');
 

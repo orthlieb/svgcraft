@@ -11,6 +11,12 @@ tools.select = {
   // Photoshop's Move tool: the arrow with its four-way cross.
   cursor: cursorFor['move+move'],
   down(e, p) {
+    // A gradient's end handles, shown on a shape painted with one: the
+    // Gradient tool's handles, dragged with the Move tool.
+    if (e.target.closest?.('[data-grad-h]')) {
+      this.g = { mode: 'grad' };
+      return tools.gradient.down(e, p);
+    }
     // An animation's pivot (the ⊕ the Animation tab shows).
     if (e.target.closest?.('[data-anim-origin]') && animTarget()) {
       const el = animTarget();
@@ -90,6 +96,7 @@ tools.select = {
   move(e, p) {
     const g = this.g;
     if (!g) return;
+    if (g.mode === 'grad') return tools.gradient.move(e, p);
     if (g.mode === 'marquee') {
       const x = Math.min(g.p0.x, p.x);
       const y = Math.min(g.p0.y, p.y);
@@ -204,6 +211,7 @@ tools.select = {
     this.g = null;
     guides.replaceChildren();
     if (!g) return;
+    if (g.mode === 'grad') return tools.gradient.up();
     if (g.mode === 'rot') stage.style.cursor = this.cursor;
     if (g.mode === 'marquee') setSel(state.sel);
     else if (g.mode === 'pivot') {

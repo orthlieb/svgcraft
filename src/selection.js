@@ -114,7 +114,6 @@ function drawSelection() {
   const n = state.sel.length;
   $('#sc-pos').dataset.sel = `${n} selected · ${inUnits(box.w)}×${inUnits(box.h)}`;
   syncTransformFields(box);
-  if (state.tool === 'gradient') drawGradAnnotator(z);
   if (state.tool !== 'select') return;
   // A locked layer shows its box, not handles it would refuse.
   if (state.sel.some((el) => lockOf(el))) return;
@@ -190,6 +189,8 @@ function drawSelection() {
       selLayer,
     );
   }
+  // A gradient's handles, on a shape painted with one (the active paint's).
+  if (state.sel.length === 1) drawGradAnnotator(z);
   // An animation's pivot sits on top, as Photoshop's reference point does.
   const pivot = selLayer.querySelector('[data-anim-origin]');
   if (pivot) selLayer.append(pivot);

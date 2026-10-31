@@ -1559,9 +1559,11 @@ Fill or stroke a shape with a smooth blend of colours.
    **Appearance**, set the paint's **Type** to Linear or Radial.
 2. Click **Fill** or **Stroke** in Appearance to make it the active paint.
 3. Edit the stops in the gradient editor below.
-4. To set the direction on the canvas, pick the **Gradient** tool (G) and
-   drag across the selection. Shift snaps to 45°, and a radial gradient
-   drags from the centre outwards. Drag the end handles to adjust it.
+4. To set its direction and span on the canvas, drag its handles: a
+   shape painted with a gradient shows them (for the active paint, Fill or
+   Stroke) while you use the Move tool. A linear gradient runs from the
+   round handle to the other; a radial one spreads from its centre out to
+   the outer handle.
 
 #### The gradient editor
 
@@ -1585,8 +1587,9 @@ Fill or stroke a shape with a smooth blend of colours.
 #### Tips
 
 - With a gradient active, clicking a swatch recolours the selected stop.
-- The Gradient tool's options bar switches between **Linear** and
-  **Radial** for the active paint of the selection.
+- **Linear** and **Radial** are paint types, beside **Solid** in
+  Appearance; switching keeps the stops.
+- There's no Gradient tool: its handles are the Move tool's.
 
 #### Good to know
 
@@ -3028,7 +3031,7 @@ the menus, so they always agree.
 | P B E I                   | Pen · Pencil · Eraser · Eyedropper                 |
 | U · Shift+U               | Shape tool · next shape in the group               |
 | R O L                     | Rectangle · Ellipse · Line                         |
-| T G H Z                   | Type · Gradient · Hand · Zoom                      |
+| T H Z                     | Type · Hand · Zoom                                 |
 | Space (hold)              | Pan                                                |
 | D · X                     | Default paint (black fill, no stroke) · swap them  |
 | [ ]                       | Stroke width down / up                             |

@@ -1261,19 +1261,6 @@
           <i data-icon="paragraph"></i>
         </button>
       </div>
-      <div class="sc-opt" data-for="gradient">
-        <div class="sc-seg" role="radiogroup" aria-label="Gradient type">
-          <button data-gtype="linear" role="radio">
-            <span class="sc-kind-glyph linear"></span> Linear
-          </button>
-          <button data-gtype="radial" role="radio">
-            <span class="sc-kind-glyph radial"></span> Radial
-          </button>
-        </div>
-        <span class="sc-opt-note"
-          >Applies to the active paint (fill or stroke) of the selection</span
-        >
-      </div>
       <div class="sc-opt" data-for="eyedropper">
         <span class="sc-opt-label">Sample:</span>
         <div class="sc-seg" role="radiogroup" aria-label="Eyedropper samples">
@@ -1345,14 +1332,6 @@
           data-tip-desc="Object mode deletes what you rub; Cut mode splits stroked paths."
         >
           <i data-icon="eraser"></i>
-        </button>
-        <button
-          data-tool="gradient"
-          aria-label="Gradient"
-          data-tip="Gradient"
-          data-tip-desc="Drag across a shape to lay a linear or radial gradient."
-        >
-          <i data-icon="sc-gradient"></i>
         </button>
         <span class="sc-sep"></span>
         <button
@@ -2070,7 +2049,7 @@
                   >
                   <p class="sc-hint">
                     Click the bar to add a stop. Drag a stop to move it, or down off the bar to
-                    remove it. The Gradient tool (G) sets the direction on the canvas.
+                    remove it. On the canvas, drag the gradient's handles to set its direction.
                   </p>
                 </div>
                 <div class="sc-grad sc-paint-editor" id="sc-pat" hidden>

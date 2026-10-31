@@ -1,7 +1,9 @@
-// SVGCraft — The Gradient tool.
+// SVGCraft — A gradient's handles on the canvas (once the Gradient tool).
 'use strict';
 
-// ---- Gradient tool ----------------------------------------------------------------
+// ---- gradient handles ----------------------------------------------------------
+// The Move tool hands a drag on a gradient's end handle here (src/tools.js);
+// there's no Gradient tool of its own any more (setTool maps it to Move).
 tools.gradient = {
   hint: 'Drag across the selection to lay the active paint’s gradient (Shift snaps to 45°; radial drags from the centre out) · Drag the end handles to adjust',
   cursor: 'crosshair',
