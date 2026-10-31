@@ -805,7 +805,7 @@ function bindNumber(id, key) {
 }
 
 // Scrubby labels: drag a field's label sideways to change its value
-// (Shift = 10× faster), as in Photoshop's options bar.
+// (Shift = 10× faster).
 function wireScrubbers() {
   for (const lab of document.querySelectorAll('.sc-scrub')) {
     const input = lab.parentElement.querySelector('input');

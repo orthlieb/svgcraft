@@ -191,7 +191,7 @@ function drawSelection() {
   }
   // A gradient's handles, on a shape painted with one (the active paint's).
   if (state.sel.length === 1) drawGradAnnotator(z);
-  // An animation's pivot sits on top, as Photoshop's reference point does.
+  // An animation's pivot sits on top, like a transform's reference point.
   const pivot = selLayer.querySelector('[data-anim-origin]');
   if (pivot) selLayer.append(pivot);
 }
@@ -462,7 +462,7 @@ function layerRow(el, depth, open) {
     li.append(b);
   }
 
-  // Photoshop's rules: click selects, Ctrl/⌘-click toggles, Shift-click
+  // The usual rules: click selects, Ctrl/⌘-click toggles, Shift-click
   // selects the run of rows from the last plain click.
   li.addEventListener('click', (e) => {
     if (e.target.closest('input')) return;
@@ -476,7 +476,7 @@ function layerRow(el, depth, open) {
       setSel([el]);
     }
   });
-  // Double-click a row (not its name): Layer Style, as in Photoshop.
+  // Double-click a row (not its name): Layer Style.
   li.addEventListener('dblclick', (e) => {
     if (e.target.closest('.sc-eye, .sc-twisty, input')) return;
     setSel([el]);
@@ -485,8 +485,8 @@ function layerRow(el, depth, open) {
   // The keyboard: up and down select the next row (Shift adds it), Alt+up
   // and down move the layer up and down the stack, F2 or Enter renames,
   // right and left open and fold a group.
-  // A row clicked with the mouse leaves the arrows to nudge the layer, as
-  // in Photoshop; reached by the keyboard, the row takes them.
+  // A row clicked with the mouse leaves the arrows to nudge the layer;
+  // reached by the keyboard, the row takes them.
   li.addEventListener('keydown', (e) => {
     if (e.target !== li || !layerKeys) return;
     const rows = [...$('#sc-layers').children].filter((r) => r.layerEl);
@@ -518,7 +518,7 @@ function layerRow(el, depth, open) {
   return li;
 }
 
-// Alt-click an eye: show only that layer, as in Photoshop; Alt-click it
+// Alt-click an eye: show only that layer; Alt-click it
 // again for the others back as they were.
 let solo = null;
 function soloLayer(el) {
@@ -590,7 +590,7 @@ function wireLayerDrag(li, el) {
   });
 }
 
-// As in Photoshop, layers dragged onto the footer's New button are copied
+// Layers dragged onto the footer's New button are copied
 // in place, and onto the bin deleted.
 for (const [name, effect, run] of [
   ['duplicate', 'copy', () => actions.duplicate(0)],

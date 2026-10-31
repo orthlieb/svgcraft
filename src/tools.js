@@ -8,7 +8,7 @@ const tools = {};
 
 tools.select = {
   hint: 'Click to select · Shift-click adds · Drag to move · Handles scale (Shift keeps ratio, Alt from centre) · Arrows nudge · Double-click a shape to edit its points, or text to edit it',
-  // Photoshop's Move tool: the arrow with its four-way cross.
+  // The Move tool: the arrow with its four-way cross.
   cursor: cursorFor['move+move'],
   down(e, p) {
     // A gradient's end handles, shown on a shape painted with one: the
@@ -492,7 +492,7 @@ function shapeTool(kind, hint) {
       const b = bboxDoc(el);
       if (!b || (b.w * state.zoom < 2 && b.h * state.zoom < 2)) {
         el.remove();
-        // A click: Photoshop's Create box, for an exact size.
+        // A click: the Create box, for an exact size.
         if (kind !== 'line') openCreateShape(kind, this.p0);
         return;
       }

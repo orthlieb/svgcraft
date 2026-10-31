@@ -540,7 +540,7 @@ tools.node = {
       }
       return;
     }
-    // As in Photoshop, a drag begun with Alt takes points away from what's
+    // A drag begun with Alt takes points away from what's
     // picked, and one begun with Shift adds to it.
     const cut = e.altKey;
     const keep = cut || e.shiftKey;
@@ -559,7 +559,7 @@ tools.node = {
     if (!g || !this.el) return;
     if (g.mode === 'marquee') {
       // A rectangle or an oval (the options bar), corner to corner, or from
-      // its centre with Alt, as Photoshop's marquees; or freeform, a lasso
+      // its centre with Alt, as the usual marquees; or freeform, a lasso
       // drawn round the points.
       const cls = 'sc-ov sc-ov-fill sc-ov-dash';
       guides.replaceChildren();

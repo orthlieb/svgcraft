@@ -2,7 +2,7 @@
 'use strict';
 
 // ---------------------------------------------------------------------
-// File → File Info… (Photoshop's File Info, Inkscape's Document Metadata)
+// File → File Info… (Inkscape's Document Metadata)
 //
 // state.meta holds the document's title, author, licence and so on. It's
 // part of history (see snapshot) and serialize writes it where SVG keeps

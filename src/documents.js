@@ -219,8 +219,7 @@ function addDoc(name) {
 }
 
 // A new tab (File → New… and New Icon… set it up). A background colour
-// is a full-size "Background" layer at the bottom, locked in place, as in
-// Photoshop.
+// is a full-size "Background" layer at the bottom, locked in place.
 function newDoc({
   w = 800,
   h = 600,
@@ -269,7 +268,7 @@ function openDoc(text, name, handle) {
   afterChange();
 }
 
-// A drawing with unsaved changes asks first, as Photoshop does: Save (the
+// A drawing with unsaved changes asks first: Save (the
 // default) saves it and then closes it, unless the save didn't happen;
 // Don't Save drops the changes; Cancel keeps it open.
 async function closeDoc(d) {

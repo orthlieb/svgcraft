@@ -5,7 +5,7 @@
 // undo step. It's SVG, so nothing is resampled: each top-level layer gets
 // the scale on top of its transform, so strokes, text, patterns and
 // gradients scale with the shapes. Layer effects are measured in document
-// pixels, so "Scale effects" (on by default, Photoshop's Scale Styles)
+// pixels, so "Scale effects" (on by default)
 // multiplies their distances and sizes too; animation distances always
 // follow the art.
 const isDlg = $('#sc-imagesize');

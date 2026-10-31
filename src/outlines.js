@@ -2,7 +2,7 @@
 'use strict';
 
 // ---- Create Outlines -------------------------------------------------------------
-// Illustrator's Type → Create Outlines (Photoshop's Convert to Shape): each
+// Illustrator's Type → Create Outlines: each
 // text layer becomes a group of filled paths that look the same. The
 // browser has already laid the text out, so every character goes exactly
 // where it's drawn on screen (kerning, tracking, lines, alignment and

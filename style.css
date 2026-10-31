@@ -1,4 +1,4 @@
-/* SVGCraft — Photoshop-style workspace.
+/* SVGCraft — a familiar image-editor workspace.
    Layout: menu bar / options bar / [toolbar | document window | docked panels] / status bar.
    Light values sit on :root; dark values redefine the same tokens (OS dark mode
    unless the user picked Light, or an explicit Dark choice). */
@@ -462,7 +462,7 @@ kbd {
   align-items: center;
   gap: 5px;
 }
-/* Scrubby label: drag sideways to change the field (Photoshop's trick). */
+/* Scrubby label: drag sideways to change the field. */
 .sc-scrub {
   cursor: ew-resize;
   user-select: none;
@@ -569,7 +569,7 @@ kbd {
   background: var(--chip, transparent);
 }
 /* Fill in front at the top left, stroke behind it at the bottom right:
-   Photoshop's foreground and background colours. Low enough that the
+   the familiar foreground and background colours. Low enough that the
    active chip's outline (3px out) clears the buttons above. */
 .sc-tb-fill {
   left: 1px;
@@ -3343,7 +3343,7 @@ body.sc-no-doc .sc-status > * {
   height: 15px;
   fill: currentColor;
 }
-/* Photoshop's corner mark: this button holds more tools. */
+/* The corner mark: this button holds more tools. */
 .sc-tool-more {
   position: absolute;
   right: 3px;
@@ -3545,7 +3545,7 @@ body.sc-no-doc .sc-status > * {
   }
 }
 
-/* Tab / Shift+Tab: the panels hidden, as in Photoshop. */
+/* Tab / Shift+Tab: the panels hidden. */
 body.sc-no-panels .sc-tools,
 body.sc-no-panels .sc-options,
 body.sc-no-panels #sc-panel,

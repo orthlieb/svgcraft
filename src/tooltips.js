@@ -65,7 +65,7 @@ function placeTip(el) {
   let x;
   let y;
   if (el.closest('.sc-tools')) {
-    // Beside the toolbar, like Photoshop.
+    // Beside the toolbar.
     x = r.right + gap + 2;
     y = r.top + r.height / 2 - t.height / 2;
   } else {

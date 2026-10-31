@@ -1,4 +1,4 @@
-// SVGCraft — File → New…: Photoshop's New Document dialog.
+// SVGCraft — File → New…: the New Document dialog.
 'use strict';
 
 // Categories of presets down the left, the document's details on the

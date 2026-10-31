@@ -135,7 +135,7 @@ stage.addEventListener(
 // Browser zoom ----------------------------------------------------------
 // The editor's own zoom is for the drawing; the page itself never zooms, so
 // the panels keep their size and nothing scrolls off. Ctrl/⌘ + = − 0 (also
-// on the number pad) zoom the canvas, as in Photoshop, even in a field;
+// on the number pad) zoom the canvas, even in a field;
 // Ctrl/⌘ + wheel and trackpad pinches outside the canvas do nothing.
 // (Touch pinches: the viewport meta tag and touch-action in style.css.)
 window.addEventListener(
@@ -175,7 +175,7 @@ for (const t of ['gesturestart', 'gesturechange', 'gestureend'])
   });
 
 // Keyboard ------------------------------------------------------------
-// Photoshop's tool keys (U, the Shape tools, and A, Edit Points and its
+// The familiar tool keys (U, the Shape tools, and A, Edit Points and its
 // selection shapes, are handled on their own); R, O
 // and L also pick the rectangle, ellipse and line.
 const TOOL_KEYS = {
@@ -254,7 +254,7 @@ window.addEventListener('keydown', (e) => {
     endTransform(e.key === 'Enter');
     return;
   }
-  // Layer via Cut: Photoshop's Ctrl+Shift+J opens the browser's console in
+  // Layer via Cut: the usual Ctrl+Shift+J opens the browser's console in
   // Chrome and Firefox, so Alt+Shift+J stands in (Ctrl+Shift+J still works
   // where it reaches the page).
   if (e.altKey && e.shiftKey && !mod && e.code === 'KeyJ') {
@@ -273,10 +273,10 @@ window.addEventListener('keydown', (e) => {
     e.preventDefault();
     return;
   }
-  // Ctrl+Alt+G / Ctrl+Alt+Shift+G (Photoshop's Create Clipping Mask), by
+  // Ctrl+Alt+G / Ctrl+Alt+Shift+G (Create Clipping Mask), by
   // key position: Alt can change the character typed. Not Illustrator's
   // Ctrl+7: browsers keep Ctrl+1–8 for switching tabs.
-  // File Info…: Photoshop's Ctrl+Alt+Shift+I, by key position.
+  // File Info…: the usual Ctrl+Alt+Shift+I, by key position.
   if (mod && e.altKey && e.shiftKey && e.code === 'KeyI') {
     e.preventDefault();
     openFileInfo();
@@ -287,7 +287,7 @@ window.addEventListener('keydown', (e) => {
     toggleIconPreview();
     return;
   }
-  // Image Size (Ctrl+Alt+I) and Canvas Size (Ctrl+Alt+C), as in Photoshop.
+  // Image Size (Ctrl+Alt+I) and Canvas Size (Ctrl+Alt+C), the usual keys.
   if (mod && e.altKey && !e.shiftKey && (e.code === 'KeyI' || e.code === 'KeyC')) {
     e.preventDefault();
     if (e.code === 'KeyI') openImageSize();
@@ -341,7 +341,7 @@ window.addEventListener('keydown', (e) => {
     return;
   }
   if (e.altKey) return;
-  // Photoshop's other Select → Inverse key; Chrome keeps Ctrl+Shift+I.
+  // The other usual Select → Inverse key; Chrome keeps Ctrl+Shift+I.
   if (k === 'f7' && e.shiftKey) {
     e.preventDefault();
     cmds.invertSelection();
@@ -363,7 +363,7 @@ window.addEventListener('keydown', (e) => {
   else if (k === 'a') marqueeKey(e.shiftKey);
   else if (k === 'tab') {
     // On the canvas, Tab hides the panels (Shift+Tab just the right-hand
-    // ones), as in Photoshop. With nothing focused it goes into the app,
+    // ones). With nothing focused it goes into the app,
     // at the menu bar; on a control it moves focus as usual.
     const at = document.activeElement;
     if (document.querySelector('dialog[open]')) return;
@@ -374,7 +374,7 @@ window.addEventListener('keydown', (e) => {
   } else if (TOOL_KEYS[k]) setTool(TOOL_KEYS[k]);
   else if (k === 'x') swapPaint();
   else if (k === 'd') defaultPaint();
-  // Photoshop's brush size keys: the stroke width.
+  // The familiar brush size keys: the stroke width.
   else if (e.code === 'BracketRight' || e.code === 'BracketLeft')
     setStrokeWidthBy(e.code === 'BracketRight' ? 1 : -1);
   else if (k === '+' || k === '=') zoomAt(state.zoom * 1.25);

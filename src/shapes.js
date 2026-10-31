@@ -2,7 +2,7 @@
 // Polygon / Star, Line (with arrowheads) and Custom Shape.
 'use strict';
 
-// As in Photoshop, the toolbar shows one Shape tool: the last one used.
+// The toolbar shows one Shape tool: the last one used.
 // Its flyout (hold the button, right-click it, or click its corner mark)
 // lists them all; U picks it and Shift+U steps through the group.
 const SHAPE_TOOLS = ['rect', 'ellipse', 'triangle', 'polygon', 'line', 'custom'];

@@ -1,7 +1,7 @@
 // SVGCraft — Layer → New → Layer via Copy and Layer via Cut.
 'use strict';
 
-// Photoshop's Layer via Copy (Ctrl+J) and Layer via Cut (Ctrl+Shift+J) put
+// Layer via Copy (Ctrl+J) and Layer via Cut (Ctrl+Shift+J) put
 // the selected part of a layer on a new layer above it. Here the part is
 // either the segments between points picked with Edit Points, or whole
 // layers: Copy duplicates them in place, Cut lifts shapes picked inside a
@@ -71,7 +71,7 @@ function pathLike(el, subs) {
 }
 
 // The new layer, above the one it came from, ends up selected with the
-// Move tool, as in Photoshop.
+// Move tool.
 function selectNew(els) {
   setTool('select');
   state.sel = els;

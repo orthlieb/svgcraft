@@ -198,7 +198,7 @@ for (const inp of $('#sc-dash-custom').querySelectorAll('input'))
     const vals = [...$('#sc-dash-custom').querySelectorAll('input')].map((x) =>
       x.value === '' ? null : Math.max(0, +x.value || 0),
     );
-    // Blank fields end the pattern, as in Photoshop.
+    // Blank fields end the pattern.
     const end = vals.indexOf(null);
     const pat = end < 0 ? vals : vals.slice(0, end);
     if (!pat.some((n) => n > 0)) return syncStyleUI();
@@ -269,7 +269,7 @@ $('#sc-scrubby').addEventListener('change', (e) => {
   state.scrubby = e.target.checked;
   syncZoomOpts();
 });
-// Double-clicking the Zoom tool goes to 100%, as in Photoshop.
+// Double-clicking the Zoom tool goes to 100%.
 $('[data-tool="zoom"]').addEventListener('dblclick', () => zoomAt(1));
 // Shift and Alt change the pointer: the Zoom tool's in / out, the
 // selection badges (src/cursors.js).

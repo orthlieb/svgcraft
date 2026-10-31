@@ -53,8 +53,8 @@ const stopMarkup = (g) =>
         '/>',
     )
     .join('');
-// A gradient in its box's own coordinates: Photoshop angles run
-// anticlockwise from 3 o'clock.
+// A gradient in its box's own coordinates: paint angles run
+// anticlockwise from 3 o'clock (0° = left → right, 90° = bottom → top).
 function gradDefMarkup(g, id) {
   const attrs = `id="${id}" data-name="${xmlEsc(g.name)}"`;
   if (g.type === 'radial')

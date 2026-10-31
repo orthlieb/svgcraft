@@ -15,7 +15,7 @@ for (const group of document.querySelectorAll('[data-tabs]')) {
   }
 }
 
-// Collapsing a panel group to its tab bar, as in Photoshop: double-click
+// Collapsing a panel group to its tab bar: double-click
 // the bar or use its chevron; clicking a tab of a folded group opens it.
 // Remembered between visits.
 const PANELS_KEY = 'svgcraft.panels';
@@ -67,7 +67,7 @@ pgroups.forEach((group) => {
   setCollapsed(group, savedCollapsed(group), false);
 });
 
-// Group heights, as in Photoshop: each tabbed group keeps its height
+// Group heights: each tabbed group keeps its height
 // whatever its tab shows (more scrolls inside it), so selecting something
 // doesn't shuffle the panels below; drag the divider under a group to
 // resize it (double-click for its natural height). Layers takes the rest,
@@ -133,8 +133,8 @@ for (const g of tabGroups) {
 }
 applyGroupHeights();
 
-// The » button: the panels shrink to a strip of their icons, as in
-// Photoshop; an icon pops its panel out beside the strip, and a click
+// The » button: the panels shrink to a strip of their icons; an icon pops
+// its panel out beside the strip, and a click
 // elsewhere or Esc puts it away. Desktop only (tablets have the drawer).
 const DOCK_KEY = 'svgcraft.dock';
 const dockStrip = $('.sc-dock-strip');
@@ -231,8 +231,8 @@ function showPanel(tab) {
   if (dockIcons()) return openPopout(layersGroup.querySelector('.sc-ptitle'));
   setCollapsed(layersGroup, false);
 }
-// Chosen again while it's showing, a panel puts its group away, as
-// Photoshop's Window menu closes it.
+// Chosen again while it's showing, a panel puts its group away, as a
+// Window menu usually does.
 function togglePanel(tab) {
   if (!panelShowing(tab)) return showPanel(tab);
   if (dockIcons()) return closePopout();

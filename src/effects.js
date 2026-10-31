@@ -2,7 +2,7 @@
 'use strict';
 
 // ---- layer locks -------------------------------------------------------------
-// Photoshop's Lock Position and Lock All, kept as data-sc-lock on the layer
+// Lock Position and Lock All, kept as data-sc-lock on the layer
 // ("position" | "all"). A lock on a group covers everything in it. Locked
 // layers can still be selected; Lock Position refuses moves and transforms,
 // Lock All refuses every change.
@@ -40,11 +40,11 @@ function setLock(els, value) {
   renderLayers();
 }
 
-// ---- layer effects (Photoshop's Layer Style) -----------------------------------
+// ---- layer effects (Layer Style) -----------------------------------
 // data-sc-fx holds the effects as JSON; syncEffects() builds a matching
 // <filter> (sc-fx-N, in defs) for each layer and keeps it in step with the
 // layer's size and transform. Distances, sizes and the light angle are in
-// document pixels, as Photoshop measures them, so a rotated or scaled layer
+// document pixels, not the layer's own, so a rotated or scaled layer
 // still casts its shadow down and to the right.
 const FX_DEFAULTS = {
   ds: { on: false, c: '#000000', o: 35, a: 120, d: 5, sp: 0, s: 5 },
@@ -151,7 +151,7 @@ function fxFilter(el, fx) {
       `<feComposite in="${k}C" in2="${k}M" operator="in" result="${k}"/>`,
     );
   };
-  // Photoshop's angle is where the light comes from; shadows fall away from it.
+  // The angle is where the light comes from; shadows fall away from it.
   const away = (e) => {
     const t = (e.a * Math.PI) / 180;
     return [-Math.cos(t) * e.d, Math.sin(t) * e.d];
@@ -176,7 +176,7 @@ function fxFilter(el, fx) {
   }
   if (fx.is.on) {
     // Light from the top-left: the copy moves down and right, leaving the
-    // shadow along the inside top and left edges, as in Photoshop.
+    // shadow along the inside top and left edges.
     inner('is', fx.is, ...away(fx.is));
     merge.push('is');
   }

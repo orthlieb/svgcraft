@@ -1,6 +1,6 @@
 // SVGCraft — right-click menus: on the canvas and in the Layers panel.
 //
-// ---- context menus (Photoshop's right-click menus) -----------------------------
+// ---- context menus (right-click menus) -----------------------------
 // Each menu is a list of entries: an action's name (its menu bar item is
 // copied, icon, label and shortcut, and runs through the usual click
 // handler), '-' for a divider, { sub, items } for a submenu, or

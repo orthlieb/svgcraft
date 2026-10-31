@@ -196,7 +196,7 @@ window.SC_ICONS = {
     '<svg viewBox="0 0 512 512" aria-hidden="true"><path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM216 336l24 0 0-64-24 0c-13.3 0-24-10.7-24-24s10.7-24 24-24l48 0c13.3 0 24 10.7 24 24l0 88 8 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-80 0c-13.3 0-24-10.7-24-24s10.7-24 24-24zm40-208a32 32 0 1 1 0 64 32 32 0 1 1 0-64z"/></svg>',
   'wand-magic-sparkles':
     '<svg viewBox="0 0 576 512" aria-hidden="true"><path d="M234.7 42.7L197 56.8c-3 1.1-5 4-5 7.2s2 6.1 5 7.2l37.7 14.1L248.8 123c1.1 3 4 5 7.2 5s6.1-2 7.2-5l14.1-37.7L315 71.2c3-1.1 5-4 5-7.2s-2-6.1-5-7.2L277.3 42.7 263.2 5c-1.1-3-4-5-7.2-5s-6.1 2-7.2 5L234.7 42.7zM46.1 395.4c-18.7 18.7-18.7 49.1 0 67.9l34.6 34.6c18.7 18.7 49.1 18.7 67.9 0L529.9 116.5c18.7-18.7 18.7-49.1 0-67.9L495.3 14.1c-18.7-18.7-49.1-18.7-67.9 0L46.1 395.4zM484.6 82.6l-105 105-23.3-23.3 105-105 23.3 23.3zM7.5 117.2C3 118.9 0 123.2 0 128s3 9.1 7.5 10.8L64 160l21.2 56.5c1.7 4.5 6 7.5 10.8 7.5s9.1-3 10.8-7.5L128 160l56.5-21.2c4.5-1.7 7.5-6 7.5-10.8s-3-9.1-7.5-10.8L128 96 106.8 39.5C105.1 35 100.8 32 96 32s-9.1 3-10.8 7.5L64 96 7.5 117.2zm352 256c-4.5 1.7-7.5 6-7.5 10.8s3 9.1 7.5 10.8L416 416l21.2 56.5c1.7 4.5 6 7.5 10.8 7.5s9.1-3 10.8-7.5L480 416l56.5-21.2c4.5-1.7 7.5-6 7.5-10.8s-3-9.1-7.5-10.8L480 352l-21.2-56.5c-1.7-4.5-6-7.5-10.8-7.5s-9.1 3-10.8 7.5L416 352l-56.5 21.2z"/></svg>',
-  // Photoshop's fx badge (Layer Style), as text so it reads at any size.
+  // The fx badge (Layer Style), as text so it reads at any size.
   scissors:
     '<svg viewBox="0 0 512 512" aria-hidden="true"><path d="M256 192l-39.5-39.5c4.9-12.6 7.5-26.2 7.5-40.5C224 50.1 173.9 0 112 0S0 50.1 0 112s50.1 112 112 112c14.3 0 27.9-2.7 40.5-7.5L192 256l-39.5 39.5c-12.6-4.9-26.2-7.5-40.5-7.5C50.1 288 0 338.1 0 400s50.1 112 112 112s112-50.1 112-112c0-14.3-2.7-27.9-7.5-40.5L499.2 76.8c7.1-7.1 7.1-18.5 0-25.6c-28.3-28.3-74.1-28.3-102.4 0L256 192zm22.6 150.6L396.8 460.8c28.3 28.3 74.1 28.3 102.4 0c7.1-7.1 7.1-18.5 0-25.6L342.6 278.6l-64 64zM64 112a48 48 0 1 1 96 0 48 48 0 1 1 -96 0zm48 240a48 48 0 1 1 0 96 48 48 0 1 1 0-96z"/></svg>',
   'sc-fx':
@@ -227,7 +227,7 @@ window.SC_ICONS = {
     '<svg viewBox="0 0 512 512" aria-hidden="true"><path d="M256 24l68 152 164 16-124 110 36 162-144-84-144 84 36-162L24 192l164-16z"/></svg>',
   'sc-custom-shape':
     '<svg viewBox="0 0 512 512" aria-hidden="true"><path d="M256 464 72 280C16 224 24 120 104 88c56-22 112 2 152 58 40-56 96-80 152-58 80 32 88 136 32 192Z"/></svg>',
-  // Tool icons in Photoshop's manner, drawn for SVGCraft: Move (an arrow
+  // Tool icons in the familiar manner, drawn for SVGCraft: Move (an arrow
   // with a four-way cross), Edit Points (the hollow direct-selection
   // arrow), Type (a serif T) and default colours (two small squares).
   'sc-move':
@@ -236,7 +236,7 @@ window.SC_ICONS = {
     '<svg viewBox="0 0 512 512" aria-hidden="true"><path fill-rule="evenodd" d="M96 32v400l104-96 70 148 64-30-70-146h148Zm40 92v214l58-54 72 152 8-4-72-150h108Z"/></svg>',
   'sc-type':
     '<svg viewBox="0 0 512 512" aria-hidden="true"><path d="M72 64h368v120h-30c-6-44-22-70-74-70h-56v300c0 26 12 34 50 36v26H182v-26c38-2 50-10 50-36V114h-56c-52 0-68 26-74 70H72Z"/></svg>',
-  // Photoshop's swap arrow: a quarter turn with a head at each end.
+  // The swap arrow: a quarter turn with a head at each end.
   'sc-swap-colours':
     '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 4h3.5a4 4 0 0 1 4 4v3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M5.5 0.8 1.6 4l3.9 3.2Z M9.3 10.5l3.2 3.9 3.2-3.9Z"/></svg>',
 };

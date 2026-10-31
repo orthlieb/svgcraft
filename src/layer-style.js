@@ -2,7 +2,7 @@
 'use strict';
 
 // ---- Layer Style dialog ---------------------------------------------------------
-// Photoshop's: effects listed down the left (tick to turn on, click to edit),
+// The familiar layout: effects listed down the left (tick to turn on, click to edit),
 // their settings on the right, live preview; OK keeps, Cancel restores.
 const fxDlg = $('#sc-fx');
 let fxSess = null;
@@ -318,7 +318,7 @@ const cmds = {
     commit();
   },
   // Wrap the selected layers in a new group where the frontmost one was
-  // (Photoshop's Ctrl+G); with nothing selected, add an empty group on top.
+  // (Ctrl+G); with nothing selected, add an empty group on top.
   group() {
     const els = normalizeSel(state.sel);
     const g = mk('g', { 'data-name': nextGroupName() });
@@ -378,7 +378,7 @@ const cmds = {
 };
 
 // Line the selection up on an edge or centre of its own bounding box, or
-// of the artboard when only one object is selected (Photoshop's rule).
+// of the artboard when only one object is selected.
 function alignSel(how) {
   if (!state.sel.length) return warn('Select the objects to align first.');
   if (refuseLocked(state.sel)) return;

@@ -1,5 +1,5 @@
 // SVGCraft — Fill and Stroke in the options bar: the drawing tools' paint
-// pickers, as on Photoshop's shape tools.
+// pickers, as on the familiar shape tools.
 'use strict';
 
 // Each is a button showing the paint, and its dropdown chooses how that
@@ -179,7 +179,7 @@ function closePaintPop(refocus = true) {
 }
 
 // A mode: None and Colour apply at once; Gradient and Pattern show their
-// tiles (and apply the last one used, as Photoshop does).
+// tiles (and apply the last one used).
 function pickPaintMode(m) {
   const { k } = paintPopFor;
   paintPopFor.mode = m;

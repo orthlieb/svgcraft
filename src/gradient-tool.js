@@ -89,7 +89,7 @@ tools.hand = {
   cursor: 'grab',
 };
 
-// Zoom (Z), as in Photoshop: click steps in, Alt-click (or the options
+// Zoom (Z): click steps in, Alt-click (or the options
 // bar's Zoom Out) steps out. Scrubby Zoom: drag right to zoom in and left
 // to zoom out about where you pressed. Without it, drag a box to fill the
 // window with that area.

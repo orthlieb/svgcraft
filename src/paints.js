@@ -3,7 +3,8 @@
 
 // ---- gradients --------------------------------------------------------------
 // A paint gradient is { type: 'linear' | 'radial', stops: [{ o, c, a }],
-// angle } (angle as in Photoshop: 0° = left → right, 90° = bottom → top).
+// angle } (angle anticlockwise from 3 o'clock: 0° = left → right,
+// 90° = bottom → top).
 // Each shape gets a gradient of its own, in its own coordinates
 // (userSpaceOnUse), so angles stay true on wide shapes and the gradient
 // travels with the shape. Ours carry data-sc-grad; unused ones are pruned.
@@ -33,7 +34,7 @@ let gradReset = false; // next gradient write re-derives geometry (angle / type 
 const cloneGrad = (g) => g && { ...g, stops: g.stops.map((s) => ({ ...s })) };
 const stopList = (g) => g.stops.map((s) => `${cssColor(s.c, s.a)} ${f(s.o * 100)}%`).join(', ');
 // CSS previews: a left-to-right bar for the editor, the real look for chips
-// (CSS angles run clockwise from "to top"; Photoshop's anticlockwise from 3 o'clock).
+// (CSS angles run clockwise from "to top"; paint angles anticlockwise from 3 o'clock).
 const gradCss = (g) => `linear-gradient(90deg, ${stopList(g)})`;
 const chipCss = (g) =>
   g.type === 'radial'

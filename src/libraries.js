@@ -3,7 +3,7 @@
 
 // ---- libraries: swatches, gradients, patterns, symbols --------------------------
 // Kept in this browser's localStorage. The built-ins seed it, and like
-// Photoshop's presets they can be renamed, deleted and restored. Export /
+// any presets they can be renamed, deleted and restored. Export /
 // Import Library carries the lot between browsers as a JSON file. Library
 // symbols are { id, name, category, w, h, svg, credit?, size? }: svg is the
 // content in a 0 0 w h box, size the height it's placed at (64 if unset).
@@ -245,7 +245,7 @@ function libTile(kind, item, bg, apply) {
   b.setAttribute('aria-label', item.name);
   b.style.setProperty('--tile', bg);
   b.addEventListener('click', (e) => {
-    // Alt-click deletes, as in Photoshop's Swatches panel.
+    // Alt-click deletes, the familiar Swatches-panel shortcut.
     if (e.altKey) return removeLibItem(kind, item.id);
     libSel[kind] = item.id;
     for (const x of b.parentNode.children) x.classList.toggle('sel', x === b);

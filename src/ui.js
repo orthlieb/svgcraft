@@ -25,7 +25,7 @@ const TOOL_META = {
   zoom: ['magnifying-glass', 'Zoom'],
 };
 
-// A toolbar button holding a group of tools, as in Photoshop: held down,
+// A toolbar button holding a group of tools: held down,
 // right-clicked, Alt-clicked or clicked on its corner mark, it opens its
 // flyout menu beside the toolbar; a plain click runs `pick` (if given).
 function toolFlyout(btn, menu, pick) {
@@ -126,7 +126,7 @@ function setTool(name) {
 }
 
 // Tab hides the toolbar, options bar and panels, Shift+Tab just the
-// panels on the right; either brings everything back, as in Photoshop.
+// panels on the right; either brings everything back.
 function togglePanels(rightOnly) {
   const b = document.body.classList;
   const hidden = b.contains('sc-no-panels') || b.contains('sc-no-right');
@@ -138,7 +138,7 @@ function togglePanels(rightOnly) {
   drawRulers();
 }
 
-// [ and ]: the stroke width down or up a pixel (Photoshop's brush size keys).
+// [ and ]: the stroke width down or up a pixel (the familiar brush size keys).
 function setStrokeWidthBy(d) {
   state.strokeWidth = clamp(Math.round(state.strokeWidth + d), 0, 200);
   styleChanged('width', true);

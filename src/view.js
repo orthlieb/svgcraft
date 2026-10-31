@@ -91,7 +91,7 @@ function fillScreen() {
   applyView();
 }
 
-// Photoshop's zoom presets, as fractions: the Zoom tool's clicks step
+// The usual zoom presets, as fractions: the Zoom tool's clicks step
 // through these.
 const ZOOM_STEPS = [
   0.02, 0.03, 0.04, 0.05, 0.0625, 0.0833, 0.125, 0.1667, 0.25, 0.3333, 0.5, 0.6667, 1, 2, 3, 4, 5,

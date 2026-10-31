@@ -2,7 +2,7 @@
 'use strict';
 
 // ---------------------------------------------------------------------
-// Rulers, guides and smart guides (Photoshop-style)
+// Rulers, guides and smart guides
 //
 // Guides are { axis: 'x' | 'y', pos } in document units: an 'x' guide is
 // vertical (drawn at x = pos). They're part of history and are saved in
