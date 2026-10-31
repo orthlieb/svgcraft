@@ -64,8 +64,10 @@ await page.click('#sc-fx [data-fx-page="ds"] button');
 await shot(page, 'layer-style');
 await page.keyboard.press('Escape');
 
-// 3. The gradient editor and its handles on the canvas, on the radial backdrop.
+// 3. The gradient editor and its handles on the canvas, on the radial backdrop
+// (made SVGCraft's own, so it has handles: Radial again keeps its stops).
 await clickDoc(page, 70, 90);
+await page.click('[data-kind-for="fill"] [data-kind="radial"]');
 await page.click('[data-tab="props"]');
 await shot(page, 'gradients');
 
