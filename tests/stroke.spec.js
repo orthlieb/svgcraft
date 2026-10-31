@@ -1,4 +1,4 @@
-import { test, expect, load, toScreen } from './fixtures.js';
+import { test, expect, load, toScreen, tab } from './fixtures.js';
 
 // Stroke caps, joins, dash presets and rounded rectangle corners.
 
@@ -324,7 +324,7 @@ test('the stroke settings sit under Stroke in the Color panel, whatever else is 
 }) => {
   // The Symbols tab shares a group with Properties: the stroke settings
   // still show.
-  await page.click('[data-tab="symbols"]');
+  await tab(page, 'symbols');
   for (const sel of [
     '[data-bind="strokeWidth"]',
     '[data-stroke-align="center"]',

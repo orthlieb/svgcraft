@@ -1,4 +1,4 @@
-import { test, expect, load, select, menu } from './fixtures.js';
+import { test, expect, load, select, menu, tab } from './fixtures.js';
 
 // Every dialog is a native <dialog> shown modally: it's in the top layer,
 // focus stays inside it, the page behind is inert, and Esc runs the
@@ -20,7 +20,7 @@ const DIALOGS = [
   [
     '#sc-ask',
     async (page) => {
-      await page.click('[data-tab="swatches"]');
+      await tab(page, 'swatches');
       await page.click('[data-lib="swatches"] [data-lib-act="add"]');
     },
   ],

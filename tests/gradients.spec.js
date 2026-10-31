@@ -1,4 +1,4 @@
-import { test, expect, load, toScreen } from './fixtures.js';
+import { test, expect, load, toScreen, tab } from './fixtures.js';
 
 // Linear / radial gradient fills and strokes: the Color-panel editor, the
 // Gradient tool, sharing between duplicates, imported gradients, pruning.
@@ -41,7 +41,6 @@ function expectGeom(g, want) {
   for (const [k, v] of Object.entries(want)) expect(g[k], k).toBeCloseTo(v, 1);
 }
 
-const tab = (page, name) => page.click(`[data-tab="${name}"]`);
 const pick = (page, id) =>
   page
     .locator('#sc-layers li')

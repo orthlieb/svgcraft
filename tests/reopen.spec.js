@@ -1,4 +1,4 @@
-import { test, expect, load, select } from './fixtures.js';
+import { test, expect, load, select, tab } from './fixtures.js';
 
 // What comes back when a drawing is reopened (a reload, Open, or paste):
 // pattern tiles keep drawing in their paint's colour, ids stay put, and a
@@ -28,7 +28,7 @@ async function reload(page) {
 test.beforeEach(async ({ page }) => {
   await load(page, RECT, 300, 200);
   await select(page, 'a');
-  await page.click('[data-tab="patterns"]');
+  await tab(page, 'patterns');
   await page.locator('#sc-patlib .sc-tile[aria-label="Dots"]').click();
 });
 
@@ -87,7 +87,7 @@ test('a file can’t take the editor’s own ids', async ({ page }) => {
 });
 
 test('a gradient fill keeps its stops, and its id, across reloads', async ({ page }) => {
-  await page.click('[data-tab="gradients"]');
+  await tab(page, 'gradients');
   await page.locator('#sc-gradlib .sc-tile').first().click();
   const grad = () =>
     page.evaluate(() => {

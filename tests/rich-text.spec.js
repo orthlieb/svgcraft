@@ -1,7 +1,7 @@
 // Per-character styling inside the type editor: runs from the options bar,
 // Character panel, swatches and font picker; caret read-back; auto leading;
 // whole-layer settings clearing runs; mixed-size wrapping; round-trip.
-import { test, expect, toScreen } from './fixtures.js';
+import { test, expect, toScreen, tab } from './fixtures.js';
 
 const editor = (page) => page.locator('.sc-type-edit');
 
@@ -40,8 +40,7 @@ async function selectChars(page, from, n) {
   );
 }
 
-const showSwatches = (page) =>
-  page.evaluate(() => document.querySelector('[data-tab="swatches"]').click());
+const showSwatches = (page) => tab(page, 'swatches');
 
 async function setSize(page, v) {
   await page.click('.sc-ptabs [data-tab="character"]');

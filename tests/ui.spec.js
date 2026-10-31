@@ -1,6 +1,6 @@
 // Shell UI: theme switching, keyboard menu navigation, scrubby labels, the
 // toolbar paint chips, panel tabs, the zoom field and View → Show Grid.
-import { test, expect, menu, load, action } from './fixtures.js';
+import { test, expect, menu, load, action, tab } from './fixtures.js';
 
 test.use({ colorScheme: 'light', viewport: { width: 1280, height: 780 } });
 
@@ -227,7 +227,7 @@ test('panel groups collapse to their tabs, and stay that way', async ({ page }) 
   expect(await layersH()).toBeGreaterThan(tall);
 
   // Clicking a tab opens the group on that tab.
-  await page.click('[data-tab="swatches"]');
+  await tab(page, 'swatches');
   await expect(colour).not.toHaveClass(/collapsed/);
   await expect(page.locator('[data-pane="swatches"]')).toBeVisible();
 

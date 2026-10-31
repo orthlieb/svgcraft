@@ -4,7 +4,7 @@ import { pathToFileURL } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { test, expect, menu, load } from './fixtures.js';
+import { test, expect, menu, load, tab } from './fixtures.js';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
 const HELP = fs.readFileSync(path.join(ROOT, 'help.html'), 'utf8');
@@ -53,7 +53,7 @@ test('Help → SVGCraft Help, F1 in a dialog, and a panel’s ? open the right t
   await page.keyboard.press('F1');
   await page.click('#sc-imagesize .sc-help-btn');
   await page.keyboard.press('Escape');
-  await page.click('[data-tab="gradients"]');
+  await tab(page, 'gradients');
   await page.locator('[data-tab="gradients"]').locator('xpath=..').locator('.sc-help-btn').click();
   expect(await opened(page)).toEqual([
     ['help.html', 'svgcraft-help'],

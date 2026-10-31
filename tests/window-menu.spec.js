@@ -1,4 +1,4 @@
-import { test, expect, menu } from './fixtures.js';
+import { test, expect, menu, tab } from './fixtures.js';
 
 // Window: every panel by name, the docked / floating windows, and the
 // workspace (icon strip, hiding the panels, Reset Workspace).
@@ -56,7 +56,7 @@ test('SVG Source and Icon Preview open from Window, not View', async ({ page }) 
 test('Reset Workspace puts panels, docked windows and dialogs back', async ({ page }) => {
   // Mess it all up.
   await group(page, 1).locator('.sc-pcollapse').click();
-  await page.click('[data-tab="swatches"]');
+  await tab(page, 'swatches');
   await menu(page, 'Window', 'toggleSource');
   await page.click('#sc-src-dock');
   await menu(page, 'Window', 'toggleIconPreview');

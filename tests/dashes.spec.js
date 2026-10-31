@@ -1,4 +1,4 @@
-import { test, expect, load, select, stageBox } from './fixtures.js';
+import { test, expect, load, select, stageBox, tab } from './fixtures.js';
 
 // Custom dash / gap fields: data-dash records the pattern in stroke widths,
 // stroke-dasharray holds it scaled by the current stroke width.
@@ -109,7 +109,7 @@ test.describe('imported dasharray', () => {
 });
 
 test('Custom in the options bar switches to the Color tab', async ({ page }) => {
-  await page.click('[data-tab="swatches"]');
+  await tab(page, 'swatches');
   await expect(page.locator('[data-tab="color"]')).not.toHaveAttribute('aria-selected', 'true');
   await page.keyboard.press('r');
   await page.selectOption('.sc-opt.on select[data-stroke-dash]', 'custom');
