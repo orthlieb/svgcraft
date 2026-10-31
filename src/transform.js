@@ -113,7 +113,7 @@ function syncTransformFields(box) {
 // A number field changed: turn the new value into a transform of the selection.
 // Position and size are typed in the document's units.
 const LENGTH_KEYS = new Set(['x', 'y', 'w', 'h']);
-function applyTransformField(key, v, final) {
+function applyTransformField(key, v, final, linkBtn = $('#sc-tf-link')) {
   const box = selBox();
   if (!box || !isFinite(v)) return;
   if (LENGTH_KEYS.has(key)) v = fromUnits(v);
@@ -121,7 +121,7 @@ function applyTransformField(key, v, final) {
   const c = { x: box.x + box.w / 2, y: box.y + box.h / 2 };
   const about = (x, y, m) =>
     new DOMMatrix().translate(x, y).multiply(m).multiply(new DOMMatrix().translate(-x, -y));
-  const linked = $('#sc-tf-link').getAttribute('aria-pressed') === 'true';
+  const linked = linkBtn.getAttribute('aria-pressed') === 'true';
   let T;
   if (key === 'x') T = new DOMMatrix().translate(v - box.x, 0);
   else if (key === 'y') T = new DOMMatrix().translate(0, v - box.y);
@@ -162,3 +162,35 @@ function nextGroupName() {
   }
   return `Group ${n + 1}`;
 }
+
+// Properties' Transform: the selection's X, Y, W and H, in the document's
+// units, typed or scrubbed (the same as Free Transform's fields).
+const boxProps = $('#sc-box-props');
+function syncBoxFields() {
+  const box = state.sel.length && state.tool !== 'node' && selBox();
+  boxProps.hidden = !box;
+  if (!box) return;
+  for (const el of boxProps.querySelectorAll('[data-box]'))
+    if (document.activeElement !== el) el.value = inUnits(box[el.dataset.box]);
+}
+for (const el of boxProps.querySelectorAll('[data-box]')) {
+  const go = (final) => {
+    if (refuseLocked(state.sel, 'move')) return syncBoxFields();
+    if (final) noteStep(el.dataset.box === 'x' || el.dataset.box === 'y' ? 'Move' : 'Scale');
+    applyTransformField(el.dataset.box, parseFloat(el.value), final, $('#sc-box-link'));
+  };
+  el.addEventListener('input', () => go(false));
+  el.addEventListener('change', () => go(true));
+  el.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      el.blur();
+    }
+  });
+}
+$('#sc-box-link').addEventListener('click', (e) => {
+  const b = e.currentTarget;
+  const on = b.getAttribute('aria-pressed') !== 'true';
+  b.setAttribute('aria-pressed', on);
+  b.firstElementChild.innerHTML = icon(on ? 'link' : 'link-slash');
+});

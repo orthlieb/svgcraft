@@ -249,6 +249,7 @@ function libTile(kind, item, bg, apply) {
     if (e.altKey) return removeLibItem(kind, item.id);
     libSel[kind] = item.id;
     for (const x of b.parentNode.children) x.classList.toggle('sel', x === b);
+    syncLibBars();
     if (e.detail < 2) apply(e);
   });
   b.addEventListener('dblclick', () => renameLibItem(kind, item.id));
@@ -275,6 +276,7 @@ function renderLibraries() {
   libPickers.gradients?.sync();
   renderPatEditor();
   renderSymLib();
+  if (typeof syncLibBars === 'function') syncLibBars();
 }
 function renderPatTiles(force = false) {
   const ink = state[state.active];
@@ -309,7 +311,13 @@ function removeLibItem(kind, id = libSel[kind]) {
   const [gone] = lib[kind].splice(i, 1);
   if (libSel[kind] === id) libSel[kind] = null;
   saveLibrary();
-  say(`Deleted “${gone.name}”.`);
+  // The library isn't in the drawing's history: its own Undo puts it back.
+  say(`Deleted “${gone.name}”.`, () => {
+    lib[kind].splice(Math.min(i, lib[kind].length), 0, gone);
+    libSel[kind] = gone.id;
+    saveLibrary();
+    say(`Put “${gone.name}” back.`);
+  });
 }
 async function addLibItem(kind) {
   if (kind === 'patterns') return definePattern();

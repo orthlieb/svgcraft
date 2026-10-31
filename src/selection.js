@@ -4,12 +4,43 @@
 // ---------------------------------------------------------------------
 // Selection + overlay
 // ---------------------------------------------------------------------
+// Selecting text shows the Character tab; selecting something else
+// afterwards goes back to the tab that was showing, unless another tab was
+// chosen in between.
+let tabBeforeText = null;
+let tabByUs = false;
+const propTab = (name) => {
+  tabByUs = true;
+  $(`[data-tab="${name}"]`).click();
+  tabByUs = false;
+};
+function showCharacterTab() {
+  const cur = $('[data-tab="character"]')
+    .closest('.sc-ptabs')
+    .querySelector('[aria-selected="true"]')?.dataset.tab;
+  if (cur === 'character') return;
+  tabBeforeText = cur || null;
+  propTab('character');
+}
+for (const t of $('[data-tab="character"]').closest('.sc-ptabs').querySelectorAll('[data-tab]'))
+  t.addEventListener('click', () => {
+    if (!tabByUs) tabBeforeText = null;
+  });
 function setSel(els) {
+  staleAlert();
   state.sel = normalizeSel(els);
   els = state.sel;
   if (els.length) readStyle(els[0]);
   if (els.length && readTypeFromSelection() && els.every((el) => el.localName === 'text'))
-    $('[data-tab="character"]').click();
+    showCharacterTab();
+  else if (
+    els.length &&
+    tabBeforeText &&
+    $('[data-tab="character"]').getAttribute('aria-selected') === 'true'
+  ) {
+    propTab(tabBeforeText);
+    tabBeforeText = null;
+  }
   drawSelection();
   markLayers();
 }
@@ -17,8 +48,16 @@ function setSel(els) {
 // Re-highlight the selected rows without rebuilding the list (a rebuild
 // between the two clicks of a double-click would swallow the rename).
 function markLayers() {
+  let first = null;
   for (const li of $('#sc-layers').children)
-    if (li.layerEl) li.classList.toggle('sel', state.sel.includes(li.layerEl));
+    if (li.layerEl) {
+      const on = state.sel.includes(li.layerEl);
+      li.classList.toggle('sel', on);
+      li.setAttribute('aria-selected', on);
+      if (on) first ||= li;
+    }
+  // The selection's row in view.
+  first?.scrollIntoView({ block: 'nearest' });
 }
 
 // The Layers panel's blend mode and lock buttons follow the selection.
@@ -53,7 +92,9 @@ function drawSelection() {
   syncAnimUI();
   syncTextPathUI();
   syncLayerHead();
+  syncBoxFields();
   if (typeof syncActions === 'function') syncActions();
+  if (typeof syncLibBars === 'function') syncLibBars();
   $('#sc-pos').dataset.sel = '';
   if (!state.sel.length || state.tool === 'node') return;
   const z = state.zoom;
@@ -75,6 +116,8 @@ function drawSelection() {
   syncTransformFields(box);
   if (state.tool === 'gradient') drawGradAnnotator(z);
   if (state.tool !== 'select') return;
+  // A locked layer shows its box, not handles it would refuse.
+  if (state.sel.some((el) => lockOf(el))) return;
   const mode = state.tf?.mode;
   const ce = !state.tf && cornerTarget();
   if (ce) {
@@ -271,7 +314,9 @@ function renderLayers() {
   if (!items().length) {
     const li = document.createElement('li');
     li.className = 'sc-empty';
-    li.textContent = 'No layers yet. Draw something, or drop an SVG onto the canvas.';
+    li.textContent = curDoc
+      ? 'No layers yet. Draw something, or drop an SVG onto the canvas.'
+      : 'No drawing open. File → New, or Open.';
     ol.append(li);
     return;
   }

@@ -294,17 +294,45 @@ const srcView = {
 // stays until it's dismissed (✕) or a newer one replaces it, so it can't be
 // missed. With `details` (an unexpected bug's report) it adds Copy details.
 let msgTimer = 0;
-function say(text) {
+// A message in the status bar; with `undo`, an Undo button after it that
+// takes it back (and the message stays longer, to reach it).
+function say(text, undo = null) {
   const m = $('#sc-msg');
   m.textContent = text;
+  if (undo) {
+    const b = document.createElement('button');
+    b.className = 'sc-linkbtn sc-msg-undo';
+    b.textContent = 'Undo';
+    b.addEventListener('click', () => {
+      m.textContent = '';
+      undo();
+    });
+    m.append(' ', b);
+  }
   clearTimeout(msgTimer);
-  msgTimer = setTimeout(() => (m.textContent = ''), 3500);
+  msgTimer = setTimeout(() => (m.textContent = ''), undo ? 8000 : 3500);
 }
 let alertDetails = '';
 let alertMore = null;
 // A warning in the bar over the canvas. details: text for its Copy details
 // button; more: what its More info button does.
+// A plain alert (no More info or details) goes when it no longer applies:
+// on Esc, the next change to the drawing, or a new selection.
+let alertAt = 0;
+function staleAlert() {
+  const a = $('#sc-alert');
+  if (!a.hidden && !alertMore && !alertDetails && performance.now() - alertAt > 400)
+    a.hidden = true;
+}
+window.addEventListener(
+  'keydown',
+  (e) => {
+    if (e.key === 'Escape' && !$('#sc-alert').hidden) $('#sc-alert').hidden = true;
+  },
+  true,
+);
 function warn(text, { details = '', more = null } = {}) {
+  alertAt = performance.now();
   clearTimeout(msgTimer);
   $('#sc-msg').textContent = '';
   const a = $('#sc-alert');

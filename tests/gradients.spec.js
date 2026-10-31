@@ -420,7 +420,7 @@ test.describe('stretching the shape', () => {
     await page.click('[data-kind-for="fill"] [data-kind="linear"]');
     await setField(page, '#sc-grad-angle', 45);
     expect(await onPage(page, 'sq')).toMatchObject({ deg: 45, len: 141.42 });
-    await expect(page.locator('#sc-grad-keep')).toBeChecked();
+    await expect(page.locator('#sc-grad-stretch')).not.toBeChecked();
     await stretchTo(page, 200);
     // 200 × 100 from (100, 100): through its centre, edge to edge at 45°.
     const g = await onPage(page, 'sq');
@@ -438,7 +438,7 @@ test.describe('stretching the shape', () => {
     await page.evaluate(() => window.svgcraft.setTool('select'));
     await tab(page, 'color');
     await page.locator('[data-kind-for="fill"]').scrollIntoViewIfNeeded();
-    await page.uncheck('#sc-grad-keep');
+    await page.check('#sc-grad-stretch');
     await stretchTo(page, 400);
     expect((await onPage(page, 'sq')).deg).not.toBe(45);
     // The setting travels in the file.
@@ -446,7 +446,7 @@ test.describe('stretching the shape', () => {
     await page.evaluate((t) => window.svgcraft.openSvg(t, 'g2.svg'), svg);
     await page.evaluate(() => (window.svgcraft.state.sel = [document.getElementById('sq')]));
     await page.evaluate(() => window.svgcraft.setTool('select'));
-    await expect(page.locator('#sc-grad-keep')).not.toBeChecked();
+    await expect(page.locator('#sc-grad-stretch')).toBeChecked();
   });
 
   test('a radial gradient stays round, from the middle out to the far side', async ({ page }) => {

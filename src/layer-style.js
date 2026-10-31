@@ -267,6 +267,7 @@ const cmds = {
     state.sel = clones;
     commit();
     readStyle(clones[0]);
+    if (d) say(`Duplicated ${clones.length} layer${clones.length === 1 ? '' : 's'}.`);
   },
   selectAll() {
     setSel(items().filter((el) => el.getAttribute('display') !== 'none'));
@@ -328,6 +329,11 @@ const cmds = {
     }
     state.sel = [g];
     commit();
+    say(
+      els.length
+        ? `Grouped ${els.length} layer${els.length === 1 ? '' : 's'} into “${g.getAttribute('data-name')}”.`
+        : `Made an empty group, “${g.getAttribute('data-name')}”: drag layers into it in Layers.`,
+    );
   },
   ungroup() {
     if (refuseLocked(state.sel, 'edit')) return;

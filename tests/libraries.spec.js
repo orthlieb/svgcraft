@@ -174,8 +174,8 @@ test.describe('gradients', () => {
     await tab(page, 'color');
     await page.click('[data-kind-for="fill"] [data-kind="solid"]');
     await tab(page, 'gradients');
-    await page.click('[data-lib="gradients"] [data-lib-act="add"]');
-    await expect(page.locator('#sc-alert-text')).toContainText('gradient first');
+    // No gradient in use: nothing to save.
+    await expect(page.locator('[data-lib="gradients"] [data-lib-act="add"]')).toBeDisabled();
   });
 
   test('built-in presets keep their names as values', async ({ page }) => {
@@ -243,7 +243,7 @@ test.describe('pattern paint', () => {
     expect(d.tf).toContain('scale(2)');
   });
 
-  test('scaling the shape keeps the tiles their size; Scale with shape lets them grow', async ({
+  test('scaling the shape keeps the tiles their size; Stretch with shape lets them grow', async ({
     page,
   }) => {
     // The tile's size and turn on the page: the shape's transform, then the pattern's.
@@ -285,7 +285,7 @@ test.describe('pattern paint', () => {
     // Undo: back to the stretched shape, the tiles still their size.
     await page.keyboard.press('Control+z');
     expect(await tile()).toEqual({ sx: 1, sy: 1, deg: 0 });
-    // Scale with shape: they stretch with it.
+    // Stretch with shape: they stretch with it.
     await select(page, 'a');
     await tab(page, 'color');
     await expect(page.locator('#sc-pat-with')).not.toBeChecked();
@@ -388,8 +388,8 @@ test.describe('Define Pattern', () => {
   test('needs a selection, and Esc cancels it', async ({ page }) => {
     await page.evaluate(() => (window.svgcraft.state.sel = []));
     await tab(page, 'patterns');
-    await page.click('[data-lib="patterns"] [data-lib-act="add"]');
-    await expect(page.locator('#sc-alert-text')).toContainText('Select the artwork');
+    // Nothing selected: nothing to make a pattern of.
+    await expect(page.locator('[data-lib="patterns"] [data-lib-act="add"]')).toBeDisabled();
     await load(page, '<rect id="a" x="20" y="20" width="10" height="10" fill="#f00"/>', 300, 200);
     await select(page, 'a');
     await menu(page, 'Edit', 'definePattern');

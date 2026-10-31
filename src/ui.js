@@ -118,7 +118,7 @@ function setTool(name) {
   stage.style.cursor = tools[name].cursor;
   $('#sc-hint').textContent = tools[name].hint;
   if (changed) tools[name].enter?.(prev);
-  if (changed && name === 'text') $('[data-tab="character"]').click();
+  if (changed && name === 'text') showCharacterTab();
   drawSelection();
   renderLayers();
 }
@@ -283,9 +283,13 @@ function wireStyle() {
       styleChanged(k, false);
     });
     a.addEventListener('change', () => styleChanged(k, true));
+    // The chip is the paint's one swatch: a click makes it the active paint
+    // (the section's pointerdown already did) and opens the colour picker,
+    // as the toolbar's chip does; a gradient or pattern has its editor.
     $(`#sc-${k}-chip`).addEventListener('click', () => {
       state.active = k;
       syncStyleUI();
+      if (!state[k + 'Grad'] && !state[k + 'Pat']) color.click();
     });
     $(`#sc-${k}-chip`)
       .closest('.sc-paint')
@@ -338,4 +342,36 @@ function wireStyle() {
       syncStyleUI();
     });
   }
+}
+
+// The options bar, when its controls don't fit: a ‹ or › at the end that
+// has more scrolls it (as does the mouse wheel), so nothing is cut off
+// unseen.
+{
+  const bar = $('#sc-options');
+  const [left, right] = [$('.sc-opt-more-l'), $('.sc-opt-more-r')];
+  const sync = () => {
+    left.hidden = bar.scrollLeft <= 1;
+    right.hidden = bar.scrollLeft + bar.clientWidth >= bar.scrollWidth - 1;
+  };
+  const by = (d) => bar.scrollBy({ left: d * bar.clientWidth * 0.6, behavior: 'smooth' });
+  left.addEventListener('click', () => by(-1));
+  right.addEventListener('click', () => by(1));
+  bar.addEventListener('scroll', sync, { passive: true });
+  bar.addEventListener(
+    'wheel',
+    (e) => {
+      if (bar.scrollWidth <= bar.clientWidth || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+      e.preventDefault();
+      bar.scrollLeft += e.deltaY;
+    },
+    { passive: false },
+  );
+  new ResizeObserver(sync).observe(bar);
+  new MutationObserver(() => requestAnimationFrame(sync)).observe(bar, {
+    subtree: true,
+    attributes: true,
+    attributeFilter: ['class', 'hidden'],
+  });
+  sync();
 }

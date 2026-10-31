@@ -716,6 +716,9 @@
 
     <!-- ── Options bar (changes with the tool) ──────────────────────────── -->
     <div class="sc-options" id="sc-options">
+      <button class="sc-opt-more sc-opt-more-l" aria-label="Scroll the options left" hidden>
+        <i data-icon="chevron-right"></i>
+      </button>
       <div class="sc-opt-tool"><i id="sc-opt-icon"></i><span id="sc-opt-name">Move</span></div>
       <span class="sc-vsep"></span>
       <div class="sc-opt" data-for="transform">
@@ -1010,7 +1013,7 @@
           <i data-icon="draw-polygon"></i>Close / open
         </button>
       </div>
-      <div class="sc-opt" data-for="pencil pen rect ellipse line">
+      <div class="sc-opt" data-for="pencil pen rect ellipse triangle polygon line custom">
         <label class="sc-field"
           ><span class="sc-scrub" data-tip="Drag to adjust">Stroke:</span
           ><input
@@ -1300,6 +1303,9 @@
         <button class="sc-tbtn" data-action="fit">Fit Screen</button>
         <button class="sc-tbtn" data-action="fillScreen">Fill Screen</button>
       </div>
+      <button class="sc-opt-more sc-opt-more-r" aria-label="Scroll the options right" hidden>
+        <i data-icon="chevron-right"></i>
+      </button>
     </div>
 
     <div class="sc-main">
@@ -1601,7 +1607,8 @@
                 <button
                   class="sc-chip"
                   id="sc-fill-chip"
-                  aria-label="Make fill the active paint"
+                  aria-label="Fill colour"
+                  data-tip="Fill colour · click to pick"
                 ></button>
                 <span>Fill</span>
                 <label class="sc-check"><input id="sc-fill-on" type="checkbox" checked /> On</label>
@@ -1739,8 +1746,8 @@
                 </div>
                 <label
                   class="sc-check"
-                  data-tip="On: stretching or skewing the shape keeps the gradient’s angle, and a radial one round. Off: it stretches with the shape"
-                  ><input type="checkbox" id="sc-grad-keep" /> Keep angle when stretched</label
+                  data-tip="Off: stretching or skewing the shape keeps the gradient’s angle, and a radial one round. On: it stretches with the shape"
+                  ><input type="checkbox" id="sc-grad-stretch" /> Stretch with shape</label
                 >
                 <p class="sc-hint">
                   Click the bar to add a stop. Drag a stop to move it, or down off the bar to remove
@@ -1779,8 +1786,8 @@
                 </div>
                 <label
                   class="sc-check"
-                  data-tip="Off: the tiles keep their size when you scale the shape"
-                  ><input type="checkbox" id="sc-pat-with" /> Scale with shape</label
+                  data-tip="Off: the tiles keep their size when you scale or stretch the shape. On: they grow and stretch with it"
+                  ><input type="checkbox" id="sc-pat-with" /> Stretch with shape</label
                 >
                 <p class="sc-hint">
                   The paint's colour inks the built-in patterns. Pick another above; its Custom…
@@ -1800,7 +1807,8 @@
                 <button
                   class="sc-chip"
                   id="sc-stroke-chip"
-                  aria-label="Make stroke the active paint"
+                  aria-label="Stroke colour"
+                  data-tip="Stroke colour · click to pick"
                 ></button>
                 <span>Stroke</span>
                 <label class="sc-check"
@@ -2369,6 +2377,65 @@
             </p>
           </div>
           <div class="sc-pbody" data-pane="props">
+            <!-- The selection's box: where it is and its size (src/transform.js). -->
+            <div class="sc-boxprops" id="sc-box-props" hidden>
+              <span class="sc-subhead">Transform</span>
+              <div class="sc-boxprops-grid">
+                <label class="sc-field"
+                  ><span class="sc-scrub" data-tip="Drag to adjust">X</span
+                  ><input
+                    type="number"
+                    data-box="x"
+                    step="1"
+                    min="-100000"
+                    max="100000"
+                    aria-label="X position"
+                  /><span class="sc-unit" data-doc-unit>px</span></label
+                >
+                <label class="sc-field"
+                  ><span class="sc-scrub" data-tip="Drag to adjust">Y</span
+                  ><input
+                    type="number"
+                    data-box="y"
+                    step="1"
+                    min="-100000"
+                    max="100000"
+                    aria-label="Y position"
+                  /><span class="sc-unit" data-doc-unit>px</span></label
+                >
+                <label class="sc-field"
+                  ><span class="sc-scrub" data-tip="Drag to adjust">W</span
+                  ><input
+                    type="number"
+                    data-box="w"
+                    step="1"
+                    min="0.01"
+                    max="100000"
+                    aria-label="Width"
+                  /><span class="sc-unit" data-doc-unit>px</span></label
+                >
+                <label class="sc-field"
+                  ><span class="sc-scrub" data-tip="Drag to adjust">H</span
+                  ><input
+                    type="number"
+                    data-box="h"
+                    step="1"
+                    min="0.01"
+                    max="100000"
+                    aria-label="Height"
+                  /><span class="sc-unit" data-doc-unit>px</span></label
+                >
+                <button
+                  class="sc-ibtn sc-box-link"
+                  id="sc-box-link"
+                  aria-pressed="false"
+                  aria-label="Keep proportions"
+                  data-tip="Keep proportions"
+                >
+                  <i data-icon="link-slash"></i>
+                </button>
+              </div>
+            </div>
             <div class="sc-shapeprops" id="sc-shape-props" hidden>
               <div class="sc-shapeprops-row" data-shape-poly hidden>
                 <span class="sc-opt-label">Polygon</span>
