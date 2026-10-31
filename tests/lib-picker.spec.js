@@ -1,7 +1,7 @@
 // The library pickers: Custom Shape's Shape (the Symbols library) and the
 // pattern editor's pattern (the Patterns library), each a button that opens
 // the library's tiles, and kept in step with the panel's own.
-import { test, expect, load, select, toScreen } from './fixtures.js';
+import { test, expect, load, select, toScreen, tab } from './fixtures.js';
 
 const pop = (page) => page.locator('#sc-libpick-pop');
 const tiles = (page) => pop(page).locator('.sc-libpick-tile');
@@ -100,7 +100,7 @@ test.describe('the pattern editor', () => {
   test.beforeEach(async ({ page }) => {
     await load(page, '<rect id="a" x="20" y="20" width="100" height="80" fill="#2563eb"/>');
     await select(page, 'a');
-    await page.click('[data-tab="patterns"]');
+    await tab(page, 'patterns');
     await page.locator('#sc-patlib .sc-tile').nth(2).click(); // Dots
     await page.click('[data-tab="color"]');
   });

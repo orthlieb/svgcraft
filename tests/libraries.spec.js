@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import { readZip } from './zip.js';
-import { test, expect, load, select, menu } from './fixtures.js';
+import { test, expect, load, select, menu, tab } from './fixtures.js';
 
 // Swatches, Gradients and Patterns panels, the pattern paint, Define Pattern,
 // and the library kept in localStorage (export / import / reset).
@@ -10,7 +10,6 @@ const TWO_RECTS =
   '<rect id="a" x="20" y="20" width="100" height="80" fill="#2563eb" stroke="#000" stroke-width="2"/>' +
   '<rect id="b" x="160" y="20" width="100" height="80" fill="#16a34a"/>';
 
-const tab = (page, t) => page.click(`[data-tab="${t}"]`);
 const tiles = (page, id) => page.locator(`#${id} .sc-tile:not(.none)`);
 const attr = (page, id, a) =>
   page.evaluate(([id, a]) => document.getElementById(id).getAttribute(a), [id, a]);
@@ -155,6 +154,8 @@ test.describe('gradients', () => {
     });
 
     await page.evaluate(() => (window.svgcraft.state.fillGrad.stops[0].c = '#00ff00'));
+    // The gradient editor is in the Color panel's Fill.
+    await tab(page, 'color');
     await page.click('#sc-grad-save');
     await answer(page, 'My grad');
     expect((await stored(page)).gradients.at(-1)).toMatchObject({ name: 'My grad' });
@@ -166,6 +167,7 @@ test.describe('gradients', () => {
     await page.keyboard.press('Escape');
 
     await select(page, 'b');
+    await tab(page, 'gradients');
     await tiles(page, 'sc-gradlib').last().click();
     expect((await paintDef(page, 'b')).stops[0]).toBe('#00ff00');
 
@@ -193,6 +195,8 @@ test.describe('pattern paint', () => {
     await select(page, 'a');
     await tab(page, 'patterns');
     await tiles(page, 'sc-patlib').nth(2).click(); // Dots
+    // The pattern editor is in the Color panel's Fill.
+    await tab(page, 'color');
   });
 
   test('applies a pattern inked with the paint colour', async ({ page }) => {
@@ -383,7 +387,7 @@ test.describe('Define Pattern', () => {
 
   test('needs a selection, and Esc cancels it', async ({ page }) => {
     await page.evaluate(() => (window.svgcraft.state.sel = []));
-    await page.click('[data-tab="patterns"]');
+    await tab(page, 'patterns');
     await page.click('[data-lib="patterns"] [data-lib-act="add"]');
     await expect(page.locator('#sc-alert-text')).toContainText('Select the artwork');
     await load(page, '<rect id="a" x="20" y="20" width="10" height="10" fill="#f00"/>', 300, 200);
@@ -398,7 +402,7 @@ test.describe('Define Pattern', () => {
 
 test.describe('export / import library', () => {
   test('exports everything in a zip, without ids', async ({ page }) => {
-    await page.click('[data-tab="patterns"]');
+    await tab(page, 'patterns');
     const [dl] = await Promise.all([
       page.waitForEvent('download'),
       page.click('[data-lib="patterns"] [data-lib-act="export"]'),
@@ -440,7 +444,7 @@ test.describe('export / import library', () => {
 
     await load(page, TWO_RECTS, 300, 200);
     await select(page, 'a');
-    await page.click('[data-tab="patterns"]');
+    await tab(page, 'patterns');
     await tiles(page, 'sc-patlib').last().click();
     expect(await page.evaluate(() => window.pwned)).toBeUndefined();
     await expect(page.locator('#sc-stage')).toBeVisible();

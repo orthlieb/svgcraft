@@ -1,4 +1,4 @@
-import { test, expect, load, select, menu, toScreen, menuOff, action } from './fixtures.js';
+import { test, expect, load, select, menu, toScreen, menuOff, action, tab } from './fixtures.js';
 
 // Symbols: Make Symbol, instances, the Symbols panel, editing a symbol in
 // place, Break Link, rename / delete, saving, importing, locks and undo.
@@ -43,7 +43,7 @@ async function makeSymbol(page, name = 'Badge', ...ids) {
 
 const uses = (page) => page.locator('#sc-doc use');
 const symbols = (page) => page.locator('#sc-defs > symbol');
-const symbolsTab = (page) => page.click('[data-tab="symbols"]');
+const symbolsTab = (page) => tab(page, 'symbols');
 
 // Every probe: inside the square, inside the circle, the square's stroke, bg.
 const PROBES = [
@@ -239,7 +239,7 @@ test.describe('instances', () => {
       300,
     );
     await makeSymbol(page, 'Pair', 'a', 'k');
-    await page.click('[data-tab="swatches"]');
+    await tab(page, 'swatches');
     await page.click('#sc-palette .sc-tile[aria-label="#dc2626"]');
     expect(
       await page.evaluate(() => document.querySelector('#sc-doc use').getAttribute('fill')),
@@ -298,7 +298,7 @@ test.describe('Edit Symbol', () => {
     // Pick the square and paint it green.
     await page.mouse.click(p.x, p.y);
     expect(await page.evaluate(() => window.svgcraft.state.sel[0].localName)).toBe('rect');
-    await page.click('[data-tab="swatches"]');
+    await tab(page, 'swatches');
     await page.click('#sc-palette .sc-tile[aria-label="#16a34a"]');
     await tick(page);
     // Both instances follow straight away (the export is the real drawing).
@@ -430,7 +430,11 @@ test.describe('Edit Symbol', () => {
     await page.click('#sc-symlib .sc-sym-tile');
     await page.click('[data-sym-act="edit"]');
     await expect(page.locator('#sc-iso')).toBeVisible();
+    // Esc in the Libraries window closes it; Esc again finishes editing.
     await page.keyboard.press('Escape');
+    await expect(page.locator('#sc-libraries')).toBeHidden();
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#sc-iso')).toBeHidden();
     await menu(page, 'Object', 'editSymbol');
     await expect(page.locator('#sc-iso')).toBeVisible();
     // Undo / redo while editing stay in the editing.
@@ -530,7 +534,7 @@ test.describe('Break Link', () => {
     await expect(uses(page)).toHaveCount(0);
     await expect(symbols(page)).toHaveCount(0);
     await expect(page.locator('#sc-msg')).toHaveText(
-      'Broke the link of 2 instances. “Badge” had no other instances, so it’s gone from the Symbols panel.',
+      'Broke the link of 2 instances. “Badge” had no other instances, so it’s gone from the drawing’s symbols.',
     );
     expect(await pixels(page, PROBES)).toEqual(before);
     await page.keyboard.press('Control+z');

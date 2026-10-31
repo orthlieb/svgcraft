@@ -535,7 +535,7 @@ kbd {
 .sc-chips {
   position: relative;
   width: 38px;
-  height: 52px;
+  height: 55px;
   margin-top: 8px;
   flex: none;
 }
@@ -562,15 +562,16 @@ kbd {
   background: var(--chip, transparent);
 }
 /* Fill in front at the top left, stroke behind it at the bottom right:
-   Photoshop's foreground and background colours. */
+   Photoshop's foreground and background colours. Low enough that the
+   active chip's outline (3px out) clears the buttons above. */
 .sc-tb-fill {
   left: 1px;
-  top: 14px;
+  top: 17px;
   z-index: 1;
 }
 .sc-tb-stroke {
   left: 14px;
-  top: 27px;
+  top: 30px;
 }
 /* A stroke chip is drawn hollow, Illustrator-style, so it can't be mistaken for fill. */
 .sc-tb-stroke::after {
@@ -3976,14 +3977,102 @@ body.sc-no-right .sc-main {
   font-size: 11px;
   text-align: center;
 }
-.sc-libpick-manage {
-  align-self: flex-start;
-  padding: 2px 0;
+.sc-libpick-foot {
+  display: flex;
+  justify-content: flex-end;
+}
+/* Swatches: an icon button, and small tiles without names. */
+.sc-libpick.sc-libpick-compact {
+  justify-content: center;
+  width: 24px;
+  padding: 0;
+}
+.sc-libpick-compact svg {
+  width: 13px;
+  height: 13px;
+  fill: currentColor;
+}
+.sc-libpick-small .sc-libpick-grid {
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  gap: 3px;
+}
+.sc-libpick-small .sc-libpick-tile {
+  padding: 0;
+  aspect-ratio: 1;
+}
+.sc-libpick-small .sc-libpick-tile-thumb {
+  height: 100%;
+}
+
+/* ---- Color panel: Fill and Stroke fold to their first row ------------------- */
+.sc-paint-fold {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 16px;
+  height: 22px;
+  margin-left: -4px;
+  padding: 0;
   border: 0;
   background: none;
-  color: var(--accent);
-  font-size: 11px;
+  color: var(--text-dim);
 }
-.sc-libpick-manage:hover {
-  text-decoration: underline;
+.sc-paint-fold:hover {
+  color: var(--text);
+}
+.sc-paint-fold svg {
+  width: 10px;
+  height: 10px;
+  fill: currentColor;
+  transition: transform 0.12s ease;
+}
+.sc-paint.folded > :not(.sc-paint-head) {
+  display: none;
+}
+.sc-paint.folded > .sc-paint-head {
+  margin-bottom: 0;
+}
+/* The gradient / pattern editor, in the active paint's section: a little
+   narrower than the panel, so its rows give a little. */
+.sc-paint-editor {
+  margin-top: 8px;
+  padding-top: 8px;
+}
+.sc-paint-editor .sc-grad-head .sc-libpick {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+.sc-paint-editor .sc-gstop-row {
+  flex-wrap: wrap;
+  gap: 4px 6px;
+}
+
+/* ---- Window → Libraries ------------------------------------------------------ */
+.sc-libwin {
+  width: min(460px, calc(100vw - 16px));
+  height: min(520px, calc(100vh - 120px));
+}
+.sc-libwin-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+/* Tiles as many as fit, at their own size, rather than a set number. */
+.sc-libwin .sc-palette {
+  grid-template-columns: repeat(auto-fill, minmax(26px, 1fr));
+}
+.sc-libwin .sc-lib-grid {
+  grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+}
+.sc-libwin .sc-sym-grid {
+  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+  max-height: none;
+}
+/* The Libraries column: Libraries docked by the panels, filling it. */
+.sc-libdock .sc-libwin[data-docked] {
+  flex: 1 1 auto;
+}
+.sc-libdock {
+  border-left: 1px solid var(--line);
 }

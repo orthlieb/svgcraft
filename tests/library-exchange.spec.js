@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-import { test, expect } from './fixtures.js';
+import { test, expect, tab } from './fixtures.js';
 import { readZip, makeZip } from './zip.js';
 
 // Export writes one zip: the SVGCraft library plus GIMP palette, CSS and SVG
@@ -73,11 +73,11 @@ const plain = (lib) =>
   );
 
 // Export from a panel's button; returns the zip's files as strings.
-async function exportZip(page, tab = 'swatches') {
-  await page.click(`[data-tab="${tab}"]`);
+async function exportZip(page, kind = 'swatches') {
+  await tab(page, kind);
   const [dl] = await Promise.all([
     page.waitForEvent('download'),
-    page.click(`[data-lib="${tab}"] [data-lib-act="export"]`),
+    page.click(`[data-lib="${kind}"] [data-lib-act="export"]`),
   ]);
   expect(dl.suggestedFilename()).toBe('svgcraft-library.zip');
   const files = readZip(fs.readFileSync(await dl.path()));
@@ -196,7 +196,7 @@ test.describe('export', () => {
 test.describe('import', () => {
   test('the exported zip brings everything back, once', async ({ page }) => {
     await setLib(page, LIB);
-    await page.click('[data-tab="swatches"]');
+    await tab(page, 'swatches');
     const [dl] = await Promise.all([
       page.waitForEvent('download'),
       page.click('[data-lib="swatches"] [data-lib-act="export"]'),
@@ -402,7 +402,7 @@ test.describe('a new definition under a name you already use', () => {
     // The dialog's buttons are back to normal for the next prompt.
     await importIncoming(page);
     await dialog(page).locator('[data-ask="cancel"]').click();
-    await page.click('[data-tab="swatches"]');
+    await tab(page, 'swatches');
     await page.click('[data-lib="swatches"] [data-lib-act="reset"]');
     await expect(dialog(page).locator('[data-ask="cancel"]')).toHaveText('Cancel');
     await expect(dialog(page).locator('[data-ask="alt"]')).toBeHidden();

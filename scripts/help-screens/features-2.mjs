@@ -450,11 +450,11 @@ export default [
     id: 'patterns',
     async shoot(h) {
       await h.select('Backdrop');
-      await h.tab('patterns');
       await tall(h, COLOR_GROUP);
-      await h.page.locator('#sc-patlib > *').nth(5).click();
+      await h.page.click('[aria-label="Fill type"] [data-kind="pattern"]');
+      await h.page.click('#sc-pat-pick');
+      await h.page.click('#sc-libpick-pop .sc-libpick-tile[data-id="crosshatch"]');
       await h.shot(null, await panel(h, COLOR_GROUP));
-      await h.tab('color');
       await h.page.click('#sc-pat-pick');
       await h.page.waitForSelector('#sc-libpick-pop:not([hidden])');
       await h.shot(['#sc-libpick-pop', '#sc-pat-pick'], { pad: 8, name: 'patterns-picker' });
@@ -464,8 +464,12 @@ export default [
     id: 'libraries',
     async shoot(h) {
       await h.tab('swatches');
-      await tall(h, COLOR_GROUP);
-      await h.shot(null, await panel(h, COLOR_GROUP));
+      await h.page.evaluate(() => {
+        document.getElementById('sc-libraries').style.height = '230px';
+        document.activeElement.blur();
+      });
+      await h.page.mouse.move(5, 500);
+      await h.shot('#sc-libraries', { pad: 0 });
     },
   },
   {

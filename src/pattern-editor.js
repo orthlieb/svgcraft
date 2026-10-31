@@ -7,9 +7,9 @@ function renderPatEditor() {
   renderPatTiles();
   const p = activePat();
   const box = $('#sc-pat');
+  placePaintEditor(box);
   box.hidden = !p;
   if (!p) return;
-  $('#sc-pat-title').textContent = `${state.active === 'fill' ? 'Fill' : 'Stroke'} pattern`;
   $('#sc-pat-preview').style.setProperty('--tile', patCss(p, state[state.active], 1));
   // The panel marks the same pattern the picker shows.
   if (lib.patterns.some((x) => x.id === p.id)) libSel.patterns = p.id;
@@ -37,8 +37,8 @@ function wirePatEditor() {
     current: activePat,
     thumb: libPatThumb,
     pick: (x, e) => applyLibPat(x, e),
-    manage: () => showTab('patterns'),
-    manageLabel: 'Manage in the Patterns panel',
+    manage: () => openLibraries('patterns'),
+    manageTip: 'Make and manage patterns in the Libraries window',
   });
   $('#sc-pat-with').addEventListener('change', (e) =>
     editPat((p) => (p.withShape = e.target.checked)),
@@ -90,8 +90,8 @@ async function definePattern() {
   lib.patterns.push(item);
   libSel.patterns = item.id;
   saveLibrary();
-  showTab('patterns');
-  say(`Defined “${item.name}”. Click it in the Patterns panel to fill with it.`);
+  openLibraries('patterns');
+  say(`Defined “${item.name}”. Pick it as a fill or stroke’s pattern.`);
 }
 
 // Copy every defs entry the nodes point at (url(#…) or href="#…"), and what

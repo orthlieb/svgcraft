@@ -108,12 +108,14 @@ test.describe('imported dasharray', () => {
   });
 });
 
-test('Custom in the options bar switches to the Color tab', async ({ page }) => {
-  await page.click('[data-tab="swatches"]');
-  await expect(page.locator('[data-tab="color"]')).not.toHaveAttribute('aria-selected', 'true');
+test('Custom in the options bar opens the Color panel', async ({ page }) => {
+  const group = page.locator('#sc-panel > .sc-pgroup').first();
+  await group.locator('.sc-pcollapse').click();
+  await expect(group).toHaveClass(/collapsed/);
   await page.keyboard.press('r');
   await page.selectOption('.sc-opt.on select[data-stroke-dash]', 'custom');
-  await expect(page.locator('[data-tab="color"]')).toHaveAttribute('aria-selected', 'true');
+  await expect(group).not.toHaveClass(/collapsed/);
+  await expect(page.locator('[data-pane="color"]')).toBeVisible();
 });
 
 test('a newly drawn shape gets the custom pattern', async ({ page }) => {

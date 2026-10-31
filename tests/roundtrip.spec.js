@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-import { test, expect } from './fixtures.js';
+import { test, expect, tab } from './fixtures.js';
 
 // Everything SVGCraft lets you set travels inside the saved SVG (as data-*
 // attributes, CSS and real SVG defs), so Save as SVG → Open, or → Import into
@@ -59,7 +59,7 @@ async function setUp(page) {
     s.state.sel = [document.getElementById('p')];
     s.readStyle(s.state.sel[0]);
   });
-  await page.click('[data-tab="patterns"]');
+  await tab(page, 'patterns');
   await page.click('#sc-patlib .sc-tile:nth-child(3)');
   // Let the effect / stroke-align defs sync.
   await page.evaluate(() => new Promise((r) => setTimeout(r, 0)));

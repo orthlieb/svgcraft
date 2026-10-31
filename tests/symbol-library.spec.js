@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import { readZip } from './zip.js';
-import { test, expect, load, select, menu, toScreen } from './fixtures.js';
+import { test, expect, load, select, menu, toScreen, tab } from './fixtures.js';
 
 // The Symbols library: the built-in icon set, search and categories,
 // placing (and reusing) symbols, drag and drop, Save to Library, rename /
@@ -47,7 +47,7 @@ const stored = (page) =>
 const builtinCount = (page) => page.evaluate(() => window.SC_SYMBOLS.length);
 
 async function openLibrary(page) {
-  await page.click('[data-tab="symbols"]');
+  await tab(page, 'symbols');
   await page.click('[data-symview="lib"]');
   await expect(page.locator('#sc-libsyms')).toBeVisible();
 }
@@ -255,7 +255,7 @@ test.describe('Save to Library', () => {
     await select(page, 'a', 'b');
     await menu(page, 'Object', 'makeSymbol');
     await answer(page, 'Badge');
-    await page.click('[data-tab="symbols"]');
+    await tab(page, 'symbols');
     await page.click('#sc-symlib .sc-sym-tile');
     await page.click('[data-sym-act="save"]');
     await answer(page, 'Red badge');

@@ -48,6 +48,7 @@ const actions = {
   paste: () => pasteClipboard(),
   fileInfo: openFileInfo,
   toggleSource,
+  toggleLibraries,
   undo,
   redo,
   deselect: () => setSel([]),

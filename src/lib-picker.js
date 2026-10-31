@@ -2,25 +2,29 @@
 // list of names used to be.
 'use strict';
 
-// The Custom Shape tool's Shape (the Symbols library) and the pattern
-// editor's pattern (the Patterns library) are each a button showing the
-// current one's picture and name. It opens the library's tiles (searchable,
-// by category where it has them) in a popup, the same pictures the panel
-// shows, and a link to the panel for managing them. Picking is the same as
-// clicking a tile in the panel, and the panel marks the same one.
+// The Custom Shape tool's Shape (the Symbols library), the gradient and
+// pattern editors' (Gradients, Patterns) and Fill / Stroke's swatch are
+// each a button showing the current one (its picture and name, or for
+// swatches just an icon). It opens the library's tiles (searchable, by
+// category where it has them) in a popup, and Custom…, which opens the
+// Libraries window to make and manage them. Picking is the same as
+// clicking a tile there, and the window marks the same one.
 //
 // opts: label (the button's name), items(), current() (an item, or null),
-// thumb(item, small) (a CSS background; small for the button's own), cats (filter by category), pick(item, e),
-// manage() (show the panel) and manageLabel.
+// thumb(item, small) (a CSS background; small for the button's own),
+// cats (filter by category), compact (an icon button, and small tiles
+// without names: swatches), pick(item, e), manage() (Custom…) and
+// manageTip.
 let libPickOpen = null; // the picker showing
 // The pickers, kept in step by the panels: { symbols, patterns }.
-const libPickers = { symbols: null, patterns: null, gradients: null };
+const libPickers = { symbols: null, patterns: null, gradients: null, fill: null, stroke: null };
 // Tile pictures: a library symbol in ink on white, a pattern in the active
 // paint's colour, a gradient left to right over a checkerboard.
 const libSymThumb = (it) => `${libSymCss(it)} center / contain no-repeat content-box, #fff`;
 const libPatThumb = (it, small) =>
   `${patCss({ ...it, scale: 1 }, state[state.active], small ? 0.7 : 1.5)}, var(--field)`;
 const libGradThumb = (it) => `${gradCss(it)}, var(--checker) 0 0 / 8px 8px`;
+const libSwatchThumb = (it) => `${solidCss(it.c, it.a)}, var(--checker) 0 0 / 8px 8px`;
 function libPicker(btn, opts) {
   btn.classList.add('sc-libpick');
   btn.type = 'button';
@@ -33,7 +37,10 @@ function libPicker(btn, opts) {
   const caret = document.createElement('span');
   caret.className = 'sc-libpick-caret';
   caret.innerHTML = icon('chevron-down');
-  btn.replaceChildren(thumb, name, caret);
+  if (opts.compact) {
+    btn.classList.add('sc-libpick-compact');
+    btn.innerHTML = icon('swatchbook');
+  } else btn.replaceChildren(thumb, name, caret);
   const filter = { q: '', cat: '' };
 
   function sync() {
@@ -41,7 +48,10 @@ function libPicker(btn, opts) {
     name.textContent = it ? it.name : 'None';
     thumb.style.setProperty('--tile', it ? opts.thumb(it, true) : 'none');
     btn.setAttribute('aria-label', `${opts.label}: ${it ? it.name : 'none'}`);
-    btn.dataset.tip = `${opts.label}: ${it ? it.name : 'none'} · click to pick another`;
+    btn.dataset.tip = opts.compact
+      ? opts.label
+      : `${opts.label}: ${it ? it.name : 'none'} · click to pick another`;
+    if (opts.compact) btn.setAttribute('aria-label', opts.label);
     if (libPickOpen?.btn === btn) renderTiles();
   }
 
@@ -83,7 +93,8 @@ function libPicker(btn, opts) {
         const n = document.createElement('span');
         n.className = 'sc-libpick-tile-name';
         n.textContent = it.name;
-        b.append(t, n);
+        b.append(t);
+        if (!opts.compact) b.append(n);
         b.addEventListener('click', (e) => {
           close();
           opts.pick(it, e);
@@ -107,9 +118,10 @@ function libPicker(btn, opts) {
     const q = pop.querySelector('.sc-libpick-q');
     q.value = filter.q;
     q.placeholder = 'Search';
-    q.setAttribute('aria-label', `Search ${opts.label.toLowerCase()}s`);
+    q.setAttribute('aria-label', `Search ${opts.label.toLowerCase().replace(/s?$/, 's')}`);
     pop.setAttribute('aria-label', opts.label);
-    pop.querySelector('.sc-libpick-manage span').textContent = opts.manageLabel;
+    pop.classList.toggle('sc-libpick-small', !!opts.compact);
+    pop.querySelector('.sc-libpick-manage').dataset.tip = opts.manageTip;
     libPickOpen = { btn, close, filter, renderTiles, manage: opts.manage };
     renderTiles();
     pop.hidden = false;
@@ -174,7 +186,7 @@ function libPickPop() {
     '<div class="sc-libpick-filter"><select class="sc-libpick-cat" aria-label="Category"></select>' +
     '<input class="sc-libpick-q" type="search" spellcheck="false" /></div>' +
     '<div class="sc-libpick-grid"></div>' +
-    '<button type="button" class="sc-libpick-manage"><span></span></button>';
+    '<div class="sc-libpick-foot"><button type="button" class="sc-tbtn sc-libpick-manage">Custom…</button></div>';
   document.body.append(pop);
   const q = pop.querySelector('.sc-libpick-q');
   q.addEventListener('input', () => {

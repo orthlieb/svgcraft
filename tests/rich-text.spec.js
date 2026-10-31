@@ -1,7 +1,7 @@
 // Per-character styling inside the type editor: runs from the options bar,
 // Character panel, swatches and font picker; caret read-back; auto leading;
 // whole-layer settings clearing runs; mixed-size wrapping; round-trip.
-import { test, expect, toScreen } from './fixtures.js';
+import { test, expect, toScreen, parkLibraries } from './fixtures.js';
 
 const editor = (page) => page.locator('.sc-type-edit');
 
@@ -40,8 +40,18 @@ async function selectChars(page, from, n) {
   );
 }
 
-const showSwatches = (page) =>
-  page.evaluate(() => document.querySelector('[data-tab="swatches"]').click());
+// A swatch from the Libraries window, opened and put away again without
+// taking the caret.
+async function pickSwatch(page, colour) {
+  await page.evaluate(() => {
+    const w = document.getElementById('sc-libraries');
+    w.hidden = false;
+    w.querySelector('[data-tab="swatches"]').click();
+  });
+  await parkLibraries(page);
+  await page.click(`#sc-palette button[aria-label="${colour}"]`);
+  await page.evaluate(() => (document.getElementById('sc-libraries').hidden = true));
+}
 
 async function setSize(page, v) {
   await page.click('.sc-ptabs [data-tab="character"]');
@@ -72,8 +82,7 @@ async function styleRuns(page) {
   await page.selectOption('.sc-options select[data-type="style"]', '700');
   await setSize(page, 48);
   await selectChars(page, 16, 5);
-  await showSwatches(page);
-  await page.click('#sc-palette button[aria-label="#dc2626"]');
+  await pickSwatch(page, '#dc2626');
   await pickFont(page, 'georgia');
   await selectChars(page, 12, 3);
   await page.click('.sc-ptabs [data-tab="character"]');
@@ -246,8 +255,7 @@ test.describe('whole-layer settings over runs', () => {
     await makeRichText(page);
     await page.keyboard.press('v');
     await page.locator('#sc-layers li').first().click();
-    await showSwatches(page);
-    await page.click('#sc-palette button[aria-label="#2563eb"]');
+    await pickSwatch(page, '#2563eb');
     await expect(page.locator('#sc-doc tspan[fill]')).toHaveCount(0);
     expect(await page.locator('#sc-doc text').getAttribute('fill')).toBe('#2563eb');
   });

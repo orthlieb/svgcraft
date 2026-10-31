@@ -426,7 +426,7 @@ function syncPatterns(els) {
     }
 }
 
-// A CSS background showing the tile, for chips and the Patterns panel.
+// A CSS background showing the tile, for chips and the Patterns library.
 function patCss(p, ink, px = 1) {
   const s = (p.scale || 1) * px;
   const svg =

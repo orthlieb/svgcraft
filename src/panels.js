@@ -2,7 +2,7 @@
 // and collapsing the column to a strip of icons.
 'use strict';
 
-// Panel tabs (Color | Swatches).
+// Panel tabs (Properties | Character | …), and the Libraries window's.
 for (const group of document.querySelectorAll('[data-tabs]')) {
   const tabs = [...group.querySelectorAll('[data-tab]')];
   for (const t of tabs) {
@@ -35,6 +35,8 @@ function setCollapsed(group, on, save = true) {
 // Show a panel because the user asked for it (a menu command): its tab,
 // with its group unfolded.
 function showTab(name) {
+  // Swatches, Gradients, Patterns and Symbols are in the Libraries window.
+  if (LIB_TABS.includes(name)) return openLibraries(name);
   const t = $(`[data-tab="${name}"]`);
   if (document.body.classList.contains('sc-dock-icons')) return openPopout(t);
   t.click();
@@ -212,13 +214,9 @@ if (stored(DOCK_KEY) === 'icons') setDockIcons(true, false);
 // windows, and the workspace: collapse to icons, hide the panels, reset.
 const PANEL_TABS = {
   Color: 'color',
-  Swatches: 'swatches',
-  Gradients: 'gradients',
-  Patterns: 'patterns',
   Properties: 'props',
   Character: 'character',
   Paragraph: 'paragraph',
-  Symbols: 'symbols',
   Animation: 'animation',
   History: 'history',
 };
@@ -276,6 +274,7 @@ actions.resetWorkspace = () => {
     store(d.key, null);
     if (dockRoomQuery.matches) setDocked(d, true, false);
   }
+  resetLibraries();
   for (const dlg of document.querySelectorAll('dialog.sc-dialog'))
     dlg.style.left = dlg.style.top = dlg.style.transform = '';
   syncDock();

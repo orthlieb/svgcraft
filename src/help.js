@@ -58,6 +58,13 @@ for (const g of pgroups) {
     bar.querySelector('.sc-pcollapse'),
   );
 }
+// The Libraries window: at the end of its tab bar, for the open tab.
+$('#sc-libraries .sc-ptabs').append(
+  helpButton(
+    'Help on this',
+    () => TAB_HELP[$('#sc-libraries [data-tab][aria-selected="true"]')?.dataset.tab],
+  ),
+);
 // The phone's Info sheet.
 $('#sc-pinfo-help')?.addEventListener('click', () => {
   hideDialog($('#sc-pinfo'));
