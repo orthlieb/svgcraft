@@ -46,8 +46,8 @@ test('a divider resizes the group above it, remembered; Reset Workspace undoes i
   expect(Math.abs((await groupH(page, 0)) - h1)).toBeLessThan(2);
   // The keyboard moves it too.
   await page.locator('.sc-psplit').first().focus();
-  await page.keyboard.press('ArrowDown');
-  expect(Math.abs((await groupH(page, 0)) - (h1 + 10))).toBeLessThan(2);
+  await page.keyboard.press('ArrowUp');
+  expect(Math.abs((await groupH(page, 0)) - (h1 - 10))).toBeLessThan(2);
 
   await page.click('.sc-menu-btn:text-is("Window")');
   await page.click('.sc-menu-list:not([hidden]) [data-action="resetWorkspace"]');

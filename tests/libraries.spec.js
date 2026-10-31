@@ -174,8 +174,8 @@ test.describe('gradients', () => {
     await tab(page, 'props');
     await page.click('[data-kind-for="fill"] [data-kind="solid"]');
     await tab(page, 'gradients');
-    await page.click('[data-lib="gradients"] [data-lib-act="add"]');
-    await expect(page.locator('#sc-alert-text')).toContainText('gradient first');
+    // No gradient in use: nothing to save.
+    await expect(page.locator('[data-lib="gradients"] [data-lib-act="add"]')).toBeDisabled();
   });
 
   test('built-in presets keep their names as values', async ({ page }) => {
@@ -388,8 +388,8 @@ test.describe('Define Pattern', () => {
   test('needs a selection, and Esc cancels it', async ({ page }) => {
     await page.evaluate(() => (window.svgcraft.state.sel = []));
     await tab(page, 'patterns');
-    await page.click('[data-lib="patterns"] [data-lib-act="add"]');
-    await expect(page.locator('#sc-alert-text')).toContainText('Select the artwork');
+    // Nothing selected: nothing to make a pattern of.
+    await expect(page.locator('[data-lib="patterns"] [data-lib-act="add"]')).toBeDisabled();
     await load(page, '<rect id="a" x="20" y="20" width="10" height="10" fill="#f00"/>', 300, 200);
     await select(page, 'a');
     await menu(page, 'Edit', 'definePattern');

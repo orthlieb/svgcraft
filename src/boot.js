@@ -49,6 +49,11 @@ syncPreview();
 // replace it as soon as they're read back.
 newDoc();
 const ready = loadDocs();
+// The panel groups' natural heights, measured again once the drawing and
+// its panels are drawn (unless they were set by hand).
+ready.then(() => {
+  if (!stored(PANEL_H_KEY)) applyGroupHeights();
+});
 
 // Exposed for the smoke test and for poking at from the console.
 window.svgcraft = {
