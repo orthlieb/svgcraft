@@ -1087,8 +1087,8 @@ kbd {
 }
 .sc-chip {
   position: relative;
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   padding: 0;
   border: 1px solid var(--field-line);
   border-radius: 3px;
@@ -3476,9 +3476,11 @@ body.sc-no-doc .sc-status > * {
     overflow-y: auto;
     overscroll-behavior: contain;
   }
+  /* Layers always has room for four rows (and its bars); the groups above
+     give way first. */
   body:not(.sc-dock-icons) .sc-pgroup.sc-grow:not(.collapsed) {
     flex: 1 1 0;
-    min-height: 180px;
+    min-height: 290px;
   }
 }
 @media (min-width: 1024px) {
@@ -4129,4 +4131,85 @@ body.sc-no-right .sc-main {
 }
 .sc-dialog [aria-invalid='true'] {
   border-color: var(--danger);
+}
+
+/* The options bar's ‹ and ›: stuck to its ends while it has more that way. */
+.sc-opt-more {
+  position: sticky;
+  z-index: 1;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  color: var(--text);
+}
+.sc-opt-more[hidden] {
+  display: none;
+}
+.sc-opt-more-r {
+  right: 0;
+  margin-left: auto;
+  background: linear-gradient(to right, transparent, var(--shell) 40%);
+}
+.sc-opt-more-l {
+  left: 0;
+  background: linear-gradient(to left, transparent, var(--shell) 40%);
+}
+.sc-opt-more-l svg {
+  transform: scaleX(-1);
+}
+.sc-opt-more svg {
+  width: 11px;
+  height: 11px;
+  fill: currentColor;
+}
+.sc-opt-more:hover {
+  background-color: var(--hover);
+}
+
+/* Properties' Transform: X Y over W H, the proportions link beside. */
+.sc-boxprops {
+  margin-bottom: 8px;
+}
+.sc-boxprops-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 6px 10px;
+  align-items: center;
+}
+.sc-boxprops-grid .sc-box-link {
+  grid-column: 3;
+  grid-row: 1 / span 2;
+}
+.sc-boxprops-grid input[type='number'] {
+  width: 64px;
+}
+
+/* With no drawing open the panels and bars can't be used (they're inert):
+   they look it. */
+body.sc-no-doc #sc-panel > .sc-pgroup > .sc-pbody,
+body.sc-no-doc .sc-options > *,
+body.sc-no-doc .sc-tools {
+  opacity: 0.45;
+}
+
+/* Fill and Stroke show one swatch, the chip: its colour picker is the
+   native one, opened from the chip, so the input itself stays out of sight. */
+.sc-paint-head {
+  position: relative;
+}
+.sc-paint-head input[type='color'] {
+  position: absolute;
+  left: 20px;
+  bottom: 0;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
 }

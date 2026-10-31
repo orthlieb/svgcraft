@@ -227,6 +227,9 @@ for the eraser, or the point commands for Edit Points.
 
 - Type a value, or drag a field's label sideways to scrub it. Shift
   scrubs 10× faster.
+- When the window is too narrow for all of a tool's settings, a **›** at
+  the bar's end (and **‹** once you've scrolled) shows there's more: click
+  it, or scroll the bar with the mouse wheel.
 
 #### Auto-Select (Move tool)
 
@@ -290,8 +293,11 @@ you like.
 - **Color**: the fill and stroke, with the stroke's width, alignment,
   caps, joins and dashes.
 - **Properties**, **Character**, **Paragraph**, **Animation** and
-  **History**. Properties has the shape's settings, the document size,
-  and the grid and snap.
+  **History**. Properties has the selection's **Transform** (X, Y, W and
+  H, typed in the document's units, with a link to keep the proportions),
+  the shape's settings, the document size, and the grid and snap.
+- Selecting text shows the Character tab; selecting something else
+  afterwards goes back to the tab you had.
 - **Layers**: see [Layers](#layers).
 - Swatches, gradients, patterns and symbols are made and managed in the
   [Libraries](#libraries) window (**Window → Libraries**).
@@ -1568,9 +1574,9 @@ Fill or stroke a shape with a smooth blend of colours.
   deletes it.
 - **Angle**: the direction, in degrees.
 - **Reverse** (⇄) flips the stops.
-- **Keep angle when stretched** (on by default): stretching or skewing the
+- **Stretch with shape** (off by default): off, stretching or skewing the
   shape keeps the gradient at its angle, still running across the whole
-  shape, and a radial one stays round. Off, it stretches with the shape.
+  shape, and a radial one stays round. On, it stretches with the shape.
 - **Presets**: the button beside the title shows the gradient in use (or
   **Custom**). Click it for the tiles: Colour → Transparent, plus
   everything in the Gradients library, which marks the same one. Picking a
@@ -1588,7 +1594,7 @@ Fill or stroke a shape with a smooth blend of colours.
 #### Good to know
 
 - Each shape gets its own gradient, which moves, rotates and scales with
-  the shape. With **Keep angle when stretched** on, it's laid out in the
+  the shape. With **Stretch with shape** off, it's laid out in the
   shape's space as the page shows it (its `gradientTransform` undoes the
   shape's stretch and skew), and fitted to the shape again after every
   change, keeping where it sits in the shape (`data-fit`).
@@ -1663,7 +1669,7 @@ tile you make.
 1. Select a shape and make fill or stroke the active paint.
 2. Set the paint's **Type** to
    Pattern in the Color panel.
-3. Adjust it in the pattern editor: **Scale**, **Angle**, **Scale with
+3. Adjust it in the pattern editor: **Scale**, **Angle**, **Stretch with
    shape**, or another
    pattern: click the pattern's name for the library's tiles (the same
    ones as the Libraries window's Patterns, which marks the one in use).
@@ -1671,7 +1677,7 @@ tile you make.
 
 ![The pattern editor's picker open, with the library's patterns as tiles](docs/help/patterns-picker.png)
 
-#### Scale with shape
+#### Stretch with shape
 
 - Off (the default): scaling, stretching or skewing the shape leaves the
   tiles their size, so a bigger shape shows more of the pattern. They
@@ -1693,7 +1699,7 @@ tile you make.
   colour re-inks them.
 - The tiles start at the shape's top-left corner.
 - As with gradients, each shape gets its own `<pattern>` in its own
-  coordinates. Unless **Scale with shape** is on, its `patternTransform`
+  coordinates. Unless **Stretch with shape** is on, its `patternTransform`
   undoes the shape's scale and skew, and is kept so as the shape changes.
 - Patterns export as plain SVG.
 
@@ -1721,7 +1727,8 @@ the Custom Shape tool draws a symbol.
   active gradient, or defines a pattern from the selection. Each asks for
   a name.
 - **Rename**: double-click a tile, or use the pencil button.
-- **Delete**: Alt-click a tile, or use the bin button.
+- **Delete**: Alt-click a tile, or use the bin button. The library isn't
+  in the drawing's history, so the message after it has its own **Undo**.
 - **Reset** (↺): brings back the built-in set for that tab.
 
 Swatches, Gradients and Patterns all work this way; Symbols has its own
@@ -1797,7 +1804,7 @@ how see-through they are.
    stroke chips at the bottom of the toolbar) to make it the active
    paint.
 2. Tick **On** to paint it, or untick it for none.
-3. Pick a colour with the colour picker, type a hex code, or pick a swatch
+3. Click the paint's swatch for the colour picker, type a hex code, or pick a swatch
    with the swatches button beside the hex code (its **Custom…** opens the
    [Libraries](#libraries) window's Swatches).
 4. For a gradient or a pattern, set the paint's **Type**: its editor

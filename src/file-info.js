@@ -414,4 +414,5 @@ function exportSvg() {
     `${state.fileName}.svg`,
   );
   markSaved();
+  say(`Downloaded ${state.fileName}.svg.`);
 }

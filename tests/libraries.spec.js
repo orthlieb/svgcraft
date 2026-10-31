@@ -243,7 +243,7 @@ test.describe('pattern paint', () => {
     expect(d.tf).toContain('scale(2)');
   });
 
-  test('scaling the shape keeps the tiles their size; Scale with shape lets them grow', async ({
+  test('scaling the shape keeps the tiles their size; Stretch with shape lets them grow', async ({
     page,
   }) => {
     // The tile's size and turn on the page: the shape's transform, then the pattern's.
@@ -285,7 +285,7 @@ test.describe('pattern paint', () => {
     // Undo: back to the stretched shape, the tiles still their size.
     await page.keyboard.press('Control+z');
     expect(await tile()).toEqual({ sx: 1, sy: 1, deg: 0 });
-    // Scale with shape: they stretch with it.
+    // Stretch with shape: they stretch with it.
     await select(page, 'a');
     await tab(page, 'color');
     await expect(page.locator('#sc-pat-with')).not.toBeChecked();

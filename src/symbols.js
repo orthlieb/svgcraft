@@ -446,6 +446,7 @@ function symTile(sym) {
   b.addEventListener('click', () => {
     symSel = sym.id;
     for (const x of b.parentNode.children) x.classList.toggle('sel', x === b);
+    syncLibBars();
   });
   b.addEventListener('dblclick', (e) => {
     if (e.target.closest('.sc-sym-name')) renameSymbol(sym);
@@ -473,6 +474,7 @@ function renderSymbols() {
       grid.replaceChildren(p);
     }
   }
+  if (typeof syncLibBars === 'function') syncLibBars();
   for (const tile of grid.querySelectorAll('.sc-sym-tile')) {
     tile.classList.toggle('sel', tile.dataset.id === symSel);
     const box = symBox(symById(tile.dataset.id));
@@ -713,6 +715,7 @@ function pickLibSymbol(id) {
   libSel.symbols = id;
   for (const x of document.querySelectorAll('#sc-libsyms .sc-sym-tile'))
     x.classList.toggle('sel', x.dataset.id === id);
+  syncLibBars();
   libPickers.symbols?.sync();
 }
 function renderSymLib() {

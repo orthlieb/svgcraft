@@ -92,9 +92,11 @@ const actions = {
   newGuide: openNewGuide,
   clearGuides() {
     if (!state.guides.length) return;
+    const n = state.guides.length;
     state.guides = [];
     renderGuides();
     commit();
+    say(`Cleared ${n} guide${n === 1 ? '' : 's'}.`);
   },
   freeTransform: () => beginTransform('free'),
   tfScale: () => beginTransform('scale'),
@@ -247,6 +249,11 @@ function syncActions() {
     if (curDoc) delete b.dataset.noDoc;
     else b.dataset.noDoc = '1';
   }
+  // A submenu whose commands are all greyed out is greyed out itself.
+  for (const sm of document.querySelectorAll('.sc-submenu')) {
+    const kids = [...sm.querySelectorAll('.sc-sub-list > button:not([hidden])')];
+    sm.querySelector('.sc-sub-btn').disabled = kids.length > 0 && kids.every((b) => b.disabled);
+  }
   // Ctrl+E is Merge Down, Merge Layers or Merge Group, as in Photoshop.
   for (const b of document.querySelectorAll('[data-action="mergeDown"] span'))
     b.textContent = curDoc ? mergeLabel() : 'Merge Down';
@@ -366,7 +373,7 @@ menus.forEach((m, mi) => {
     if (e.target.closest('.sc-sub-list')) return;
     const items = [
       ...list.querySelectorAll(
-        ':scope > button:not(:disabled):not([hidden]), :scope > .sc-submenu > .sc-sub-btn',
+        ':scope > button:not(:disabled):not([hidden]), :scope > .sc-submenu > .sc-sub-btn:not(:disabled)',
       ),
     ];
     const at = items.indexOf(document.activeElement);

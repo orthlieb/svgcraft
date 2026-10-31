@@ -362,6 +362,9 @@ function closeNewGuide(ok) {
       renderGuides();
       syncViewMenu();
       commit();
+      say(
+        `Added a ${axis === 'y' ? 'horizontal' : 'vertical'} guide at ${inUnits(pos)} ${state.units}.`,
+      );
     }
   }
   hideDialog(ngDialog);

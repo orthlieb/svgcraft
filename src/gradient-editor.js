@@ -58,7 +58,7 @@ function renderGradEditor() {
   set('#sc-gstop-o', Math.round(s.o * 100));
   set('#sc-grad-angle', g.angle);
   $('#sc-grad-angle-wrap').hidden = g.type === 'radial';
-  $('#sc-grad-keep').checked = !g.stretch;
+  $('#sc-grad-stretch').checked = !!g.stretch;
   $('#sc-gstop-del').disabled = g.stops.length <= 2;
   for (const b of document.querySelectorAll('[data-gtype]'))
     b.setAttribute('aria-checked', b.dataset.gtype === g.type);
@@ -151,8 +151,8 @@ function wireGradEditor() {
     manage: () => openLibraries('gradients'),
     manageTip: 'Make, save and manage gradients in the Libraries window',
   });
-  $('#sc-grad-keep').addEventListener('change', (e) =>
-    editGrad((g) => (g.stretch = !e.target.checked)),
+  $('#sc-grad-stretch').addEventListener('change', (e) =>
+    editGrad((g) => (g.stretch = e.target.checked)),
   );
   $('#sc-grad-save').addEventListener('click', () => addLibItem('gradients'));
   $('#sc-grad-reverse').addEventListener('click', () =>

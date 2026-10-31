@@ -30,6 +30,7 @@ function snapshot() {
 }
 
 function commit() {
+  staleAlert();
   // A preview's SMIL never goes into the history.
   stopAnimations();
   syncTextPaths();

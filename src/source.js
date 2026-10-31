@@ -759,7 +759,7 @@ async function copySource() {
     await navigator.clipboard.writeText(srcView.full);
     say('Copied the SVG source');
   } catch {
-    warn('Clipboard unavailable');
+    warn('Couldn’t reach the clipboard: select the source and press Ctrl+C instead.');
   }
 }
 function downloadSource() {

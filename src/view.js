@@ -59,7 +59,8 @@ function fit() {
 }
 // A drawing fitted to the window stays fitted while the canvas changes
 // size (a pane docking, panels folding, the window resized, a phone
-// turned), until you zoom or pan it yourself.
+// turned), until you zoom or pan it yourself; after that it keeps your zoom
+// and the point at the middle of the view.
 let fitView = null;
 const isFitted = () =>
   !!fitView &&
@@ -73,7 +74,12 @@ new ResizeObserver(() => {
   if (size === stageSize) return;
   const was = stageSize;
   stageSize = size;
-  if (was && r.width && r.height && isFitted()) fit();
+  if (!was || !r.width || !r.height) return;
+  if (isFitted()) return fit();
+  const [w0, h0] = was.split('x').map(Number);
+  state.panX += (r.width - w0) / 2;
+  state.panY += (r.height - h0) / 2;
+  applyView();
 }).observe(stage);
 
 // Fill Screen: the artboard covers the whole stage, centred.

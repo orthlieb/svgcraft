@@ -161,3 +161,26 @@ for (const k of ['fill', 'stroke'])
     manage: () => openLibraries('swatches'),
     manageTip: 'Make and manage swatches in the Libraries window',
   });
+
+// The library bars' buttons are greyed out when there's nothing for them
+// to act on: no tile picked (rename, delete, place), no selection (define a
+// pattern, make a symbol), no gradient in use (save it), no symbol.
+function syncLibBars() {
+  const picked = (kind) => !!libItem(kind, libSel[kind]);
+  const set = (b, on) => b && (b.disabled = !on);
+  for (const bar of document.querySelectorAll('[data-lib]')) {
+    const kind = bar.dataset.lib;
+    const b = (act) => bar.querySelector(`[data-lib-act="${act}"]`);
+    for (const act of ['rename', 'delete', 'place']) set(b(act), picked(kind));
+    if (kind === 'patterns') set(b('add'), state.sel.length > 0);
+    if (kind === 'gradients') set(b('add'), !!activeGrad());
+    if (kind === 'symbols') set(b('add'), !!panelSymbol());
+  }
+  const sym = panelSymbol();
+  const inst = state.sel.some(symbolOf);
+  const s = (act) => $(`[data-sym-act="${act}"]`);
+  set(s('make'), state.sel.length > 0 && !iso);
+  set(s('edit'), !iso && (!!sym || inst));
+  set(s('break'), inst);
+  for (const act of ['place', 'rename', 'delete', 'save']) set(s(act), !!sym);
+}

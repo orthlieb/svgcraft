@@ -801,6 +801,11 @@
               <li>
                 Type a value, or drag a field's label sideways to scrub it. Shift scrubs 10× faster.
               </li>
+              <li>
+                When the window is too narrow for all of a tool's settings, a <strong>›</strong> at
+                the bar's end (and <strong>‹</strong> once you've scrolled) shows there's more:
+                click it, or scroll the bar with the mouse wheel.
+              </li>
             </ul>
             <h4>Auto-Select (Move tool)</h4>
             <ul>
@@ -908,8 +913,14 @@
               </li>
               <li>
                 <strong>Properties</strong>, <strong>Character</strong>, <strong>Paragraph</strong>,
-                <strong>Animation</strong> and <strong>History</strong>. Properties has the shape's
-                settings, the document size, and the grid and snap.
+                <strong>Animation</strong> and <strong>History</strong>. Properties has the
+                selection's <strong>Transform</strong> (X, Y, W and H, typed in the document's
+                units, with a link to keep the proportions), the shape's settings, the document
+                size, and the grid and snap.
+              </li>
+              <li>
+                Selecting text shows the Character tab; selecting something else afterwards goes
+                back to the tab you had.
               </li>
               <li><strong>Layers</strong>: see <a href="#layers">Layers</a>.</li>
               <li>
@@ -3055,9 +3066,9 @@
               <li><strong>Angle</strong>: the direction, in degrees.</li>
               <li><strong>Reverse</strong> (⇄) flips the stops.</li>
               <li>
-                <strong>Keep angle when stretched</strong> (on by default): stretching or skewing
-                the shape keeps the gradient at its angle, still running across the whole shape, and
-                a radial one stays round. Off, it stretches with the shape.
+                <strong>Stretch with shape</strong> (off by default): off, stretching or skewing the
+                shape keeps the gradient at its angle, still running across the whole shape, and a
+                radial one stays round. On, it stretches with the shape.
               </li>
               <li>
                 <strong>Presets</strong>: the button beside the title shows the gradient in use (or
@@ -3084,10 +3095,10 @@
             <ul>
               <li>
                 Each shape gets its own gradient, which moves, rotates and scales with the shape.
-                With <strong>Keep angle when stretched</strong> on, it's laid out in the shape's
-                space as the page shows it (its <code>gradientTransform</code> undoes the shape's
-                stretch and skew), and fitted to the shape again after every change, keeping where
-                it sits in the shape (<code>data-fit</code>).
+                With <strong>Stretch with shape</strong> off, it's laid out in the shape's space as
+                the page shows it (its <code>gradientTransform</code> undoes the shape's stretch and
+                skew), and fitted to the shape again after every change, keeping where it sits in
+                the shape (<code>data-fit</code>).
               </li>
               <li>
                 Duplicates split off their own copy when edited, and unused gradients are removed
@@ -3219,10 +3230,10 @@
               <li>Set the paint's <strong>Type</strong> to Pattern in the Color panel.</li>
               <li>
                 Adjust it in the pattern editor: <strong>Scale</strong>, <strong>Angle</strong>,
-                <strong>Scale with shape</strong>, or another pattern: click the pattern's name for
-                the library's tiles (the same ones as the Libraries window's Patterns, which marks
-                the one in use). <strong>Custom…</strong> opens that window, to make and manage
-                patterns.
+                <strong>Stretch with shape</strong>, or another pattern: click the pattern's name
+                for the library's tiles (the same ones as the Libraries window's Patterns, which
+                marks the one in use). <strong>Custom…</strong> opens that window, to make and
+                manage patterns.
               </li>
             </ol>
             <figure>
@@ -3234,7 +3245,7 @@
                 loading="lazy"
               />
             </figure>
-            <h4>Scale with shape</h4>
+            <h4>Stretch with shape</h4>
             <ul>
               <li>
                 Off (the default): scaling, stretching or skewing the shape leaves the tiles their
@@ -3264,7 +3275,7 @@
               <li>The tiles start at the shape's top-left corner.</li>
               <li>
                 As with gradients, each shape gets its own <code>&lt;pattern&gt;</code> in its own
-                coordinates. Unless <strong>Scale with shape</strong> is on, its
+                coordinates. Unless <strong>Stretch with shape</strong> is on, its
                 <code>patternTransform</code> undoes the shape's scale and skew, and is kept so as
                 the shape changes.
               </li>
@@ -3314,7 +3325,10 @@
                 name.
               </li>
               <li><strong>Rename</strong>: double-click a tile, or use the pencil button.</li>
-              <li><strong>Delete</strong>: Alt-click a tile, or use the bin button.</li>
+              <li>
+                <strong>Delete</strong>: Alt-click a tile, or use the bin button. The library isn't
+                in the drawing's history, so the message after it has its own <strong>Undo</strong>.
+              </li>
               <li><strong>Reset</strong> (↺): brings back the built-in set for that tab.</li>
             </ul>
             <p>
@@ -3423,8 +3437,8 @@
               </li>
               <li>Tick <strong>On</strong> to paint it, or untick it for none.</li>
               <li>
-                Pick a colour with the colour picker, type a hex code, or pick a swatch with the
-                swatches button beside the hex code (its <strong>Custom…</strong> opens the
+                Click the paint's swatch for the colour picker, type a hex code, or pick a swatch
+                with the swatches button beside the hex code (its <strong>Custom…</strong> opens the
                 <a href="#libraries">Libraries</a> window's Swatches).
               </li>
               <li>

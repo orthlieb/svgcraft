@@ -47,7 +47,7 @@ async function pngBlob(scale = 2) {
   if (g.length) say('Embedding fonts…');
   const fontCss = await embeddedFontCss(g);
   if (g.length && !fontCss)
-    warn('Could not fetch the fonts (offline?) — the PNG uses fallback fonts.');
+    warn('Couldn’t fetch the fonts (are you offline?), so the PNG uses fallback fonts.');
   const url = URL.createObjectURL(
     new Blob([serialize({ fontCss, animate: false })], { type: 'image/svg+xml' }),
   );
@@ -59,7 +59,7 @@ async function pngBlob(scale = 2) {
   });
   URL.revokeObjectURL(url);
   if (!loaded) {
-    warn('PNG export failed');
+    warn('Couldn’t export the PNG: the browser couldn’t draw the drawing as an image.');
     return null;
   }
   const c = document.createElement('canvas');
@@ -68,24 +68,26 @@ async function pngBlob(scale = 2) {
   c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
   try {
     const b = await new Promise((resolve) => c.toBlob(resolve, 'image/png'));
-    if (!b) warn('PNG export failed');
+    if (!b) warn('Couldn’t export the PNG: the image is too big for this browser.');
     return b;
   } catch {
-    warn('PNG export blocked — the drawing references an external image.');
+    warn('Couldn’t export the PNG: the drawing links an image from another site.');
     return null;
   }
 }
 async function exportPng(scale = 2) {
   const b = await pngBlob(scale);
-  if (b) download(b, `${state.fileName}.png`);
+  if (!b) return;
+  download(b, `${state.fileName}.png`);
+  say(`Downloaded ${state.fileName}.png.`);
 }
 
 async function copySvg() {
   const text = serialize({ selection: state.sel.length > 0, fontCss: fontImport() });
   try {
     await navigator.clipboard.writeText(text);
-    say(state.sel.length ? 'Copied the selection as SVG' : 'Copied the drawing as SVG');
+    say(state.sel.length ? 'Copied the selection as SVG.' : 'Copied the drawing as SVG.');
   } catch {
-    warn('Clipboard unavailable');
+    warn('Couldn’t reach the clipboard: press Ctrl+C instead.');
   }
 }
