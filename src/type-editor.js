@@ -204,12 +204,13 @@ function editTextLayer(el, isNew = false) {
     const text = e.clipboardData.getData('text/plain');
     document.execCommand('insertText', false, isTP(el) ? text.replace(/\s*\n\s*/g, ' ') : text);
   });
-  // Clicks on the panels, options bar, font picker or paint chips keep the
-  // edit open (they style the selected characters); anywhere else ends it.
+  // Clicks on the panels, options bar, font picker or the Fill / Stroke
+  // dropdown keep the edit open (they style the selected characters);
+  // anywhere else ends it.
   div.addEventListener('blur', () =>
     setTimeout(() => {
       if (typeEdit !== ed || document.activeElement === div) return;
-      if (document.activeElement?.closest?.('.sc-options, .sc-panel, #sc-fontpop, .sc-chips'))
+      if (document.activeElement?.closest?.('.sc-options, .sc-panel, #sc-fontpop, #sc-paintpop'))
         return;
       finishTypeEdit(true);
     }, 0),
