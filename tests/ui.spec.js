@@ -55,8 +55,8 @@ test('menus are keyboard navigable', async ({ page }) => {
   await page.keyboard.press('ArrowDown');
   expect(await activeText(page)).toBe('UndoCtrl+Z');
   await page.keyboard.press('ArrowRight');
-  await expect(page.locator('.sc-menu-btn[aria-expanded=true]')).toHaveText('Image');
-  expect(await activeText(page)).toBe('Image Size…Ctrl+Alt+I');
+  await expect(page.locator('.sc-menu-btn[aria-expanded=true]')).toHaveText('Object');
+  expect(await activeText(page)).toBe('Transform');
   await page.keyboard.press('Escape');
   await expect(page.locator('.sc-menu-list:not([hidden])')).toHaveCount(0);
 });
@@ -156,7 +156,7 @@ test('menu items and buttons are greyed out until they can run', async ({ page }
 
   // Nothing selected: no crop to selection, no clipping mask.
   await expect(clip).toBeDisabled();
-  await page.click('.sc-menu-btn:text-is("Image")');
+  await page.click('.sc-menu-btn:text-is("Object")');
   await expect(item('cropToSelection')).toBeDisabled();
   await expect(item('cropToDrawing')).toBeEnabled();
   await page.keyboard.press('Escape');
@@ -164,7 +164,7 @@ test('menu items and buttons are greyed out until they can run', async ({ page }
   // One layer: crop works; a clipping mask still needs two.
   await row(page, 'B').click();
   await expect(clip).toBeDisabled();
-  await page.click('.sc-menu-btn:text-is("Image")');
+  await page.click('.sc-menu-btn:text-is("Object")');
   await expect(item('cropToSelection')).toBeEnabled();
   await page.keyboard.press('Escape');
 

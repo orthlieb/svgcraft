@@ -29,17 +29,16 @@ const pickPoints = (page, id, picked) =>
     [id, picked],
   );
 
-test('the menus in the familiar order: Layer between Image and Object, Window before Help', async ({
+test('the menus in the familiar order: Object after Edit, Effect after Select', async ({
   page,
 }) => {
   await expect(page.locator('.sc-menu-btn')).toHaveText([
     'File',
     'Edit',
-    'Image',
-    'Layer',
     'Object',
     'Type',
     'Select',
+    'Effect',
     'View',
     'Window',
     'Help',
@@ -146,14 +145,14 @@ test('Layer via Cut lifts a shape out of its group, looking the same', async ({ 
 
 test('Layer via Copy and Cut grey out until there is something to take', async ({ page }) => {
   await load(page, GROUP);
-  await menuOff(page, 'Layer', 'layerViaCopy');
-  await menuOff(page, 'Layer', 'layerViaCut');
+  await menuOff(page, 'Object', 'layerViaCopy');
+  await menuOff(page, 'Object', 'layerViaCut');
   // A top-level layer can be copied, but there's nothing to cut it out of.
   await select(page, 'top');
-  await menuOff(page, 'Layer', 'layerViaCut');
+  await menuOff(page, 'Object', 'layerViaCut');
   await page.keyboard.press('Alt+Shift+KeyJ');
   expect(await order(page)).toEqual(['g', 'top']);
   // A single picked point has no segment to take.
   await pickPoints(page, 'top', [[0, 0]]);
-  await menuOff(page, 'Layer', 'layerViaCut');
+  await menuOff(page, 'Object', 'layerViaCut');
 });

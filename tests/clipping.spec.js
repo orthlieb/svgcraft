@@ -57,7 +57,7 @@ const clipState = (page) =>
 
 // Object › Clipping Mask › Make / Release, as a user picks it.
 async function clipMenu(page, label) {
-  await page.click('.sc-menu-btn:text-is("Layer")');
+  await page.click('.sc-menu-btn:text-is("Object")');
   await page.hover('.sc-sub-btn:has-text("Clipping Mask")');
   await page.click(`.sc-sub-list button:has-text("${label}")`);
 }

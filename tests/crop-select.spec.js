@@ -63,14 +63,14 @@ test.describe('Crop to Drawing', () => {
   });
 
   test('fits the artboard to the paint box of the visible drawing', async ({ page }) => {
-    await menu(page, 'Image', 'cropToDrawing');
+    await menu(page, 'Object', 'cropToDrawing');
     const i = await info(page);
     expect([i.w, i.h]).toEqual([440, 320]);
     expect(i.msg).toBe('Cropped to the drawing: 440 × 320 px.');
   });
 
   test('shifts content and guides by the crop corner', async ({ page }) => {
-    await menu(page, 'Image', 'cropToDrawing');
+    await menu(page, 'Object', 'cropToDrawing');
     const i = await info(page);
     expectPoint(i.a, 0.5, 0);
     expectPoint(i.b, 250, 130);
@@ -79,14 +79,14 @@ test.describe('Crop to Drawing', () => {
 
   test('nothing jumps on screen', async ({ page }) => {
     const before = await screenPos(page, 'a');
-    await menu(page, 'Image', 'cropToDrawing');
+    await menu(page, 'Object', 'cropToDrawing');
     const after = await screenPos(page, 'a');
     expect(after.x).toBeCloseTo(before.x, 0);
     expect(after.y).toBeCloseTo(before.y, 0);
   });
 
   test('undo restores size and position (unhistoried guide is gone)', async ({ page }) => {
-    await menu(page, 'Image', 'cropToDrawing');
+    await menu(page, 'Object', 'cropToDrawing');
     await menu(page, 'Edit', 'undo');
     const i = await info(page);
     expect([i.w, i.h]).toEqual([800, 600]);
@@ -100,7 +100,7 @@ test.describe('Crop to Drawing', () => {
       page,
       '<rect id="a" x="0" y="0" width="100" height="100" fill="none" stroke="#000" stroke-width="4" transform="translate(300 200) scale(2)"/>',
     );
-    await menu(page, 'Image', 'cropToDrawing');
+    await menu(page, 'Object', 'cropToDrawing');
     const i = await info(page);
     expect([i.w, i.h]).toEqual([208, 208]);
     const vb = await page.evaluate(() => window.svgcraft.serialize().match(/viewBox="[^"]*"/)[0]);
@@ -109,7 +109,7 @@ test.describe('Crop to Drawing', () => {
 
   test('an empty drawing says there is nothing to crop to', async ({ page }) => {
     await load(page, '<rect id="c" x="0" y="0" width="20" height="20" display="none"/>');
-    await menu(page, 'Image', 'cropToDrawing');
+    await menu(page, 'Object', 'cropToDrawing');
     const i = await info(page);
     expect(i.msg).toBe('There’s nothing visible to crop to.');
     expect([i.w, i.h]).toEqual([800, 600]);
@@ -123,7 +123,7 @@ test.describe('Crop to Selection', () => {
 
   test('crops to the selection including its stroke', async ({ page }) => {
     await selectIds(page, 'b');
-    await menu(page, 'Image', 'cropToSelection');
+    await menu(page, 'Object', 'cropToSelection');
     const i = await info(page);
     expect([i.w, i.h]).toEqual([110, 110]);
     expectPoint(i.b, 5, 5);
@@ -131,8 +131,8 @@ test.describe('Crop to Selection', () => {
 
   test('a second crop reports the artboard already fits', async ({ page }) => {
     await selectIds(page, 'b');
-    await menu(page, 'Image', 'cropToSelection');
-    await menu(page, 'Image', 'cropToSelection');
+    await menu(page, 'Object', 'cropToSelection');
+    await menu(page, 'Object', 'cropToSelection');
     const i = await info(page);
     expect(i.msg).toBe('The artboard already fits the selection.');
     expect([i.w, i.h]).toEqual([110, 110]);
@@ -140,7 +140,7 @@ test.describe('Crop to Selection', () => {
 
   test('with nothing selected it asks for a selection', async ({ page }) => {
     await selectIds(page);
-    await menuOff(page, 'Image', 'cropToSelection');
+    await menuOff(page, 'Object', 'cropToSelection');
     await action(page, 'cropToSelection');
     const i = await info(page);
     expect(i.msg).toBe('Select something to crop to.');

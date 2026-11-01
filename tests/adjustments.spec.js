@@ -3,10 +3,10 @@
 // layers or the whole drawing.
 import { test, expect, load, select } from './fixtures.js';
 
-// Image → (submenu) → item.
+// Edit → Edit Colours → item.
 async function imageMenu(page, sub, act) {
-  await page.click('.sc-menu-btn:text-is("Image")');
-  await page.hover(`.sc-sub-btn:has-text("${sub}")`);
+  await page.click('.sc-menu-btn:text-is("Edit")');
+  await page.hover('.sc-sub-btn:has-text("Edit Colours")');
   await page.click(`.sc-sub-list [data-action="${act}"]`);
 }
 
@@ -131,7 +131,7 @@ test('Threshold: black below the level, white from it; embedded images too', asy
 
 test('with nothing to change, the adjustments are greyed out', async ({ page }) => {
   await load(page, '');
-  await page.click('.sc-menu-btn:text-is("Image")');
+  await page.click('.sc-menu-btn:text-is("Edit")');
   for (const a of ['adjBlackWhite', 'adjThreshold', 'adjDesaturate', 'modeGrayscale'])
     await expect(page.locator(`.sc-menu-list [data-action="${a}"]`)).toBeDisabled();
 });

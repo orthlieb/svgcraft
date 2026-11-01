@@ -25,7 +25,7 @@ function refuseLocked(els, what = 'move') {
       const name = layerName(inner && !lockOf(el) ? inner : el);
       // Text layers' names come quoted already.
       warn(
-        `${name.startsWith('“') ? name : `“${name}”`} is locked: Layer → Unlock, or click its lock in Layers, to change it.`,
+        `${name.startsWith('“') ? name : `“${name}”`} is locked: Object → Lock → Unlock All, or click its lock in Layers, to change it.`,
       );
       return true;
     }

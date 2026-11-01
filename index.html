@@ -84,6 +84,13 @@
               <i data-icon="icons"></i><span>Export App Icons…</span>
             </button>
             <hr />
+            <button role="menuitem" data-action="canvasSize">
+              <i data-icon="expand"></i><span>Document Setup…</span><kbd>Ctrl+Alt+C</kbd>
+            </button>
+            <button role="menuitem" data-action="imageSize">
+              <i data-icon="maximize"></i><span>Scale Document…</span><kbd>Ctrl+Alt+I</kbd>
+            </button>
+            <hr />
             <button role="menuitem" data-action="fileInfo">
               <i data-icon="circle-info"></i><span>File Info…</span><kbd>Alt+Shift+Ctrl+I</kbd>
             </button>
@@ -117,19 +124,58 @@
             <button role="menuitem" data-action="delete">
               <i data-icon="trash-can"></i><span>Delete</span><kbd>Del</kbd>
             </button>
+            <button role="menuitem" data-action="duplicate">
+              <i data-icon="clone"></i><span>Duplicate</span>
+            </button>
+            <hr />
+            <div class="sc-submenu">
+              <button role="menuitem" class="sc-sub-btn" aria-haspopup="menu" aria-expanded="false">
+                <i data-icon="circle-half-stroke"></i><span>Edit Colours</span
+                ><i data-icon="chevron-right" class="sc-sub-caret"></i>
+              </button>
+              <div class="sc-menu-list sc-sub-list" role="menu" hidden>
+                <button role="menuitem" data-action="modeGrayscale">
+                  <i></i><span>Convert to Grayscale</span>
+                </button>
+                <button role="menuitem" data-action="adjBlackWhite">
+                  <i></i><span>Black &amp; White…</span><kbd>Alt+Shift+Ctrl+B</kbd>
+                </button>
+                <button role="menuitem" data-action="adjThreshold">
+                  <i></i><span>Threshold…</span>
+                </button>
+                <hr />
+                <button role="menuitem" data-action="adjDesaturate">
+                  <i></i><span>Desaturate</span><kbd>Shift+Ctrl+U</kbd>
+                </button>
+              </div>
+            </div>
             <hr />
             <button role="menuitem" data-action="definePattern">
               <i data-icon="table-cells"></i><span>Define Pattern…</span>
             </button>
             <hr />
-            <button role="menuitem" data-action="freeTransform">
-              <i data-icon="vector-square"></i><span>Free Transform</span><kbd>Alt+T</kbd>
+            <button role="menuitem" data-action="swapPaint">
+              <i data-icon="right-left"></i><span>Swap Fill and Stroke</span><kbd>X</kbd>
             </button>
+            <button role="menuitem" data-action="defaultPaint">
+              <i></i><span>Default Fill and Stroke</span><kbd>D</kbd>
+            </button>
+          </div>
+        </div>
+        <div class="sc-menu">
+          <button class="sc-menu-btn" role="menuitem" aria-haspopup="menu" aria-expanded="false">
+            Object
+          </button>
+          <div class="sc-menu-list" role="menu" hidden>
             <div class="sc-submenu">
               <button role="menuitem" class="sc-sub-btn" aria-haspopup="menu" aria-expanded="false">
-                <i></i><span>Transform</span><i data-icon="chevron-right" class="sc-sub-caret"></i>
+                <i data-icon="vector-square"></i><span>Transform</span
+                ><i data-icon="chevron-right" class="sc-sub-caret"></i>
               </button>
               <div class="sc-menu-list sc-sub-list" role="menu" hidden>
+                <button role="menuitem" data-action="freeTransform">
+                  <i data-icon="vector-square"></i><span>Free Transform</span><kbd>Alt+T</kbd>
+                </button>
                 <button role="menuitem" data-action="again">
                   <i data-icon="repeat"></i><span>Again</span><kbd>Alt+Shift+T</kbd>
                 </button>
@@ -165,127 +211,6 @@
                 </button>
               </div>
             </div>
-            <hr />
-            <button role="menuitem" data-action="swapPaint">
-              <i data-icon="right-left"></i><span>Swap Fill and Stroke</span><kbd>X</kbd>
-            </button>
-            <button role="menuitem" data-action="defaultPaint">
-              <i></i><span>Default Fill and Stroke</span><kbd>D</kbd>
-            </button>
-          </div>
-        </div>
-        <div class="sc-menu">
-          <button class="sc-menu-btn" role="menuitem" aria-haspopup="menu" aria-expanded="false">
-            Image
-          </button>
-          <div class="sc-menu-list" role="menu" hidden>
-            <button role="menuitem" data-action="imageSize">
-              <i data-icon="maximize"></i><span>Image Size…</span><kbd>Ctrl+Alt+I</kbd>
-            </button>
-            <button role="menuitem" data-action="canvasSize">
-              <i data-icon="expand"></i><span>Canvas Size…</span><kbd>Ctrl+Alt+C</kbd>
-            </button>
-            <button role="menuitem" data-action="imageTrace">
-              <i data-icon="image"></i><span>Image Trace…</span>
-            </button>
-            <hr />
-            <div class="sc-submenu">
-              <button role="menuitem" class="sc-sub-btn" aria-haspopup="menu" aria-expanded="false">
-                <i></i><span>Mode</span><i data-icon="chevron-right" class="sc-sub-caret"></i>
-              </button>
-              <div class="sc-menu-list sc-sub-list" role="menu" hidden>
-                <button role="menuitem" data-action="modeGrayscale">
-                  <i></i><span>Grayscale</span>
-                </button>
-              </div>
-            </div>
-            <div class="sc-submenu">
-              <button role="menuitem" class="sc-sub-btn" aria-haspopup="menu" aria-expanded="false">
-                <i data-icon="circle-half-stroke"></i><span>Adjustments</span
-                ><i data-icon="chevron-right" class="sc-sub-caret"></i>
-              </button>
-              <div class="sc-menu-list sc-sub-list" role="menu" hidden>
-                <button role="menuitem" data-action="adjBlackWhite">
-                  <i></i><span>Black &amp; White…</span><kbd>Alt+Shift+Ctrl+B</kbd>
-                </button>
-                <button role="menuitem" data-action="adjThreshold">
-                  <i></i><span>Threshold…</span>
-                </button>
-                <hr />
-                <button role="menuitem" data-action="adjDesaturate">
-                  <i></i><span>Desaturate</span><kbd>Shift+Ctrl+U</kbd>
-                </button>
-              </div>
-            </div>
-            <hr />
-            <button role="menuitem" data-action="cropToSelection">
-              <i data-icon="crop-simple"></i><span>Crop to Selection</span>
-            </button>
-            <button role="menuitem" data-action="cropToDrawing">
-              <i data-icon="crop"></i><span>Crop to Drawing</span>
-            </button>
-          </div>
-        </div>
-        <div class="sc-menu">
-          <button class="sc-menu-btn" role="menuitem" aria-haspopup="menu" aria-expanded="false">
-            Layer
-          </button>
-          <div class="sc-menu-list" role="menu" hidden>
-            <div class="sc-submenu">
-              <button role="menuitem" class="sc-sub-btn" aria-haspopup="menu" aria-expanded="false">
-                <i data-icon="plus"></i><span>New</span
-                ><i data-icon="chevron-right" class="sc-sub-caret"></i>
-              </button>
-              <div class="sc-menu-list sc-sub-list" role="menu" hidden>
-                <button role="menuitem" data-action="layerViaCopy">
-                  <i data-icon="copy"></i><span>Layer via Copy</span><kbd>Ctrl+J</kbd>
-                </button>
-                <button role="menuitem" data-action="layerViaCut">
-                  <i data-icon="scissors"></i><span>Layer via Cut</span><kbd>Alt+Shift+J</kbd>
-                </button>
-              </div>
-            </div>
-            <button role="menuitem" data-action="duplicate">
-              <i data-icon="clone"></i><span>Duplicate Layer</span>
-            </button>
-            <hr />
-            <button role="menuitem" data-action="layerStyle">
-              <i data-icon="sc-fx"></i><span>Layer Style…</span>
-            </button>
-            <button role="menuitem" data-action="copyLayerStyle">
-              <i data-icon="copy"></i><span>Copy Layer Style</span>
-            </button>
-            <button role="menuitem" data-action="pasteLayerStyle">
-              <i data-icon="paste"></i><span>Paste Layer Style</span>
-            </button>
-            <button role="menuitem" data-action="clearLayerStyle">
-              <i></i><span>Clear Layer Style</span>
-            </button>
-            <div class="sc-submenu">
-              <button role="menuitem" class="sc-sub-btn" aria-haspopup="menu" aria-expanded="false">
-                <i data-icon="scissors"></i><span>Clipping Mask</span
-                ><i data-icon="chevron-right" class="sc-sub-caret"></i>
-              </button>
-              <div class="sc-menu-list sc-sub-list" role="menu" hidden>
-                <button role="menuitem" data-action="clipMake">
-                  <i data-icon="scissors"></i><span>Make</span><kbd>Ctrl+Alt+G</kbd>
-                </button>
-                <button role="menuitem" data-action="clipRelease">
-                  <i></i><span>Release</span><kbd>Ctrl+Alt+Shift+G</kbd>
-                </button>
-              </div>
-            </div>
-            <hr />
-            <button role="menuitem" data-action="group">
-              <i data-icon="object-group"></i><span>Group Layers</span><kbd>Ctrl+G</kbd>
-            </button>
-            <button role="menuitem" data-action="ungroup">
-              <i data-icon="object-ungroup"></i><span>Ungroup Layers</span><kbd>Ctrl+Shift+G</kbd>
-            </button>
-            <button role="menuitem" data-action="groupByColour">
-              <i data-icon="palette"></i><span>Group by Colour…</span>
-            </button>
-            <hr />
             <div class="sc-submenu">
               <button role="menuitem" class="sc-sub-btn" aria-haspopup="menu" aria-expanded="false">
                 <i data-icon="layer-group"></i><span>Arrange</span
@@ -347,37 +272,46 @@
               </div>
             </div>
             <hr />
-            <button role="menuitem" data-action="lockPosition">
-              <i data-icon="up-down-left-right"></i><span>Lock Position</span>
+            <button role="menuitem" data-action="group">
+              <i data-icon="object-group"></i><span>Group</span><kbd>Ctrl+G</kbd>
             </button>
-            <button role="menuitem" data-action="lockAll">
-              <i data-icon="lock"></i><span>Lock All</span>
+            <button role="menuitem" data-action="ungroup">
+              <i data-icon="object-ungroup"></i><span>Ungroup</span><kbd>Ctrl+Shift+G</kbd>
             </button>
-            <button role="menuitem" data-action="unlockLayers">
-              <i data-icon="lock-open"></i><span>Unlock</span>
+            <button role="menuitem" data-action="groupByColour">
+              <i data-icon="palette"></i><span>Group by Colour…</span>
             </button>
             <hr />
+            <div class="sc-submenu">
+              <button role="menuitem" class="sc-sub-btn" aria-haspopup="menu" aria-expanded="false">
+                <i data-icon="lock"></i><span>Lock</span
+                ><i data-icon="chevron-right" class="sc-sub-caret"></i>
+              </button>
+              <div class="sc-menu-list sc-sub-list" role="menu" hidden>
+                <button role="menuitem" data-action="lockPosition">
+                  <i data-icon="up-down-left-right"></i><span>Lock Position</span>
+                </button>
+                <button role="menuitem" data-action="lockAll">
+                  <i data-icon="lock"></i><span>Lock All</span>
+                </button>
+                <hr />
+                <button role="menuitem" data-action="unlockLayers">
+                  <i data-icon="lock-open"></i><span>Unlock All</span>
+                </button>
+              </div>
+            </div>
+            <hr />
+            <button role="menuitem" data-action="layerViaCopy">
+              <i data-icon="copy"></i><span>Layer via Copy</span><kbd>Ctrl+J</kbd>
+            </button>
+            <button role="menuitem" data-action="layerViaCut">
+              <i data-icon="scissors"></i><span>Layer via Cut</span><kbd>Alt+Shift+J</kbd>
+            </button>
             <button role="menuitem" data-action="mergeDown">
               <i data-icon="angles-down"></i><span>Merge Down</span><kbd>Ctrl+E</kbd>
             </button>
             <button role="menuitem" data-action="mergeVisible">
               <i></i><span>Merge Visible</span><kbd>Ctrl+Shift+E</kbd>
-            </button>
-          </div>
-        </div>
-        <div class="sc-menu">
-          <button class="sc-menu-btn" role="menuitem" aria-haspopup="menu" aria-expanded="false">
-            Object
-          </button>
-          <div class="sc-menu-list" role="menu" hidden>
-            <button role="menuitem" data-action="makeSymbol">
-              <i data-icon="clover"></i><span>Make Symbol…</span>
-            </button>
-            <button role="menuitem" data-action="editSymbol">
-              <i data-icon="pen"></i><span>Edit Symbol</span>
-            </button>
-            <button role="menuitem" data-action="breakSymbolLink">
-              <i data-icon="link-slash"></i><span>Break Link to Symbol</span>
             </button>
             <hr />
             <div class="sc-submenu">
@@ -417,13 +351,55 @@
                 </button>
               </div>
             </div>
+            <div class="sc-submenu">
+              <button role="menuitem" class="sc-sub-btn" aria-haspopup="menu" aria-expanded="false">
+                <i data-icon="scissors"></i><span>Clipping Mask</span
+                ><i data-icon="chevron-right" class="sc-sub-caret"></i>
+              </button>
+              <div class="sc-menu-list sc-sub-list" role="menu" hidden>
+                <button role="menuitem" data-action="clipMake">
+                  <i data-icon="scissors"></i><span>Make</span><kbd>Ctrl+Alt+G</kbd>
+                </button>
+                <button role="menuitem" data-action="clipRelease">
+                  <i></i><span>Release</span><kbd>Ctrl+Alt+Shift+G</kbd>
+                </button>
+              </div>
+            </div>
+            <div class="sc-submenu">
+              <button role="menuitem" class="sc-sub-btn" aria-haspopup="menu" aria-expanded="false">
+                <i data-icon="clover"></i><span>Symbol</span
+                ><i data-icon="chevron-right" class="sc-sub-caret"></i>
+              </button>
+              <div class="sc-menu-list sc-sub-list" role="menu" hidden>
+                <button role="menuitem" data-action="makeSymbol">
+                  <i data-icon="clover"></i><span>Make Symbol…</span>
+                </button>
+                <button role="menuitem" data-action="editSymbol">
+                  <i data-icon="pen"></i><span>Edit Symbol</span>
+                </button>
+                <button role="menuitem" data-action="breakSymbolLink">
+                  <i data-icon="link-slash"></i><span>Break Link to Symbol</span>
+                </button>
+              </div>
+            </div>
             <hr />
-            <button role="menuitem" data-action="flipH">
-              <i data-icon="left-right"></i><span>Flip Horizontal</span>
+            <button role="menuitem" data-action="imageTrace">
+              <i data-icon="image"></i><span>Image Trace…</span>
             </button>
-            <button role="menuitem" data-action="flipV">
-              <i data-icon="up-down"></i><span>Flip Vertical</span>
-            </button>
+            <div class="sc-submenu">
+              <button role="menuitem" class="sc-sub-btn" aria-haspopup="menu" aria-expanded="false">
+                <i data-icon="crop"></i><span>Artboard</span
+                ><i data-icon="chevron-right" class="sc-sub-caret"></i>
+              </button>
+              <div class="sc-menu-list sc-sub-list" role="menu" hidden>
+                <button role="menuitem" data-action="cropToSelection">
+                  <i data-icon="crop-simple"></i><span>Fit to Selection</span>
+                </button>
+                <button role="menuitem" data-action="cropToDrawing">
+                  <i data-icon="crop"></i><span>Fit to Drawing</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
         <div class="sc-menu">
@@ -467,6 +443,43 @@
             </button>
             <button role="menuitem" data-action="invertSelection">
               <i></i><span>Inverse</span><kbd>Shift+F7</kbd>
+            </button>
+          </div>
+        </div>
+        <div class="sc-menu">
+          <button class="sc-menu-btn" role="menuitem" aria-haspopup="menu" aria-expanded="false">
+            Effect
+          </button>
+          <div class="sc-menu-list" role="menu" hidden>
+            <button role="menuitem" data-action="layerStyle">
+              <i data-icon="sc-fx"></i><span>Effects…</span>
+            </button>
+            <hr />
+            <button role="menuitem" data-action="fxDropShadow">
+              <i></i><span>Drop Shadow…</span>
+            </button>
+            <button role="menuitem" data-action="fxInnerShadow">
+              <i></i><span>Inner Shadow…</span>
+            </button>
+            <button role="menuitem" data-action="fxOuterGlow">
+              <i></i><span>Outer Glow…</span>
+            </button>
+            <button role="menuitem" data-action="fxInnerGlow">
+              <i></i><span>Inner Glow…</span>
+            </button>
+            <button role="menuitem" data-action="fxColourOverlay">
+              <i></i><span>Colour Overlay…</span>
+            </button>
+            <button role="menuitem" data-action="fxBlur"><i></i><span>Gaussian Blur…</span></button>
+            <hr />
+            <button role="menuitem" data-action="copyLayerStyle">
+              <i data-icon="copy"></i><span>Copy Effects</span>
+            </button>
+            <button role="menuitem" data-action="pasteLayerStyle">
+              <i data-icon="paste"></i><span>Paste Effects</span>
+            </button>
+            <button role="menuitem" data-action="clearLayerStyle">
+              <i></i><span>Clear Effects</span>
             </button>
           </div>
         </div>
@@ -2829,7 +2842,7 @@
       </div>
     </dialog>
 
-    <!-- Image → Image Trace…: a placed bitmap traced into colour layers. -->
+    <!-- Object → Image Trace…: a placed bitmap traced into colour layers. -->
     <dialog
       class="sc-dialog sc-trace"
       id="sc-trace"
@@ -3057,14 +3070,14 @@
       </div>
     </dialog>
 
-    <!-- Image → Image Size…: scale the artboard and everything on it. -->
+    <!-- File → Scale Document…: scale the artboard and everything on it. -->
     <dialog
       class="sc-dialog sc-docsize"
       id="sc-imagesize"
-      data-help="image-size"
+      data-help="scale-document"
       aria-labelledby="sc-is-title"
     >
-      <div class="sc-dialog-title" id="sc-is-title">Image Size</div>
+      <div class="sc-dialog-title" id="sc-is-title">Scale Document</div>
       <div class="sc-dialog-body">
         <p class="sc-hint" data-is="was"></p>
         <div class="sc-docsize-row">
@@ -3097,7 +3110,7 @@
       </div>
     </dialog>
 
-    <!-- Image → Adjustments → Black & White…: six hue sliders. -->
+    <!-- Edit → Edit Colours → Black & White…: six hue sliders. -->
     <dialog
       class="sc-dialog sc-adjust"
       id="sc-bw"
@@ -3166,7 +3179,7 @@
       </div>
     </dialog>
 
-    <!-- Image → Adjustments → Threshold…: black below the level, white above. -->
+    <!-- Edit → Edit Colours → Threshold…: black below the level, white above. -->
     <dialog
       class="sc-dialog sc-adjust"
       id="sc-threshold"
@@ -3195,14 +3208,14 @@
       </div>
     </dialog>
 
-    <!-- Image → Canvas Size…: the artboard grows or shrinks around an anchor. -->
+    <!-- File → Document Setup…: the artboard grows or shrinks around an anchor. -->
     <dialog
       class="sc-dialog sc-docsize"
       id="sc-canvassize"
-      data-help="canvas-size"
+      data-help="document-setup"
       aria-labelledby="sc-cv-title"
     >
-      <div class="sc-dialog-title" id="sc-cv-title">Canvas Size</div>
+      <div class="sc-dialog-title" id="sc-cv-title">Document Setup</div>
       <div class="sc-dialog-body">
         <p class="sc-hint" data-cv="was"></p>
         <div class="sc-docsize-row">
@@ -3570,14 +3583,14 @@
       </div>
     </dialog>
 
-    <!-- Object → Layer Style… (the fx dialog). -->
+    <!-- Effect → Effects… (the fx dialog). -->
     <dialog
       class="sc-dialog sc-fx-dialog"
       id="sc-fx"
-      data-help="layer-style-fx"
+      data-help="effects-fx"
       aria-labelledby="sc-fx-title"
     >
-      <div class="sc-dialog-title" id="sc-fx-title">Layer Style</div>
+      <div class="sc-dialog-title" id="sc-fx-title">Effects</div>
       <div class="sc-fx-body">
         <nav class="sc-fx-nav" aria-label="Effects">
           <div class="sc-fx-navhead">Styles</div>

@@ -62,7 +62,7 @@ test.beforeEach(async ({ page }) => {
 test('Image Size scales everything, effects included; undo puts it back', async ({ page }) => {
   const before = await st(page);
   const svg0 = await page.evaluate(() => window.svgcraft.serialize());
-  await menu(page, 'Image', 'imageSize');
+  await menu(page, 'File', 'imageSize');
   await expect(dlg(page, 'sc-imagesize')).toBeVisible();
   await expect(page.locator('[data-is="was"]')).toHaveText('Now 200 × 100 px.');
   await expect(page.locator('[data-is="w"]')).toBeFocused();
@@ -88,7 +88,7 @@ test('Image Size scales everything, effects included; undo puts it back', async 
 
 test('Image Size in percent, unlinked, without scaling effects; Cancel', async ({ page }) => {
   const before = await st(page);
-  await menu(page, 'Image', 'imageSize');
+  await menu(page, 'File', 'imageSize');
   await page.selectOption('[data-is="unit"]', 'pct');
   await expect(page.locator('[data-is="w"]')).toHaveValue('100');
   await page.locator('[data-is="lock"]').uncheck();
@@ -106,10 +106,10 @@ test('Image Size in percent, unlinked, without scaling effects; Cancel', async (
   expect(after.r[3]).toBe(before.r[3]);
   expect(after.fx).toEqual(before.fx);
   // Cancel changes nothing; neither does a size of zero.
-  await menu(page, 'Image', 'imageSize');
+  await menu(page, 'File', 'imageSize');
   await page.fill('[data-is="w"]', '999');
   await page.click('[data-is-btn="cancel"]');
-  await menu(page, 'Image', 'imageSize');
+  await menu(page, 'File', 'imageSize');
   await page.fill('[data-is="w"]', '0');
   await page.click('[data-is-btn="ok"]');
   // Said in the dialog, which stays open.
@@ -124,7 +124,7 @@ test('Canvas Size grows around the centre without scaling or jumping', async ({ 
   const before = await st(page);
   const onScreen = () => page.locator('#r').boundingBox();
   const at = await onScreen();
-  await menu(page, 'Image', 'canvasSize');
+  await menu(page, 'File', 'canvasSize');
   await expect(dlg(page, 'sc-canvassize')).toBeVisible();
   await expect(page.locator('[data-cv-anchor="0.5,0.5"]')).toHaveAttribute('aria-checked', 'true');
   await page.keyboard.type('300');
@@ -148,7 +148,7 @@ test('Canvas Size grows around the centre without scaling or jumping', async ({ 
 test('Canvas Size: relative, and anchored to a corner or an edge', async ({ page }) => {
   const before = await st(page);
   // Add 40 px to the right and bottom: anchored top-left, nothing moves.
-  await menu(page, 'Image', 'canvasSize');
+  await menu(page, 'File', 'canvasSize');
   await page.locator('[data-cv="rel"]').check();
   await expect(page.locator('[data-cv="w"]')).toHaveValue('0');
   await page.fill('[data-cv="w"]', '40');
@@ -160,7 +160,7 @@ test('Canvas Size: relative, and anchored to a corner or an edge', async ({ page
   expect([s.w, s.h]).toEqual([240, 140]);
   expect(s.r).toEqual(before.r);
   // Trim 40 px off the left: anchored right, everything moves left.
-  await menu(page, 'Image', 'canvasSize');
+  await menu(page, 'File', 'canvasSize');
   // The anchor starts at the centre again.
   await expect(page.locator('[data-cv-anchor="0.5,0.5"]')).toHaveAttribute('aria-checked', 'true');
   await page.locator('[data-cv="rel"]').check();
@@ -173,7 +173,7 @@ test('Canvas Size: relative, and anchored to a corner or an edge', async ({ page
   expect(s.r[0]).toBe(before.r[0] - 40);
   expect(s.guides).toEqual(['x10', 'y20']);
   // Too small is refused.
-  await menu(page, 'Image', 'canvasSize');
+  await menu(page, 'File', 'canvasSize');
   await page.fill('[data-cv="w"]', '0');
   await page.click('[data-cv-btn="ok"]');
   await expect(page.locator('#sc-canvassize .sc-dlg-err')).toHaveText(

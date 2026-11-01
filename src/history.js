@@ -142,7 +142,7 @@ function afterChange() {
 const STEP_NAMES = {
   clipMake: 'Create Clipping Mask',
   clipRelease: 'Release Clipping Mask',
-  duplicate: 'Duplicate Layer',
+  duplicate: 'Duplicate',
   delete: 'Delete',
 };
 function stepName(action) {

@@ -55,7 +55,7 @@ const render = (page) =>
   });
 
 async function traceIt(page) {
-  await page.click('.sc-menu-btn:text-is("Image")');
+  await page.click('.sc-menu-btn:text-is("Object")');
   await page.click('.sc-menu-list:not([hidden]) [data-action="imageTrace"]');
   await expect(page.locator('#sc-trace')).toBeVisible();
   await page.evaluate(() => {
@@ -141,7 +141,7 @@ test('a <use> of a symbol with two images says to pick one', async ({ page }) =>
 test('a shape with a plain fill isn’t an image layer', async ({ page }) => {
   await load(page, '<rect id="L" width="100" height="100" fill="url(#none)"/>', 600, 400);
   await select(page, 'L');
-  await page.click('.sc-menu-btn:text-is("Image")');
+  await page.click('.sc-menu-btn:text-is("Object")');
   await expect(
     page.locator('.sc-menu-list:not([hidden]) [data-action="imageTrace"]'),
   ).toBeDisabled();
