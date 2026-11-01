@@ -617,6 +617,36 @@
               <strong>Help → Check for Updates…</strong> looks at once and says what it found: up to
               date (with the version), a new version (the bar), or no connection.
             </p>
+            <h4>Your drawings stay with you</h4>
+            <ul>
+              <li>
+                Nothing you draw is uploaded. Open drawings are kept in this browser (IndexedDB,
+                with a copy in localStorage), and so are your libraries and settings. There's no
+                account and no server code.
+              </li>
+              <li>
+                The only things SVGCraft fetches from the internet are:
+                <ul>
+                  <li>
+                    <strong>Google Fonts</strong>, when you pick, preview or open a drawing that
+                    uses one, and when a PNG export embeds them. Google sees the font names and your
+                    IP address, not your drawing.
+                  </li>
+                  <li>
+                    <strong>Font files from jsDelivr (Fontsource)</strong>, when
+                    <strong>Create Outlines</strong> turns text into shapes.
+                  </li>
+                  <li>
+                    <strong>Its own files</strong>, from the site you opened it from: the update
+                    check and the copies the service worker keeps for offline use.
+                  </li>
+                </ul>
+              </li>
+              <li>
+                Clearing this site's data in your browser removes the drawings kept there, so save
+                the ones you want to keep as files.
+              </li>
+            </ul>
             <h4>Good to know</h4>
             <ul>
               <li>
