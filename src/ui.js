@@ -146,7 +146,17 @@ function setStrokeWidthBy(d) {
   say(`Stroke width: ${state.strokeWidth} px.`);
 }
 
+// The canvas shows the active paint's gradient handles: when Fill or
+// Stroke becomes active, they're redrawn for it (if either has them).
+let handlesFor = null;
 function syncStyleUI() {
+  if (handlesFor !== state.active) {
+    const first = handlesFor === null;
+    handlesFor = state.active;
+    const el = state.sel.length === 1 && state.sel[0];
+    const grad = el && document.getElementById(paintRef(el, state.active) || '');
+    if (!first && el && (grad?.hasAttribute('data-sc-grad') || $('[data-grad-h]'))) drawSelection();
+  }
   for (const k of ['fill', 'stroke']) {
     // Set inside the symbol: shown, not editable, with the way to change it.
     const sec = $(`.sc-paint[data-target="${k}"]`);

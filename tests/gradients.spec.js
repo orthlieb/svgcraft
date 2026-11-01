@@ -489,3 +489,50 @@ test.describe('stretching the shape', () => {
     expect(Math.abs(h.x - want.x) + Math.abs(h.y - want.y)).toBeLessThan(2);
   });
 });
+
+test('with Stroke active, the handles are the stroke gradient’s and drag it', async ({ page }) => {
+  await load(
+    page,
+    '<defs><linearGradient id="f"><stop offset="0" stop-color="#f00"/><stop offset="1" stop-color="#00f"/></linearGradient>' +
+      '<linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0f0"/><stop offset="1" stop-color="#000"/></linearGradient></defs>' +
+      '<rect id="r" x="50" y="50" width="200" height="100" fill="url(#f)" stroke="url(#s)" stroke-width="12"/>',
+    400,
+    300,
+  );
+  const c = await toScreen(page, 150, 100);
+  await page.mouse.click(c.x, c.y);
+  await tab(page, 'props');
+  const geo = (attr) =>
+    page.evaluate((attr) => {
+      const id = document
+        .getElementById('r')
+        .getAttribute(attr)
+        .match(/#([^)]+)/)[1];
+      const g = document.getElementById(id);
+      return ['x1', 'y1', 'x2', 'y2'].map((k) => Math.round(+g.getAttribute(k)));
+    }, attr);
+  const ends = () =>
+    page.$$eval('[data-grad-h]', (hs) =>
+      hs.map((h) => [Math.round(+h.getAttribute('cx')), Math.round(+h.getAttribute('cy'))]),
+    );
+  // Fill first: its handles run across.
+  const [fa, fb] = await ends();
+  expect(fa[1]).toBe(fb[1]);
+  const fill = await geo('fill');
+
+  await page.click('.sc-paint[data-target="stroke"] .sc-kind-row');
+  // Stroke: its handles run down, straight away.
+  const [sa, sb] = await ends();
+  expect(sa[0]).toBe(sb[0]);
+  expect(sb[1]).toBeGreaterThan(sa[1]);
+  // Dragging the end handle up shortens the stroke's gradient; the fill's stays.
+  const before = await geo('stroke');
+  const end = await page.locator('[data-grad-h="b"]').boundingBox();
+  await page.mouse.move(end.x + end.width / 2, end.y + end.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(end.x + end.width / 2, end.y + end.height / 2 - 40, { steps: 4 });
+  await page.mouse.up();
+  const after = await geo('stroke');
+  expect(after[3] - after[1]).toBeLessThan(before[3] - before[1]);
+  expect(await geo('fill')).toEqual(fill);
+});
