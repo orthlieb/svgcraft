@@ -26,6 +26,7 @@ function snapshot() {
     u: state.units,
     g: guidesAttr(),
     m: metaJson(),
+    b: JSON.stringify([state.boardName, state.boards]),
   };
 }
 
@@ -60,6 +61,7 @@ function restore(s, keepSel = false) {
   setSize(s.w, s.h);
   state.guides = parseGuides(s.g);
   state.meta = JSON.parse(s.m || '{}');
+  [state.boardName, state.boards] = JSON.parse(s.b || '[null, []]');
   renderGuides();
   if (!keepSel) state.sel = [];
   tools[state.tool].restored?.();
@@ -116,6 +118,7 @@ function afterChange() {
   $('#sc-undo').disabled = hIdx <= 0;
   $('#sc-redo').disabled = hIdx >= hist.length - 1;
   state.sel = state.sel.filter((el) => doc.contains(el));
+  if (typeof renderBoards === 'function') renderBoards();
   // The isolated group gone (deleted, ungrouped): back to the drawing.
   if (scope && !iso && !doc.contains(scope)) setScope(null);
   drawSelection();

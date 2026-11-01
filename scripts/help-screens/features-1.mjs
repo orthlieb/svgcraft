@@ -68,6 +68,36 @@ export default [
     },
   },
   {
+    id: 'artboards',
+    async shoot(h) {
+      await h.open(
+        `<circle cx="64" cy="64" r="48" fill="#2563eb"/>
+        <rect x="180" y="16" width="96" height="96" rx="20" fill="#f97316"/>
+        <path d="M360 110 L400 20 L440 110Z" fill="#16a34a"/>`,
+        'icons.svg',
+        128,
+        128,
+      );
+      await h.page.evaluate(() => {
+        /* eslint-disable no-undef -- the editor's own globals */
+        const s = window.svgcraft.state;
+        s.boards.push(
+          { name: 'Square', x: 164, y: 0, w: 128, h: 128 },
+          { name: 'Triangle', x: 336, y: 0, w: 128, h: 128 },
+        );
+        s.boardName = 'Circle';
+        window.svgcraft.setTool('artboard');
+        fit();
+        boardSel = 2;
+        renderBoards();
+        syncBoardOpts();
+        /* eslint-enable no-undef */
+      });
+      await h.page.mouse.move(5, 5);
+      await h.shot(['#sc-options', '#sc-stage-wrap'], { pad: 0 });
+    },
+  },
+  {
     id: 'grayscale-and-black-white',
     async shoot(h) {
       await h.menu('Edit', 'adjBlackWhite');

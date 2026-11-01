@@ -11,6 +11,7 @@ const TOOL_META = {
   select: ['sc-move', 'Selection', 'Move'],
   node: ['sc-direct', 'Direct Selection', 'Edit Points'],
   shapebuilder: ['sc-unite', 'Shape Builder'],
+  artboard: ['crop-simple', 'Artboard'],
   pencil: ['pencil', 'Pencil'],
   pen: ['pen-nib', 'Pen'],
   eraser: ['eraser', 'Eraser'],
