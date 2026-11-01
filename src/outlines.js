@@ -513,7 +513,7 @@ async function createOutlines() {
   const texts = sel.flatMap((el) =>
     el.localName === 'text' ? [el] : [...(el.querySelectorAll?.('text') || [])],
   );
-  if (!texts.length) return warn('Select one or more text layers to create outlines.');
+  if (!texts.length) return warn('Select some text to create outlines.');
   if (refuseLocked(sel, 'edit')) return;
   try {
     await loadOpentype();
@@ -539,7 +539,7 @@ async function createOutlines() {
   state.sel = sel.map((el) => done.get(el) || el);
   commit();
   const n = done.size;
-  let msg = `Created outlines${n > 1 ? ` for ${n} text layers` : ''}.`;
+  let msg = `Created outlines${n > 1 ? ` for ${n} text objects` : ''}.`;
   if (note.subs.size)
     msg +=
       ` Used ${[...note.subs].join(', ')}` +

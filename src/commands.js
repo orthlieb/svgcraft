@@ -169,6 +169,6 @@ async function combineShapes(op) {
   commit();
   readStyle(path);
   say(
-    `${COMBINE_LABEL[op]}: ${operands.length} shapes → 1${skipped ? ` (${skipped} text / image layer${skipped > 1 ? 's' : ''} skipped)` : ''}.`,
+    `${COMBINE_LABEL[op]}: ${operands.length} shapes → 1${skipped ? ` (${skipped} text / image object${skipped > 1 ? 's' : ''} skipped)` : ''}.`,
   );
 }

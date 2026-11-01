@@ -154,7 +154,7 @@ async function mergeInto(els, name) {
     for (const el of els) el.remove();
   } else {
     if (single && !runs)
-      return say('This group’s layers can’t become one path; it stays as it is.');
+      return say('This group’s objects can’t become one path; it stays as it is.');
     made = single ? els[0] : mk('g');
     if (!single) top.after(made);
     for (const run of runs || leaves.map((el) => [el])) {
@@ -175,8 +175,8 @@ async function mergeInto(els, name) {
     plan
       ? `Merged ${leaves.length} shapes into one path.`
       : joined
-        ? `Merged ${leaves.length} layers into a group of ${runs.length}: the alike shapes are joined into ${joined === 1 ? 'one path' : `${joined} paths`}.`
-        : `Merged ${els.length} layers into one group: none could join without changing how it looks.`,
+        ? `Merged ${leaves.length} objects into a group of ${runs.length}: the alike shapes are joined into ${joined === 1 ? 'one path' : `${joined} paths`}.`
+        : `Merged ${els.length} objects into one group: none could join without changing how it looks.`,
   );
 }
 
@@ -198,18 +198,18 @@ const mergeTargets = () => {
 // Ctrl+E: Merge Down, Merge Layers or Merge Group, as the selection has it.
 function mergeDown() {
   const t = mergeTargets();
-  if (!t) return warn('Select a layer with one below it, several layers, or a group.');
+  if (!t) return warn('Select an object with one below it, several objects, or a group.');
   const name = (el) => el.getAttribute('data-name');
   // Merge Down keeps the lower layer's name; the others the topmost's.
   mergeInto(t.els, t.kind === 'down' ? name(t.els[0]) : name(t.els.at(-1)));
 }
-const MERGE_LABEL = { down: 'Merge Down', layers: 'Merge Layers', group: 'Merge Group' };
+const MERGE_LABEL = { down: 'Merge Down', layers: 'Merge Objects', group: 'Merge Group' };
 const mergeLabel = () => MERGE_LABEL[mergeTargets()?.kind] || 'Merge Down';
 
 // Ctrl+Shift+E: every visible layer at the top level; hidden ones stay.
 const visibleLayers = () => items().filter((el) => el.getAttribute('display') !== 'none');
 function mergeVisible() {
   const els = visibleLayers();
-  if (els.length < 2) return warn('There need to be two or more visible layers to merge.');
+  if (els.length < 2) return warn('There need to be two or more visible objects to merge.');
   mergeInto(els, els.at(-1).getAttribute('data-name'));
 }

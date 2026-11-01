@@ -64,7 +64,7 @@ function renderPeek() {
   if (!ul.children.length) {
     const li = document.createElement('li');
     li.className = 'sc-hint';
-    li.textContent = 'This drawing has no layers.';
+    li.textContent = 'This drawing has nothing in it.';
     ul.append(li);
   }
 }
@@ -135,7 +135,7 @@ function phoneInfo() {
         ['File', `${state.fileName}.svg`],
         ['Size', kb(new Blob([svg]).size)],
         ['Dimensions', `${inUnits(state.w)} × ${inUnits(state.h)} ${state.units}`],
-        ['Layers', `${items().length} (${all.length} in all)`],
+        ['Objects', `${items().length} (${all.length} in all)`],
         ['Animations', anims ? String(anims) : ''],
         ['Fonts', docFamilies().join(', ')],
       ],

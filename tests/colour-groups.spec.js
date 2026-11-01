@@ -38,7 +38,7 @@ test('apart from overlaps, one group per colour, out of the old groups', async (
   expect(await groups(page)).toEqual([`${RED}: a c`, `${BLUE}: b d`]);
   await expect(page.locator('#old')).toHaveCount(0);
   await expect(page.locator('#sc-msg')).toContainText(
-    'Grouped 4 layers by colour: 2 colours in 2 groups.',
+    'Grouped 4 objects by colour: 2 colours in 2 groups.',
   );
   expect(await picture(page)).toEqual(before);
   // One undo puts it all back.

@@ -169,7 +169,7 @@ test.describe('Create Outlines', () => {
     const before = await mask(page);
     await select(page, 't', 'u');
     await page.keyboard.press('Control+Shift+O');
-    await expect(msg(page)).toHaveText('Created outlines for 2 text layers.');
+    await expect(msg(page)).toHaveText('Created outlines for 2 text objects.');
     expect([...new Set(hits)].sort()).toEqual([
       'lato@latest/latin-400-normal.woff',
       'lato@latest/latin-700-normal.woff',
@@ -205,7 +205,7 @@ test.describe('Create Outlines', () => {
     const before = await mask(page);
     await select(page, 't', 'u');
     await page.keyboard.press('Control+Shift+O');
-    await expect(msg(page)).toHaveText('Created outlines for 2 text layers.');
+    await expect(msg(page)).toHaveText('Created outlines for 2 text objects.');
     const fills = await page.$$eval('#sc-doc path', (ps) => ps.map((p) => p.getAttribute('fill')));
     expect(fills).toEqual(['#000000', '#000000', '#16a34a']);
     expect(iou(before, await mask(page))).toBeGreaterThan(0.9);
@@ -234,7 +234,7 @@ test.describe('Create Outlines', () => {
     const before = await mask(page);
     await select(page, 't', 'h');
     await menu(page, 'Type', 'createOutlines');
-    await expect(msg(page)).toHaveText('Created outlines for 2 text layers.');
+    await expect(msg(page)).toHaveText('Created outlines for 2 text objects.');
     const out = await page.evaluate(() =>
       [...document.querySelectorAll('#sc-doc > g')].map((g) => ({
         index: [...g.parentNode.children].indexOf(g),
@@ -289,7 +289,7 @@ test.describe('Create Outlines', () => {
     const original = await docHtml(page);
     await select(page, 't', 'u');
     await page.keyboard.press('Control+Shift+O');
-    await expect(msg(page)).toHaveText('Created outlines for 2 text layers.');
+    await expect(msg(page)).toHaveText('Created outlines for 2 text objects.');
     expect(await page.locator('#sc-doc text').count()).toBe(0);
     await page.evaluate(() => window.svgcraft.undo());
     expect(await docHtml(page)).toBe(original);
@@ -384,8 +384,6 @@ test.describe('Create Outlines', () => {
     await select(page, 'r');
     await menuOff(page, 'Type', 'createOutlines');
     await action(page, 'createOutlines');
-    await expect(page.locator('#sc-alert-text')).toHaveText(
-      'Select one or more text layers to create outlines.',
-    );
+    await expect(page.locator('#sc-alert-text')).toHaveText('Select some text to create outlines.');
   });
 });

@@ -98,7 +98,7 @@ function makeClip() {
   const top = els.at(-1);
   if (!CLIP_SHAPES.includes(top.localName))
     return warn(
-      `The topmost selected layer (${layerName(top)}) must be a single shape or text to clip with.`,
+      `The topmost selected object (${layerName(top)}) must be a single shape or text to clip with.`,
     );
   if (refuseLocked(els, 'edit')) return;
   const g = mk('g', { 'data-name': 'Clipping group', 'data-sc-clip': '' });
@@ -117,7 +117,7 @@ function releaseClip() {
     const g = el.closest?.('[data-sc-clip]');
     if (g && doc.contains(g)) groups.add(g);
   }
-  if (!groups.size) return warn('Select a clipping group, or a layer in one, to release.');
+  if (!groups.size) return warn('Select a clipping group, or an object in one, to release.');
   if (
     refuseLocked(
       [...groups].map((g) => clipperOf(g) || g),

@@ -1079,18 +1079,20 @@ kbd {
 }
 
 /* Layers */
-.sc-layers-head {
+/* Appearance → Transparency: the blend mode and opacity. */
+.sc-transparency {
+  padding: 6px 0 2px;
+}
+.sc-transparency-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
-  padding: 6px 10px;
-  border-bottom: 1px solid var(--line-soft);
+  margin-top: 4px;
 }
 #sc-blend {
   min-width: 0;
   flex: 1;
-  max-width: 130px;
+  max-width: 150px;
 }
 .sc-layers-lock {
   display: flex;

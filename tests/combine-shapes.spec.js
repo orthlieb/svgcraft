@@ -177,7 +177,7 @@ test('a group counts as one shape and text layers are skipped', async ({ page })
   );
   await selectAll(page);
   await combine(page, 'combineIntersect');
-  await expect(msg(page)).toHaveText('Intersect: 2 shapes → 1 (1 text / image layer skipped).');
+  await expect(msg(page)).toHaveText('Intersect: 2 shapes → 1 (1 text / image object skipped).');
   // The strip crosses each square of the pair over 50 × 60.
   expectArea((await result(page)).area, 2 * 50 * 60);
   expect(await layerCount(page), 'result + the untouched text').toBe(2);

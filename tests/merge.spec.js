@@ -92,7 +92,7 @@ test('overlapping solid fills are united; overlapping strokes become a group', a
   await load(page, two(''), 150, 150);
   const before = await picture(page);
   await select(page, 'a', 'b');
-  expect(await label(page)).toBe('Merge Layers');
+  expect(await label(page)).toBe('Merge Objects');
   await action(page, 'mergeDown');
   await expect(page.locator('#sc-doc > path')).toHaveCount(1);
   await expect(page.locator('#sc-doc > rect')).toHaveCount(0);
@@ -189,12 +189,12 @@ test('four layers, three alike: a group of one joined path and the odd one out',
   );
   const before = await picture(page);
   await select(page, 'a', 'b', 'c', 'd');
-  expect(await label(page)).toBe('Merge Layers');
+  expect(await label(page)).toBe('Merge Objects');
   await page.keyboard.press('Control+e');
   await expect.poll(() => top(page)).toEqual(['g Dot']);
   expect(await kids(page)).toEqual([`path ${RED} ×3`, `rect ${BLUE}`]);
   await expect(page.locator('#sc-msg')).toHaveText(
-    'Merged 4 layers into a group of 2: the alike shapes are joined into one path.',
+    'Merged 4 objects into a group of 2: the alike shapes are joined into one path.',
   );
   await same(page, before);
   // One undo step.
@@ -236,7 +236,7 @@ test('an alike shape stays apart when joining would lift it over another', async
   await page.keyboard.press('Control+e');
   await expect.poll(() => kids(page)).toEqual([`rect ${RED}`, `rect ${BLUE}`, `rect ${RED}`]);
   await expect(page.locator('#sc-msg')).toHaveText(
-    'Merged 3 layers into one group: none could join without changing how it looks.',
+    'Merged 3 objects into one group: none could join without changing how it looks.',
   );
   await same(page, before);
 });

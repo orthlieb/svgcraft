@@ -52,11 +52,11 @@ test.describe('the canvas menu', () => {
     await expect(ctx(page)).toBeHidden();
   });
 
-  test('Layers Here lists the layers under the pointer, top first, to pick one', async ({
+  test('Objects Here lists the objects under the pointer, top first, to pick one', async ({
     page,
   }) => {
     await rightClickDoc(page, 250, 250);
-    const list = await sub(page, 'Layers Here');
+    const list = await sub(page, 'Objects Here');
     await expect(list.locator('button')).toHaveText(['circle #b', 'rect #a']);
     await expect(list.locator('button').first()).toHaveAttribute('aria-checked', 'true');
     await list.locator('button:has-text("rect #a")').click();
@@ -64,9 +64,9 @@ test.describe('the canvas menu', () => {
     expect(await sel(page)).toBe('a');
   });
 
-  test('a single layer under the pointer has no Layers Here', async ({ page }) => {
+  test('a single layer under the pointer has no Objects Here', async ({ page }) => {
     await rightClickDoc(page, 120, 120);
-    expect(await entries(page)).not.toContain('Layers Here');
+    expect(await entries(page)).not.toContain('Objects Here');
   });
 
   test('a command runs from it, closes it, and undoes', async ({ page }) => {
@@ -189,11 +189,9 @@ test.describe('the Layers panel menus', () => {
     await expect(ctx(page)).toBeVisible();
     expect(await sel(page)).toBe('a');
     const e = await entries(page);
-    expect(e).toEqual(
-      expect.arrayContaining(['Rename Layer…', 'Duplicate', 'Delete', 'Merge Visible']),
-    );
+    expect(e).toEqual(expect.arrayContaining(['Rename…', 'Duplicate', 'Delete', 'Merge Visible']));
     expect(e).not.toContain('Free Transform');
-    await item(page, 'Rename Layer…').click();
+    await item(page, 'Rename…').click();
     await page.keyboard.type('Square');
     await page.keyboard.press('Enter');
     await expect(row(page, 'Square')).toHaveCount(1);
@@ -230,13 +228,13 @@ test.describe('the Layers panel menus', () => {
           .join(','),
       );
     await row(page, 'rect #c').locator('.sc-eye').click({ button: 'right' });
-    await item(page, 'Hide All Other Layers').click();
+    await item(page, 'Hide All Others').click();
     expect(await shown()).toBe('g,c');
     await row(page, 'rect #c').locator('.sc-eye').click({ button: 'right' });
-    await item(page, 'Show All Other Layers').click();
+    await item(page, 'Show All Others').click();
     expect(await shown()).toBe('a,b,g,c,d');
     await row(page, 'rect #c').locator('.sc-eye').click({ button: 'right' });
-    await item(page, 'Hide This Layer').click();
+    await item(page, 'Hide This').click();
     expect(await shown()).toBe('a,b,g,d');
   });
 });

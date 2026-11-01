@@ -97,7 +97,7 @@ test('one layer on its own says what Move along path needs', async ({ page }) =>
   await select(page, 'c');
   await add(page, 'followPath');
   await expect(page.locator('#sc-alert-text')).toHaveText(
-    'Move along path needs a path: select the layer, then Shift-click the path above it.',
+    'Move along path needs a path: select the object, then Shift-click the path above it.',
   );
   expect(await anims(page, 'c')).toEqual([]);
 });

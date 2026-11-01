@@ -360,7 +360,7 @@ async function exportAppIcons({ web, ios, android, macos }, bg) {
     files.push(...a.files);
     readme.push(
       'android/  Copy res/ into app/src/main/ (it replaces ic_launcher). The adaptive icon',
-      `          (Android 8+) has ${a.layered ? 'the Background layer as its background' : 'a solid background colour'}, the rest as foreground,`,
+      `          (Android 8+) has ${a.layered ? 'the Background object as its background' : 'a solid background colour'}, the rest as foreground,`,
       '          and a monochrome layer for themed icons (Android 13+). ' +
         (a.adaptive ? 'The artwork fills' : 'The artwork sits in the safe zone of'),
       '          the 108 dp canvas. playstore-icon.png is for the Play Console.',

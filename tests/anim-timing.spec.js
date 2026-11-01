@@ -197,7 +197,7 @@ test('the Start, Clicking and Pause fields', async ({ page }) => {
   expect(rect[0]).toMatch(/^layer-\d+$/);
   expect(rect[1]).toBe('click');
   const on = page.locator('#sc-anim-timing [data-anim-opt="on"]');
-  await expect(on.locator('option')).toHaveText(['This layer', 'circle #b', 'circle #c']);
+  await expect(on.locator('option')).toHaveText(['This object', 'circle #b', 'circle #c']);
   await on.selectOption({ label: 'circle #c' });
   const pause = page.locator('#sc-anim-timing [data-anim-opt="pause"]');
   await pause.fill('1.5');

@@ -38,7 +38,7 @@ test('a near miss names the preset and how it differs', async ({ page }) => {
   );
   await expect(page.locator('#sc-alert-more')).toBeVisible();
   const [e] = await report(page);
-  expect(e.where).toBe('Layer “Card”');
+  expect(e.where).toBe('Object “Card”');
   expect(e.what).toContain('<animateTransform attributeName="transform" type="rotate"');
   expect(e.why).toBe('No preset writes exactly this.');
   expect(e.near).toBe(
@@ -68,13 +68,13 @@ test('each kind of loss says why', async ({ page }) => {
       'A <style> block',
       'A CSS animation: SVGCraft keeps animations as SVG animation (SMIL) only, so CSS ones aren’t read.',
     ],
-    ['The whole drawing', 'It animates the <svg> itself; SVGCraft animates the layers in it.'],
+    ['The whole drawing', 'It animates the <svg> itself; SVGCraft animates the objects in it.'],
     ['The file', 'It animates #gone, which isn’t in the file.'],
     [
-      'Layer “rect #r”',
+      'Object “rect #r”',
       'Its timing (dur="indefinite") isn’t one SVGCraft can set: it needs a length (dur), a start in seconds or on a click or hover, and a whole number of repeats or forever.',
     ],
-    ['Layer “rect #r”', 'No preset animates stroke-miterlimit.'],
+    ['Object “rect #r”', 'No preset animates stroke-miterlimit.'],
   ]);
   expect(list[0].what).toBe('@keyframes wiggle { … }');
 });
@@ -90,7 +90,7 @@ test('Copy report puts it all on the clipboard as text', async ({ page, context 
   await expect
     .poll(() => page.evaluate(() => navigator.clipboard.readText()))
     .toBe(
-      'Animations left out: 1\n\n1. Layer “Dot”\n   <animate attributeName="stroke-miterlimit" values="1;9" dur="1s"/>\n   Why: No preset animates stroke-miterlimit.',
+      'Animations left out: 1\n\n1. Object “Dot”\n   <animate attributeName="stroke-miterlimit" values="1;9" dur="1s"/>\n   Why: No preset animates stroke-miterlimit.',
     );
 });
 

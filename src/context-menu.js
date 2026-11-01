@@ -264,7 +264,7 @@ function canvasMenu(x, y) {
   if (state.tf) return TRANSFORM_ITEMS;
   const here = layersAt(x, y);
   const layersHere = here.length > 1 && {
-    sub: 'Layers Here',
+    sub: 'Objects Here',
     icon: 'layer-group',
     items: here.map((el) => ({
       label: layerName(el),
@@ -331,7 +331,7 @@ stage.addEventListener('contextmenu', (e) => {
 // ---- the Layers panel -------------------------------------------------------------
 const layerRowItems = (el) => [
   {
-    label: 'Rename Layer…',
+    label: 'Rename…',
     icon: 'pen',
     run: () => {
       const name = [...$('#sc-layers').children]
@@ -357,7 +357,7 @@ function eyeItems(el) {
   const others = layerSiblings(el);
   const alone = others.length > 0 && others.every((n) => !vis(n));
   const setShown = (els, on) => {
-    noteStep(on ? 'Show Layers' : 'Hide Layers');
+    noteStep(on ? 'Show Objects' : 'Hide Objects');
     for (const n of els)
       if (on) n.removeAttribute('display');
       else n.setAttribute('display', 'none');
@@ -365,12 +365,12 @@ function eyeItems(el) {
   };
   return [
     {
-      label: hidden ? 'Show This Layer' : 'Hide This Layer',
+      label: hidden ? 'Show This' : 'Hide This',
       icon: hidden ? 'eye' : 'eye-slash',
       run: () => setShown([el], hidden),
     },
     others.length && {
-      label: alone ? 'Show All Other Layers' : 'Hide All Other Layers',
+      label: alone ? 'Show All Others' : 'Hide All Others',
       icon: alone ? 'eye' : 'eye-slash',
       run: () => setShown(others, alone),
     },

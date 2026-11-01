@@ -73,7 +73,7 @@ test('Shift+F10 opens the canvas menu at the selection, and a layer row’s on i
   // On a layer row: that row's menu.
   await page.locator('#sc-layers li', { hasText: 'Box' }).focus();
   await page.keyboard.press('Shift+F10');
-  await expect(ctx).toContainText('Rename Layer');
+  await expect(ctx).toContainText('Rename');
   await page.keyboard.press('Escape');
 });
 

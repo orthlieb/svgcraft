@@ -152,7 +152,7 @@ function wireLayerStyle() {
     const els = normalizeSel(state.sel);
     if (!els.length) {
       syncLayerHead();
-      return warn('Select the layers to blend.');
+      return warn('Select the objects to blend.');
     }
     if (refuseLocked(els, 'edit')) return syncLayerHead();
     for (const el of els) setBlend(el, e.target.value);
@@ -161,7 +161,7 @@ function wireLayerStyle() {
   for (const b of document.querySelectorAll('[data-lock]'))
     b.addEventListener('click', () => {
       const els = normalizeSel(state.sel);
-      if (!els.length) return warn('Select the layers to lock.');
+      if (!els.length) return warn('Select the objects to lock.');
       const on = b.getAttribute('aria-pressed') !== 'true';
       setLock(els, on ? b.dataset.lock : null);
     });
@@ -283,7 +283,7 @@ const cmds = {
     state.sel = clones;
     commit();
     readStyle(clones[0]);
-    if (d) say(`Duplicated ${clones.length} layer${clones.length === 1 ? '' : 's'}.`);
+    if (d) say(`Duplicated ${clones.length} object${clones.length === 1 ? '' : 's'}.`);
   },
   selectAll() {
     setSel(scopeItems().filter((el) => el.getAttribute('display') !== 'none'));
@@ -349,8 +349,8 @@ const cmds = {
     commit();
     say(
       els.length
-        ? `Grouped ${els.length} layer${els.length === 1 ? '' : 's'} into “${g.getAttribute('data-name')}”.`
-        : `Made an empty group, “${g.getAttribute('data-name')}”: drag layers into it in Layers.`,
+        ? `Grouped ${els.length} object${els.length === 1 ? '' : 's'} into “${g.getAttribute('data-name')}”.`
+        : `Made an empty group, “${g.getAttribute('data-name')}”: drag objects into it in Layers.`,
     );
   },
   ungroup() {

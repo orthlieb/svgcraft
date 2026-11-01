@@ -136,7 +136,7 @@ function stashSmil(root) {
         why: !t
           ? `It animates ${href}, which isn’t in the file.`
           : t === root
-            ? 'It animates the <svg> itself; SVGCraft animates the layers in it.'
+            ? 'It animates the <svg> itself; SVGCraft animates the objects in it.'
             : `It animates a <${t.localName}>, which SVGCraft doesn’t keep.`,
       });
       continue;
