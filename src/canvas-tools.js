@@ -95,7 +95,7 @@ tools.eraser = {
       probes.push([Math.cos((i * Math.PI) / 4) * r, Math.sin((i * Math.PI) / 4) * r]);
     for (const [dx, dy] of probes) {
       for (const n of document.elementsFromPoint(e.clientX + dx, e.clientY + dy)) {
-        const el = doc.contains(n) && n !== doc ? n.closest('text') || n : null;
+        const el = inScope(n) ? n.closest('text') || n : null;
         if (el && !this.hits.has(el) && lockOf(el) !== 'all') {
           this.hits.add(el);
           if (state.eraserMode === 'object') el.style.opacity = '0.2';

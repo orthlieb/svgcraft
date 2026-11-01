@@ -400,11 +400,13 @@ const normalizeSel = (els) =>
   });
 
 // What a canvas click picks: the whole top-level item (Auto-Select: Group)
-// or the exact shape under the cursor (Auto-Select: Layer).
+// or the exact shape under the cursor (Auto-Select: Layer), within the
+// isolated group if there is one (src/scope.js).
 function pickLayer(node) {
-  if (state.autoSelect !== 'layer') return topLevel(node);
-  if (!node || !doc.contains(node) || node === doc) return null;
-  return node.closest('text') || node;
+  if (state.autoSelect !== 'layer') return topIn(node);
+  if (!inScope(node)) return null;
+  const t = node.closest('text');
+  return t && inScope(t) ? t : node;
 }
 const leafLayers = () =>
   [...doc.querySelectorAll('*')].filter(

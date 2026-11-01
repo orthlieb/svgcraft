@@ -522,7 +522,8 @@ tools.node = {
       this.redraw();
       return;
     }
-    const el = editableFrom(e.target) || topLevel(e.target);
+    const hit = editableFrom(e.target) || topIn(e.target);
+    const el = inScope(hit) ? hit : null;
     if (el && el !== this.el) {
       this.target(el);
       this.targetedAt = e.timeStamp;
@@ -553,7 +554,8 @@ tools.node = {
   move(e, p) {
     const g = this.g;
     if (!g) {
-      const el = editableFrom(e.target) || topLevel(e.target);
+      const hit = editableFrom(e.target) || topIn(e.target);
+      const el = inScope(hit) ? hit : null;
       this.over = !!el && el !== this.el;
     }
     if (!g || !this.el) return;

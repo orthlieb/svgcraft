@@ -28,6 +28,8 @@ for (const t of $('[data-tab="character"]').closest('.sc-ptabs').querySelectorAl
   });
 function setSel(els) {
   staleAlert();
+  // Picking something outside the isolated group (in Layers, say) leaves it.
+  if (scope && els.some((el) => !inScope(el))) setScope(null);
   state.sel = normalizeSel(els);
   els = state.sel;
   if (els.length) readStyle(els[0]);
@@ -351,7 +353,10 @@ function layerRow(el, depth, open) {
   const li = document.createElement('li');
   const hidden = el.getAttribute('display') === 'none';
   const isGroup = el.localName === 'g';
-  li.className = (state.sel.includes(el) ? 'sel ' : '') + (hidden ? 'hidden' : '');
+  li.className =
+    (state.sel.includes(el) ? 'sel ' : '') +
+    (hidden ? 'hidden ' : '') +
+    (el === scope ? 'scope' : '');
   li.style.paddingLeft = `${4 + depth * 16}px`;
   li.layerEl = el;
   li.draggable = true;

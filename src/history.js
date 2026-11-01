@@ -19,7 +19,7 @@ const noteStep = (label) => (stepLabel = label);
 function snapshot() {
   isoWrite();
   return {
-    d: docHtml(),
+    d: withoutDims(docHtml),
     f: defs.innerHTML,
     w: state.w,
     h: state.h,
@@ -31,6 +31,7 @@ function snapshot() {
 
 function commit() {
   staleAlert();
+  adoptIntoScope();
   // A preview's SMIL never goes into the history.
   stopAnimations();
   syncTextPaths();
@@ -50,7 +51,10 @@ function commit() {
 
 function restore(s, keepSel = false) {
   dropIso();
+  // An isolated group stays isolated if it's still there.
+  const sp = scope && doc.contains(scope) ? treePath(scope) : null;
   doc.innerHTML = s.d;
+  setScope(sp && fromTreePath(sp));
   defs.innerHTML = s.f;
   state.units = s.u || 'px';
   setSize(s.w, s.h);
@@ -112,6 +116,8 @@ function afterChange() {
   $('#sc-undo').disabled = hIdx <= 0;
   $('#sc-redo').disabled = hIdx >= hist.length - 1;
   state.sel = state.sel.filter((el) => doc.contains(el));
+  // The isolated group gone (deleted, ungrouped): back to the drawing.
+  if (scope && !iso && !doc.contains(scope)) setScope(null);
   drawSelection();
   renderLayers();
   renderSymbols();

@@ -270,14 +270,16 @@ const cmds = {
     if (d) say(`Duplicated ${clones.length} layer${clones.length === 1 ? '' : 's'}.`);
   },
   selectAll() {
-    setSel(items().filter((el) => el.getAttribute('display') !== 'none'));
+    setSel(scopeItems().filter((el) => el.getAttribute('display') !== 'none'));
   },
   // Select → Inverse: every visible layer that isn't selected, at the depth
   // the selection is at (top-level layers, or individual shapes when any
   // selected layer sits inside a group).
   invertSelection() {
     const sel = state.sel;
-    const pool = sel.some((el) => el.parentNode !== doc) ? leafLayers() : items();
+    const pool = sel.some((el) => el.parentNode !== scopeRoot())
+      ? leafLayers().filter(inScope)
+      : scopeItems();
     setSel(
       pool.filter(
         (el) => isShown(el) && !sel.some((s) => s === el || s.contains(el) || el.contains(s)),

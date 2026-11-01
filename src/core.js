@@ -161,6 +161,7 @@ const state = {
 
 // The symbol being edited in place, if any (see enterIso).
 let iso = null;
+let scope = null; // the group isolated (isolation mode, src/scope.js), or null
 
 // ---------------------------------------------------------------------
 // Small helpers

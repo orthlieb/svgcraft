@@ -1470,6 +1470,16 @@
                 Done
               </button>
             </div>
+            <nav class="sc-iso-bar sc-scope-bar" id="sc-scope" aria-label="Isolated group" hidden>
+              <i data-icon="object-group"></i><span id="sc-scope-path"></span>
+              <button
+                class="sc-tbtn sc-primary-btn"
+                data-action="scopeDone"
+                data-tip="Done: back to the whole drawing"
+              >
+                Done
+              </button>
+            </nav>
             <div class="sc-drop" id="sc-drop">Drop an SVG or image to import</div>
           </div>
           <!-- Icon Preview and SVG Source dock here (src/dock.js). -->
@@ -4501,6 +4511,7 @@
     <script src="src/core.js"></script>
     <script src="src/guides.js"></script>
     <script src="src/geometry.js"></script>
+    <script src="src/scope.js"></script>
     <script src="src/smoothing.js"></script>
     <script src="src/style.js"></script>
     <script src="src/stroke-align.js"></script>

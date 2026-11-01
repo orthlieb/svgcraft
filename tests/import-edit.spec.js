@@ -51,12 +51,13 @@ const target = (page) =>
     );
   });
 
-// Place the icon and double-click the red triangle to point-edit it.
+// Place the icon and point-edit the red triangle: Edit Points (A) reaches
+// straight into nested groups.
 async function editTriangle(page) {
   await placeIcon(page);
-  await page.keyboard.press('v');
+  await page.keyboard.press('a');
   const p = await screenOf(page, '#dc2626', 35, 75);
-  await page.mouse.dblclick(p.x, p.y);
+  await page.mouse.click(p.x, p.y);
   await expect(nodes(page)).toHaveCount(3);
 }
 
@@ -69,7 +70,26 @@ test('placing an SVG wraps it in one group and keeps its nested groups', async (
   ).toBe('g');
 });
 
-test('double-clicking a path inside nested groups point-edits that path, markers on its corners', async ({
+test('with the Move tool, double-clicks isolate each nested group, then point-edit the path', async ({
+  page,
+}) => {
+  await placeIcon(page);
+  await page.keyboard.press('v');
+  const p = await screenOf(page, '#dc2626', 35, 75);
+  // The placed wrapper, its translate group, then the rotate group.
+  for (let depth = 1; depth <= 3; depth++) {
+    await page.mouse.dblclick(p.x, p.y);
+    await expect(page.locator('#sc-scope-path')).toHaveText(
+      new RegExp(`^Drawing(?: › [^›]+){${depth}}$`),
+    );
+  }
+  await page.mouse.dblclick(p.x, p.y);
+  expect(await tool(page)).toBe('node');
+  await expect(nodes(page)).toHaveCount(3);
+  expect((await target(page)).fill).toBe('#dc2626');
+});
+
+test('Edit Points on a path inside nested groups puts the markers on its corners', async ({
   page,
 }) => {
   await editTriangle(page);

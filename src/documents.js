@@ -150,6 +150,7 @@ function stashDoc() {
   if (!curDoc) return;
   tools[state.tool].leave?.();
   exitIso();
+  setScope(null);
   curDoc.name = state.fileName;
   curDoc.svg = serialize();
   curDoc.hist = hist.slice();
