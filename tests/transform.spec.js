@@ -58,26 +58,30 @@ async function setField(page, k, v) {
 }
 const tfOpen = (page) => page.evaluate(() => !!window.svgcraft.state.tf);
 
-// The Edit menu's Transform submenu (Object has a Combine Shapes one too).
+// The Object menu's Transform submenu.
 const transformSub = (page) =>
   page
     .locator('.sc-submenu')
     .filter({ has: page.locator('.sc-sub-btn', { hasText: 'Transform' }) });
 
-test.describe('Edit → Transform submenu', () => {
-  test('opens on hover and lists its ten commands', async ({ page }) => {
-    await page.click('.sc-menu-btn:text-is("Edit")');
+test.describe('Object → Transform submenu', () => {
+  test('opens on hover and lists its eleven commands, Free Transform first', async ({ page }) => {
+    await page.click('.sc-menu-btn:text-is("Object")');
     const sub = transformSub(page);
     await sub.locator('.sc-sub-btn').hover();
     await expect(page.locator('.sc-sub-list:not([hidden])')).toHaveCount(1);
     await expect(sub.locator('.sc-sub-list')).toBeVisible();
-    await expect(sub.locator('.sc-sub-list button')).toHaveCount(10);
+    await expect(sub.locator('.sc-sub-list button')).toHaveCount(11);
+    await expect(sub.locator('.sc-sub-list button').first()).toHaveAttribute(
+      'data-action',
+      'freeTransform',
+    );
   });
 
   test('keyboard: ArrowRight enters the submenu, ArrowLeft leaves it', async ({ page }) => {
     await load(page, RECT);
     await select(page, 'r');
-    await page.focus('.sc-menu-btn:text-is("Edit")');
+    await page.focus('.sc-menu-btn:text-is("Object")');
     await page.keyboard.press('ArrowDown');
     const onSubBtn = () =>
       page.evaluate(() => document.activeElement.classList.contains('sc-sub-btn'));
@@ -86,8 +90,11 @@ test.describe('Edit → Transform submenu', () => {
 
     const sub = transformSub(page);
     await page.keyboard.press('ArrowRight');
-    // Nothing transformed yet, so Again is greyed out and skipped.
+    // Into it, on Free Transform; nothing transformed yet, so Again is greyed
+    // out and skipped on the way down.
+    await expect(sub.locator('[data-action="freeTransform"]')).toBeFocused();
     await expect(sub.locator('[data-action="again"]')).toBeDisabled();
+    await page.keyboard.press('ArrowDown');
     await expect(sub.locator('[data-action="tfScale"]')).toBeFocused();
     await expect(page.locator(':focus')).toHaveText(/^\s*Scale\s*$/);
 

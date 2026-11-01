@@ -113,7 +113,7 @@ test('a locked layer: no handles, how to unlock it, and the alert goes on Esc', 
   await expect(page.locator('#sc-selection .sc-handle')).toHaveCount(0);
   await page.locator('#sc-stage').focus();
   await page.keyboard.press('ArrowRight');
-  await expect(page.locator('#sc-alert-text')).toContainText('Layer → Unlock');
+  await expect(page.locator('#sc-alert-text')).toContainText('Object → Lock → Unlock All');
   await page.keyboard.press('Escape');
   await expect(page.locator('#sc-alert')).toBeHidden();
   // A new selection puts a stale one away too (Esc deselected it).
