@@ -140,7 +140,7 @@ test('Layer via Cut lifts a shape out of its group, looking the same', async ({ 
   expect(await box(page, '#r')).toEqual(before);
   await expect(page.locator('#g > *')).toHaveCount(1);
   expect(await selIds(page)).toEqual(['r']);
-  await expect(page.locator('#sc-msg')).toContainText('Layer via Cut: 1 layer out of the group.');
+  await expect(page.locator('#sc-msg')).toContainText('Object via Cut: 1 object out of the group.');
 });
 
 test('Layer via Copy and Cut grey out until there is something to take', async ({ page }) => {

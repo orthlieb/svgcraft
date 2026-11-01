@@ -130,9 +130,9 @@ test('commands say what they did', async ({ page }) => {
   await load(page, SCENE);
   await select(page, 'a');
   await action(page, 'duplicate');
-  await expect(page.locator('#sc-msg')).toHaveText('Duplicated 1 layer.');
+  await expect(page.locator('#sc-msg')).toHaveText('Duplicated 1 object.');
   await action(page, 'group');
-  await expect(page.locator('#sc-msg')).toContainText('Grouped 1 layer into');
+  await expect(page.locator('#sc-msg')).toContainText('Grouped 1 object into');
   await select(page);
   await action(page, 'group');
   await expect(page.locator('#sc-msg')).toContainText('Made an empty group');

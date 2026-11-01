@@ -295,7 +295,7 @@ test.describe('Android adaptive icons', () => {
     expect(centre).toEqual([255, 209, 102, 255]);
     expect(above[3]).toBe(0);
     expect(corner[3]).toBe(0);
-    expect(z['README.txt'].toString()).toContain('the Background layer as its background');
+    expect(z['README.txt'].toString()).toContain('the Background object as its background');
   });
 
   test('a 108 dp canvas with a Background layer', async ({ page }) => {
@@ -352,6 +352,6 @@ test.describe('Android adaptive icons', () => {
     ]);
     expect(top).toEqual([11, 110, 79, 255]);
     expect(mid).toEqual([255, 209, 102, 255]);
-    expect(z['README.txt'].toString()).toContain('the Background layer as its background');
+    expect(z['README.txt'].toString()).toContain('the Background object as its background');
   });
 });

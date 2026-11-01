@@ -79,7 +79,7 @@ test('traces into one layer per colour, over the image, stacked', async ({ page 
   expect(await status(page)).toMatch(/^4 colours · \d+ shapes( \([^)]+\))? · [\d.]+ K?B$/);
   await expect(page.locator('[data-tr="preview"] path')).toHaveCount(4);
   await page.click('[data-tr-btn="ok"]');
-  await expect(page.locator('#sc-msg')).toHaveText('Traced into 4 colour layers.');
+  await expect(page.locator('#sc-msg')).toHaveText('Traced into 4 colour shapes.');
   const g = page.locator('#sc-doc g[data-name="Image Trace"]');
   await expect(g).toHaveCount(1);
   const fills = await g.locator('path').evaluateAll((ps) => ps.map((p) => p.getAttribute('fill')));
@@ -208,8 +208,8 @@ test('is off without an image selected, and says what’s wrong with the selecti
     await expect(page.locator('#sc-trace')).toBeHidden();
     return page.locator('#sc-alert-text').textContent();
   };
-  expect(await why([])).toContain('select an image layer first (File → Import… places one)');
-  expect(await why(['r'])).toContain('isn’t an image layer');
+  expect(await why([])).toContain('select an image first (File → Import… places one)');
+  expect(await why(['r'])).toContain('isn’t an image');
   await placeTestImage(page);
   await page.evaluate(() => {
     const doc = document.getElementById('sc-doc');
@@ -221,7 +221,7 @@ test('is off without an image selected, and says what’s wrong with the selecti
     doc.append(g);
     g.append(...doc.querySelectorAll('image'));
   });
-  expect(await why(['i1', 'i2'])).toContain('select just one image layer');
+  expect(await why(['i1', 'i2'])).toContain('select just one image');
   expect(await why(['g'])).toContain('“Photos” holds 2 images');
 });
 

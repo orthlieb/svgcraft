@@ -71,7 +71,7 @@ test('needs a group of two or more; reopening leaves nothing behind', async ({ p
   });
   await page.selectOption('#sc-anim-add', 'flipbook');
   await expect(page.locator('#sc-alert-text')).toHaveText(
-    'Flipbook needs a group of two or more layers: its frames, bottom one first.',
+    'Flipbook needs a group of two or more objects: its frames, bottom one first.',
   );
   await page.click('#sc-alert-close');
   await setAnims(page, 'g', [{ p: 'flipbook' }]);

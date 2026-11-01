@@ -148,7 +148,7 @@ test('Typewriter shows the letters one by one, and needs text', async ({ page })
   expect(await at(page, svg, 7, letterState)).toEqual([1, 1, 1, 1, 1]);
   await select(page, 'r');
   await page.selectOption('#sc-anim-add', 'typewriter');
-  await expect(page.locator('#sc-alert-text')).toHaveText('Typewriter needs a text layer.');
+  await expect(page.locator('#sc-alert-text')).toHaveText('Typewriter needs text.');
 });
 
 test('▶ Play splits the letters for the preview and puts them back', async ({ page }) => {

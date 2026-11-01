@@ -265,9 +265,7 @@ test('Release Text on Path gives back one line of point text at the start', asyn
   await select(page, 't');
   await menuOff(page, 'Type', 'releaseTextOnPath');
   await action(page, 'releaseTextOnPath');
-  await expect(page.locator('#sc-alert-text')).toHaveText(
-    'Select a text-on-path layer to release.',
-  );
+  await expect(page.locator('#sc-alert-text')).toHaveText('Select some text on a path to release.');
 });
 
 test('survives Save as SVG → reopen, still linked and live', async ({ page }) => {
@@ -387,19 +385,15 @@ test('refusals and locks', async ({ page }) => {
   await select(page, 't');
   await menuOff(page, 'Type', 'textOnPath');
   await action(page, 'textOnPath');
-  await expect(page.locator('#sc-alert-text')).toHaveText(
-    /Select one text layer and one path or shape/,
-  );
+  await expect(page.locator('#sc-alert-text')).toHaveText(/Select some text and one path or shape/);
   await select(page, 't', 'arc', 'bg');
   await menuOff(page, 'Type', 'textOnPath');
   await action(page, 'textOnPath');
-  await expect(page.locator('#sc-alert-text')).toHaveText(
-    /Select one text layer and one path or shape/,
-  );
+  await expect(page.locator('#sc-alert-text')).toHaveText(/Select some text and one path or shape/);
   await select(page, 'arc', 'bg');
   await menuOff(page, 'Type', 'textOnPath');
   await action(page, 'textOnPath');
-  await expect(msg(page)).toHaveText(/Select one text layer and one path or shape/);
+  await expect(msg(page)).toHaveText(/Select some text and one path or shape/);
   expect((await info(page)).tp).toBe(false);
 
   await page.evaluate(() => document.getElementById('t').setAttribute('data-sc-lock', 'all'));

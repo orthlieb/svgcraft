@@ -189,11 +189,9 @@ test.describe('the Layers panel menus', () => {
     await expect(ctx(page)).toBeVisible();
     expect(await sel(page)).toBe('a');
     const e = await entries(page);
-    expect(e).toEqual(
-      expect.arrayContaining(['Rename Layer…', 'Duplicate', 'Delete', 'Merge Visible']),
-    );
+    expect(e).toEqual(expect.arrayContaining(['Rename…', 'Duplicate', 'Delete', 'Merge Visible']));
     expect(e).not.toContain('Free Transform');
-    await item(page, 'Rename Layer…').click();
+    await item(page, 'Rename…').click();
     await page.keyboard.type('Square');
     await page.keyboard.press('Enter');
     await expect(row(page, 'Square')).toHaveCount(1);
