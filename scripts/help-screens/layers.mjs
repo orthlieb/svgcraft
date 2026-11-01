@@ -93,7 +93,7 @@ export default [
     },
   },
   {
-    id: 'select-layers',
+    id: 'select-objects',
     viewport: SMALL,
     async shoot(h) {
       await foldPanels(h);
@@ -177,16 +177,16 @@ export default [
     },
   },
   {
-    id: 'right-click-a-layer',
+    id: 'right-click-a-row',
     async shoot(h) {
       await foldPanels(h);
       await row(h, 'Title').click({ button: 'right' });
       await h.page.locator('#sc-ctx').waitFor();
-      await still(h, [LAYERS, '#sc-ctx'], { pad: 4, name: 'right-click-a-layer' });
+      await still(h, [LAYERS, '#sc-ctx'], { pad: 4, name: 'right-click-a-row' });
     },
   },
   {
-    id: 'rename-a-layer',
+    id: 'rename-an-object',
     async shoot(h) {
       await foldPanels(h);
       await h.select('Title');
@@ -202,7 +202,7 @@ export default [
       const input = h.page.locator('.sc-layer-input');
       await input.waitFor();
       await input.fill('Logo text');
-      await still(h, LAYERS, { pad: 0, name: 'rename-a-layer' });
+      await still(h, LAYERS, { pad: 0, name: 'rename-an-object' });
     },
   },
   {
@@ -219,11 +219,11 @@ export default [
     },
   },
   {
-    id: 'merge-layers',
+    id: 'merge-objects',
     async shoot(h) {
       await h.select('Red paint', 'Yellow paint');
       await h.menu('Object', 'mergeDown', { click: false });
-      await still(h, '.sc-menu-list:not([hidden])', { pad: 4, name: 'merge-layers' });
+      await still(h, '.sc-menu-list:not([hidden])', { pad: 4, name: 'merge-objects' });
     },
   },
   {
@@ -253,13 +253,13 @@ export default [
     },
   },
   {
-    id: 'layer-via-copy-cut',
+    id: 'object-via-copy-cut',
     async shoot(h) {
       await h.select('Red paint');
       await h.menu('Object', 'layerViaCopy', { click: false });
       await still(h, h.page.locator('.sc-menu-list:not([hidden])').first(), {
         pad: 4,
-        name: 'layer-via-copy-cut',
+        name: 'object-via-copy-cut',
       });
     },
   },

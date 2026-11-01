@@ -206,7 +206,7 @@ Reach what the selection can do without going to the menu bar.
   Commit or Cancel Transform.
 - **While editing text**: the browser's own menu, for cutting, copying and
   pasting the text.
-- **In the Layers panel**: see [Right-click a layer](#right-click-a-layer).
+- **In the Layers panel**: see [Right-click a row](#right-click-a-row).
 
 #### Good to know
 
@@ -1884,7 +1884,7 @@ Pick objects, then move, resize, rotate, group and stack them.
 
 #### More on this
 
-- Selecting in the Layers panel: [Select layers](#select-layers) and the
+- Selecting in the Layers panel: [Select objects](#select-objects) and the
   [Select menu](#select-menu).
 - [Group and ungroup](#group-and-ungroup), and
   [Reorder, copy and delete](#reorder-copy-and-delete) in the Layers
@@ -2190,9 +2190,9 @@ Tab to the list (it lands on the selected row), then:
 - Previews are drawn just after the list: the rows in view first, the rest
   while the browser is idle. So a long list appears at once.
 
-### Select layers
+### Select objects
 
-![Four paint layers selected in the Layers panel and on the canvas](docs/help/select-layers.png)
+![Four paint layers selected in the Layers panel and on the canvas](docs/help/select-objects.png)
 
 Pick the layers you want to work on.
 
@@ -2313,9 +2313,9 @@ change by accident.
 - Locked layers can still be selected.
 - A lock on a group covers everything in it.
 
-### Right-click a layer
+### Right-click a row
 
-![The Layers panel's right-click menu on the Title layer](docs/help/right-click-a-layer.png)
+![The Layers panel's right-click menu on the Title layer](docs/help/right-click-a-row.png)
 
 Right-click a row in the Layers panel for what you can do with the layer.
 
@@ -2331,9 +2331,9 @@ Right-click a row in the Layers panel for what you can do with the layer.
 
 - As on the canvas, the menu lists only what can run now.
 
-### Rename a layer
+### Rename an object
 
-![Renaming the Title layer in the Layers panel](docs/help/rename-a-layer.png)
+![Renaming the Title layer in the Layers panel](docs/help/rename-an-object.png)
 
 Give layers names you'll recognise.
 
@@ -2376,9 +2376,9 @@ Make a layer see-through, or mix it with the layers below.
 - They're saved as the layer's CSS (`mix-blend-mode`, `isolation`), which
   browsers apply to exported SVGs too.
 
-### Merge layers
+### Merge objects
 
-![The Object menu with two layers selected, offering Merge Layers](docs/help/merge-layers.png)
+![The Object menu with two layers selected, offering Merge Layers](docs/help/merge-objects.png)
 
 Turn several layers into one. The result stays vector and nothing on
 screen changes.
@@ -2433,9 +2433,9 @@ everything back.
   100% or an animation. So do locked groups. They're named "Mixed" if they
   hold more than one colour.
 
-### Layer via Copy / Cut
+### Object via Copy / Cut
 
-![The Object menu, with Layer via Copy and Layer via Cut](docs/help/layer-via-copy-cut.png)
+![The Object menu, with Layer via Copy and Layer via Cut](docs/help/object-via-copy-cut.png)
 
 Put the selected part of a layer on a new layer above it.
 
