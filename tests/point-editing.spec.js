@@ -184,7 +184,9 @@ test('Close toggles the closing Z; marquee picks points; Shift+Arrow nudges them
   await page.click('[data-node-cmd="close"]');
   expect(await pathD(page)).toMatch(/Z/i);
 
-  // Marquee across the top edge picks its two corners (200,200) and (400,200).
+  // A Rectangle Select marquee across the top edge picks its two corners
+  // (200,200) and (400,200).
+  await pickMarquee(page, 'rect');
   await drag(page, [150, 150], [420, 230]);
   expect(await page.evaluate(() => window.svgcraft.tools.node.picked.length)).toBe(2);
 
@@ -231,8 +233,9 @@ test('points can be picked with an oval too, or from the centre with Alt', async
   const picked = () =>
     page.evaluate(() => window.svgcraft.tools.node.picked.map(([, n]) => n).sort((a, b) => a - b));
 
-  // A rectangle round the square takes all eight.
-  await expect(page.locator('[data-marquee="rect"]')).toHaveAttribute('aria-checked', 'true');
+  // Point Select is the default; a rectangle round the square takes all eight.
+  await expect(page.locator('[data-marquee="arrow"]')).toHaveAttribute('aria-checked', 'true');
+  await pickMarquee(page, 'rect');
   await drag(page, [290, 190], [510, 410]);
   expect(await picked()).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
 
@@ -346,7 +349,7 @@ test('points can be picked freeform, with a lasso drawn round them', async ({ pa
   await expect(page.locator('[data-marquee="lasso"]')).toHaveAttribute('aria-checked', 'true');
 });
 
-test('the selection shapes sit in Edit Points’ toolbar flyout, like the Shape tools', async ({
+test('the selection shapes sit in Direct Selection’s toolbar flyout, like the Shape tools', async ({
   page,
 }) => {
   const btn = page.locator('#sc-node-btn');
@@ -358,19 +361,20 @@ test('the selection shapes sit in Edit Points’ toolbar flyout, like the Shape 
   await page.mouse.down();
   await expect(menu).toBeVisible();
   await page.mouse.up();
-  await expect(menu.locator('[data-marquee="rect"]')).toBeFocused();
+  // Point Select (the arrow) is the default.
+  await expect(menu.locator('[data-marquee="arrow"]')).toBeFocused();
   // Arrow keys move through it; Escape closes it.
   await page.keyboard.press('ArrowDown');
-  await expect(menu.locator('[data-marquee="oval"]')).toBeFocused();
+  await expect(menu.locator('[data-marquee="rect"]')).toBeFocused();
   await page.keyboard.press('Escape');
   await expect(menu).toBeHidden();
-  // Picking one switches to Edit Points with it.
+  // Picking one switches to Direct Selection with it.
   await page.keyboard.press('v');
   await pickMarquee(page, 'lasso');
   await expect(menu).toBeHidden();
   expect(await page.evaluate(() => window.svgcraft.state.tool)).toBe('node');
   expect(await checked()).toBe('lasso');
-  await expect(btn).toHaveAttribute('data-tip', 'Edit points · Lasso Select');
+  await expect(btn).toHaveAttribute('data-tip', 'Direct Selection · Lasso Select');
   // A plain click is just the tool; Shift+A steps through the shapes.
   await page.keyboard.press('v');
   await btn.click();

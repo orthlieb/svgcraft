@@ -6,9 +6,10 @@ const PAINT_FOLD_KEY = 'svgcraft.paintFold'; // { fill, stroke }: folded in the 
 // ---------------------------------------------------------------------
 // UI wiring
 // ---------------------------------------------------------------------
+// [icon, name, History's name for a step with it (when not its name)]
 const TOOL_META = {
-  select: ['sc-move', 'Move'],
-  node: ['sc-direct', 'Edit Points'],
+  select: ['sc-move', 'Selection', 'Move'],
+  node: ['sc-direct', 'Direct Selection', 'Edit Points'],
   pencil: ['pencil', 'Pencil'],
   pen: ['pen-nib', 'Pen'],
   eraser: ['eraser', 'Eraser'],

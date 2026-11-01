@@ -113,6 +113,32 @@ export default [
     },
   },
   {
+    id: 'select-inside-a-group',
+    viewport: SMALL,
+    async shoot(h) {
+      await foldPanels(h);
+      // Ctrl-click the blue paint, inside the Palette group (which sits at
+      // translate(160 6) scale(7.5): the paint's centre is 44.5, 18.5).
+      await h.page.keyboard.down('Control');
+      await h.clickDoc(160 + 44.5 * 7.5, 6 + 18.5 * 7.5);
+      await h.page.keyboard.up('Control');
+      await h.page.mouse.move(0, 0);
+      await h.shot(['#sc-doc', LAYERS], { pad: 0 });
+    },
+  },
+  {
+    id: 'isolation-mode',
+    viewport: SMALL,
+    async shoot(h) {
+      // Double-click the palette to isolate it, then pick its red paint.
+      const p = await h.at(460, 230);
+      await h.page.mouse.dblclick(p.x, p.y);
+      await h.clickDoc(160 + 16.5 * 7.5, 6 + 32 * 7.5);
+      await h.page.mouse.move(0, 0);
+      await h.shot(['#sc-doc', '#sc-scope'], { pad: 12 });
+    },
+  },
+  {
     id: 'reorder-copy-and-delete',
     async shoot(h) {
       await foldPanels(h);

@@ -120,11 +120,11 @@ const MARQUEES = {
 const nodeBtn = $('#sc-node-btn');
 const nodeFlyout = toolFlyout(nodeBtn, $('#sc-node-menu'));
 function setMarquee(shape, save) {
-  state.marquee = MARQUEES[shape] ? shape : 'rect';
+  state.marquee = MARQUEES[shape] ? shape : 'arrow';
   for (const b of document.querySelectorAll('[data-marquee]'))
     b.setAttribute('aria-checked', b.dataset.marquee === state.marquee);
-  nodeBtn.dataset.tip = `Edit points · ${MARQUEES[state.marquee]}`;
-  if (save) store(MARQUEE_KEY, state.marquee === 'rect' ? null : state.marquee);
+  nodeBtn.dataset.tip = `Direct Selection · ${MARQUEES[state.marquee]}`;
+  if (save) store(MARQUEE_KEY, state.marquee === 'arrow' ? null : state.marquee);
   syncCursor();
 }
 for (const b of document.querySelectorAll('[data-marquee]'))

@@ -37,7 +37,7 @@ test('each tool has its own pointer', async ({ page }) => {
   }
 });
 
-test('Edit Points: white arrow over shapes, the marquee’s cross or lasso with + and −', async ({
+test('Direct Selection: the white arrow, the marquee’s cross or lasso, with + and −', async ({
   page,
 }) => {
   await page.keyboard.press('a');
@@ -45,6 +45,17 @@ test('Edit Points: white arrow over shapes, the marquee’s cross or lasso with 
   // Nothing to edit yet: the white arrow.
   await expectCursor(page, 'direct');
   await page.evaluate(() => window.svgcraft.tools.node.target(document.getElementById('p')));
+  // Point Select (the default) keeps the arrow, with Shift's + and Alt's −.
+  await hover(page, 100, 520);
+  await expectCursor(page, 'direct');
+  await page.keyboard.down('Shift');
+  await expectCursor(page, 'direct+add');
+  await page.keyboard.up('Shift');
+  await page.keyboard.down('Alt');
+  await expectCursor(page, 'direct+sub');
+  await page.keyboard.up('Alt');
+  // Rectangle Select: the marquee's cross.
+  await pickMarquee(page, 'rect');
   await hover(page, 100, 520);
   await expectCursor(page, 'cross');
   await page.keyboard.down('Shift');

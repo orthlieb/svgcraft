@@ -496,18 +496,10 @@ tools.node = {
     }
     if (node) {
       const [si, ni] = node.dataset.node.split(':').map(Number);
-      // Point Select: Shift adds the point to the pick, Alt takes it away.
-      if (state.marquee === 'arrow' && (e.shiftKey || e.altKey)) {
+      // Shift-click adds the point to the pick, Alt-click takes it away.
+      if (e.shiftKey || e.altKey) {
         const rest = this.picked.filter(([a, b]) => a !== si || b !== ni);
         this.picked = e.altKey ? rest : [...rest, [si, ni]];
-        this.redraw();
-        this.g = null;
-        return;
-      }
-      if (e.shiftKey) {
-        this.picked = this.isPicked(si, ni)
-          ? this.picked.filter(([a, b]) => a !== si || b !== ni)
-          : [...this.picked, [si, ni]];
         this.redraw();
         this.g = null;
         return;

@@ -218,11 +218,11 @@ Reach what the selection can do without going to the menu bar.
 
 ### The options bar
 
-![The Move tool's options bar, with Auto-Select set to Group](docs/help/the-options-bar.png)
+![The Selection tool's options bar: align, distribute, flip and combine buttons](docs/help/the-options-bar.png)
 
 Change how the current tool works. The bar shows the settings for the
 tool you have: stroke width and smoothing for the pencil, mode and size
-for the eraser, or the point commands for Edit Points.
+for the eraser, or the point commands for Direct Selection.
 
 - Type a value, or drag a field's label sideways to scrub it. Shift
   scrubs 10× faster.
@@ -230,15 +230,9 @@ for the eraser, or the point commands for Edit Points.
   the bar's end (and **‹** once you've scrolled) shows there's more: click
   it, or scroll the bar with the mouse wheel.
 
-#### Auto-Select (Move tool)
-
-- **Group**: a click on the canvas picks the whole top-level item.
-- **Layer**: a click picks the exact shape under the cursor, even deep
-  inside groups.
-
 ### The toolbar
 
-![The toolbar, with the Move tool chosen and the Shape tools' button below](docs/help/the-toolbar.png)
+![The toolbar, with the Selection tool chosen and the Shape tools' button below](docs/help/the-toolbar.png)
 
 Pick a tool.
 
@@ -253,10 +247,10 @@ Pick a tool.
 
 The pointer shows what a click will do:
 
-- the Move tool's arrow and cross;
-- Edit Points' white arrow;
-- the arrow, a cross or the lasso for picking points, with + while Shift
-  adds and − while Alt takes away;
+- the Selection tool's arrow and cross;
+- Direct Selection's white arrow, and its cross or lasso when it picks
+  points with a marquee, with + while Shift adds and − while Alt takes
+  away;
 - the pen's nib, with \* to start a path and o over its first point to
   close it;
 - the pencil, the eyedropper and the type I-beam;
@@ -359,7 +353,7 @@ Line things up exactly: drag guides out of the rulers, and let shapes snap
 to them and to each other.
 
 1. Drag from the top or left ruler onto the canvas to make a guide.
-2. Drag a guide with the Move tool to reposition it (Shift rounds to
+2. Drag a guide with the Selection tool to reposition it (Shift rounds to
    10 px), or drag it back onto a ruler to delete it.
 3. Move or draw near a guide, and it snaps there. With **Smart Guides** on,
    it also snaps to the edges and centres of other objects and of the
@@ -1044,8 +1038,8 @@ Scale, rotate and skew the selection by hand or by exact numbers.
 
 Line objects up with each other, or space them out evenly.
 
-1. Select the objects with the Move tool.
-2. Click an align or distribute button on the Move tool's options bar, or
+1. Select the objects with the Selection tool.
+2. Click an align or distribute button on the Selection tool's options bar, or
    choose **Layer → Align** or **Layer → Distribute**.
 
 #### Options
@@ -1087,26 +1081,28 @@ Copy a style or a colour from something already in the drawing.
 
 ### Edit points
 
-![Edit Points on a leaf shape: a picked point with its curve handles, and the options bar](docs/help/edit-points.png)
+![Direct Selection on a leaf shape: a picked point with its curve handles, and the options bar](docs/help/edit-points.png)
 
 Reshape a path, or a basic shape, by moving its points and curve handles.
 
-1. Pick **Edit Points** (A), or double-click a shape with the Move tool.
+1. Pick **Direct Selection** (A), or double-click a shape with the
+   Selection tool (inside a group, double-click until you reach it).
 2. Click the shape, then drag its points and Bézier handles. The arrow
    keys nudge picked points.
 3. Press Esc, or pick another tool, when you're done.
 
 #### Picking points
 
-- Shift-click points to pick several, or drag round them.
-- Choose how points are picked from the Edit Points button's flyout (as
-  with the Shape tools), or step through them with Shift+A:
-  - **Point Select** (the arrow): click a point to pick just it,
-    Shift-click to add one and Alt-click to take one away. A drag off the
-    points picks nothing, so it can't catch points by accident.
+- Click a point to pick it. Shift-click adds one, and Alt-click takes
+  one away.
+- To pick many at once, drag round them with a marquee. Choose its shape
+  from the Direct Selection button's flyout (as with the Shape tools), or
+  step through them with Shift+A:
+  - **Point Select** (the arrow, and the default): no marquee. A drag off
+    the points picks nothing, so it can't catch points by accident.
   - **Rectangle Select**, **Ellipse Select** (an oval) or **Lasso Select**
     (freeform): drag round the points to pick them.
-- A drag begun with Shift adds to what's picked, and one
+- With a marquee, a drag begun with Shift adds to what's picked, and one
   begun with Alt takes points away. Alt pressed during a drag grows a
   rectangle or oval from its centre.
 
@@ -1561,7 +1557,7 @@ Fill or stroke a shape with a smooth blend of colours.
 3. Edit the stops in the gradient editor below.
 4. To set its direction and span on the canvas, drag its handles: a
    shape painted with a gradient shows them (for the active paint, Fill or
-   Stroke) while you use the Move tool. A linear gradient runs from the
+   Stroke) while you use the Selection tool. A linear gradient runs from the
    round handle to the other; a radial one spreads from its centre out to
    the outer handle.
 
@@ -1589,7 +1585,7 @@ Fill or stroke a shape with a smooth blend of colours.
 - With a gradient active, clicking a swatch recolours the selected stop.
 - **Linear** and **Radial** are paint types, beside **Solid** in
   Appearance; switching keeps the stops.
-- There's no Gradient tool: its handles are the Move tool's.
+- There's no Gradient tool: its handles are the Selection tool's.
 
 #### Good to know
 
@@ -1820,7 +1816,7 @@ what's selected.
 
 ![Properties' Appearance: Fill and Stroke, each with its colour, hex, alpha and type](docs/help/colours.png)
 
-The selected shape's fill and stroke in full, with the Move tool or any
+The selected shape's fill and stroke in full, with the Selection tool or any
 other:
 
 - **Fill** and **Stroke**: the swatch (click it for the colour picker),
@@ -1855,13 +1851,17 @@ other:
 
 ### Selecting, moving and arranging
 
-![Two selected layers with their handles, and the Move tool's options bar](docs/help/selecting-moving-and-arranging.png)
+![Two selected layers with their handles, and the Selection tool's options bar](docs/help/selecting-moving-and-arranging.png)
 
 Pick objects, then move, resize, rotate, group and stack them.
 
-- **Select**: click with the Move tool. Shift-click adds, and dragging on
-  empty canvas draws a marquee. **Select → All** (Ctrl+A), **Deselect**
-  (Ctrl+D) and **Inverse** (Shift+F7).
+- **Select**: click with the Selection tool (V). A click picks the whole
+  object, a group whole. Shift-click adds, and dragging on empty canvas
+  draws a marquee. **Select → All** (Ctrl+A), **Deselect** (Ctrl+D) and
+  **Inverse** (Shift+F7).
+- **Inside a group**: Ctrl/⌘-click a shape (see
+  [Select inside a group](#select-inside-a-group)), or double-click the
+  group to work inside it (see [Isolation mode](#isolation-mode)).
 - **Move**: drag the selection, or nudge it with the arrow keys (Shift
   moves 10 times as far).
 - **Resize and rotate**: drag the handles. Shift keeps the ratio, and Alt
@@ -2212,6 +2212,49 @@ was. With nothing selected, you get an empty group.
 To take a group apart again, select it and choose **Layer → Ungroup
 Layers** (Ctrl+Shift+G).
 
+### Select inside a group
+
+![The Blue paint picked inside the Palette group with Ctrl-click, and its row in the Layers panel](docs/help/select-inside-a-group.png)
+
+Pick one shape inside a group without taking the group apart.
+
+- **Ctrl/⌘-click** the shape with the Selection tool. A plain click picks
+  the whole group.
+- **Ctrl/⌘-drag** a box to pick every shape inside groups that it
+  touches.
+- Or click its row in the Layers panel.
+
+#### Good to know
+
+- Holding Ctrl/⌘ while you drag also turns snapping off, so a shape
+  picked this way moves freely.
+- To work on several shapes in a group for a while, isolate the group
+  instead: see [Isolation mode](#isolation-mode).
+
+### Isolation mode
+
+![The Palette group isolated, its red paint picked: the rest of the drawing dimmed, and the bar reading Drawing › Palette](docs/help/isolation-mode.png)
+
+Work inside a group as if it were the whole drawing.
+
+1. Double-click the group with the Selection tool.
+2. Click, drag and draw as usual: clicks pick the group's own shapes, and
+   new shapes go into the group. Everything else is dimmed and out of
+   reach.
+3. To go deeper, double-click a group inside it.
+4. To come back out, press Esc (a level at a time), click a level in the
+   bar at the top of the canvas, click **Done**, or double-click off the
+   group.
+
+#### Good to know
+
+- Esc first deselects, then steps out.
+- Picking a layer outside the group in the Layers panel leaves isolation
+  mode too. The isolated group's row is outlined there.
+- Undo and redo keep you in the group. Switching to another drawing's tab
+  leaves it.
+- The dimming is only on screen: it's never saved.
+
 ### Reorder, copy and delete
 
 ![Dragging the Purple paint layer in the Layers panel, with a line showing where it will drop](docs/help/reorder-copy-and-delete.png)
@@ -2388,17 +2431,17 @@ everything back.
 
 Put the selected part of a layer on a new layer above it.
 
-1. Select layers, or pick points with Edit Points.
+1. Select layers, or pick points with Direct Selection.
 2. Choose **Layer → New → Layer via Copy** (Ctrl+J) or **Layer via Cut**
    (Alt+Shift+J).
 
-The new layer is selected with the Move tool.
+The new layer is selected with the Selection tool.
 
 #### With layers selected
 
 - **Layer via Copy** copies them in place. (Duplicate Layer offsets its copy
   by 10 px so it shows.)
-- **Layer via Cut** lifts shapes picked inside a group (Auto-Select: Layer)
+- **Layer via Cut** lifts shapes picked inside a group (Ctrl/⌘-click)
   out onto layers of their own, just above the group and looking the same.
 
 #### With points picked
@@ -2471,13 +2514,13 @@ Merge shapes into one path.
 
 ### Combine selected shapes
 
-![Two overlapping shapes selected, with the Unite button's tooltip in the Move tool's options bar](docs/help/combine-selected-shapes.png)
+![Two overlapping shapes selected, with the Unite button's tooltip in the Selection tool's options bar](docs/help/combine-selected-shapes.png)
 
 Build a new shape out of simpler ones: a keyhole from a circle and a
 rectangle, a crescent from two circles.
 
 1. Select two or more shapes.
-2. Click one of the four buttons in the Move tool's options bar, or choose
+2. Click one of the four buttons in the Selection tool's options bar, or choose
    **Object → Combine Shapes** and a mode.
 
 The result takes the place, name and style of the topmost shape (the
@@ -2574,7 +2617,7 @@ drawing no longer needs its fonts.
 ![Text turned into outlines: a group named Hello (outlines) holding one path per style](docs/help/turn-text-into-outlines.png)
 
 Use it before sending a drawing to someone without your fonts, or to
-reshape the letters with Edit Points.
+reshape the letters with Direct Selection.
 
 1. Select the text layers, or groups with text inside.
 2. Choose **Type → Create Outlines** (Ctrl+Shift+O).
@@ -3032,7 +3075,7 @@ in parentheses, taken from the menus, so they always agree.
 
 | Key                       | Action                                             |
 | ------------------------- | -------------------------------------------------- |
-| V A                       | Move · Edit points                                 |
+| V A                       | Selection · Direct Selection                       |
 | P B E I                   | Pen · Pencil · Eraser · Eyedropper                 |
 | U · Shift+U               | Shape tool · next shape in the group               |
 | R O L                     | Rectangle · Ellipse · Line                         |
