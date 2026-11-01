@@ -361,9 +361,6 @@ test.describe('layer locks', () => {
     );
     await select(page, 'g');
     await page.click('[data-lock="all"]');
-    await page.evaluate(() => {
-      window.svgcraft.state.autoSelect = 'layer';
-    });
     await select(page, 'a');
     await page.keyboard.press('Delete');
     await expect(page.locator('#a')).toHaveCount(1);

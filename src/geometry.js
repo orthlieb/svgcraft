@@ -399,11 +399,11 @@ const normalizeSel = (els) =>
     return true;
   });
 
-// What a canvas click picks: the whole top-level item (Auto-Select: Group)
-// or the exact shape under the cursor (Auto-Select: Layer), within the
-// isolated group if there is one (src/scope.js).
-function pickLayer(node) {
-  if (state.autoSelect !== 'layer') return topIn(node);
+// What a canvas click picks, within the isolated group if there is one
+// (src/scope.js): the whole object (a group whole), or, deep (a Ctrl/⌘-
+// click), the exact shape under the pointer, inside any groups.
+function pickLayer(node, deep = false) {
+  if (!deep) return topIn(node);
   if (!inScope(node)) return null;
   const t = node.closest('text');
   return t && inScope(t) ? t : node;
