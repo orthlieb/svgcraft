@@ -42,14 +42,15 @@ async function embeddedFontCss(fonts) {
 }
 
 // The drawing as a PNG blob at `scale`, or null (having said why).
-async function pngBlob(scale = 2) {
+// One artboard as a PNG: the page, unless another is given.
+async function pngBlob(scale = 2, board = mainBoard()) {
   const g = usedGoogleFonts();
   if (g.length) say('Embedding fonts…');
   const fontCss = await embeddedFontCss(g);
   if (g.length && !fontCss)
     warn('Couldn’t fetch the fonts (are you offline?), so the PNG uses fallback fonts.');
   const url = URL.createObjectURL(
-    new Blob([serialize({ fontCss, animate: false })], { type: 'image/svg+xml' }),
+    new Blob([serialize({ fontCss, animate: false, board })], { type: 'image/svg+xml' }),
   );
   const img = new Image();
   const loaded = await new Promise((resolve) => {
@@ -63,8 +64,8 @@ async function pngBlob(scale = 2) {
     return null;
   }
   const c = document.createElement('canvas');
-  c.width = Math.round(state.w * scale);
-  c.height = Math.round(state.h * scale);
+  c.width = Math.round(board.w * scale);
+  c.height = Math.round(board.h * scale);
   c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
   try {
     const b = await new Promise((resolve) => c.toBlob(resolve, 'image/png'));

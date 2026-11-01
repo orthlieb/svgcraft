@@ -51,6 +51,24 @@ function readBoards(attr) {
 
 let boardSel = -1; // the artboard the Artboard tool has picked (0: the page)
 
+// What moves with an artboard (Move art, on by default): the objects
+// centred on it, unless their position is locked.
+const MOVE_ART_KEY = 'svgcraft.boardMoveArt';
+state.boardMoveArt = stored(MOVE_ART_KEY) !== false;
+function artOn(b) {
+  if (!state.boardMoveArt) return [];
+  return items()
+    .filter((el) => !lockOf(el) && el.getAttribute('display') !== 'none')
+    .filter((el) => {
+      const r = bboxDoc(el);
+      if (!r) return false;
+      const cx = r.x + r.w / 2;
+      const cy = r.y + r.h / 2;
+      return cx >= b.x && cx <= b.x + b.w && cy >= b.y && cy <= b.y + b.h;
+    })
+    .map((el) => ({ el, m0: getM(el) }));
+}
+
 // The extra artboards' pages (behind the art), their frames and every name
 // (over it), and the picked one's outline and size handle.
 function renderBoards() {
@@ -96,8 +114,9 @@ function syncBoardOpts() {
   const b = allBoards()[boardSel];
   for (const id of ['#sc-board-name', '#sc-board-w', '#sc-board-h']) $(id).disabled = !b;
   $('#sc-board-name').value = b ? b.name : '';
-  $('#sc-board-w').value = b ? f(b.w) : '';
-  $('#sc-board-h').value = b ? f(b.h) : '';
+  $('#sc-board-w').value = b ? inUnits(b.w) : '';
+  $('#sc-board-h').value = b ? inUnits(b.h) : '';
+  $('#sc-board-moveart').checked = state.boardMoveArt;
   if (typeof syncActions === 'function') syncActions();
 }
 
@@ -123,17 +142,21 @@ function deleteBoard() {
   say(`Deleted “${gone.name}”. The art on it stays.`);
 }
 
-// Every artboard as its own clean SVG, in one zip.
-function exportArtboards() {
+// Every artboard as its own clean SVG and a PNG of it, in one zip.
+async function exportArtboards({ save = true } = {}) {
   const used = new Set();
-  const files = allBoards().map((b) => {
+  const files = [];
+  for (const b of allBoards()) {
     let name = b.name.replace(/[\\/:*?"<>|]+/g, '-').trim() || 'Artboard';
     for (let n = 2; used.has(name.toLowerCase()); n++) name = `${b.name} ${n}`;
     used.add(name.toLowerCase());
-    return [`${name}.svg`, cleanSvgText(serialize({ board: b }), CLEAN_DEFAULTS)];
-  });
-  download(zipBlob(files), `${state.fileName || 'drawing'}-artboards.zip`);
-  say(`Exported ${files.length} artboard${files.length > 1 ? 's' : ''}.`);
+    files.push([`${name}.svg`, cleanSvgText(serialize({ board: b }), CLEAN_DEFAULTS)]);
+    const png = await pngBlob(1, b);
+    if (png) files.push([`${name}.png`, new Uint8Array(await png.arrayBuffer())]);
+  }
+  if (save) download(zipBlob(files), `${state.fileName || 'drawing'}-artboards.zip`);
+  const n = allBoards().length;
+  say(`Exported ${n} artboard${n > 1 ? 's' : ''}, each as SVG and PNG.`);
   return files;
 }
 
@@ -175,7 +198,11 @@ tools.artboard = {
     boardSel = i;
     // The page stays where it is (the art is measured from its corner).
     this.g =
-      i > 0 ? { mode: 'move', i, b0: { ...all[i] }, p0: p } : i < 0 ? { mode: 'new', p0: p } : null;
+      i > 0
+        ? { mode: 'move', i, b0: { ...all[i] }, p0: p, art: artOn(all[i]) }
+        : i < 0
+          ? { mode: 'new', p0: p }
+          : null;
     renderBoards();
     syncBoardOpts();
   },
@@ -201,8 +228,11 @@ tools.artboard = {
     }
     if (!dx && !dy && !g.moved) return;
     g.moved = true;
-    if (g.mode === 'move') setBoard(g.i, { x: g.b0.x + dx, y: g.b0.y + dy });
-    else setBoard(g.i, { w: Math.max(1, g.b0.w + dx), h: Math.max(1, g.b0.h + dy) });
+    if (g.mode === 'move') {
+      setBoard(g.i, { x: g.b0.x + dx, y: g.b0.y + dy });
+      const T = new DOMMatrix().translate(dx, dy);
+      for (const a of g.art) transformDoc(a.el, T, a.m0);
+    } else setBoard(g.i, { w: Math.max(1, g.b0.w + dx), h: Math.max(1, g.b0.h + dy) });
     syncBoardOpts();
   },
   up(e, p) {
@@ -243,10 +273,15 @@ $('#sc-board-name').addEventListener('change', (e) => {
 });
 for (const k of ['w', 'h'])
   $(`#sc-board-${k}`).addEventListener('change', (e) => {
-    const v = Math.round(+e.target.value);
+    // In the document's units, stored in px.
+    const v = +f(fromUnits(e.target.value));
     if (boardSel < 0 || !(v > 0)) return syncBoardOpts();
     setBoard(boardSel, { [k]: v });
     noteStep('Resize Artboard');
     commit();
     syncBoardOpts();
   });
+$('#sc-board-moveart').addEventListener('change', (e) => {
+  state.boardMoveArt = e.target.checked;
+  store(MOVE_ART_KEY, state.boardMoveArt ? null : false);
+});
