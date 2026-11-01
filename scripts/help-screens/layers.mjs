@@ -211,7 +211,7 @@ export default [
       await foldPanels(h);
       await h.select('Purple paint');
       await h.page.selectOption('#sc-blend', 'multiply');
-      const op = h.page.locator('.sc-layers-head [data-bind="opacity"]');
+      const op = h.page.locator('#sc-transparency [data-bind="opacity"]');
       await op.fill('70');
       await op.press('Enter');
       await h.redraw();

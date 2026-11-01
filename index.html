@@ -2416,6 +2416,46 @@
                   </div>
                 </div>
               </div>
+              <!-- Transparency: how the selection blends with what's behind it. -->
+              <div class="sc-transparency" id="sc-transparency">
+                <span class="sc-subhead">Transparency</span>
+                <div class="sc-row sc-transparency-row">
+                  <select id="sc-blend" aria-label="Blend mode" data-tip="Blend mode">
+                    <option value="pass-through">Pass Through</option>
+                    <option value="normal">Normal</option>
+                    <option disabled>──────────</option>
+                    <option value="darken">Darken</option>
+                    <option value="multiply">Multiply</option>
+                    <option value="color-burn">Color Burn</option>
+                    <option disabled>──────────</option>
+                    <option value="lighten">Lighten</option>
+                    <option value="screen">Screen</option>
+                    <option value="color-dodge">Color Dodge</option>
+                    <option disabled>──────────</option>
+                    <option value="overlay">Overlay</option>
+                    <option value="soft-light">Soft Light</option>
+                    <option value="hard-light">Hard Light</option>
+                    <option disabled>──────────</option>
+                    <option value="difference">Difference</option>
+                    <option value="exclusion">Exclusion</option>
+                    <option disabled>──────────</option>
+                    <option value="hue">Hue</option>
+                    <option value="saturation">Saturation</option>
+                    <option value="color">Color</option>
+                    <option value="luminosity">Luminosity</option>
+                  </select>
+                  <label class="sc-field"
+                    ><span class="sc-scrub" data-tip="Drag to adjust">Opacity:</span
+                    ><input
+                      type="number"
+                      data-bind="opacity"
+                      min="0"
+                      max="100"
+                      aria-label="Opacity"
+                    /><span class="sc-unit">%</span></label
+                  >
+                </div>
+              </div>
             </div>
             <div class="sc-shapeprops" id="sc-shape-props" hidden>
               <div class="sc-shapeprops-row" data-shape-poly hidden>
@@ -2667,42 +2707,6 @@
         <section class="sc-pgroup sc-grow">
           <div class="sc-ptabs">
             <span class="sc-ptitle"><i data-icon="layer-group"></i><span>Layers</span></span>
-          </div>
-          <div class="sc-layers-head">
-            <select id="sc-blend" aria-label="Blend mode" data-tip="Blend mode">
-              <option value="pass-through">Pass Through</option>
-              <option value="normal">Normal</option>
-              <option disabled>──────────</option>
-              <option value="darken">Darken</option>
-              <option value="multiply">Multiply</option>
-              <option value="color-burn">Color Burn</option>
-              <option disabled>──────────</option>
-              <option value="lighten">Lighten</option>
-              <option value="screen">Screen</option>
-              <option value="color-dodge">Color Dodge</option>
-              <option disabled>──────────</option>
-              <option value="overlay">Overlay</option>
-              <option value="soft-light">Soft Light</option>
-              <option value="hard-light">Hard Light</option>
-              <option disabled>──────────</option>
-              <option value="difference">Difference</option>
-              <option value="exclusion">Exclusion</option>
-              <option disabled>──────────</option>
-              <option value="hue">Hue</option>
-              <option value="saturation">Saturation</option>
-              <option value="color">Color</option>
-              <option value="luminosity">Luminosity</option>
-            </select>
-            <label class="sc-field"
-              ><span class="sc-scrub" data-tip="Drag to adjust">Opacity:</span
-              ><input
-                type="number"
-                data-bind="opacity"
-                min="0"
-                max="100"
-                aria-label="Opacity"
-              /><span class="sc-unit">%</span></label
-            >
           </div>
           <div class="sc-layers-lock">
             <span class="sc-opt-label">Lock:</span>

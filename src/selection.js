@@ -62,7 +62,7 @@ function markLayers() {
   first?.scrollIntoView({ block: 'nearest' });
 }
 
-// The Layers panel's blend mode and lock buttons follow the selection.
+// Appearance's blend mode and the Layers panel's lock buttons follow the selection.
 function syncLayerHead() {
   const el = state.sel[0];
   const blend = $('#sc-blend');

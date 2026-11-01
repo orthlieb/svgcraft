@@ -176,7 +176,7 @@ test.describe('selection', () => {
 
   test('fill alpha and layer opacity apply to the selection', async ({ page }) => {
     await page.locator('#sc-fill-a').fill('40');
-    await page.locator('.sc-layers-head [data-bind="opacity"]').fill('70');
+    await page.locator('#sc-transparency [data-bind="opacity"]').fill('70');
     const rect = page.locator('#sc-doc rect');
     await expect(rect).toHaveAttribute('fill-opacity', '0.4');
     await expect(rect).toHaveAttribute('opacity', '0.7');
