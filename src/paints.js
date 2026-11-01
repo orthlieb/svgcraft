@@ -207,7 +207,7 @@ function writeGrad(g, model, geo) {
 // transform), or null when there's nothing to undo or the parts disagree.
 function paintSpaceM(el) {
   if (el.localName !== 'use') return null;
-  const sym = typeof symbolOf === 'function' ? symbolOf(el) : null;
+  const sym = symbolOf(el);
   const parts = sym ? [...sym.children].filter((c) => c instanceof SVGGraphicsElement) : [];
   if (!parts.length) return null;
   const m = getM(parts[0]);

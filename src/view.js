@@ -6,7 +6,7 @@
 // ---------------------------------------------------------------------
 function applyView() {
   view.setAttribute('transform', `translate(${state.panX} ${state.panY}) scale(${state.zoom})`);
-  if (typeof renderBoards === 'function') renderBoards();
+  renderBoards();
   // The view is kept with the document too.
   if (docsLoaded) {
     clearTimeout(saveTimer);
@@ -52,7 +52,7 @@ function fit() {
   const r = stage.getBoundingClientRect();
   const pad = Math.min(48, r.width * 0.06);
   // Every artboard in view.
-  const b = typeof boardsBox === 'function' ? boardsBox() : { x: 0, y: 0, w: state.w, h: state.h };
+  const b = boardsBox();
   const z = Math.min((r.width - pad * 2) / b.w, (r.height - pad * 2) / b.h);
   state.zoom = clamp(z, 0.02, 64);
   state.panX = (r.width - b.w * state.zoom) / 2 - b.x * state.zoom;
@@ -117,7 +117,7 @@ function setSize(w, h) {
   drawPixelGrid();
   drawKeylines();
   updateTitle();
-  if (typeof renderBoards === 'function') renderBoards();
+  renderBoards();
 }
 
 // Image → Crop: make the artboard exactly box (rounded out to whole

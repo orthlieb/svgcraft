@@ -101,6 +101,27 @@ function shapeFromItem(P, src, item) {
   return path;
 }
 
+// A shape (or a group's shapes, united) as one Paper.js item in document
+// coordinates, or null when there's no shape in it (text, images).
+function boolItem(P, el) {
+  const leaves =
+    el.localName === 'g'
+      ? [...el.querySelectorAll(BOOL_SHAPES)]
+      : el.matches(BOOL_SHAPES)
+        ? [el]
+        : [];
+  let item = null;
+  for (const lf of leaves) {
+    const it = new P.CompoundPath({
+      pathData: docPathData(lf),
+      fillRule: getComputedStyle(lf).fillRule === 'evenodd' ? 'evenodd' : 'nonzero',
+      insert: false,
+    });
+    item = item ? item.unite(it, { insert: false }) : it;
+  }
+  return item;
+}
+
 const COMBINE_LABEL = {
   unite: 'Unite',
   subtract: 'Subtract Front',
@@ -121,24 +142,10 @@ async function combineShapes(op) {
   const operands = [];
   let skipped = 0;
   for (const el of sel) {
-    const leaves =
-      el.localName === 'g'
-        ? [...el.querySelectorAll(BOOL_SHAPES)]
-        : el.matches(BOOL_SHAPES)
-          ? [el]
-          : [];
-    if (!leaves.length) {
+    const item = boolItem(P, el);
+    if (!item) {
       skipped++;
       continue;
-    }
-    let item = null;
-    for (const lf of leaves) {
-      const it = new P.CompoundPath({
-        pathData: docPathData(lf),
-        fillRule: getComputedStyle(lf).fillRule === 'evenodd' ? 'evenodd' : 'nonzero',
-        insert: false,
-      });
-      item = item ? item.unite(it, { insert: false }) : it;
     }
     operands.push({ el, item });
   }

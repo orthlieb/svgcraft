@@ -98,6 +98,29 @@ export async function toScreen(page, x, y) {
   );
 }
 
+// Click, or double-click, a document point.
+export async function clickDoc(page, x, y, opts) {
+  const p = await toScreen(page, x, y);
+  await page.mouse.click(p.x, p.y, opts);
+}
+export async function dblclickDoc(page, x, y) {
+  const p = await toScreen(page, x, y);
+  await page.mouse.dblclick(p.x, p.y);
+}
+
+// Press at the first document point, move through the rest (each move in
+// `steps` pointer moves) and release, holding `mods` (e.g. ['Shift']).
+export async function dragDoc(page, pts, { mods = [], steps = 5 } = {}) {
+  const s = [];
+  for (const [x, y] of pts) s.push(await toScreen(page, x, y));
+  for (const m of mods) await page.keyboard.down(m);
+  await page.mouse.move(s[0].x, s[0].y);
+  await page.mouse.down();
+  for (const q of s.slice(1)) await page.mouse.move(q.x, q.y, { steps });
+  await page.mouse.up();
+  for (const m of mods) await page.keyboard.up(m);
+}
+
 // Pick Edit Points' selection shape from its toolbar flyout.
 export async function pickMarquee(page, shape) {
   await page.click('#sc-node-btn', { button: 'right' });

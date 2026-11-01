@@ -97,8 +97,8 @@ function drawSelection() {
   syncTextPathUI();
   syncLayerHead();
   syncBoxFields();
-  if (typeof syncActions === 'function') syncActions();
-  if (typeof syncLibBars === 'function') syncLibBars();
+  syncActions();
+  syncLibBars();
   $('#sc-pos').dataset.sel = '';
   // Direct Selection draws points, the Shape Builder its regions (src/shape-builder.js).
   if (!state.sel.length || state.tool === 'node' || state.tool === 'shapebuilder') return;

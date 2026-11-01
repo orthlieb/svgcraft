@@ -2,7 +2,10 @@
 // children, the rest is dimmed and out of reach, new shapes go into it, and
 // Esc / the bar's crumbs / Done / a double-click off it step back out. The
 // dimming is an editor mark: never saved, never in the history.
-import { test, expect, load, toScreen } from './fixtures.js';
+import { test, expect, load, toScreen, clickDoc, dblclickDoc } from './fixtures.js';
+
+const click = clickDoc;
+const dbl = dblclickDoc;
 
 // Outer group (moved 100 right) holding two squares and an inner group;
 // a loose circle beside it.
@@ -15,14 +18,6 @@ const SCENE =
   '<circle id="loose" cx="500" cy="200" r="40" fill="#7c3aed"/>';
 
 const at = async (page, x, y) => toScreen(page, x, y);
-async function click(page, x, y, opts) {
-  const p = await at(page, x, y);
-  await page.mouse.click(p.x, p.y, opts);
-}
-async function dbl(page, x, y) {
-  const p = await at(page, x, y);
-  await page.mouse.dblclick(p.x, p.y);
-}
 const sel = (page) => page.evaluate(() => window.svgcraft.state.sel.map((e) => e.id));
 const dimmed = (page) => page.$$eval('#sc-doc [data-sc-dim]', (ns) => ns.map((n) => n.id));
 const bar = (page) => page.locator('#sc-scope');

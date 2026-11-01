@@ -3,7 +3,7 @@
 //
 // Google Fonts can't load offline, so font checks assert the attributes and
 // <link>/@import the app writes, never that a web font actually rendered.
-import { test, expect, action, toScreen } from './fixtures.js';
+import { test, expect, action, toScreen, clickDoc } from './fixtures.js';
 import fs from 'node:fs/promises';
 
 const SENTENCE = 'The quick brown fox jumps over the lazy dog and keeps on running far away.';
@@ -11,11 +11,6 @@ const SENTENCE = 'The quick brown fox jumps over the lazy dog and keeps on runni
 const editor = (page) => page.locator('.sc-type-edit');
 const texts = (page) => page.locator('#sc-doc text');
 const para = (page) => page.locator('#sc-doc text[data-box]');
-
-async function clickDoc(page, x, y) {
-  const p = await toScreen(page, x, y);
-  await page.mouse.click(p.x, p.y);
-}
 
 // Type tool → click at a doc point → an editor opens with the caret in it.
 async function startPointText(page, x, y) {

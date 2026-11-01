@@ -1,22 +1,12 @@
 // Point editing (the Node tool): path parsing round-trips, shape → node
 // conversion, and the interactive edits — drag, insert, smooth, delete,
 // close / open, marquee, nudge — including on transformed elements.
-import { test, expect, toScreen, pickMarquee } from './fixtures.js';
+import { test, expect, toScreen, pickMarquee, dragDoc, dblclickDoc } from './fixtures.js';
+
+const dblclickAt = dblclickDoc;
 
 // Press-drag-release between two document points.
-async function drag(page, from, to) {
-  const a = await toScreen(page, ...from);
-  const b = await toScreen(page, ...to);
-  await page.mouse.move(a.x, a.y);
-  await page.mouse.down();
-  await page.mouse.move(b.x, b.y, { steps: 5 });
-  await page.mouse.up();
-}
-
-async function dblclickAt(page, x, y) {
-  const p = await toScreen(page, x, y);
-  await page.mouse.dblclick(p.x, p.y);
-}
+const drag = (page, from, to) => dragDoc(page, [from, to]);
 
 const nodes = (page) => page.locator('#sc-nodes [data-node]');
 const pathD = (page) =>

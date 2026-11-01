@@ -12,26 +12,6 @@
 let sb = null; // { P, regions: [{ item, src }], ops: the selected shapes }
 let sbJob = 0;
 
-// A selected shape (or a group of them) as one Paper.js item, or null.
-function sbItem(P, el) {
-  const leaves =
-    el.localName === 'g'
-      ? [...el.querySelectorAll(BOOL_SHAPES)]
-      : el.matches(BOOL_SHAPES)
-        ? [el]
-        : [];
-  let item = null;
-  for (const lf of leaves) {
-    const it = new P.CompoundPath({
-      pathData: docPathData(lf),
-      fillRule: getComputedStyle(lf).fillRule === 'evenodd' ? 'evenodd' : 'nonzero',
-      insert: false,
-    });
-    item = item ? item.unite(it, { insert: false }) : it;
-  }
-  return item;
-}
-
 const sbArea = (it) => (it ? (it.children || [it]).reduce((a, c) => a + Math.abs(c.area), 0) : 0);
 
 // An item's separate pieces: each outer outline with the holes inside it.
@@ -72,7 +52,7 @@ async function sbBuild() {
   let regions = [];
   let all = null;
   for (const el of ops) {
-    const item = sbItem(P, el);
+    const item = boolItem(P, el);
     if (!item) continue;
     const next = [];
     for (const r of regions) {

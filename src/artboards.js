@@ -98,7 +98,7 @@ function syncBoardOpts() {
   $('#sc-board-name').value = b ? b.name : '';
   $('#sc-board-w').value = b ? f(b.w) : '';
   $('#sc-board-h').value = b ? f(b.h) : '';
-  if (typeof syncActions === 'function') syncActions();
+  syncActions();
 }
 
 // Change the picked artboard (the page goes through setSize).

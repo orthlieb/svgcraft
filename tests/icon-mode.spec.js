@@ -1,4 +1,4 @@
-import { test, expect, load, menu, toScreen } from './fixtures.js';
+import { test, expect, load, menu, dragDoc } from './fixtures.js';
 
 // Icon work: File → New Icon… (templates, margins as guides), the pixel
 // grid, Snap to Pixel, keylines, and the Icon Preview window.
@@ -24,14 +24,7 @@ async function setSize(page, v) {
 }
 
 // Drag with the current tool between two document points.
-async function drag(page, [x0, y0], [x1, y1]) {
-  const a = await toScreen(page, x0, y0);
-  const b = await toScreen(page, x1, y1);
-  await page.mouse.move(a.x, a.y);
-  await page.mouse.down();
-  await page.mouse.move(b.x, b.y, { steps: 6 });
-  await page.mouse.up();
-}
+const drag = (page, from, to) => dragDoc(page, [from, to], { steps: 6 });
 
 test.describe('New Icon', () => {
   test('a 24 px icon with margin and centre guides, in place of an empty tab', async ({ page }) => {
