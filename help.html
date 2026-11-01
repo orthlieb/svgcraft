@@ -1511,21 +1511,29 @@
             </figure>
             <p>
               Keep several pages in one drawing, such as a set of icons, and export each one as its
-              own SVG.
+              own SVG and PNG.
             </p>
             <ol>
               <li>Pick the <strong>Artboard</strong> tool (Shift+O).</li>
               <li>Drag on the pasteboard, beside the page, to add an artboard.</li>
-              <li>Drag an artboard to move it, or its bottom-right corner to resize it.</li>
+              <li>
+                Drag an artboard to move it (the objects on it come along), or its bottom-right
+                corner to resize it.
+              </li>
               <li>
                 Choose <strong>File → Export Artboards…</strong> to save each artboard as its own
-                SVG, all in one zip.
+                SVG and PNG, all in one zip.
               </li>
             </ol>
             <h4>Settings (the options bar)</h4>
             <ul>
               <li><strong>Name</strong>: what the artboard and its exported file are called.</li>
-              <li><strong>W</strong> and <strong>H</strong>: its size.</li>
+              <li><strong>W</strong> and <strong>H</strong>: its size, in the drawing's units.</li>
+              <li>
+                <strong>Move art</strong> (on by default): dragging an artboard takes the objects
+                centred on it along. Off, only the artboard moves. Objects with a locked position
+                always stay.
+              </li>
               <li>
                 <strong>Delete</strong> (the bin, or Del): removes the artboard. The art on it
                 stays.
@@ -1546,6 +1554,7 @@
                 artboards are clean SVG, without it.
               </li>
               <li>Fit on Screen fits every artboard.</li>
+              <li><strong>File → Export PNG</strong> draws the first artboard, the page.</li>
             </ul>
           </article>
           <article id="grayscale-and-black-white" data-find>
