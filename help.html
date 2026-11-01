@@ -377,6 +377,7 @@
           <li>
             <a href="#clipping-masks">Clipping masks</a>
             <ul>
+              <li><a href="#shape-builder">Shape Builder</a></li>
               <li><a href="#make-a-clipping-mask">Make a clipping mask</a></li>
               <li><a href="#edit-the-clip">Edit the clip</a></li>
               <li><a href="#release-a-clipping-mask">Release a clipping mask</a></li>
@@ -830,7 +831,7 @@
                 src="docs/help/the-toolbar.png"
                 alt="The toolbar, with the Selection tool chosen and the Shape tools' button below"
                 width="48"
-                height="357"
+                height="389"
                 loading="lazy"
               />
             </figure>
@@ -4750,6 +4751,51 @@
               stays live, so you can move the window or the art afterwards.
             </p>
           </div>
+          <article id="shape-builder" data-find>
+            <h3>Shape Builder</h3>
+            <figure>
+              <img
+                src="docs/help/shape-builder.png"
+                alt="The Shape Builder dragging across three overlapping circles, the regions it will merge shaded"
+                width="784"
+                height="602"
+                loading="lazy"
+              />
+            </figure>
+            <p>
+              Build a shape out of the pieces overlapping shapes make: merge some, delete others,
+              without picking an operation first.
+            </p>
+            <ol>
+              <li>Select two or more overlapping shapes.</li>
+              <li>
+                Pick the <strong>Shape Builder</strong> (Shift+M). The piece under the pointer is
+                shaded.
+              </li>
+              <li>
+                Drag across the pieces you want as one shape, then let go. It takes the colour of
+                the piece you started in.
+              </li>
+              <li>To delete pieces instead, hold Alt while you drag (or Alt-click one).</li>
+            </ol>
+            <h4>Good to know</h4>
+            <ul>
+              <li>A plain click on a piece splits it out as a shape of its own.</li>
+              <li>
+                Every piece you didn't touch becomes a separate shape, coloured like the topmost
+                shape that covered it, so you can go on building: the results stay selected.
+              </li>
+              <li>
+                Each drag is one undo step. After an undo nothing is selected; press Ctrl+A (or pick
+                the shapes in Layers) to build again.
+              </li>
+              <li>
+                It works on shapes and paths (a group counts as one shape); text and images are left
+                alone. For a single operation on whole shapes, see
+                <a href="#combine-selected-shapes">Combine selected shapes</a>.
+              </li>
+            </ul>
+          </article>
           <article id="make-a-clipping-mask" data-find>
             <h3>Make a clipping mask</h3>
             <figure>

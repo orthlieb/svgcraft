@@ -364,6 +364,7 @@ window.addEventListener('keydown', (e) => {
     else leaveScope();
   } else if (k === 'u') shapeKey(e.shiftKey);
   else if (k === 'a') marqueeKey(e.shiftKey);
+  else if (k === 'm' && e.shiftKey) setTool('shapebuilder');
   else if (k === 'tab') {
     // On the canvas, Tab hides the panels (Shift+Tab just the right-hand
     // ones). With nothing focused it goes into the app,

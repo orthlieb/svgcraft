@@ -57,6 +57,50 @@ function docPathData(el) {
   );
 }
 
+// A Paper.js item (in document coordinates) as a path styled like src: its
+// paint, stroke and effects, in src's coordinate space (its own transform
+// too, so gradients stay put), with src's name. Not yet in the drawing.
+const SHAPE_GEOM_ATTRS = [
+  'd',
+  'x',
+  'y',
+  'width',
+  'height',
+  'rx',
+  'ry',
+  'cx',
+  'cy',
+  'r',
+  'x1',
+  'y1',
+  'x2',
+  'y2',
+  'points',
+  'id',
+  'data-rect',
+  'data-radii',
+  'transform',
+  'pathLength',
+  'fill-rule',
+  'data-name',
+];
+function shapeFromItem(P, src, item) {
+  const styleEl = src.localName === 'g' ? src.querySelector(BOOL_SHAPES) : src;
+  const space = src.localName === 'g' ? parentM(src) : fullM(src);
+  const inv = space.inverse();
+  const it = item.clone({ insert: false });
+  it.transform(new P.Matrix(inv.a, inv.b, inv.c, inv.d, inv.e, inv.f));
+  const path = mk('path');
+  for (const a of styleEl.attributes)
+    if (!SHAPE_GEOM_ATTRS.includes(a.name)) path.setAttribute(a.name, a.value);
+  if (styleEl !== src) bakeInherited(styleEl, path);
+  if (src.localName !== 'g' && src.getAttribute('transform'))
+    path.setAttribute('transform', src.getAttribute('transform'));
+  if (src.getAttribute('data-name')) path.setAttribute('data-name', src.getAttribute('data-name'));
+  path.setAttribute('d', it.pathData);
+  return path;
+}
+
 const COMBINE_LABEL = {
   unite: 'Unite',
   subtract: 'Subtract Front',
@@ -127,42 +171,7 @@ async function combineShapes(op) {
   // The result takes its style source's place, style and coordinate space
   // (its own transform included, so gradients stay put).
   const src = (op === 'subtract' ? operands[0] : operands.at(-1)).el;
-  const styleEl = src.localName === 'g' ? src.querySelector(BOOL_SHAPES) : src;
-  const space = src.localName === 'g' ? parentM(src) : fullM(src);
-  const inv = space.inverse();
-  result.transform(new P.Matrix(inv.a, inv.b, inv.c, inv.d, inv.e, inv.f));
-  const path = mk('path');
-  const skip = [
-    'd',
-    'x',
-    'y',
-    'width',
-    'height',
-    'rx',
-    'ry',
-    'cx',
-    'cy',
-    'r',
-    'x1',
-    'y1',
-    'x2',
-    'y2',
-    'points',
-    'id',
-    'data-rect',
-    'data-radii',
-    'transform',
-    'pathLength',
-    'fill-rule',
-    'data-name',
-  ];
-  for (const a of styleEl.attributes)
-    if (!skip.includes(a.name)) path.setAttribute(a.name, a.value);
-  if (styleEl !== src) bakeInherited(styleEl, path);
-  if (src.localName !== 'g' && src.getAttribute('transform'))
-    path.setAttribute('transform', src.getAttribute('transform'));
-  if (src.getAttribute('data-name')) path.setAttribute('data-name', src.getAttribute('data-name'));
-  path.setAttribute('d', result.pathData);
+  const path = shapeFromItem(P, src, result);
   src.before(path);
   for (const o of operands) o.el.remove();
   state.sel = [path];
