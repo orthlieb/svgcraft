@@ -178,7 +178,7 @@ test.describe('Free Transform', () => {
 
     await page.keyboard.press('Enter');
     expect(await page.evaluate(() => window.svgcraft.state.tf)).toBeNull();
-    await expect(page.locator('#sc-opt-name')).toHaveText('Move');
+    await expect(page.locator('#sc-opt-name')).toHaveText('Selection');
   });
 
   test('Again with Copy repeats the last transform: 12 copies × 30° close the circle', async ({

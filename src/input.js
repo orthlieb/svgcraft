@@ -43,7 +43,7 @@ stage.addEventListener('pointerdown', (e) => {
     return;
   }
   if (e.button !== 0) return;
-  noteStep(TOOL_META[state.tool]?.[1] || '');
+  noteStep(TOOL_META[state.tool]?.[2] || TOOL_META[state.tool]?.[1] || '');
   snapCache = null;
   snapOff = e.ctrlKey || e.metaKey;
   const gh = e.target.closest?.('[data-guide]');

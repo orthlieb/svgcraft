@@ -264,7 +264,7 @@ test('tips end with the shortcut, as the menus show it', async ({ page }) => {
     await expect(t).toBeVisible();
     return (await t.locator('b').count()) ? t.locator('b').textContent() : t.textContent();
   };
-  expect(await title('[data-tool="select"]')).toBe('Move (V)');
+  expect(await title('[data-tool="select"]')).toBe('Selection (V)');
   expect(await title('[data-tool="pencil"]')).toBe('Pencil (B)');
   expect(await title('#sc-shape-btn')).toBe('Rectangle (U)');
   expect(await title('#sc-redo')).toBe('Redo (Ctrl+Shift+Z)');
