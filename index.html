@@ -854,17 +854,26 @@
         /></label>
         <label class="sc-field"
           ><span class="sc-opt-label">W:</span
-          ><input id="sc-board-w" type="number" min="1" aria-label="Artboard width" /><span
-            class="sc-unit"
-            >px</span
-          ></label
+          ><input
+            id="sc-board-w"
+            type="number"
+            min="0"
+            step="any"
+            aria-label="Artboard width"
+          /><span class="sc-unit" data-doc-unit>px</span></label
         >
         <label class="sc-field"
           ><span class="sc-opt-label">H:</span
-          ><input id="sc-board-h" type="number" min="1" aria-label="Artboard height" /><span
-            class="sc-unit"
-            >px</span
-          ></label
+          ><input
+            id="sc-board-h"
+            type="number"
+            min="0"
+            step="any"
+            aria-label="Artboard height"
+          /><span class="sc-unit" data-doc-unit>px</span></label
+        >
+        <label class="sc-check" data-tip="Dragging an artboard takes the objects on it along"
+          ><input type="checkbox" id="sc-board-moveart" checked /> Move art</label
         >
         <button
           class="sc-ibtn"

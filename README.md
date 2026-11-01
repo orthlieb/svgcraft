@@ -641,18 +641,22 @@ Add room round the drawing, or trim it, without scaling anything.
 ![Three artboards, Circle, Square and Triangle, with Triangle picked by the Artboard tool](docs/help/artboards.png)
 
 Keep several pages in one drawing, such as a set of icons, and export
-each one as its own SVG.
+each one as its own SVG and PNG.
 
 1. Pick the **Artboard** tool (Shift+O).
 2. Drag on the pasteboard, beside the page, to add an artboard.
-3. Drag an artboard to move it, or its bottom-right corner to resize it.
+3. Drag an artboard to move it (the objects on it come along), or its
+   bottom-right corner to resize it.
 4. Choose **File → Export Artboards…** to save each artboard as its own
-   SVG, all in one zip.
+   SVG and PNG, all in one zip.
 
 #### Settings (the options bar)
 
 - **Name**: what the artboard and its exported file are called.
-- **W** and **H**: its size.
+- **W** and **H**: its size, in the drawing's units.
+- **Move art** (on by default): dragging an artboard takes the objects
+  centred on it along. Off, only the artboard moves. Objects with a locked
+  position always stay.
 - **Delete** (the bin, or Del): removes the artboard. The art on it stays.
 - **Export Artboards…**: the same as the File menu's.
 
@@ -666,6 +670,7 @@ each one as its own SVG.
   lists them in a `data-sc-artboards` attribute, so it reopens with all of
   them. Exported artboards are clean SVG, without it.
 - Fit on Screen fits every artboard.
+- **File → Export PNG** draws the first artboard, the page.
 
 ### Grayscale and black & white
 

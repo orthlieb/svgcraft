@@ -91,23 +91,72 @@ test('saved, the file covers every artboard and reopens with them', async ({ pag
   expect(await page.locator('#b').getAttribute('x')).toBe('260');
 });
 
-test('Export Artboards writes one clean SVG per artboard, cut to it', async ({ page }) => {
+test('Export Artboards writes a clean SVG and a PNG per artboard, cut to it', async ({ page }) => {
   await withTwo(page);
-  const files = await page.evaluate(() => {
-    /* eslint-disable no-undef -- the editor's own globals */
-    const dl = window.download;
-    window.download = () => {};
-    const out = exportArtboards();
-    window.download = dl;
-    /* eslint-enable no-undef */
-    return out.map(([name, text]) => [
-      name,
-      text.match(/viewBox="([^"]+)"/)[1],
-      text.includes('data-sc-'),
-    ]);
+  const files = await page.evaluate(async () => {
+    // eslint-disable-next-line no-undef -- the editor's own global
+    const out = await exportArtboards({ save: false });
+    return out.map(([name, data]) =>
+      typeof data === 'string'
+        ? [name, data.match(/viewBox="([^"]+)"/)[1], data.includes('data-sc-')]
+        : [name, data.length > 100],
+    );
   });
   expect(files).toEqual([
     ['Artboard 1.svg', '0 0 200 100', false],
+    ['Artboard 1.png', true],
     ['Artboard 2.svg', '250 0 100 100', false],
+    ['Artboard 2.png', true],
   ]);
+  // Export PNG is the page alone, at its own size, artboards or not.
+  const size = await page.evaluate(async () => {
+    // eslint-disable-next-line no-undef -- the editor's own global
+    const b = await pngBlob(1);
+    const img = await createImageBitmap(b);
+    return [img.width, img.height];
+  });
+  expect(size).toEqual([200, 100]);
+});
+
+test('moving an artboard takes the art on it along, unless Move art is off', async ({ page }) => {
+  await withTwo(page);
+  const at = (id) =>
+    page.evaluate((id) => {
+      const b = document.getElementById(id).getBoundingClientRect();
+      const m = document.getElementById('sc-doc').getScreenCTM().inverse();
+      const p = new DOMPoint(b.left, b.top).matrixTransform(m);
+      return [Math.round(p.x), Math.round(p.y)];
+    }, id);
+  // The blue square (centred on Artboard 2) comes along; the red one stays.
+  await drag(page, [300, 50], [320, 70]);
+  expect(await at('b')).toEqual([280, 30]);
+  expect(await at('a')).toEqual([10, 10]);
+  // One undo puts both back.
+  await page.keyboard.press('Control+z');
+  expect(await at('b')).toEqual([260, 10]);
+  // With Move art off, only the artboard moves.
+  await drag(page, [300, 50], [300, 50]);
+  await page.uncheck('#sc-board-moveart');
+  await drag(page, [300, 50], [320, 50]);
+  expect((await boards(page))[0].x).toBe(270);
+  expect(await at('b')).toEqual([260, 10]);
+});
+
+test('the size fields are in the drawing’s units', async ({ page }) => {
+  await withTwo(page);
+  await page.evaluate(() => {
+    window.svgcraft.state.units = 'in';
+    /* eslint-disable no-undef -- the editor's own globals */
+    syncUnits();
+    syncBoardOpts();
+    /* eslint-enable no-undef */
+  });
+  // 100 px is 1.0417 in (96 px to the inch).
+  await expect(page.locator('#sc-board-w')).toHaveValue(/^1\.04/);
+  await expect(page.locator('.sc-opt[data-for="artboard"] [data-doc-unit]').first()).toHaveText(
+    'in',
+  );
+  await page.fill('#sc-board-w', '2');
+  await page.press('#sc-board-w', 'Enter');
+  expect((await boards(page))[0].w).toBe(192);
 });
