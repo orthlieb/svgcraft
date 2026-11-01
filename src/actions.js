@@ -24,6 +24,7 @@ const actions = {
   editSymbol,
   breakSymbolLink,
   symbolDone: () => exitIso(),
+  scopeDone: () => leaveScope(true),
   new: () => openNewDoc(),
   newFromText: () => newFromText(),
   newIcon: openNewIcon,
@@ -183,6 +184,7 @@ const actionRules = {
   breakSymbolLink: someSel(symbolOf),
   editSymbol: () => !iso && (state.sel.some(symbolOf) || !!panelSymbol()),
   symbolDone: () => !!iso,
+  scopeDone: () => !!scope,
   textOnPath() {
     const sel = normalizeSel(state.sel);
     return (

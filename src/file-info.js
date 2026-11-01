@@ -355,9 +355,10 @@ function serialize({ selection = false, fontCss = '', animate = true } = {}) {
     const c = el.cloneNode(true);
     // Editor marks: the symbol being edited, and layers shown or hidden in
     // the phone preview.
-    for (const n of [c, ...c.querySelectorAll('[data-sc-iso], [data-sc-peek]')]) {
+    for (const n of [c, ...c.querySelectorAll('[data-sc-iso], [data-sc-peek], [data-sc-dim]')]) {
       n.removeAttribute('data-sc-iso');
       n.removeAttribute('data-sc-peek');
+      n.removeAttribute('data-sc-dim');
     }
     const top = writeAnimations(el, c, animate, (d) => genDefs.push(d));
     // A nested layer copied on its own keeps where it sits and how it looks.

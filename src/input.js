@@ -357,8 +357,11 @@ window.addEventListener('keydown', (e) => {
     e.preventDefault();
     ifAllowed('delete');
   } else if (k === 'escape') {
+    // Esc: finish a symbol's editing; else deselect, then step out of an
+    // isolated group a level at a time.
     if (iso) exitIso();
-    else setSel([]);
+    else if (state.sel.length || !scope) setSel([]);
+    else leaveScope();
   } else if (k === 'u') shapeKey(e.shiftKey);
   else if (k === 'a') marqueeKey(e.shiftKey);
   else if (k === 'tab') {

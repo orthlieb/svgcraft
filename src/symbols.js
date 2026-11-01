@@ -359,6 +359,7 @@ function enterIso(inst, quiet = false) {
   state.sel = [];
   $('#sc-iso-name').textContent = symName(sym);
   $('#sc-iso').hidden = false;
+  renderScopeBar();
   drawSelection();
   renderLayers();
   if (!quiet) say(`Editing “${symName(sym)}”: every instance follows. Done or Esc finishes.`);
@@ -407,6 +408,7 @@ function exitIso() {
   inst.removeAttribute('data-sc-iso');
   iso = null;
   $('#sc-iso').hidden = true;
+  renderScopeBar();
   state.sel = [inst];
   const s = snapshot();
   const h = hist[hIdx];

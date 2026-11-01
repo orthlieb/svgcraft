@@ -363,7 +363,8 @@ tools.text = {
       this.hit = this.g = null;
       return;
     }
-    const hit = doc.contains(e.target) ? e.target.closest('text') : null;
+    const t = doc.contains(e.target) ? e.target.closest('text') : null;
+    const hit = inScope(t) ? t : null;
     this.hit = hit;
     this.g = hit ? null : { p0: snapPt(p) };
   },
