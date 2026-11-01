@@ -135,6 +135,20 @@ test.describe('styling characters while editing', () => {
     ]);
   });
 
+  test('a colour from the options bar’s Fill dropdown styles the selection and keeps editing', async ({
+    page,
+  }) => {
+    await startText(page);
+    await selectChars(page, 16, 5);
+    await page.click('.sc-options .sc-paintbtn[data-paint="fill"]');
+    await page.click('#sc-paintpop button[aria-label="#dc2626"]');
+    await expect(editor(page)).toHaveCount(1);
+    expect(await spans(page)).toEqual([
+      ['Hello brave new ', ...PLAIN],
+      ['world', '400', '32px', 'system-ui', 'none', 'rgb(220, 38, 38)'],
+    ]);
+  });
+
   test('the panels follow the characters under the caret', async ({ page }) => {
     await startText(page);
     await styleRuns(page);

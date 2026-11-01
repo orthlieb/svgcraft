@@ -185,7 +185,7 @@ function pickPaintMode(m) {
   paintPopFor.mode = m;
   if (m === 'none') setNoPaint(k);
   else if (m === 'solid') setSolidPaint(k, state[k], state[k + 'A']);
-  else if (m === 'gradient' && !state[k + 'Grad']) setPaintKind(k, state.gradType || 'linear');
+  else if (m === 'gradient' && !state[k + 'Grad']) setPaintKind(k, 'linear');
   else if (m === 'pattern' && !state[k + 'Pat']) setPaintKind(k, 'pattern');
   renderPaintPop();
 }

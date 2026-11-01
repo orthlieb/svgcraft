@@ -99,7 +99,7 @@ function updateOptions() {
 }
 
 function setTool(name) {
-  // The Gradient tool's handles are the Move tool's now.
+  // A Gradient tool remembered from before is Move now (its handles are Move's).
   if (name === 'gradient') name = 'select';
   if (!tools[name]) return;
   // A phone only previews: the Hand tool (pan) is all there is.
@@ -109,7 +109,7 @@ function setTool(name) {
   const changed = name !== state.tool;
   if (changed) {
     tools[state.tool].leave?.();
-    if (!['select', 'hand', 'zoom', 'eyedropper', 'gradient'].includes(name)) state.sel = [];
+    if (!['select', 'hand', 'zoom', 'eyedropper'].includes(name)) state.sel = [];
   }
   state.tool = name;
   stage.dataset.tool = name;
@@ -225,8 +225,6 @@ function syncStyleUI() {
     });
   renderGradEditor();
   renderPatEditor();
-  for (const b of document.querySelectorAll('[data-gtype]'))
-    b.setAttribute('aria-checked', b.dataset.gtype === (activeGrad()?.type || state.gradType));
 
   // Every field bound to the same setting (options bar + panels) shows it.
   const show = { strokeWidth: f(state.strokeWidth), opacity: Math.round(state.opacity * 100) };

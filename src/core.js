@@ -146,7 +146,6 @@ const state = {
   fillPat: null, // { id, name, w, h, svg, scale, angle } when the fill is a pattern
   strokePat: null,
   gradStop: 0, // selected stop in the gradient editor
-  gradType: 'linear', // type the Gradient tool lays down
   guides: [], // { axis: 'x' | 'y', pos }
   meta: {}, // File Info: see cleanMeta
   guidesOn: true,

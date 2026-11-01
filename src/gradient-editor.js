@@ -60,8 +60,6 @@ function renderGradEditor() {
   $('#sc-grad-angle-wrap').hidden = g.type === 'radial';
   $('#sc-grad-stretch').checked = !!g.stretch;
   $('#sc-gstop-del').disabled = g.stops.length <= 2;
-  for (const b of document.querySelectorAll('[data-gtype]'))
-    b.setAttribute('aria-checked', b.dataset.gtype === g.type);
 }
 
 // Colour of the gradient at o (for new stops).
@@ -126,14 +124,6 @@ function wireGradEditor() {
     b.addEventListener('click', () =>
       setPaintKind(b.closest('[data-kind-for]').dataset.kindFor, b.dataset.kind),
     );
-  for (const b of document.querySelectorAll('[data-gtype]'))
-    b.addEventListener('click', () => {
-      state.gradType = b.dataset.gtype;
-      if (activeGrad()) setPaintKind(state.active, b.dataset.gtype);
-      else renderGradEditor();
-      for (const x of document.querySelectorAll('[data-gtype]'))
-        x.setAttribute('aria-checked', x.dataset.gtype === state.gradType);
-    });
   // Presets: Colour → Transparent and the Gradients library, as tiles.
   // Picking one swaps in its stops; the button shows the one in use.
   libPickers.gradients = libPicker($('#sc-grad-preset'), {
