@@ -102,8 +102,8 @@ async function groupByColour() {
   if (refuseLocked(items(), 'edit')) return;
   const ok = await ask('Group by Colour', {
     text:
-      'All groups in the drawing are taken apart, and the layers regrouped and ' +
-      'reordered, one group per colour. Overlapping layers keep their stacking, so a ' +
+      'All groups in the drawing are taken apart, and the objects regrouped and ' +
+      'reordered, one group per colour. Overlapping objects keep their stacking, so a ' +
       'colour may get a second group. Groups with a clipping mask, effect, blend mode, ' +
       'opacity or animation, and locked ones, stay whole. Undo puts it all back.',
     ok: 'Group by Colour',
@@ -135,7 +135,7 @@ async function groupByColour() {
   commit();
   const colours = seen.size;
   say(
-    `Grouped ${layers.length} layer${layers.length === 1 ? '' : 's'} by colour: ` +
+    `Grouped ${layers.length} object${layers.length === 1 ? '' : 's'} by colour: ` +
       `${colours} colour${colours === 1 ? '' : 's'} in ${made.length} group${made.length === 1 ? '' : 's'}.`,
   );
 }

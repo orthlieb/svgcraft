@@ -503,7 +503,7 @@ function changeType(patch, final = true) {
 
 function convertTextKind() {
   const els = selectedTexts();
-  if (!els.length) return warn('Select a text layer first.');
+  if (!els.length) return warn('Select some text first.');
   if (els.some(isTP)) return warn('Text on a path is always one line — release it first.');
   for (const el of els) {
     const t = typeFrom(el);

@@ -883,7 +883,7 @@ function setTracePreset(k) {
 async function imagePixels(el, place = getM(el)) {
   const href = (el.getAttribute('href') || el.getAttribute('xlink:href') || '').trim();
   const why = (text, cause) => Object.assign(new Error(text), { cause });
-  if (!href) throw why('the image layer has no picture in it');
+  if (!href) throw why('the image has no picture in it');
   if (!/^data:image\//i.test(href))
     throw why('it’s linked from elsewhere, not embedded in the drawing, so it can’t be read');
   const img = new Image();
@@ -1048,8 +1048,8 @@ function patternImages(el) {
 // (actionRules.imageTrace).
 function traceImage() {
   const sel = state.sel;
-  if (!sel.length) return { why: 'select an image layer first (File → Import… places one).' };
-  if (sel.length > 1) return { why: 'select just one image layer.' };
+  if (!sel.length) return { why: 'select an image first (File → Import… places one).' };
+  if (sel.length > 1) return { why: 'select just one image.' };
   const el = sel[0];
   const one = (found, holds) => {
     if (found.length === 1) return { el, img: found[0].img, place: found[0].m };
@@ -1074,7 +1074,7 @@ function traceImage() {
     const r = one(patternImages(el), 'is filled with');
     if (r) return r;
   }
-  return { why: `“${layerName(el)}” isn’t an image layer.` };
+  return { why: `“${layerName(el)}” isn’t an image.` };
 }
 
 async function openTrace() {
@@ -1158,7 +1158,7 @@ function closeTrace(ok) {
   else el.remove();
   state.sel = [g];
   commit();
-  say(`Traced into ${paths.length} colour layer${paths.length === 1 ? '' : 's'}.`);
+  say(`Traced into ${paths.length} colour shape${paths.length === 1 ? '' : 's'}.`);
 }
 
 for (const b of trDlg.querySelectorAll('[data-tr-mode]'))

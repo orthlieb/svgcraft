@@ -974,17 +974,17 @@ function animUnfit(el, p, a = null) {
     if (typeof el.getTotalLength !== 'function') return `${def.name} needs a path or shape.`;
     if (getComputedStyle(el).stroke === 'none') return `${def.name} needs a stroke.`;
   }
-  if (def.text && el.localName !== 'text') return `${def.name} needs a text layer.`;
+  if (def.text && el.localName !== 'text') return `${def.name} needs text.`;
   if (p === 'flipbook' && (el.localName !== 'g' || staggerKids(el).length < 2))
-    return 'Flipbook needs a group of two or more layers: its frames, bottom one first.';
+    return 'Flipbook needs a group of two or more objects: its frames, bottom one first.';
   if (p === 'morph') {
     if (el.localName !== 'path')
       return 'Morph needs a shape: a path, rectangle, circle, ellipse, line or polygon.';
     if (!(a && motionRoute(el, a)))
-      return 'Morph needs the shape to become: select the layer, then Shift-click that shape above it.';
+      return 'Morph needs the shape to become: select the object, then Shift-click that shape above it.';
   }
   if (p === 'followPath' && !(a && motionRoute(el, a)))
-    return 'Move along path needs a path: select the layer, then Shift-click the path above it.';
+    return 'Move along path needs a path: select the object, then Shift-click the path above it.';
   // A group's own fill only reaches shapes that don't set one.
   if (p === 'colourCycle' && (el.localName === 'g' || !hex(getComputedStyle(el).fill || '')))
     return 'Colour cycle needs a shape with a solid fill.';
@@ -1628,7 +1628,7 @@ function smilMarkup(tag, attrs) {
 // A file's element as a short name: its layer name, id or tag.
 function smilWhere(el) {
   if (!el) return 'The file';
-  if (doc.contains(el)) return `Layer “${layerName(el)}”`;
+  if (doc.contains(el)) return `Object “${layerName(el)}”`;
   const name = el.getAttribute?.('data-name') || el.id;
   return name ? `<${el.localName}> “${name}”` : `<${el.localName}>`;
 }
@@ -1655,7 +1655,7 @@ const smilWhat = (c) => (c.type ? `${c.type} (${c.name})` : c.name);
 // when they're the same (see smilSame).
 function smilDiff(g, c, own, name) {
   if (c.type && !g.additive && own)
-    return `It replaces the layer’s own transform (it has no additive="sum") on a layer that already has one; ${name} adds to it.`;
+    return `It replaces the object’s own transform (it has no additive="sum") on an object that already has one; ${name} adds to it.`;
   if (g.base !== c.base) return `It starts on ${g.base || 'opening'}, not ${c.base || 'opening'}.`;
   if (!smilNear(g.dur, c.dur) || !smilNear(g.begin, c.begin) || g.rep !== c.rep)
     return `Its timing (${f(g.dur)} s from ${f(g.begin)} s, ${g.rep ? `${g.rep}×` : 'forever'}) isn’t what ${name} writes for it (${f(c.dur)} s from ${f(c.begin)} s, ${c.rep ? `${c.rep}×` : 'forever'}).`;
@@ -2024,7 +2024,7 @@ function smilToAnims(el, notes, own) {
     if (!m) {
       drop(
         n,
-        'It moves along a path in a way Move along path can’t rebuild: its timing, its path, or turning with the path about a point other than the layer’s centre.',
+        'It moves along a path in a way Move along path can’t rebuild: its timing, its path, or turning with the path about a point other than the object’s centre.',
       );
       continue;
     }
@@ -2218,10 +2218,10 @@ function adoptSmil(roots, lost = []) {
       // Only layers in the drawing animate (not symbols' insides, or runs of text).
       if (!doc.contains(el) || !selectable(el) || el.parentNode.closest('text')) {
         const why = el.parentNode?.closest?.('text')
-          ? 'It animates part of a text layer (a run of its letters); SVGCraft animates whole layers, or their letters in turn with Stagger.'
+          ? 'It animates part of some text (a run of its letters); SVGCraft animates whole objects, or their letters in turn with Stagger.'
           : doc.contains(el)
-            ? 'It animates something inside a layer, not a layer of its own.'
-            : 'It’s in a symbol or <defs>, not on a layer of the drawing.';
+            ? 'It animates something inside an object, not an object of its own.'
+            : 'It’s in a symbol or <defs>, not an object in the drawing.';
         for (const n of notes)
           lost.push({ where: smilWhere(el), what: smilMarkup(n.tag, n.attrs || {}), why });
         continue;
@@ -2608,7 +2608,7 @@ function syncAnimUI() {
   ) {
     const w = number(
       'stagger',
-      el.localName === 'g' ? 's between layers' : 's between letters',
+      el.localName === 'g' ? 's between objects' : 's between letters',
       0.05,
     );
     w.querySelector('input').value = f(a.stagger || 0);
@@ -2758,7 +2758,7 @@ function timingFields(el, a, field) {
     ['', a.after ? 'After the one above' : 'When the file opens'],
     ['click', 'On click'],
     ['hover', 'On hover'],
-    ['afterLayer', 'After another layer'],
+    ['afterLayer', 'After another object'],
   ])
     start.append(Object.assign(document.createElement('option'), { value: v, textContent: t }));
   start.value = a.trigger || (a.afterLayer ? 'afterLayer' : '');
@@ -2768,7 +2768,7 @@ function timingFields(el, a, field) {
     const on = pickOptions(
       layers.filter((n) => n !== el),
       a.on,
-      'This layer',
+      'This object',
     );
     on.dataset.animOpt = 'on';
     out.push(field(a.trigger === 'click' ? 'Clicking ' : 'Pointing at ', on));
@@ -2967,7 +2967,7 @@ function wireAnimations() {
         } else if (t.value === 'afterLayer') {
           const first = pickable().find((n) => n !== el && n.hasAttribute('data-sc-anim'));
           if (first) a.afterLayer = ensureId(first, 'layer');
-          else warn('Start after another layer needs another animated layer.');
+          else warn('Start after another object needs another animated object.');
         }
       } else if (k === 'on') {
         const el = animTarget();

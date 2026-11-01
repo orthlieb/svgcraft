@@ -220,7 +220,7 @@ function recolourImage(src, map) {
   });
 }
 
-const adjWhat = () => (normalizeSel(state.sel).length ? 'the selected layers' : 'the drawing');
+const adjWhat = () => (normalizeSel(state.sel).length ? 'the selected objects' : 'the drawing');
 // Desaturate and Grayscale: at once, one undo step.
 async function adjustNow(kind, name) {
   if (refuseLocked(state.sel, 'edit')) return;

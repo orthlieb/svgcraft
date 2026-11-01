@@ -302,10 +302,10 @@
             </div>
             <hr />
             <button role="menuitem" data-action="layerViaCopy">
-              <i data-icon="copy"></i><span>Layer via Copy</span><kbd>Ctrl+J</kbd>
+              <i data-icon="copy"></i><span>Object via Copy</span><kbd>Ctrl+J</kbd>
             </button>
             <button role="menuitem" data-action="layerViaCut">
-              <i data-icon="scissors"></i><span>Layer via Cut</span><kbd>Alt+Shift+J</kbd>
+              <i data-icon="scissors"></i><span>Object via Cut</span><kbd>Alt+Shift+J</kbd>
             </button>
             <button role="menuitem" data-action="mergeDown">
               <i data-icon="angles-down"></i><span>Merge Down</span><kbd>Ctrl+E</kbd>
@@ -1603,8 +1603,8 @@
               </button>
             </div>
             <p class="sc-hint" id="sc-anim-none">
-              Select one layer or group to animate it, or a layer and the path above it to move it
-              along the path. ▶ Play previews every animation in the drawing.
+              Select one object or group to animate it, or an object and the path above it to move
+              it along the path. ▶ Play previews every animation in the drawing.
             </p>
             <div class="sc-anim" id="sc-anim-props" hidden>
               <p class="sc-hint" id="sc-anim-pair" hidden></p>
@@ -1786,7 +1786,7 @@
             </div>
             <p class="sc-hint">
               While typing, settings style the selected characters (all of them if none are
-              selected). Otherwise they apply to the whole layer. Colour comes from Fill.
+              selected). Otherwise they apply to all the text. Colour comes from Fill.
             </p>
           </div>
           <div class="sc-pbody sc-char" data-pane="paragraph" hidden>
@@ -2636,7 +2636,7 @@
                 </div>
                 <button class="sc-tbtn sc-wide" id="sc-tp-release">Release Text on Path</button>
                 <p class="sc-hint" id="sc-tp-unlinked" hidden>
-                  Its path layer is gone, so the text keeps the last shape it ran along.
+                  Its path is gone, so the text keeps the last shape it ran along.
                 </p>
               </div>
             </div>
@@ -2740,8 +2740,8 @@
             <button
               class="sc-ibtn"
               data-action="layerStyle"
-              aria-label="Layer style"
-              data-tip="Layer style (effects)"
+              aria-label="Effects"
+              data-tip="Effects"
             >
               <i data-icon="sc-fx"></i>
             </button>
@@ -2749,7 +2749,7 @@
               class="sc-ibtn"
               data-action="clipMake"
               aria-label="Make clipping mask"
-              data-tip="Clipping mask: select two or more layers; the top one clips the rest"
+              data-tip="Clipping mask: select two or more objects; the top one clips the rest"
             >
               <i data-icon="scissors"></i>
             </button>
@@ -2760,7 +2760,7 @@
               class="sc-ibtn"
               data-action="duplicate"
               aria-label="Duplicate"
-              data-tip="Duplicate — or drag layers here to copy them in place"
+              data-tip="Duplicate — or drag objects here to copy them in place"
             >
               <i data-icon="square-plus"></i>
             </button>
@@ -2768,7 +2768,7 @@
               class="sc-ibtn"
               data-action="delete"
               aria-label="Delete"
-              data-tip="Delete — or drag layers here"
+              data-tip="Delete — or drag objects here"
             >
               <i data-icon="trash-can"></i>
             </button>
@@ -2815,7 +2815,7 @@
       <div class="sc-dialog-body">
         <p class="sc-hint sc-cs-note">
           Plain SVG for the web or another app. It looks the same, but drops what SVGCraft keeps to
-          reopen it editable: layer names, locks, effect settings, guides, unused definitions. Keep
+          reopen it editable: object names, locks, effect settings, guides, unused definitions. Keep
           Save for your working copy.
         </p>
         <label class="sc-field"
@@ -2829,7 +2829,7 @@
           height)</label
         >
         <label class="sc-check"
-          ><input type="checkbox" data-cs="hidden" /> Leave out hidden layers</label
+          ><input type="checkbox" data-cs="hidden" /> Leave out hidden objects</label
         >
         <label class="sc-check"
           ><input type="checkbox" data-cs="meta" /> Keep File Info (title, description,
@@ -2917,7 +2917,7 @@
             <input data-tr="smooth" type="range" min="0" max="10" step="1" aria-label="Smoothness"
           /></label>
           <label class="sc-check"
-            ><input type="checkbox" data-tr="stacked" checked /> Stacked (layers overlap, no
+            ><input type="checkbox" data-tr="stacked" checked /> Stacked (shapes overlap, no
             gaps)</label
           >
           <label class="sc-check"
@@ -2931,7 +2931,7 @@
             ><input type="checkbox" data-tr="keep" checked /> Keep the image (hidden)</label
           >
           <p class="sc-hint">
-            One layer per colour. Best for logos, illustrations, scans and line art; photos come out
+            One shape per colour. Best for logos, illustrations, scans and line art; photos come out
             posterised.
           </p>
         </div>
@@ -2998,7 +2998,7 @@
             <input data-nd="colour" type="color" aria-label="Background colour" hidden />
           </div>
           <p class="sc-hint">
-            A background colour is a locked “Background” layer you can recolour or delete. For app
+            A background colour is a locked “Background” object you can recolour or delete. For app
             and toolbar icons, use the icon templates.
           </p>
           <button type="button" class="sc-tbtn" data-nd-btn="icon">Icon templates…</button>
@@ -3310,7 +3310,7 @@
         >
         <label class="sc-check"
           ><input type="checkbox" data-ai="android" checked /> Android: adaptive and legacy launcher
-          icons, and the Play Store icon. A top-level layer named “Background” becomes the adaptive
+          icons, and the Play Store icon. A top-level object named “Background” becomes the adaptive
           background</label
         >
         <label class="sc-check"
@@ -3320,7 +3320,7 @@
         <label class="sc-field"
           >Background <input type="color" id="sc-ai-bg" value="#ffffff" /><span class="sc-unit"
             >for icons that can’t be transparent (iOS, Apple touch icon) and Android’s adaptive
-            background when there’s no Background layer</span
+            background when there’s no Background object</span
           ></label
         >
       </div>
@@ -3506,7 +3506,7 @@
       <div class="sc-dialog-body">
         <ul class="sc-peek-list" id="sc-peek-list" aria-label="Layers"></ul>
         <p class="sc-hint">
-          Hiding a layer here is just for this preview: the drawing isn’t changed.
+          Hiding an object here is just for this preview: the drawing isn’t changed.
         </p>
       </div>
       <div class="sc-dialog-foot">

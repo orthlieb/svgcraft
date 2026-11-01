@@ -318,7 +318,7 @@ function renderLayers() {
     const li = document.createElement('li');
     li.className = 'sc-empty';
     li.textContent = curDoc
-      ? 'No layers yet. Draw something, or drop an SVG onto the canvas.'
+      ? 'Nothing here yet. Draw something, or drop an SVG onto the canvas.'
       : 'No drawing open. File → New, or Open.';
     ol.append(li);
     return;
@@ -386,7 +386,7 @@ function layerRow(el, depth, open) {
   const eye = document.createElement('button');
   eye.className = 'sc-eye';
   eye.innerHTML = `<i data-icon="${hidden ? 'eye-slash' : 'eye'}">${icon(hidden ? 'eye-slash' : 'eye')}</i>`;
-  eye.setAttribute('aria-label', hidden ? 'Show layer' : 'Hide layer');
+  eye.setAttribute('aria-label', hidden ? 'Show' : 'Hide');
   eye.addEventListener('click', (e) => {
     e.stopPropagation();
     if (e.altKey) return soloLayer(el);
@@ -435,8 +435,8 @@ function layerRow(el, depth, open) {
     const fx = document.createElement('button');
     fx.className = 'sc-fx-badge';
     fx.innerHTML = icon('sc-fx');
-    fx.setAttribute('aria-label', 'Layer style');
-    fx.dataset.tip = 'Layer style · double-click to edit';
+    fx.setAttribute('aria-label', 'Effects');
+    fx.dataset.tip = 'Effects · double-click to edit';
     fx.addEventListener('dblclick', (e) => {
       e.stopPropagation();
       setSel([el]);
@@ -458,7 +458,7 @@ function layerRow(el, depth, open) {
     const b = document.createElement('button');
     b.className = 'sc-row-lock';
     b.innerHTML = icon(lock === 'all' ? 'lock' : 'up-down-left-right');
-    b.setAttribute('aria-label', 'Unlock layer');
+    b.setAttribute('aria-label', 'Unlock');
     b.dataset.tip = `${lock === 'all' ? 'Locked' : 'Position locked'} · click to unlock`;
     b.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -527,7 +527,7 @@ function layerRow(el, depth, open) {
 // again for the others back as they were.
 let solo = null;
 function soloLayer(el) {
-  noteStep('Show Only This Layer');
+  noteStep('Show Only This');
   const vis = (n) => n.getAttribute('display');
   if (solo?.el === el && [...solo.was.keys()].every((n) => n.isConnected)) {
     for (const [n, d] of solo.was)
@@ -622,7 +622,7 @@ for (const [name, effect, run] of [
 }
 
 function moveLayers(els, target, zone) {
-  noteStep('Move Layer');
+  noteStep('Move Object');
   els = inDocOrder(els);
   if (zone === 'into') {
     for (const el of els) reparent(el, target);
@@ -655,7 +655,7 @@ function renameLayer(el, span) {
   input.className = 'sc-layer-input';
   input.value = customName(el);
   input.placeholder = layerName(el);
-  input.setAttribute('aria-label', 'Layer name');
+  input.setAttribute('aria-label', 'Name');
   span.replaceWith(input);
   input.focus();
   input.select();
@@ -668,7 +668,7 @@ function renameLayer(el, span) {
       el.removeAttributeNS(INKSCAPE, 'label');
       if (v) el.setAttribute('data-name', v);
       else el.removeAttribute('data-name');
-      noteStep('Rename Layer');
+      noteStep('Rename');
       commit();
     } else renderLayers();
   };
