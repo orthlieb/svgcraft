@@ -128,7 +128,7 @@ export default [
     },
   },
   {
-    id: 'free-transform-and-edit-transform',
+    id: 'free-transform-and-object-transform',
     async shoot(h) {
       await h.open(SHAPES, 'shapes.svg', 800, 340);
       await h.select('Box');

@@ -283,8 +283,8 @@
               <li><a href="#import">Import</a></li>
               <li><a href="#units-and-page-size">Units and page size</a></li>
               <li><a href="#image-trace">Image Trace…</a></li>
-              <li><a href="#image-size">Image Size…</a></li>
-              <li><a href="#canvas-size">Canvas Size…</a></li>
+              <li><a href="#scale-document">Scale Document…</a></li>
+              <li><a href="#document-setup">Document Setup…</a></li>
               <li><a href="#grayscale-and-black-white">Grayscale and black &amp; white</a></li>
               <li><a href="#crop">Crop</a></li>
               <li><a href="#select-menu">Select menu</a></li>
@@ -299,7 +299,9 @@
               <li><a href="#pencil">Pencil</a></li>
               <li><a href="#pen">Pen</a></li>
               <li>
-                <a href="#free-transform-and-edit-transform">Free Transform and Edit → Transform</a>
+                <a href="#free-transform-and-object-transform"
+                  >Free Transform and Object → Transform</a
+                >
               </li>
               <li><a href="#align-and-distribute">Align and distribute</a></li>
               <li><a href="#eyedropper">Eyedropper</a></li>
@@ -361,7 +363,7 @@
               <li><a href="#merge-layers">Merge layers</a></li>
               <li><a href="#group-by-colour">Group by Colour</a></li>
               <li><a href="#layer-via-copy-cut">Layer via Copy / Cut</a></li>
-              <li><a href="#layer-style-fx">Layer Style (fx)</a></li>
+              <li><a href="#effects-fx">Effects (fx)</a></li>
             </ul>
           </li>
           <li><a href="#tooltips">Tooltips</a></li>
@@ -566,8 +568,8 @@
               <img
                 src="docs/help/offline-and-as-an-app.png"
                 alt="The File menu, with Install SVGCraft…"
-                width="242"
-                height="514"
+                width="252"
+                height="575"
                 loading="lazy"
               />
             </figure>
@@ -649,8 +651,8 @@
             <p>Find your way round the editor. From top to bottom:</p>
             <ul>
               <li>
-                <strong>Menu bar</strong>: File, Edit, Image, Layer, Object, Type, Select, View,
-                Window and Help (see <a href="#the-menu-bar">The menu bar</a>).
+                <strong>Menu bar</strong>: File, Edit, Object, Type, Select, Effect, View, Window
+                and Help (see <a href="#the-menu-bar">The menu bar</a>).
               </li>
               <li>
                 <strong>Options bar</strong>: the settings for the current tool (see
@@ -679,8 +681,8 @@
             <figure>
               <img
                 src="docs/help/the-menu-bar.png"
-                alt="The Layer menu, with Clipping Mask's items greyed out for a single selected layer"
-                width="477"
+                alt="The Object menu, with Clipping Mask's items greyed out for a single selected layer"
+                width="471"
                 height="558"
                 loading="lazy"
               />
@@ -698,7 +700,7 @@
             </ul>
             <h4>What needs what</h4>
             <ul>
-              <li><strong>Crop to Selection</strong> needs a selection.</li>
+              <li><strong>Fit to Selection</strong> needs a selection.</li>
               <li>
                 A <strong>Clipping Mask</strong>, <strong>Combine Shapes</strong> or
                 <strong>Text on Path</strong> needs two layers.
@@ -708,12 +710,22 @@
             <h4>Good to know</h4>
             <ul>
               <li>
-                <strong>Layer</strong> holds what works on whole layers: New, Duplicate, Layer
-                Style, Clipping Mask, Group, Arrange, Align, Lock and Merge.
+                <strong>File</strong> also holds the document's size:
+                <strong>Document Setup…</strong> (the artboard) and
+                <strong>Scale Document…</strong> (everything on it).
               </li>
               <li>
-                <strong>Object</strong> holds symbols and what works on shapes: Path, Combine Shapes
-                and Flip.
+                <strong>Edit</strong> holds the clipboard, <strong>Duplicate</strong> and
+                <strong>Edit Colours</strong> (Grayscale, Black &amp; White, Threshold, Desaturate).
+              </li>
+              <li>
+                <strong>Object</strong> holds what works on what's selected: Transform, Arrange,
+                Align, Group, Lock, Layer via Copy / Cut, Merge, Path, Combine Shapes, Clipping
+                Mask, Symbol, Image Trace and Artboard (Fit to Selection / Drawing).
+              </li>
+              <li>
+                <strong>Effect</strong> holds the effects: the Effects dialog, each effect on its
+                own, and Copy / Paste / Clear Effects.
               </li>
             </ul>
           </article>
@@ -723,7 +735,7 @@
               <img
                 src="docs/help/right-click-menus.png"
                 alt="The canvas's right-click menu on the palette, with Layers Here listing the red paint, the board and the backdrop under the pointer"
-                width="533"
+                width="527"
                 height="654"
                 loading="lazy"
               />
@@ -734,8 +746,8 @@
                 <strong>Right-click a layer</strong> on the canvas: it's selected (unless it's
                 already in the selection) and the menu lists what the selection can do: Cut, Copy,
                 Duplicate, Free Transform, Transform, Arrange, Align, Group, Clipping Mask, Combine
-                Shapes, symbols, Layer Style and Lock, then Play Animations, Deselect, Select
-                Inverse and Crop to Selection.
+                Shapes, symbols, Effects and Lock, then Play Animations, Deselect, Select Inverse
+                and Fit to Selection.
               </li>
               <li>
                 <strong>Layers Here</strong> (at the top, when more than one layer is under the
@@ -744,7 +756,7 @@
               </li>
               <li>
                 <strong>Right-click empty canvas</strong> with nothing selected: Paste, Select All,
-                Crop to Drawing, Play Animations and the zoom commands.
+                Fit to Drawing, Play Animations and the zoom commands.
               </li>
               <li>
                 <strong>Play Animations</strong> (when the drawing has any) plays them on the
@@ -770,8 +782,8 @@
                 The menu only lists what would do something now, rather than greying out the rest,
                 to keep it short: Ungroup appears for a group, Create Outlines for text, Image Trace
                 for an image, Distribute for three layers or more; Arrange offers only the ways the
-                layer can move (no Bring Forward on the top layer); Copy Layer Style needs a style;
-                Select Inverse needs layers left unselected; 100% shows when you're not at 100%.
+                layer can move (no Bring Forward on the top layer); Copy Effects needs some; Select
+                Inverse needs layers left unselected; 100% shows when you're not at 100%.
               </li>
               <li>
                 Paste is always there: what's on the clipboard can't be known until the browser is
@@ -1129,8 +1141,8 @@
               <img
                 src="docs/help/import.png"
                 alt="The File menu, with Import… highlighted"
-                width="242"
-                height="465"
+                width="252"
+                height="526"
                 loading="lazy"
               />
             </figure>
@@ -1224,9 +1236,9 @@
             <ul>
               <li>
                 <strong>Units</strong>: pixels, millimetres, centimetres, inches or points. They're
-                used by the rulers, W and H, guide positions, the X/Y/W/H transform fields, Image
-                and Canvas Size, the grid and the status bar. The grid takes a round size in the new
-                units (5 mm, ¼ in…).
+                used by the rulers, W and H, guide positions, the X/Y/W/H transform fields, Scale
+                Document and Document Setup, the grid and the status bar. The grid takes a round
+                size in the new units (5 mm, ¼ in…).
               </li>
               <li>
                 <strong>Page size</strong>: A5, A4, A3, US Letter, Legal, Tabloid, business card,
@@ -1273,7 +1285,7 @@
             <ol>
               <li>Place the image (File → Import…, or drop it on the canvas) and select it.</li>
               <li>
-                Choose <strong>Image → Image Trace…</strong>. It's greyed out until an image is
+                Choose <strong>Object → Image Trace…</strong>. It's greyed out until an image is
                 selected (see "What counts as an image", below).
               </li>
               <li>
@@ -1400,12 +1412,12 @@
               </li>
             </ul>
           </article>
-          <article id="image-size" data-find>
-            <h3>Image Size…</h3>
+          <article id="scale-document" data-find>
+            <h3>Scale Document…</h3>
             <figure>
               <img
-                src="docs/help/image-size.png"
-                alt="The Image Size dialog, scaling an 800 × 560 drawing to 1200 px wide"
+                src="docs/help/scale-document.png"
+                alt="The Scale Document dialog, scaling an 800 × 560 drawing to 1200 px wide"
                 width="300"
                 height="278"
                 loading="lazy"
@@ -1413,7 +1425,7 @@
             </figure>
             <p>Make the whole drawing bigger or smaller: the artboard and everything on it.</p>
             <ol>
-              <li>Choose <strong>Image → Image Size…</strong> (Ctrl+Alt+I).</li>
+              <li>Choose <strong>File → Scale Document…</strong> (Ctrl+Alt+I).</li>
               <li>
                 Type a new <strong>Width</strong> or <strong>Height</strong>, in the document's
                 units or in percent.
@@ -1441,12 +1453,12 @@
               <li>Animation distances always follow the art.</li>
             </ul>
           </article>
-          <article id="canvas-size" data-find>
-            <h3>Canvas Size…</h3>
+          <article id="document-setup" data-find>
+            <h3>Document Setup…</h3>
             <figure>
               <img
-                src="docs/help/canvas-size.png"
-                alt="The Canvas Size dialog, with the centre anchor chosen"
+                src="docs/help/document-setup.png"
+                alt="The Document Setup dialog, with the centre anchor chosen"
                 width="300"
                 height="332"
                 loading="lazy"
@@ -1454,7 +1466,7 @@
             </figure>
             <p>Add room round the drawing, or trim it, without scaling anything.</p>
             <ol>
-              <li>Choose <strong>Image → Canvas Size…</strong> (Ctrl+Alt+C).</li>
+              <li>Choose <strong>File → Document Setup…</strong> (Ctrl+Alt+C).</li>
               <li>Type a new <strong>Width</strong> and <strong>Height</strong>.</li>
               <li>Click an <strong>Anchor</strong> square for the part that stays put.</li>
               <li>Click <strong>OK</strong>.</li>
@@ -1500,7 +1512,7 @@
             </p>
             <ol>
               <li>Select the layers to change, or select nothing to change the whole drawing.</li>
-              <li>Choose one from the <strong>Image</strong> menu (below).</li>
+              <li>Choose one from <strong>Edit → Edit Colours</strong> (below).</li>
               <li>
                 In a dialog, adjust it while the drawing previews, then click <strong>OK</strong>.
               </li>
@@ -1508,27 +1520,27 @@
             <h4>Options</h4>
             <ul>
               <li>
-                <strong>Image → Adjustments → Desaturate</strong> (Shift+Ctrl+U): every colour to
-                the grey of the same lightness. No dialog.
+                <strong>Desaturate</strong> (Shift+Ctrl+U): every colour to the grey of the same
+                lightness. No dialog.
               </li>
               <li>
-                <strong>Image → Adjustments → Black &amp; White…</strong> (Alt+Shift+Ctrl+B): six
-                hue sliders (Reds, Yellows, Greens, Cyans, Blues, Magentas) with the usual defaults,
-                previewed live. <strong>Default</strong> puts the sliders back.
+                <strong>Black &amp; White…</strong> (Alt+Shift+Ctrl+B): six hue sliders (Reds,
+                Yellows, Greens, Cyans, Blues, Magentas) with the usual defaults, previewed live.
+                <strong>Default</strong> puts the sliders back.
               </li>
               <li>
-                <strong>Image → Adjustments → Threshold…</strong>: pure black and white, split at a
+                <strong>Threshold…</strong>: pure black and white, split at a
                 <strong>Level</strong> you set, previewed live.
               </li>
               <li>
-                <strong>Image → Mode → Grayscale</strong>: the brightness the eye sees. No dialog.
+                <strong>Convert to Grayscale</strong>: the brightness the eye sees. No dialog.
               </li>
             </ul>
             <h4>Good to know</h4>
             <ul>
               <li>
                 They change fills, strokes, gradient stops, patterns, symbols and markers in use,
-                Layer Style colours and embedded images, pixel by pixel.
+                effect colours and embedded images, pixel by pixel.
               </li>
               <li>
                 A gradient, pattern or symbol shared with layers outside the selection gets a copy
@@ -1546,21 +1558,21 @@
             <figure>
               <img
                 src="docs/help/crop.png"
-                alt="The Image menu, with Crop to Selection highlighted"
-                width="242"
-                height="222"
+                alt="Object → Artboard, with Fit to Selection highlighted"
+                width="471"
+                height="562"
                 loading="lazy"
               />
             </figure>
             <p>Fit the artboard tightly round your artwork, with no empty margin.</p>
             <ul>
               <li>
-                <strong>Image → Crop to Selection</strong> → the artboard fits round the selected
-                layers.
+                <strong>Object → Artboard → Fit to Selection</strong> → the artboard fits round the
+                selected layers.
               </li>
               <li>
-                <strong>Image → Crop to Drawing</strong> → the artboard fits round everything
-                visible.
+                <strong>Object → Artboard → Fit to Drawing</strong> → the artboard fits round
+                everything visible.
               </li>
             </ul>
             <h4>Good to know</h4>
@@ -1765,8 +1777,8 @@
               <img
                 src="docs/help/open-recent.png"
                 alt="The File menu's Open Recent submenu, listing four drawings"
-                width="471"
-                height="465"
+                width="481"
+                height="526"
                 loading="lazy"
               />
             </figure>
@@ -1807,8 +1819,8 @@
               <img
                 src="docs/help/save-and-save-as.png"
                 alt="The File menu, with Save highlighted"
-                width="242"
-                height="465"
+                width="252"
+                height="526"
                 loading="lazy"
               />
             </figure>
@@ -1861,8 +1873,8 @@
               <img
                 src="docs/help/export.png"
                 alt="The File menu, with Export PNG @2× highlighted"
-                width="242"
-                height="465"
+                width="252"
+                height="526"
                 loading="lazy"
               />
             </figure>
@@ -2119,11 +2131,11 @@
               <li>To change the path afterwards, use <a href="#edit-points">Edit points</a>.</li>
             </ul>
           </article>
-          <article id="free-transform-and-edit-transform" data-find>
-            <h3>Free Transform and Edit → Transform</h3>
+          <article id="free-transform-and-object-transform" data-find>
+            <h3>Free Transform and Object → Transform</h3>
             <figure>
               <img
-                src="docs/help/free-transform-and-edit-transform.png"
+                src="docs/help/free-transform-and-object-transform.png"
                 alt="Free Transform rotating a rectangle, with its X, Y, W, H, angle and skew fields in the options bar"
                 width="1032"
                 height="586"
@@ -2133,7 +2145,8 @@
             <p>Scale, rotate and skew the selection by hand or by exact numbers.</p>
             <ol>
               <li>
-                Select what to change and choose <strong>Edit → Free Transform</strong> (Alt+T).
+                Select what to change and choose
+                <strong>Object → Transform → Free Transform</strong> (Alt+T).
               </li>
               <li>
                 Drag a corner to scale, or the top knob to rotate. Or type exact <strong>X</strong>,
@@ -2143,7 +2156,7 @@
               </li>
               <li>Press Enter or click ✓ to commit. Esc or ✕ cancels the whole session.</li>
             </ol>
-            <h4>Edit → Transform</h4>
+            <h4>Object → Transform</h4>
             <ul>
               <li>
                 <strong>Scale</strong>, <strong>Rotate</strong> and <strong>Skew</strong> open the
@@ -2181,8 +2194,8 @@
             <figure>
               <img
                 src="docs/help/align-and-distribute.png"
-                alt="The Layer menu's Align submenu"
-                width="477"
+                alt="The Object menu's Align submenu"
+                width="471"
                 height="535"
                 loading="lazy"
               />
@@ -2192,7 +2205,7 @@
               <li>Select the objects with the Selection tool.</li>
               <li>
                 Click an align or distribute button on the Selection tool's options bar, or choose
-                <strong>Layer → Align</strong> or <strong>Layer → Distribute</strong>.
+                <strong>Object → Align</strong> or <strong>Object → Distribute</strong>.
               </li>
             </ol>
             <h4>Options</h4>
@@ -2913,7 +2926,7 @@
               <img
                 src="docs/help/zoom-and-pan.png"
                 alt="The Zoom tool's options bar and the View menu's zoom commands"
-                width="608"
+                width="557"
                 height="621"
                 loading="lazy"
               />
@@ -3550,15 +3563,16 @@
               </li>
               <li>
                 <strong>Flip</strong>: the flip buttons on the options bar, or
-                <strong>Object → Flip Horizontal</strong> / <strong>Flip Vertical</strong>.
+                <strong>Object → Transform → Flip Horizontal</strong> /
+                <strong>Flip Vertical</strong>.
               </li>
               <li><strong>Group</strong> (Ctrl+G) and <strong>Ungroup</strong> (Ctrl+Shift+G).</li>
               <li>
-                <strong>Stacking order</strong>: <strong>Layer → Arrange</strong>: Bring to Front
+                <strong>Stacking order</strong>: <strong>Object → Arrange</strong>: Bring to Front
                 (Ctrl+Shift+]), Bring Forward (Ctrl+]), Send Backward (Ctrl+[) and Send to Back
                 (Ctrl+Shift+[).
               </li>
-              <li><strong>Duplicate</strong>: <strong>Layer → Duplicate Layer</strong>.</li>
+              <li><strong>Duplicate</strong>: <strong>Edit → Duplicate</strong>.</li>
               <li><strong>Undo and redo</strong>: Ctrl+Z and Ctrl+Shift+Z.</li>
             </ul>
             <h4>More on this</h4>
@@ -4120,8 +4134,8 @@
             <ol>
               <li>Select the layers.</li>
               <li>
-                Press Ctrl+G, choose <strong>Layer → Group Layers</strong>, or click the folder
-                button at the bottom of the panel.
+                Press Ctrl+G, choose <strong>Object → Group</strong>, or click the folder button at
+                the bottom of the panel.
               </li>
             </ol>
             <p>
@@ -4130,7 +4144,7 @@
             </p>
             <p>
               To take a group apart again, select it and choose
-              <strong>Layer → Ungroup Layers</strong> (Ctrl+Shift+G).
+              <strong>Object → Ungroup</strong> (Ctrl+Shift+G).
             </p>
           </article>
           <article id="select-inside-a-group" data-find>
@@ -4267,11 +4281,11 @@
               </li>
               <li>
                 <strong>Lock:</strong> select layers and click a <strong>Lock</strong> button at the
-                top of the panel, or use <strong>Layer → Lock Position / Lock All</strong>.
+                top of the panel, or use <strong>Object → Lock → Lock Position / Lock All</strong>.
               </li>
               <li>
                 <strong>Unlock:</strong> click the padlock on the row, or choose
-                <strong>Layer → Unlock</strong>.
+                <strong>Object → Lock → Unlock All</strong>.
               </li>
             </ul>
             <h4>Lock options</h4>
@@ -4307,8 +4321,8 @@
               <li>
                 <strong>The row</strong>: it's selected (unless it's already in the selection), and
                 the menu offers Rename Layer…, Duplicate, Delete, Arrange, Group, Clipping Mask,
-                Combine Shapes, symbols, Layer Style, Copy / Paste / Clear Layer Style, Lock, Merge
-                Down, Merge Visible and Copy as SVG.
+                Combine Shapes, symbols, Effects, Copy / Paste / Clear Effects, Lock, Merge Down,
+                Merge Visible and Copy as SVG.
               </li>
               <li>
                 <strong>The eye</strong>: Hide (or Show) This Layer, and Hide All Other Layers,
@@ -4398,8 +4412,8 @@
             <figure>
               <img
                 src="docs/help/merge-layers.png"
-                alt="The Layer menu with two layers selected, offering Merge Layers"
-                width="244"
+                alt="The Object menu with two layers selected, offering Merge Layers"
+                width="238"
                 height="531"
                 loading="lazy"
               />
@@ -4410,7 +4424,7 @@
             <ol>
               <li>Select what to merge.</li>
               <li>
-                Choose <strong>Layer → Merge Down</strong> (Ctrl+E). The menu item names what it
+                Choose <strong>Object → Merge Down</strong> (Ctrl+E). The menu item names what it
                 will do.
               </li>
             </ol>
@@ -4458,7 +4472,7 @@
             </figure>
             <p>Tidy a drawing, an imported one say, into one group per colour.</p>
             <ol>
-              <li>Choose <strong>Layer → Group by Colour…</strong>.</li>
+              <li>Choose <strong>Object → Group by Colour…</strong>.</li>
               <li>
                 Read the warning and click <strong>Group by Colour</strong>. It asks first, because
                 it takes every group in the drawing apart and reorders the layers.
@@ -4491,8 +4505,8 @@
             <figure>
               <img
                 src="docs/help/layer-via-copy-cut.png"
-                alt="The Layer → New submenu, with Layer via Copy and Layer via Cut"
-                width="473"
+                alt="The Object menu, with Layer via Copy and Layer via Cut"
+                width="238"
                 height="531"
                 loading="lazy"
               />
@@ -4501,7 +4515,7 @@
             <ol>
               <li>Select layers, or pick points with Direct Selection.</li>
               <li>
-                Choose <strong>Layer → New → Layer via Copy</strong> (Ctrl+J) or
+                Choose <strong>Object → Layer via Copy</strong> (Ctrl+J) or
                 <strong>Layer via Cut</strong> (Alt+Shift+J).
               </li>
             </ol>
@@ -4509,8 +4523,8 @@
             <h4>With layers selected</h4>
             <ul>
               <li>
-                <strong>Layer via Copy</strong> copies them in place. (Duplicate Layer offsets its
-                copy by 10 px so it shows.)
+                <strong>Layer via Copy</strong> copies them in place. (Duplicate offsets its copy by
+                10 px so it shows.)
               </li>
               <li>
                 <strong>Layer via Cut</strong> lifts shapes picked inside a group (Ctrl/⌘-click) out
@@ -4527,23 +4541,24 @@
               </li>
             </ul>
           </article>
-          <article id="layer-style-fx" data-find>
-            <h3>Layer Style (fx)</h3>
+          <article id="effects-fx" data-find>
+            <h3>Effects (fx)</h3>
             <figure>
               <img
-                src="docs/help/layer-style-fx.png"
-                alt="The Layer Style dialog, editing a drop shadow on the Title layer"
+                src="docs/help/effects-fx.png"
+                alt="The Effects dialog, editing a drop shadow on the Title layer"
                 width="560"
                 height="382"
                 loading="lazy"
               />
             </figure>
-            <p>Add shadows, glows, an overlay or a blur to a layer with the Layer Style dialog.</p>
+            <p>Add shadows, glows, an overlay or a blur to a layer with the Effects dialog.</p>
             <ol>
               <li>Select the layer.</li>
               <li>
                 Open the dialog: click the <strong>fx</strong> button at the bottom of the Layers
-                panel, choose <strong>Layer → Layer Style…</strong>, or double-click the layer's fx
+                panel, choose <strong>Effect → Effects…</strong> (or one effect from the Effect
+                menu, which opens the dialog with it turned on), or double-click the layer's fx
                 badge. Double-clicking a row anywhere but its name (the thumbnail, or the space
                 after the name) opens it too.
               </li>
@@ -4560,12 +4575,12 @@
                 everything back.
               </li>
             </ol>
-            <p>To remove all the effects, choose <strong>Layer → Clear Layer Style</strong>.</p>
+            <p>To remove all the effects, choose <strong>Effect → Clear Effects</strong>.</p>
             <p>
               To give other layers the same look, select the styled layer and choose
-              <strong>Layer → Copy Layer Style</strong>, then select the others and choose
-              <strong>Layer → Paste Layer Style</strong>. It copies the effects, the blend mode and
-              the opacity. Both are in the layer's right-click menu too.
+              <strong>Effect → Copy Effects</strong>, then select the others and choose
+              <strong>Effect → Paste Effects</strong>. It copies the effects, the blend mode and the
+              opacity. Both are in the layer's right-click menu too.
             </p>
             <h4>Effects</h4>
             <ul>
@@ -4699,7 +4714,7 @@
               <li>Put the shape or text that will be the window on top of the art.</li>
               <li>Select it and the layers to clip.</li>
               <li>
-                Choose <strong>Layer → Clipping Mask → Make</strong> (Ctrl+Alt+G), or click the
+                Choose <strong>Object → Clipping Mask → Make</strong> (Ctrl+Alt+G), or click the
                 scissors button at the bottom of the Layers panel.
               </li>
             </ol>
@@ -4759,8 +4774,8 @@
             <figure>
               <img
                 src="docs/help/release-a-clipping-mask.png"
-                alt="The Layer → Clipping Mask submenu, with Release highlighted"
-                width="473"
+                alt="The Object → Clipping Mask submenu, with Release highlighted"
+                width="467"
                 height="531"
                 loading="lazy"
               />
@@ -4768,7 +4783,7 @@
             <p>Turn the clip off and get the clipping path back as an ordinary shape.</p>
             <ol>
               <li>Select the clipping group, or any layer in it.</li>
-              <li>Choose <strong>Layer → Clipping Mask → Release</strong> (Ctrl+Alt+Shift+G).</li>
+              <li>Choose <strong>Object → Clipping Mask → Release</strong> (Ctrl+Alt+Shift+G).</li>
             </ol>
             <p>
               The clipping path shows again with its own fill and stroke, and the layers stay
@@ -4827,7 +4842,7 @@
               </li>
               <li>
                 <strong>Keeps the layer.</strong> The group takes the text's place in the stack, its
-                transform, Layer Style effects, blend mode, opacity, lock and hidden state.
+                transform, effects, blend mode, opacity, lock and hidden state.
               </li>
             </ul>
             <h4>Limits</h4>
@@ -5259,7 +5274,7 @@
             <ul>
               <li>
                 Select, move, scale, rotate, flip, align, duplicate, lock and hide them, and set
-                their opacity, blend mode and Layer Style.
+                their opacity, blend mode and effects.
               </li>
               <li>The Layers panel marks them with a clover and shows the symbol's name.</li>
               <li>
@@ -5671,7 +5686,7 @@
                 </tr>
                 <tr>
                   <td>Ctrl+Alt+I · Ctrl+Alt+C</td>
-                  <td>Image Size · Canvas Size</td>
+                  <td>Scale Document · Document Setup</td>
                 </tr>
                 <tr>
                   <td>Alt+Shift+Ctrl+B</td>
@@ -5735,7 +5750,7 @@
                 browsers).
               </li>
               <li>New is in the File menu (Ctrl+N opens a window).</li>
-              <li>On a Mac, Cmd+Opt+I may open the developer tools instead of Image Size.</li>
+              <li>On a Mac, Cmd+Opt+I may open the developer tools instead of Scale Document.</li>
             </ul>
             <h4>Good to know</h4>
             <ul>

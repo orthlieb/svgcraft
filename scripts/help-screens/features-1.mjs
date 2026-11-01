@@ -49,7 +49,7 @@ export default [
     },
   },
   {
-    id: 'image-size',
+    id: 'scale-document',
     async shoot(h) {
       await h.menu('File', 'imageSize');
       await h.page.locator('#sc-imagesize').waitFor();
@@ -59,7 +59,7 @@ export default [
     },
   },
   {
-    id: 'canvas-size',
+    id: 'document-setup',
     async shoot(h) {
       await h.menu('File', 'canvasSize');
       await h.page.locator('#sc-canvassize').waitFor();

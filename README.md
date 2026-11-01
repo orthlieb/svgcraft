@@ -141,8 +141,8 @@ date (with the version), a new version (the bar), or no connection.
 
 Find your way round the editor. From top to bottom:
 
-- **Menu bar**: File, Edit, Image, Layer, Object, Type, Select, View,
-  Window and Help (see [The menu bar](#the-menu-bar)).
+- **Menu bar**: File, Edit, Object, Type, Select, Effect, View, Window
+  and Help (see [The menu bar](#the-menu-bar)).
 - **Options bar**: the settings for the current tool (see
   [The options bar](#the-options-bar)).
 - **Toolbar**, down the left (see [The toolbar](#the-toolbar)).
@@ -154,7 +154,7 @@ Find your way round the editor. From top to bottom:
 
 ### The menu bar
 
-![The Layer menu, with Clipping Mask's items greyed out for a single selected layer](docs/help/the-menu-bar.png)
+![The Object menu, with Clipping Mask's items greyed out for a single selected layer](docs/help/the-menu-bar.png)
 
 Find every command, in the menu you'd expect.
 
@@ -165,17 +165,23 @@ Find every command, in the menu you'd expect.
 
 #### What needs what
 
-- **Crop to Selection** needs a selection.
+- **Fit to Selection** needs a selection.
 - A **Clipping Mask**, **Combine Shapes** or **Text on Path** needs two
   layers.
 - **Distribute** needs three.
 
 #### Good to know
 
-- **Layer** holds what works on whole layers: New, Duplicate, Layer
-  Style, Clipping Mask, Group, Arrange, Align, Lock and Merge.
-- **Object** holds symbols and what works on shapes: Path, Combine Shapes
-  and Flip.
+- **File** also holds the document's size: **Document Setup…** (the
+  artboard) and **Scale Document…** (everything on it).
+- **Edit** holds the clipboard, **Duplicate** and **Edit Colours**
+  (Grayscale, Black & White, Threshold, Desaturate).
+- **Object** holds what works on what's selected: Transform, Arrange,
+  Align, Group, Lock, Layer via Copy / Cut, Merge, Path, Combine Shapes,
+  Clipping Mask, Symbol, Image Trace and Artboard (Fit to Selection /
+  Drawing).
+- **Effect** holds the effects: the Effects dialog, each effect on its
+  own, and Copy / Paste / Clear Effects.
 
 ### Right-click menus
 
@@ -186,13 +192,13 @@ Reach what the selection can do without going to the menu bar.
 - **Right-click a layer** on the canvas: it's selected (unless it's
   already in the selection) and the menu lists what the selection can do:
   Cut, Copy, Duplicate, Free Transform, Transform, Arrange, Align, Group,
-  Clipping Mask, Combine Shapes, symbols, Layer Style and Lock, then
-  Play Animations, Deselect, Select Inverse and Crop to Selection.
+  Clipping Mask, Combine Shapes, symbols, Effects and Lock, then
+  Play Animations, Deselect, Select Inverse and Fit to Selection.
 - **Layers Here** (at the top, when more than one layer is under the
   pointer) lists them, top first, so you can pick one that's covered by
   others. The ticked one is selected.
 - **Right-click empty canvas** with nothing selected: Paste, Select All,
-  Crop to Drawing, Play Animations and the zoom commands.
+  Fit to Drawing, Play Animations and the zoom commands.
 - **Play Animations** (when the drawing has any) plays them on the canvas,
   as ▶ Play does; while they play, right-click → **Stop Animations**. A
   right-click doesn't stop them, as a click does.
@@ -208,7 +214,7 @@ Reach what the selection can do without going to the menu bar.
   out the rest, to keep it short: Ungroup appears for a group, Create
   Outlines for text, Image Trace for an image, Distribute for three layers
   or more; Arrange offers only the ways the layer can move (no Bring
-  Forward on the top layer); Copy Layer Style needs a style; Select Inverse
+  Forward on the top layer); Copy Effects needs some; Select Inverse
   needs layers left unselected; 100% shows when you're not at 100%.
 - Paste is always there: what's on the clipboard can't be known until the
   browser is asked to read it.
@@ -471,7 +477,7 @@ paper or screen size.
 
 - **Units**: pixels, millimetres, centimetres, inches or points. They're
   used by the rulers, W and H, guide positions, the X/Y/W/H transform
-  fields, Image and Canvas Size, the grid and the status bar. The grid takes
+  fields, Scale Document and Document Setup, the grid and the status bar. The grid takes
   a round size in the new units (5 mm, ¼ in…).
 - **Page size**: A5, A4, A3, US Letter, Legal, Tabloid, business card,
   Full HD or square post. It also sets its units, and keeps the artboard's
@@ -498,7 +504,7 @@ Turn a bitmap (a logo, icon, scan or line drawing) into vector shapes you
 can edit.
 
 1. Place the image (File → Import…, or drop it on the canvas) and select it.
-2. Choose **Image → Image Trace…**. It's greyed out until an image is
+2. Choose **Object → Image Trace…**. It's greyed out until an image is
    selected (see "What counts as an image", below).
 3. Pick the **Preset** closest to your image, then adjust the settings while
    you watch the preview. The line under the preview gives the result's
@@ -578,14 +584,14 @@ When Image Trace can't read the picture, it says why above the status bar
   it. Images are traced at 400–1000 px on the long side, in a background
   thread, so the page doesn't stall.
 
-### Image Size…
+### Scale Document…
 
-![The Image Size dialog, scaling an 800 × 560 drawing to 1200 px wide](docs/help/image-size.png)
+![The Scale Document dialog, scaling an 800 × 560 drawing to 1200 px wide](docs/help/scale-document.png)
 
 Make the whole drawing bigger or smaller: the artboard and everything on
 it.
 
-1. Choose **Image → Image Size…** (Ctrl+Alt+I).
+1. Choose **File → Scale Document…** (Ctrl+Alt+I).
 2. Type a new **Width** or **Height**, in the document's units or in
    percent.
 3. Click **OK**. It's one undo step.
@@ -604,13 +610,13 @@ it.
   text, patterns and gradients scale with the shapes. Guides scale too.
 - Animation distances always follow the art.
 
-### Canvas Size…
+### Document Setup…
 
-![The Canvas Size dialog, with the centre anchor chosen](docs/help/canvas-size.png)
+![The Document Setup dialog, with the centre anchor chosen](docs/help/document-setup.png)
 
 Add room round the drawing, or trim it, without scaling anything.
 
-1. Choose **Image → Canvas Size…** (Ctrl+Alt+C).
+1. Choose **File → Document Setup…** (Ctrl+Alt+C).
 2. Type a new **Width** and **Height**.
 3. Click an **Anchor** square for the part that stays put.
 4. Click **OK**.
@@ -639,24 +645,24 @@ colours themselves change, so the saved SVG really is grey.
 
 1. Select the layers to change, or select nothing to change the whole
    drawing.
-2. Choose one from the **Image** menu (below).
+2. Choose one from **Edit → Edit Colours** (below).
 3. In a dialog, adjust it while the drawing previews, then click **OK**.
 
 #### Options
 
-- **Image → Adjustments → Desaturate** (Shift+Ctrl+U): every colour to the
+- **Desaturate** (Shift+Ctrl+U): every colour to the
   grey of the same lightness. No dialog.
-- **Image → Adjustments → Black & White…** (Alt+Shift+Ctrl+B): six
+- **Black & White…** (Alt+Shift+Ctrl+B): six
   hue sliders (Reds, Yellows, Greens, Cyans, Blues, Magentas) with the
   usual defaults, previewed live. **Default** puts the sliders back.
-- **Image → Adjustments → Threshold…**: pure black and white, split at a
+- **Threshold…**: pure black and white, split at a
   **Level** you set, previewed live.
-- **Image → Mode → Grayscale**: the brightness the eye sees. No dialog.
+- **Convert to Grayscale**: the brightness the eye sees. No dialog.
 
 #### Good to know
 
 - They change fills, strokes, gradient stops, patterns, symbols and markers
-  in use, Layer Style colours and embedded images, pixel by pixel.
+  in use, effect colours and embedded images, pixel by pixel.
 - A gradient, pattern or symbol shared with layers outside the selection
   gets a copy of its own first, so only the selection changes.
 - Each is one undo step.
@@ -665,13 +671,14 @@ colours themselves change, so the saved SVG really is grey.
 
 ### Crop
 
-![The Image menu, with Crop to Selection highlighted](docs/help/crop.png)
+![Object → Artboard, with Fit to Selection highlighted](docs/help/crop.png)
 
 Fit the artboard tightly round your artwork, with no empty margin.
 
-- **Image → Crop to Selection** → the artboard fits round the selected
-  layers.
-- **Image → Crop to Drawing** → the artboard fits round everything visible.
+- **Object → Artboard → Fit to Selection** → the artboard fits round the
+  selected layers.
+- **Object → Artboard → Fit to Drawing** → the artboard fits round
+  everything visible.
 
 #### Good to know
 
@@ -999,19 +1006,19 @@ Draw precise paths, point by point, with straight lines and smooth curves.
 
 - To change the path afterwards, use [Edit points](#edit-points).
 
-### Free Transform and Edit → Transform
+### Free Transform and Object → Transform
 
-![Free Transform rotating a rectangle, with its X, Y, W, H, angle and skew fields in the options bar](docs/help/free-transform-and-edit-transform.png)
+![Free Transform rotating a rectangle, with its X, Y, W, H, angle and skew fields in the options bar](docs/help/free-transform-and-object-transform.png)
 
 Scale, rotate and skew the selection by hand or by exact numbers.
 
-1. Select what to change and choose **Edit → Free Transform** (Alt+T).
+1. Select what to change and choose **Object → Transform → Free Transform** (Alt+T).
 2. Drag a corner to scale, or the top knob to rotate. Or type exact
    **X**, **Y**, **W** and **H** (with the proportion lock), an angle, and
    horizontal (**H**) or vertical (**V**) skew in the options bar.
 3. Press Enter or click ✓ to commit. Esc or ✕ cancels the whole session.
 
-#### Edit → Transform
+#### Object → Transform
 
 - **Scale**, **Rotate** and **Skew** open the same session with the
   handles set to that job: corners and edges only scale, any handle
@@ -1034,13 +1041,13 @@ Scale, rotate and skew the selection by hand or by exact numbers.
 
 ### Align and distribute
 
-![The Layer menu's Align submenu](docs/help/align-and-distribute.png)
+![The Object menu's Align submenu](docs/help/align-and-distribute.png)
 
 Line objects up with each other, or space them out evenly.
 
 1. Select the objects with the Selection tool.
 2. Click an align or distribute button on the Selection tool's options bar, or
-   choose **Layer → Align** or **Layer → Distribute**.
+   choose **Object → Align** or **Object → Distribute**.
 
 #### Options
 
@@ -1866,13 +1873,13 @@ Pick objects, then move, resize, rotate, group and stack them.
   moves 10 times as far).
 - **Resize and rotate**: drag the handles. Shift keeps the ratio, and Alt
   scales from the centre. Drag the knob above to rotate.
-- **Flip**: the flip buttons on the options bar, or **Object → Flip
-  Horizontal** / **Flip Vertical**.
+- **Flip**: the flip buttons on the options bar, or **Object → Transform →
+  Flip Horizontal** / **Flip Vertical**.
 - **Group** (Ctrl+G) and **Ungroup** (Ctrl+Shift+G).
-- **Stacking order**: **Layer → Arrange**: Bring to Front (Ctrl+Shift+]),
+- **Stacking order**: **Object → Arrange**: Bring to Front (Ctrl+Shift+]),
   Bring Forward (Ctrl+]), Send Backward (Ctrl+[) and Send to Back
   (Ctrl+Shift+[).
-- **Duplicate**: **Layer → Duplicate Layer**.
+- **Duplicate**: **Edit → Duplicate**.
 - **Undo and redo**: Ctrl+Z and Ctrl+Shift+Z.
 
 #### More on this
@@ -2203,14 +2210,14 @@ A group and a layer inside it are never selected together.
 Put layers in a folder so they move, hide and style together.
 
 1. Select the layers.
-2. Press Ctrl+G, choose **Layer → Group Layers**, or click the folder button
+2. Press Ctrl+G, choose **Object → Group**, or click the folder button
    at the bottom of the panel.
 
 The new group (Group 1, Group 2 …) goes where the frontmost of the layers
 was. With nothing selected, you get an empty group.
 
-To take a group apart again, select it and choose **Layer → Ungroup
-Layers** (Ctrl+Shift+G).
+To take a group apart again, select it and choose **Object → Ungroup**
+(Ctrl+Shift+G).
 
 ### Select inside a group
 
@@ -2290,8 +2297,9 @@ change by accident.
   others come back as they were. Right-clicking the eye offers Hide All
   Other Layers and Show All Other Layers too.
 - **Lock:** select layers and click a **Lock** button at the top of the
-  panel, or use **Layer → Lock Position / Lock All**.
-- **Unlock:** click the padlock on the row, or choose **Layer → Unlock**.
+  panel, or use **Object → Lock → Lock Position / Lock All**.
+- **Unlock:** click the padlock on the row, or choose **Object → Lock →
+  Unlock All**.
 
 #### Lock options
 
@@ -2313,8 +2321,8 @@ Right-click a row in the Layers panel for what you can do with the layer.
 
 - **The row**: it's selected (unless it's already in the selection), and
   the menu offers Rename Layer…, Duplicate, Delete, Arrange, Group,
-  Clipping Mask, Combine Shapes, symbols, Layer Style, Copy / Paste /
-  Clear Layer Style, Lock, Merge Down, Merge Visible and Copy as SVG.
+  Clipping Mask, Combine Shapes, symbols, Effects, Copy / Paste /
+  Clear Effects, Lock, Merge Down, Merge Visible and Copy as SVG.
 - **The eye**: Hide (or Show) This Layer, and Hide All Other Layers, which
   leaves only this one showing (the groups it's in stay shown). Once the
   others are hidden, the same item reads Show All Other Layers.
@@ -2370,13 +2378,13 @@ Make a layer see-through, or mix it with the layers below.
 
 ### Merge layers
 
-![The Layer menu with two layers selected, offering Merge Layers](docs/help/merge-layers.png)
+![The Object menu with two layers selected, offering Merge Layers](docs/help/merge-layers.png)
 
 Turn several layers into one. The result stays vector and nothing on
 screen changes.
 
 1. Select what to merge.
-2. Choose **Layer → Merge Down** (Ctrl+E). The menu item names what it will
+2. Choose **Object → Merge Down** (Ctrl+E). The menu item names what it will
    do.
 
 #### What gets merged
@@ -2406,7 +2414,7 @@ screen changes.
 
 Tidy a drawing, an imported one say, into one group per colour.
 
-1. Choose **Layer → Group by Colour…**.
+1. Choose **Object → Group by Colour…**.
 2. Read the warning and click **Group by Colour**. It asks first, because it
    takes every group in the drawing apart and reorders the layers.
 
@@ -2427,19 +2435,19 @@ everything back.
 
 ### Layer via Copy / Cut
 
-![The Layer → New submenu, with Layer via Copy and Layer via Cut](docs/help/layer-via-copy-cut.png)
+![The Object menu, with Layer via Copy and Layer via Cut](docs/help/layer-via-copy-cut.png)
 
 Put the selected part of a layer on a new layer above it.
 
 1. Select layers, or pick points with Direct Selection.
-2. Choose **Layer → New → Layer via Copy** (Ctrl+J) or **Layer via Cut**
+2. Choose **Object → Layer via Copy** (Ctrl+J) or **Layer via Cut**
    (Alt+Shift+J).
 
 The new layer is selected with the Selection tool.
 
 #### With layers selected
 
-- **Layer via Copy** copies them in place. (Duplicate Layer offsets its copy
+- **Layer via Copy** copies them in place. (Duplicate offsets its copy
   by 10 px so it shows.)
 - **Layer via Cut** lifts shapes picked inside a group (Ctrl/⌘-click)
   out onto layers of their own, just above the group and looking the same.
@@ -2451,16 +2459,17 @@ The new layer is selected with the Selection tool.
 - **Layer via Copy** leaves the original whole.
 - **Layer via Cut** takes them out, and the original splits where they were.
 
-### Layer Style (fx)
+### Effects (fx)
 
-![The Layer Style dialog, editing a drop shadow on the Title layer](docs/help/layer-style-fx.png)
+![The Effects dialog, editing a drop shadow on the Title layer](docs/help/effects-fx.png)
 
-Add shadows, glows, an overlay or a blur to a layer with the Layer Style
+Add shadows, glows, an overlay or a blur to a layer with the Effects
 dialog.
 
 1. Select the layer.
 2. Open the dialog: click the **fx** button at the bottom of the Layers
-   panel, choose **Layer → Layer Style…**, or double-click the layer's fx
+   panel, choose **Effect → Effects…** (or one effect from the Effect
+   menu, which opens the dialog with it turned on), or double-click the layer's fx
    badge. Double-clicking a row anywhere but its name (the thumbnail, or the
    space after the name) opens it too.
 3. Tick an effect on the left to turn it on, or click its name to turn it on
@@ -2469,11 +2478,11 @@ dialog.
    compare.
 5. Click **OK** to keep them. **Cancel** or Esc puts everything back.
 
-To remove all the effects, choose **Layer → Clear Layer Style**.
+To remove all the effects, choose **Effect → Clear Effects**.
 
 To give other layers the same look, select the styled layer and choose
-**Layer → Copy Layer Style**, then select the others and choose **Layer →
-Paste Layer Style**. It copies the effects, the blend mode and the opacity.
+**Effect → Copy Effects**, then select the others and choose **Effect →
+Paste Effects**. It copies the effects, the blend mode and the opacity.
 Both are in the layer's right-click menu too.
 
 #### Effects
@@ -2556,7 +2565,7 @@ Show your art only through the outline of the topmost shape.
 
 1. Put the shape or text that will be the window on top of the art.
 2. Select it and the layers to clip.
-3. Choose **Layer → Clipping Mask → Make** (Ctrl+Alt+G), or click the
+3. Choose **Object → Clipping Mask → Make** (Ctrl+Alt+G), or click the
    scissors button at the bottom of the Layers panel.
 
 Everything selected goes into a new "Clipping group" where the clipping path
@@ -2593,12 +2602,12 @@ scissors, and the clipping path's name is underlined.
 
 ### Release a clipping mask
 
-![The Layer → Clipping Mask submenu, with Release highlighted](docs/help/release-a-clipping-mask.png)
+![The Object → Clipping Mask submenu, with Release highlighted](docs/help/release-a-clipping-mask.png)
 
 Turn the clip off and get the clipping path back as an ordinary shape.
 
 1. Select the clipping group, or any layer in it.
-2. Choose **Layer → Clipping Mask → Release** (Ctrl+Alt+Shift+G).
+2. Choose **Object → Clipping Mask → Release** (Ctrl+Alt+Shift+G).
 
 The clipping path shows again with its own fill and stroke, and the layers
 stay grouped, the group renamed as a plain group (Group 1 …).
@@ -2636,7 +2645,7 @@ One undo brings the text back.
   stroke and opacity. So a bold word or a red word is its own path.
   Underline and strikethrough become bars in the same paths.
 - **Keeps the layer.** The group takes the text's place in the stack, its
-  transform, Layer Style effects, blend mode, opacity, lock and hidden
+  transform, effects, blend mode, opacity, lock and hidden
   state.
 
 #### Limits
@@ -2892,7 +2901,7 @@ Use instances like any other layer, and break the link when one needs to
 go its own way.
 
 - Select, move, scale, rotate, flip, align, duplicate, lock and hide them,
-  and set their opacity, blend mode and Layer Style.
+  and set their opacity, blend mode and effects.
 - The Layers panel marks them with a clover and shows the symbol's name.
 - To turn instances into ordinary groups that no longer follow the symbol,
   select them and choose **Object → Break Link to Symbol** (or the panel's
@@ -3100,7 +3109,7 @@ in parentheses, taken from the menus, so they always agree.
 | + − 0 1 (or Ctrl + − 0)   | Zoom in / out · fit · 100%                         |
 | Ctrl+R · Ctrl+; · Ctrl+'  | Rulers · guides · grid                             |
 | Ctrl+Shift+; · Ctrl+Alt+; | Snap to grid · lock guides                         |
-| Ctrl+Alt+I · Ctrl+Alt+C   | Image Size · Canvas Size                           |
+| Ctrl+Alt+I · Ctrl+Alt+C   | Scale Document · Document Setup                    |
 | Alt+Shift+Ctrl+B          | Black & White…                                     |
 | Shift+Ctrl+U              | Desaturate                                         |
 | Tab · Shift+Tab           | Hide all panels · hide the right-hand panels       |
@@ -3124,7 +3133,8 @@ A browser keeps a few keys for itself, so these are different here:
 - Select Inverse is Shift+F7 (Ctrl+Shift+I opens the developer tools in
   some browsers).
 - New is in the File menu (Ctrl+N opens a window).
-- On a Mac, Cmd+Opt+I may open the developer tools instead of Image Size.
+- On a Mac, Cmd+Opt+I may open the developer tools instead of Scale
+  Document.
 
 #### Good to know
 
@@ -3347,7 +3357,7 @@ something fails.
 
 **Commands.** A menu item or button runs a command through its
 `data-action` name: `src/actions.js` maps each name to its function. A
-command that only makes sense with the right selection (Crop to Selection,
+command that only makes sense with the right selection (Fit to Selection,
 Make Clipping Mask…) also gets a rule in `actionRules` there, which greys
 its menu items and buttons out when it can't run; its keyboard shortcut in
 `src/input.js` goes through `ifAllowed(name)` so it does nothing then too.
@@ -3391,7 +3401,7 @@ and shortcut table in step with this README.
 - History is a stack of `innerHTML` snapshots (150 deep), which keeps undo
   simple and exact. Each snapshot carries the name the History panel shows,
   set by whatever started the step (`noteStep`) and used up by `commit()`.
-- Dialogs (New Guide, New Icon, File Info, Layer Style, the export
+- Dialogs (New Guide, New Icon, File Info, Effects, the export
   dialogs and the name / confirm prompt) are native `<dialog>` elements
   shown modally, so the browser keeps focus inside them, makes the page
   behind inert, and turns Esc into the dialog's own Cancel. Every dialog drags by its title

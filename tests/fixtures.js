@@ -67,6 +67,11 @@ export async function action(page, name) {
 // Open a top-level menu by its label and click one of its items.
 export async function menu(page, label, act) {
   await page.click(`.sc-menu-btn:text-is("${label}")`);
+  // An item in a submenu (Object → Lock → …): open the submenu first.
+  const sub = page.locator(
+    `.sc-menu-list:not([hidden]) .sc-submenu:has([data-action="${act}"]) > .sc-sub-btn`,
+  );
+  if (await sub.count()) await sub.first().hover();
   await page.click(`.sc-menu-list:not([hidden]) [data-action="${act}"]`);
 }
 

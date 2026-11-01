@@ -257,15 +257,14 @@ export default [
     async shoot(h) {
       await h.select('Red paint');
       await h.menu('Object', 'layerViaCopy', { click: false });
-      await still(
-        h,
-        [0, 1].map((i) => h.page.locator('.sc-menu-list:not([hidden])').nth(i)),
-        { pad: 4, name: 'layer-via-copy-cut' },
-      );
+      await still(h, h.page.locator('.sc-menu-list:not([hidden])').first(), {
+        pad: 4,
+        name: 'layer-via-copy-cut',
+      });
     },
   },
   {
-    id: 'layer-style-fx',
+    id: 'effects-fx',
     async shoot(h) {
       await h.select('Title');
       await h.menu('Effect', 'layerStyle');
@@ -337,14 +336,10 @@ export default [
     async shoot(h) {
       await clipArt(h);
       await h.menu('Object', 'clipRelease', { click: false });
-      await still(
-        h,
-        [0, 1].map((i) => h.page.locator('.sc-menu-list:not([hidden])').nth(i)),
-        {
-          pad: 4,
-          name: 'release-a-clipping-mask',
-        },
-      );
+      await still(h, h.page.locator('.sc-menu-list:not([hidden])').first(), {
+        pad: 4,
+        name: 'release-a-clipping-mask',
+      });
     },
   },
   {
