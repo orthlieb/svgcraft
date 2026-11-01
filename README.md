@@ -1,9 +1,10 @@
 # SVGCraft
 
-A small in-browser SVG editor with no dependencies and no build step. It's
-static files (`index.html`, `style.css`, the scripts in `src/`, `icons.js`
-and `symbols-library.js`): open `index.html` directly, or serve the folder
-(`npx serve .`) and host it anywhere static.
+A small in-browser SVG editor with no build step and no server code. It's
+static files (`index.html`, `style.css`, the scripts in `src/`, `icons.js`,
+`symbols-library.js`, `google-fonts.js`, the service worker `sw.js`, and
+Paper.js and opentype.js in `vendor/`): open `index.html` directly, or
+serve the folder (`npx serve .`) and host it anywhere static.
 
 **Live:** <https://orthlieb.github.io/svgcraft/> (served by GitHub Pages
 from the root of `main`; every push to `main` redeploys it).
@@ -120,6 +121,22 @@ window, and every hour while it's open.
 
 **Help → Check for Updates…** looks at once and says what it found: up to
 date (with the version), a new version (the bar), or no connection.
+
+#### Your drawings stay with you
+
+- Nothing you draw is uploaded. Open drawings are kept in this browser
+  (IndexedDB, with a copy in localStorage), and so are your libraries and
+  settings. There's no account and no server code.
+- The only things SVGCraft fetches from the internet are:
+  - **Google Fonts**, when you pick, preview or open a drawing that uses
+    one, and when a PNG export embeds them. Google sees the font names and
+    your IP address, not your drawing.
+  - **Font files from jsDelivr (Fontsource)**, when **Create Outlines**
+    turns text into shapes.
+  - **Its own files**, from the site you opened it from: the update check
+    and the copies the service worker keeps for offline use.
+- Clearing this site's data in your browser removes the drawings kept
+  there, so save the ones you want to keep as files.
 
 #### Good to know
 
