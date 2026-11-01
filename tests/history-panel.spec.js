@@ -1,6 +1,6 @@
 // Window → History: every step named by what it did, click one to
 // go back, and a new change drops the steps after it.
-import { test, expect, load, select } from './fixtures.js';
+import { test, expect, load, select, menu } from './fixtures.js';
 
 const steps = (page) => page.$$eval('#sc-history button', (bs) => bs.map((b) => b.textContent));
 const current = (page) => page.$eval('#sc-history .on', (b) => b.textContent);
@@ -14,8 +14,7 @@ test('steps are named by what made them; clicking one goes back to it', async ({
 
   // A menu command, a shortcut, a panel control and a drag with the Move tool.
   await select(page, 'r');
-  await page.click('.sc-menu-btn:text-is("Object")');
-  await page.click('.sc-menu-list:not([hidden]) [data-action="flipH"]');
+  await menu(page, 'Object', 'flipH');
   await page.keyboard.press('Control+g');
   const w = page.locator('#sc-appearance [data-bind="strokeWidth"]');
   await page.click('[data-tab="props"]');
@@ -29,7 +28,7 @@ test('steps are named by what made them; clicking one goes back to it', async ({
   await page.mouse.up();
   expect((await steps(page)).slice(2)).toEqual([
     'Flip Horizontal',
-    'Group Layers',
+    'Group',
     'Stroke width',
     'Move',
   ]);
@@ -42,11 +41,11 @@ test('steps are named by what made them; clicking one goes back to it', async ({
   await expect(page.locator('#sc-doc > g')).toHaveCount(0);
   // Redo walks forward again.
   await page.keyboard.press('Control+Shift+z');
-  expect(await current(page)).toBe('Group Layers');
+  expect(await current(page)).toBe('Group');
   // A new change replaces what came after.
   await select(page, 'r');
   await page.keyboard.press('ArrowRight');
-  expect((await steps(page)).slice(2)).toEqual(['Flip Horizontal', 'Group Layers', 'Nudge']);
+  expect((await steps(page)).slice(2)).toEqual(['Flip Horizontal', 'Group', 'Nudge']);
   await expect(page.locator('#sc-history .after')).toHaveCount(0);
 });
 

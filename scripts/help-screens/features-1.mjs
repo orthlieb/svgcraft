@@ -43,15 +43,15 @@ export default [
     async shoot(h) {
       await h.open('', 'logo.svg', 600, 400);
       await h.placeImage();
-      await h.menu('Image', 'imageTrace');
+      await h.menu('Object', 'imageTrace');
       await h.page.waitForSelector('[data-tr="status"]:text-matches("colour")');
       await h.shot('#sc-trace', { pad: 0 });
     },
   },
   {
-    id: 'image-size',
+    id: 'scale-document',
     async shoot(h) {
-      await h.menu('Image', 'imageSize');
+      await h.menu('File', 'imageSize');
       await h.page.locator('#sc-imagesize').waitFor();
       await h.page.fill('[data-is="w"]', '1200');
       await h.page.dispatchEvent('[data-is="w"]', 'input');
@@ -59,9 +59,9 @@ export default [
     },
   },
   {
-    id: 'canvas-size',
+    id: 'document-setup',
     async shoot(h) {
-      await h.menu('Image', 'canvasSize');
+      await h.menu('File', 'canvasSize');
       await h.page.locator('#sc-canvassize').waitFor();
       await h.page.click('[data-cv-anchor="0.5,0.5"]');
       await h.shot('#sc-canvassize', { pad: 0 });
@@ -70,7 +70,7 @@ export default [
   {
     id: 'grayscale-and-black-white',
     async shoot(h) {
-      await h.menu('Image', 'adjBlackWhite');
+      await h.menu('Edit', 'adjBlackWhite');
       await h.page.locator('#sc-bw').waitFor();
       await h.page.waitForTimeout(300);
       // The dialog beside the drawing it's previewing in grey.
@@ -81,7 +81,7 @@ export default [
     id: 'crop',
     async shoot(h) {
       await h.select('Brush');
-      await h.menu('Image', 'cropToSelection', { click: false });
+      await h.menu('Object', 'cropToSelection', { click: false });
       await menuShot(h, 'cropToSelection');
     },
   },
@@ -97,10 +97,10 @@ export default [
     id: 'history-panel',
     async shoot(h) {
       await h.select('Brush');
-      await h.menu('Edit', 'flipH');
+      await h.menu('Object', 'flipH');
       await h.page.keyboard.press('ArrowRight');
       await h.select('Red paint');
-      await h.menu('Image', 'adjDesaturate');
+      await h.menu('Edit', 'adjDesaturate');
       await h.tab('history');
       const list = h.page.locator('#sc-history');
       await list.locator('li').nth(3).waitFor();

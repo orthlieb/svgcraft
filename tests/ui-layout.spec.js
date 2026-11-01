@@ -109,11 +109,11 @@ test('a locked layer: no handles, how to unlock it, and the alert goes on Esc', 
 }) => {
   await load(page, SCENE);
   await select(page, 'a');
-  await menu(page, 'Layer', 'lockAll');
+  await menu(page, 'Object', 'lockAll');
   await expect(page.locator('#sc-selection .sc-handle')).toHaveCount(0);
   await page.locator('#sc-stage').focus();
   await page.keyboard.press('ArrowRight');
-  await expect(page.locator('#sc-alert-text')).toContainText('Layer → Unlock');
+  await expect(page.locator('#sc-alert-text')).toContainText('Object → Lock → Unlock All');
   await page.keyboard.press('Escape');
   await expect(page.locator('#sc-alert')).toBeHidden();
   // A new selection puts a stale one away too (Esc deselected it).
@@ -143,7 +143,7 @@ test('a submenu with nothing to do is greyed out; library buttons wait for a pic
 }) => {
   await load(page, SCENE);
   await select(page);
-  await page.click('.sc-menu-btn:text-is("Layer")');
+  await page.click('.sc-menu-btn:text-is("Object")');
   const arrange = page
     .locator('.sc-menu-list:not([hidden]) .sc-sub-btn')
     .filter({ hasText: 'Arrange' });

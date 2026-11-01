@@ -222,7 +222,7 @@ export default [
     id: 'merge-layers',
     async shoot(h) {
       await h.select('Red paint', 'Yellow paint');
-      await h.menu('Layer', 'mergeDown', { click: false });
+      await h.menu('Object', 'mergeDown', { click: false });
       await still(h, '.sc-menu-list:not([hidden])', { pad: 4, name: 'merge-layers' });
     },
   },
@@ -244,7 +244,7 @@ export default [
         600,
         400,
       );
-      await h.menu('Layer', 'groupByColour');
+      await h.menu('Object', 'groupByColour');
       await h.page.locator('#sc-ask').waitFor();
       await h.page.locator('#sc-ask .sc-primary-btn').click();
       await h.page.locator('#sc-ask').waitFor({ state: 'hidden' });
@@ -256,19 +256,18 @@ export default [
     id: 'layer-via-copy-cut',
     async shoot(h) {
       await h.select('Red paint');
-      await h.menu('Layer', 'layerViaCopy', { click: false });
-      await still(
-        h,
-        [0, 1].map((i) => h.page.locator('.sc-menu-list:not([hidden])').nth(i)),
-        { pad: 4, name: 'layer-via-copy-cut' },
-      );
+      await h.menu('Object', 'layerViaCopy', { click: false });
+      await still(h, h.page.locator('.sc-menu-list:not([hidden])').first(), {
+        pad: 4,
+        name: 'layer-via-copy-cut',
+      });
     },
   },
   {
-    id: 'layer-style-fx',
+    id: 'effects-fx',
     async shoot(h) {
       await h.select('Title');
-      await h.menu('Layer', 'layerStyle');
+      await h.menu('Effect', 'layerStyle');
       await h.page.locator('#sc-fx').waitFor();
       await h.page.click('#sc-fx [data-fx-page="ds"] button');
       await h.shot('#sc-fx', { pad: 0 });
@@ -336,15 +335,11 @@ export default [
     id: 'release-a-clipping-mask',
     async shoot(h) {
       await clipArt(h);
-      await h.menu('Layer', 'clipRelease', { click: false });
-      await still(
-        h,
-        [0, 1].map((i) => h.page.locator('.sc-menu-list:not([hidden])').nth(i)),
-        {
-          pad: 4,
-          name: 'release-a-clipping-mask',
-        },
-      );
+      await h.menu('Object', 'clipRelease', { click: false });
+      await still(h, h.page.locator('.sc-menu-list:not([hidden])').first(), {
+        pad: 4,
+        name: 'release-a-clipping-mask',
+      });
     },
   },
   {

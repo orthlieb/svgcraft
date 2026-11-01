@@ -92,7 +92,7 @@ test('groups whose look depends on them stay whole; Cancel changes nothing', asy
 
 test('greyed out with nothing to group', async ({ page }) => {
   await load(page, '');
-  await page.click('.sc-menu-btn:text-is("Layer")');
+  await page.click('.sc-menu-btn:text-is("Object")');
   await expect(
     page.locator('.sc-menu-list:not([hidden]) [data-action="groupByColour"]'),
   ).toBeDisabled();

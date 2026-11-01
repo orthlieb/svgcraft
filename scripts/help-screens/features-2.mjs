@@ -128,11 +128,11 @@ export default [
     },
   },
   {
-    id: 'free-transform-and-edit-transform',
+    id: 'free-transform-and-object-transform',
     async shoot(h) {
       await h.open(SHAPES, 'shapes.svg', 800, 340);
       await h.select('Box');
-      await h.menu('Edit', 'freeTransform');
+      await h.menu('Object', 'freeTransform');
       await h.page.waitForSelector('.sc-opt[data-for="transform"]:visible');
       await h.page.fill('[aria-label="Angle"]', '15');
       await h.page.press('[aria-label="Angle"]', 'Enter');
@@ -151,7 +151,7 @@ export default [
     id: 'align-and-distribute',
     async shoot(h) {
       await h.select('Red paint', 'Yellow paint', 'Blue paint');
-      await h.menu('Layer', 'alignHCenter', { click: false });
+      await h.menu('Object', 'alignHCenter', { click: false });
       const menus = h.page.locator('.sc-menu-list:not([hidden])');
       await h.shot([menus.nth(0), menus.nth(1)], { pad: 6 });
     },

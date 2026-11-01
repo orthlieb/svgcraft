@@ -57,7 +57,7 @@ const same = async (page, before) => {
 const subpaths = (page) =>
   page.$eval('#sc-doc > path', (p) => (p.getAttribute('d').match(/M/gi) || []).length);
 const label = async (page) => {
-  await page.click('.sc-menu-btn:text-is("Layer")');
+  await page.click('.sc-menu-btn:text-is("Object")');
   const t = await page
     .locator('.sc-menu-list:not([hidden]) [data-action="mergeDown"] span')
     .textContent();
@@ -161,8 +161,8 @@ test('Merge Visible leaves hidden layers alone; greyed out with nothing to merge
   // One layer and nothing below it: nothing to merge.
   await load(page, `<rect id="only" width="10" height="10"/>`);
   await select(page, 'only');
-  await menuOff(page, 'Layer', 'mergeDown');
-  await menuOff(page, 'Layer', 'mergeVisible');
+  await menuOff(page, 'Object', 'mergeDown');
+  await menuOff(page, 'Object', 'mergeVisible');
 });
 
 // Three or four layers, some alike: a group, the alike ones in it joined.

@@ -10,7 +10,7 @@ const FX_PAGES = ['ds', 'is', 'og', 'ig', 'co', 'bl'];
 
 function openLayerStyle(page) {
   const els = normalizeSel(state.sel);
-  if (!els.length) return warn('Select a layer to give it a layer style.');
+  if (!els.length) return warn('Select something to give it effects.');
   if (refuseLocked(els, 'edit')) return;
   fxSess = {
     els,
@@ -30,6 +30,15 @@ function openLayerStyle(page) {
   showDialog(fxDlg, () => closeLayerStyle(false));
   // Focus lands on OK, the button the user is about to press.
   setTimeout(() => fxDlg.querySelector('[data-fxd="ok"]').focus(), 0);
+}
+
+// The dialog at one effect, switched on (previewed at once).
+function openEffect(k) {
+  openLayerStyle(k);
+  if (!fxDlg.open || !fxSess || fxSess.fx[k].on) return;
+  fxSess.fx[k].on = true;
+  renderFxFields();
+  fxPreview();
 }
 
 function showFxPage(page) {
@@ -196,6 +205,13 @@ const cmds = {
   textOnPath: () => textOnPath(),
   releaseTextOnPath: () => releaseTextOnPath(),
   layerStyle: () => openLayerStyle(),
+  // Effect → Drop Shadow… and the rest: the dialog at that effect, turned on.
+  fxDropShadow: () => openEffect('ds'),
+  fxInnerShadow: () => openEffect('is'),
+  fxOuterGlow: () => openEffect('og'),
+  fxInnerGlow: () => openEffect('ig'),
+  fxColourOverlay: () => openEffect('co'),
+  fxBlur: () => openEffect('bl'),
   clearLayerStyle() {
     const els = normalizeSel(state.sel);
     if (!els.length || refuseLocked(els, 'edit')) return;
@@ -211,7 +227,7 @@ const cmds = {
       blend: blendOf(el),
       opacity: parseFloat(getComputedStyle(el).opacity),
     };
-    say(`Copied the layer style of “${layerName(el)}”.`);
+    say(`Copied the effects of “${layerName(el)}”.`);
   },
   pasteLayerStyle() {
     const els = normalizeSel(state.sel);

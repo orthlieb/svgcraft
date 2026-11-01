@@ -40,10 +40,10 @@ test.describe('the canvas menu', () => {
     await rightClickDoc(page, 330, 330);
     expect(await sel(page)).toBe('b');
     const e = await entries(page);
-    for (const want of ['Cut', 'Copy', 'Duplicate Layer', 'Free Transform', 'Arrange', 'Deselect'])
+    for (const want of ['Cut', 'Copy', 'Duplicate', 'Free Transform', 'Arrange', 'Deselect'])
       expect(e).toContain(want);
     // Only what applies: one shape can't be ungrouped, distributed or traced.
-    for (const not of ['Ungroup Layers', 'Image Trace…', 'Create Outlines', 'Clear Layer Style'])
+    for (const not of ['Ungroup', 'Image Trace…', 'Create Outlines', 'Clear Effects'])
       expect(e).not.toContain(not);
     expect(e[0]).not.toBe('—');
     expect(e.at(-1)).not.toBe('—');
@@ -71,7 +71,7 @@ test.describe('the canvas menu', () => {
 
   test('a command runs from it, closes it, and undoes', async ({ page }) => {
     await rightClickDoc(page, 120, 120);
-    await item(page, 'Duplicate Layer').click();
+    await item(page, 'Duplicate').click();
     await expect(ctx(page)).toBeHidden();
     await expect(page.locator('#sc-doc > rect')).toHaveCount(2);
     await page.keyboard.press('Control+z');
@@ -89,14 +89,14 @@ test.describe('the canvas menu', () => {
   test('a group can be ungrouped; two layers can be grouped', async ({ page }) => {
     await rightClickDoc(page, 530, 130);
     expect(await sel(page)).toBe('g');
-    expect(await entries(page)).toContain('Ungroup Layers');
+    expect(await entries(page)).toContain('Ungroup');
     await page.keyboard.press('Escape');
     await page.evaluate(() => {
       window.svgcraft.state.sel = ['a', 'b'].map((id) => document.getElementById(id));
     });
     await rightClickDoc(page, 120, 120);
     expect(await sel(page), 'right-clicking inside the selection keeps it').toBe('a,b');
-    expect(await entries(page)).toContain('Group Layers');
+    expect(await entries(page)).toContain('Group');
     // Two can be aligned; distributing takes three.
     const align = await sub(page, 'Align');
     await expect(align).toContainText('Left Edges');
@@ -167,7 +167,7 @@ test.describe('the canvas menu', () => {
     await page.keyboard.press('ArrowDown');
     await expect(item(page, 'Cut')).toBeFocused();
     await page.keyboard.press('ArrowUp');
-    await expect(item(page, 'Crop to Selection')).toBeFocused();
+    await expect(item(page, 'Fit to Selection')).toBeFocused();
     for (const b of await ctx(page).locator(':scope > button, .sc-sub-btn').all())
       if ((await b.textContent()).includes('Arrange')) await b.focus();
     await page.keyboard.press('ArrowRight');
@@ -190,7 +190,7 @@ test.describe('the Layers panel menus', () => {
     expect(await sel(page)).toBe('a');
     const e = await entries(page);
     expect(e).toEqual(
-      expect.arrayContaining(['Rename Layer…', 'Duplicate Layer', 'Delete', 'Merge Visible']),
+      expect.arrayContaining(['Rename Layer…', 'Duplicate', 'Delete', 'Merge Visible']),
     );
     expect(e).not.toContain('Free Transform');
     await item(page, 'Rename Layer…').click();
@@ -208,9 +208,9 @@ test.describe('the Layers panel menus', () => {
       window.svgcraft.commit();
     });
     await row(page, 'rect #a').click({ button: 'right' });
-    await item(page, 'Copy Layer Style').click();
+    await item(page, 'Copy Effects').click();
     await row(page, 'circle #b').click({ button: 'right' });
-    await item(page, 'Paste Layer Style').click();
+    await item(page, 'Paste Effects').click();
     const b = await page.evaluate(() => {
       const b = document.getElementById('b');
       return [!!b.getAttribute('data-sc-fx'), b.style.mixBlendMode, b.getAttribute('opacity')];
@@ -261,7 +261,7 @@ test.describe('only what would do something', () => {
 
   test('Copy Layer Style needs a style; Select Inverse needs something left', async ({ page }) => {
     await rightClickDoc(page, 150, 150);
-    expect(await entries(page)).not.toContain('Copy Layer Style');
+    expect(await entries(page)).not.toContain('Copy Effects');
     expect(await entries(page)).toContain('Select Inverse');
     await page.keyboard.press('Escape');
     await page.evaluate(() => {
@@ -269,7 +269,7 @@ test.describe('only what would do something', () => {
       window.svgcraft.commit();
     });
     await rightClickDoc(page, 150, 150);
-    expect(await entries(page)).toContain('Copy Layer Style');
+    expect(await entries(page)).toContain('Copy Effects');
     await page.keyboard.press('Escape');
     // Everything selected: nothing left to invert to.
     await page.keyboard.press('Control+a');

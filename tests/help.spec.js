@@ -47,7 +47,7 @@ test('Help → SVGCraft Help, F1 in a dialog, and a panel’s ? open the right t
   await stubOpen(page);
   await menu(page, 'Help', 'help');
   await load(page, '<rect id="r" width="10" height="10"/>');
-  await page.click('.sc-menu-btn:text-is("Image")');
+  await page.click('.sc-menu-btn:text-is("File")');
   await page.click('.sc-menu-list:not([hidden]) [data-action="imageSize"]');
   await expect(page.locator('#sc-imagesize')).toBeVisible();
   await page.keyboard.press('F1');
@@ -57,8 +57,8 @@ test('Help → SVGCraft Help, F1 in a dialog, and a panel’s ? open the right t
   await page.locator('[data-tab="gradients"]').locator('xpath=..').locator('.sc-help-btn').click();
   expect(await opened(page)).toEqual([
     ['help.html', 'svgcraft-help'],
-    ['help.html#image-size', 'svgcraft-help'],
-    ['help.html#image-size', 'svgcraft-help'],
+    ['help.html#scale-document', 'svgcraft-help'],
+    ['help.html#scale-document', 'svgcraft-help'],
     ['help.html#gradients', 'svgcraft-help'],
   ]);
 });

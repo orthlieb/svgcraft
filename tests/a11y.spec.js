@@ -39,12 +39,11 @@ test('menus: arrows in submenus, Home / End, and a letter', async ({ page }) => 
   await page.click('.sc-menu-btn:text-is("Edit")');
   // A letter: the next item starting with it.
   await page.keyboard.press('ArrowDown');
-  await page.keyboard.press('f');
+  await page.keyboard.press('e');
   await expect(
-    page.locator('.sc-menu-list:not([hidden]) [data-action="freeTransform"]'),
+    page.locator('.sc-menu-list:not([hidden]) .sc-sub-btn', { hasText: 'Edit Colours' }),
   ).toBeFocused();
-  // Into the Transform submenu, and down it.
-  await page.keyboard.press('ArrowDown');
+  // Into the Edit Colours submenu, and down it.
   await page.keyboard.press('ArrowRight');
   const sub = page.locator('.sc-sub-list:not([hidden])');
   await expect(sub.locator('button:focus')).toHaveCount(1);

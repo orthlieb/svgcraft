@@ -81,12 +81,12 @@ export default [
     id: 'the-menu-bar',
     async shoot(h) {
       await h.select('Red paint');
-      await h.menu('Layer', 'clipMake', { click: false });
+      await h.menu('Object', 'clipMake', { click: false });
       await h.shot(
         [
           '.sc-menu-list:not([hidden])',
           '.sc-submenu:has([data-action="clipMake"]) .sc-sub-list',
-          '.sc-menu-btn:text-is("Layer")',
+          '.sc-menu-btn:text-is("Object")',
         ],
         { pad: 6 },
       );

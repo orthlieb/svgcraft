@@ -83,7 +83,7 @@ test('fields, guides, the grid and Canvas Size work in the units', async ({ page
   await page.locator('#sc-grid-size').press('Enter');
   expect(await page.evaluate(() => window.svgcraft.state.gridSize)).toBeCloseTo(5 * MM, 2);
   // Canvas Size in mm, not rounded to pixels.
-  await menu(page, 'Image', 'canvasSize');
+  await menu(page, 'File', 'canvasSize');
   await expect(page.locator('[data-cv="w"]')).toHaveValue('52.92');
   await page.fill('[data-cv="w"]', '60');
   await page.click('[data-cv-btn="ok"]');
@@ -92,7 +92,7 @@ test('fields, guides, the grid and Canvas Size work in the units', async ({ page
   );
   expect((await st(page)).w).toBeCloseTo(60 * MM, 2);
   // Image Size offers mm or percent.
-  await menu(page, 'Image', 'imageSize');
+  await menu(page, 'File', 'imageSize');
   await expect(page.locator('[data-is="unit"] option')).toHaveText(['mm', '%']);
   await expect(page.locator('[data-is="w"]')).toHaveValue('60');
   await page.keyboard.press('Escape');

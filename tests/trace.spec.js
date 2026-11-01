@@ -39,7 +39,7 @@ async function placeTestImage(page) {
   await expect(page.locator('#sc-msg')).toContainText('Image Trace');
 }
 async function openTrace(page) {
-  await menu(page, 'Image', 'imageTrace');
+  await menu(page, 'Object', 'imageTrace');
   await expect(page.locator('#sc-trace')).toBeVisible();
   await expect(page.locator('[data-tr="status"]')).toHaveText(/colour/);
 }
@@ -203,7 +203,7 @@ test('is off without an image selected, and says what’s wrong with the selecti
       ids,
     );
     await page.evaluate(() => window.svgcraft.syncActions());
-    await menuOff(page, 'Image', 'imageTrace');
+    await menuOff(page, 'Object', 'imageTrace');
     await action(page, 'imageTrace');
     await expect(page.locator('#sc-trace')).toBeHidden();
     return page.locator('#sc-alert-text').textContent();
@@ -248,7 +248,7 @@ test('an image it can’t read says why, in the status bar and the console', asy
       img.setAttribute('href', href);
       window.svgcraft.state.sel = [img];
     }, href);
-    await menu(page, 'Image', 'imageTrace');
+    await menu(page, 'Object', 'imageTrace');
     await expect(page.locator('#sc-trace')).toBeHidden();
     return page.locator('#sc-alert-text').textContent();
   };

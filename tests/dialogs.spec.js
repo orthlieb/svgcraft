@@ -14,7 +14,7 @@ const DIALOGS = [
     '#sc-fx',
     async (page) => {
       await select(page, 'r');
-      await menu(page, 'Layer', 'layerStyle');
+      await menu(page, 'Effect', 'layerStyle');
     },
   ],
   [
@@ -74,7 +74,7 @@ test('the page behind a dialog is inert', async ({ page }) => {
 
 test('Esc in Layer Style puts the layer back as it was', async ({ page }) => {
   await select(page, 'r');
-  await menu(page, 'Layer', 'layerStyle');
+  await menu(page, 'Effect', 'layerStyle');
   await page.click('#sc-fx [data-fx-page="ds"] button');
   expect(
     await page.evaluate(() => document.getElementById('r').getAttribute('data-sc-fx')),

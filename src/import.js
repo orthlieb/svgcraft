@@ -493,7 +493,7 @@ function placeImage(dataUrl) {
     state.sel = [el];
     setTool('select');
     commit();
-    say('Placed the image. Image → Image Trace… turns it into shapes.');
+    say('Placed the image. Object → Image Trace… turns it into shapes.');
   };
   img.src = dataUrl;
 }
