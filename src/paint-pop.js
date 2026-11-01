@@ -61,7 +61,8 @@ function docColours(max = 18) {
 }
 
 // Choosing: what the next shape gets, and the selection's paint.
-function setSolidPaint(k, c, a) {
+function setSolidPaint(k, c, a, swatch = null) {
+  state[k + 'Swatch'] = swatch;
   state[k] = c;
   if (a != null) state[k + 'A'] = a;
   state[k + 'On'] = true;
@@ -190,10 +191,11 @@ function pickPaintMode(m) {
   renderPaintPop();
 }
 
-const ppTile = (label, bg, onPick, sel) => {
+const ppTile = (label, bg, onPick, sel, global = false) => {
   const b = document.createElement('button');
   b.type = 'button';
-  b.className = 'sc-libpick-tile sc-paintpop-tile' + (sel ? ' sel' : '');
+  b.className =
+    'sc-libpick-tile sc-paintpop-tile' + (sel ? ' sel' : '') + (global ? ' global' : '');
   b.setAttribute('aria-label', label);
   b.setAttribute('aria-pressed', !!sel);
   b.dataset.tip = label;
@@ -270,7 +272,13 @@ function renderPaintPop() {
       ppHeading('Swatches'),
       ppGrid(
         lib.swatches.map((x) =>
-          ppTile(x.name, libSwatchThumb(x), () => setSolidPaint(k, x.c, x.a), on(x.c, x.a)),
+          ppTile(
+            x.name,
+            libSwatchThumb(x),
+            () => setSolidPaint(k, x.c, x.a, x.global ? x.id : null),
+            on(x.c, x.a),
+            x.global,
+          ),
         ),
         'small',
       ),

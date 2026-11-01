@@ -477,6 +477,23 @@ export default [
     },
   },
   {
+    id: 'global-swatches',
+    async shoot(h) {
+      await h.tab('swatches');
+      await h.page.evaluate(() => {
+        /* eslint-disable no-undef -- the editor's own globals */
+        lib.swatches[5].global = true;
+        libSel.swatches = lib.swatches[5].id;
+        renderLibraries();
+        /* eslint-enable no-undef */
+        document.getElementById('sc-libraries').style.height = '230px';
+        document.activeElement.blur();
+      });
+      await h.page.mouse.move(5, 500);
+      await h.shot(['#sc-palette', '[data-lib="swatches"]'], { pad: 8 });
+    },
+  },
+  {
     id: 'fill-and-stroke',
     async shoot(h) {
       await h.open(SHAPES, 'shapes.svg', 800, 340);

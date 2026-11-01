@@ -59,7 +59,14 @@ function cleanLibrary(raw, fresh = false) {
   const num = (v, lo, hi, d) => (v != null && isFinite(+v) ? clamp(+v, lo, hi) : d);
   for (const x of list(raw.swatches)) {
     const c = color(x.c);
-    if (c) out.swatches.push({ id: id(x.id), name: name(x.name, c), c, a: num(x.a, 0, 1, 1) });
+    if (c)
+      out.swatches.push({
+        id: id(x.id),
+        name: name(x.name, c),
+        c,
+        a: num(x.a, 0, 1, 1),
+        ...(x.global ? { global: true } : {}),
+      });
   }
   for (const x of list(raw.gradients)) {
     const stops = list(x.stops)
@@ -186,13 +193,92 @@ askDlg.querySelector('[data-ask="alt"]').addEventListener('click', () => askDone
 
 const otherPaint = () => (state.active === 'fill' ? 'stroke' : 'fill');
 
-function applySwatch(c, a, e) {
+// ---- global swatches ------------------------------------------------------------
+// A global swatch's objects carry data-sc-fill-swatch / data-sc-stroke-swatch
+// = its id beside their plain colour, so editing the swatch's colour repaints
+// them all. state.fillSwatch / strokeSwatch is the global swatch a paint came
+// from; it only links while the paint is still exactly that colour.
+const globalSwatch = (id) => (id && lib.swatches.find((x) => x.id === id && x.global)) || null;
+function paintSwatch(k) {
+  const sw = globalSwatch(state[k + 'Swatch']);
+  const solid = state[k + 'On'] && !state[k + 'Grad'] && !state[k + 'Pat'];
+  return sw && solid && sw.c === state[k] && Math.abs(sw.a - state[k + 'A']) < 1e-3 ? sw : null;
+}
+// Paint k of el linked to its global swatch, or not.
+function linkSwatch(el, k) {
+  const sw = paintSwatch(k);
+  if (sw) el.setAttribute(`data-sc-${k}-swatch`, sw.id);
+  else el.removeAttribute(`data-sc-${k}-swatch`);
+}
+// Every object linked to sw takes its colour again: one undo step.
+function repaintSwatch(sw) {
+  const q = `[data-sc-fill-swatch="${sw.id}"], [data-sc-stroke-swatch="${sw.id}"]`;
+  let n = 0;
+  for (const el of [...doc.querySelectorAll(q), ...defs.querySelectorAll(q)]) {
+    if (lockOf(el) === 'all') continue;
+    for (const k of ['fill', 'stroke'])
+      if (el.getAttribute(`data-sc-${k}-swatch`) === sw.id) {
+        el.style?.removeProperty(k);
+        el.setAttribute(k, sw.c);
+        setPaintAttr(el, `${k}-opacity`, f(sw.a), 1);
+      }
+    n++;
+  }
+  if (n) {
+    noteStep('Edit Swatch');
+    commit();
+    if (state.sel[0]) readStyle(state.sel[0]);
+    syncStyleUI();
+  }
+  return n;
+}
+// The selected swatch: its colour edited (a global one repaints its objects).
+let swatchPicker = null;
+function editSwatchColour() {
+  const sw = libItem('swatches', libSel.swatches);
+  if (!sw) return warn('Click a swatch first, then edit its colour.');
+  if (!swatchPicker) {
+    swatchPicker = document.createElement('input');
+    swatchPicker.type = 'color';
+    swatchPicker.hidden = true;
+    swatchPicker.setAttribute('aria-label', 'Swatch colour');
+    document.body.append(swatchPicker);
+    swatchPicker.addEventListener('change', () => {
+      const s = libItem('swatches', swatchPicker.dataset.id);
+      if (!s || s.c === swatchPicker.value) return;
+      if (s.name === s.c) s.name = swatchPicker.value;
+      s.c = swatchPicker.value;
+      saveLibrary();
+      const n = s.global ? repaintSwatch(s) : 0;
+      say(n ? `“${s.name}”: repainted ${n} object${n > 1 ? 's' : ''}.` : `“${s.name}” edited.`);
+    });
+  }
+  swatchPicker.dataset.id = sw.id;
+  swatchPicker.value = sw.c;
+  swatchPicker.click();
+}
+// The selected swatch made global (or not).
+function toggleGlobalSwatch() {
+  const sw = libItem('swatches', libSel.swatches);
+  if (!sw) return warn('Click a swatch first, then make it global.');
+  if (sw.global) delete sw.global;
+  else sw.global = true;
+  saveLibrary();
+  say(
+    sw.global
+      ? `“${sw.name}” is global: objects you paint with it follow when its colour is edited.`
+      : `“${sw.name}” isn’t global any more.`,
+  );
+}
+
+function applySwatch(c, a, e, item = null) {
   const k = e?.shiftKey ? otherPaint() : state.active;
   if (c !== 'none' && k === state.active && activeGrad())
     return editGrad((g) => {
       g.stops[state.gradStop].c = c;
       if (a != null) g.stops[state.gradStop].a = a;
     });
+  state[k + 'Swatch'] = item?.global ? item.id : null;
   if (c === 'none') state[k + 'On'] = false;
   else {
     state[k] = c;
@@ -239,7 +325,8 @@ let patTileInk = null;
 
 function libTile(kind, item, bg, apply) {
   const b = document.createElement('button');
-  b.className = 'sc-tile' + (libSel[kind] === item.id ? ' sel' : '');
+  b.className =
+    'sc-tile' + (libSel[kind] === item.id ? ' sel' : '') + (item.global ? ' global' : '');
   b.dataset.id = item.id;
   b.dataset.tip = item.name;
   b.setAttribute('aria-label', item.name);
@@ -265,7 +352,7 @@ function renderLibraries() {
   $('#sc-palette').replaceChildren(
     none,
     ...lib.swatches.map((x) =>
-      libTile('swatches', x, solidCss(x.c, x.a), (e) => applySwatch(x.c, x.a, e)),
+      libTile('swatches', x, solidCss(x.c, x.a), (e) => applySwatch(x.c, x.a, e, x)),
     ),
   );
   $('#sc-gradlib').replaceChildren(

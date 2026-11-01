@@ -140,6 +140,8 @@ const state = {
   starRatio: 100,
   arrows: { start: false, end: false },
   radiusLinked: true,
+  fillSwatch: null, // the global swatch the fill came from (src/libraries.js)
+  strokeSwatch: null,
   fillGrad: null, // { type, stops, angle } when the fill is a gradient
   strokeGrad: null,
   fillPat: null, // { id, name, w, h, svg, scale, angle } when the fill is a pattern

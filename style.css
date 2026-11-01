@@ -1104,7 +1104,8 @@ kbd {
 .sc-layers-lock .sc-opt-label {
   margin-right: 4px;
 }
-.sc-layers-lock [aria-pressed='true'] {
+.sc-layers-lock [aria-pressed='true'],
+.sc-lib-bar [aria-pressed='true'] {
   background: var(--row-sel);
   color: var(--text);
 }
@@ -2198,6 +2199,23 @@ select[data-stroke-dash],
   background:
     var(--tile, transparent),
     var(--checker) 0 0 / 8px 8px;
+}
+/* A global swatch: a white corner, bottom right. */
+.sc-tile.global,
+.sc-paintpop-tile.global {
+  position: relative;
+}
+.sc-tile.global::after,
+.sc-paintpop-tile.global::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  border-style: solid;
+  border-width: 0 0 7px 7px;
+  border-color: transparent transparent #fff transparent;
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.6));
+  pointer-events: none;
 }
 .sc-palette .sc-tile.sel {
   outline: 2px solid var(--accent-hi);
