@@ -217,7 +217,9 @@ test('a deeply nested layer nudges and aligns in doc space; undo restores it', a
   expect(await onScreen(page)).toEqual(BEFORE);
 });
 
-test('canvas auto-select picks the clicked layer or its top-level group', async ({ page }) => {
+test('a click picks the top-level group; Ctrl/⌘-click the exact shape inside it', async ({
+  page,
+}) => {
   await placeScene(page);
   await restack(page);
   await page.keyboard.press('v');
@@ -237,16 +239,20 @@ test('canvas auto-select picks the clicked layer or its top-level group', async 
       ),
     );
 
-  await page.click('[data-autosel="layer"]');
+  // Ctrl/⌘-click picks the exact shape, inside its groups.
   let p = await onHill(0.5);
+  await page.keyboard.down('Control');
   await page.mouse.click(p.x, p.y);
+  await page.keyboard.up('Control');
   expect(await picked()).toEqual(['path  < Hills']);
 
-  await page.click('[data-autosel="group"]');
+  // A plain click picks the whole top-level group.
   p = await onHill(0.2);
   await page.keyboard.press('Escape');
   await page.mouse.click(p.x, p.y);
   expect((await picked()).map((s) => s.split(' < ')[0])).toEqual(['g scene.svg']);
+  // There's no Auto-Select switch any more.
+  await expect(page.locator('[data-autosel]')).toHaveCount(0);
 });
 
 test('copying a nested layer keeps its inherited paint and composed transform', async ({

@@ -154,7 +154,7 @@ window.addEventListener('resize', closeCtx);
 
 // ---- the canvas -----------------------------------------------------------------
 // The layers under a page point, top first: each shape (or text, or symbol
-// instance) as Auto-Select: Layer would pick it.
+// instance) as a Ctrl/⌘-click would pick it.
 function layersAt(x, y) {
   const out = [];
   for (const n of document.elementsFromPoint(x, y)) {

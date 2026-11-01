@@ -148,3 +148,31 @@ test('the dimming is never saved or kept in the history', async ({ page }) => {
   expect(out.hist).not.toContain('data-sc-dim');
   expect(await dimmed(page)).toEqual(['loose']);
 });
+
+test('Ctrl/⌘-click and a Ctrl/⌘-drag pick shapes inside groups, within the isolated group', async ({
+  page,
+}) => {
+  // Not isolated: Ctrl-click reaches the square inside the inner group.
+  const p = await at(page, 130, 150);
+  await page.keyboard.down('Control');
+  await page.mouse.click(p.x, p.y);
+  await page.keyboard.up('Control');
+  expect(await sel(page)).toEqual(['c']);
+  // A Ctrl-drag box picks the shapes inside groups that it touches.
+  await click(page, 300, 280);
+  const q0 = await at(page, 90, 100);
+  const q1 = await at(page, 590, 290);
+  await page.keyboard.down('Control');
+  await page.mouse.move(q0.x, q0.y);
+  await page.mouse.down();
+  await page.mouse.move(q1.x, q1.y, { steps: 5 });
+  await page.mouse.up();
+  await page.keyboard.up('Control');
+  expect((await sel(page)).sort()).toEqual(['c', 'd', 'loose']);
+  // Isolated in Outer, Ctrl-click still can't reach the dimmed circle.
+  await dbl(page, 130, 50);
+  await page.keyboard.down('Control');
+  await click(page, 500, 200);
+  await page.keyboard.up('Control');
+  expect(await sel(page)).toEqual([]);
+});

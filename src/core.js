@@ -100,7 +100,6 @@ const state = {
   fileName: 'Untitled-1',
   eraserMode: 'object',
   eyedropMode: 'style',
-  autoSelect: 'group',
   tf: null, // an open Free Transform / Scale / Rotate / Skew session
   eraserSize: 12,
   smoothing: 4,

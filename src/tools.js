@@ -7,7 +7,7 @@
 const tools = {};
 
 tools.select = {
-  hint: 'Click to select · Shift-click adds · Drag to move · Handles scale (Shift keeps ratio, Alt from centre) · Arrows nudge · Double-click a group to work inside it, a shape to edit its points, or text to edit it',
+  hint: 'Click to select · Shift-click adds · Ctrl/⌘-click picks inside a group · Drag to move · Handles scale (Shift keeps ratio, Alt from centre) · Arrows nudge · Double-click a group to work inside it, a shape to edit its points, or text to edit it',
   // The Move tool: the arrow with its four-way cross.
   cursor: cursorFor['move+move'],
   down(e, p) {
@@ -63,7 +63,9 @@ tools.select = {
       if (this.g.mode === 'rot') stage.style.cursor = cursorFor.rotate;
       return;
     }
-    const el = pickLayer(e.target);
+    // Ctrl/⌘-click picks the exact shape, inside its groups.
+    const deep = e.ctrlKey || e.metaKey;
+    const el = pickLayer(e.target, deep);
     if (el) {
       if (e.shiftKey) {
         toggleSel(el);
@@ -81,7 +83,7 @@ tools.select = {
         p.y <= box.y + box.h
       )
     ) {
-      this.g = { mode: 'marquee', p0: p, base: e.shiftKey ? [...state.sel] : [] };
+      this.g = { mode: 'marquee', p0: p, base: e.shiftKey ? [...state.sel] : [], deep };
       if (!e.shiftKey) setSel([]);
       return;
     }
@@ -104,9 +106,7 @@ tools.select = {
       const h = Math.abs(p.y - g.p0.y);
       guides.replaceChildren();
       mk('rect', { x, y, width: w, height: h, class: 'sc-ov sc-ov-fill sc-ov-dash' }, guides);
-      const hit = (
-        state.autoSelect === 'layer' ? leafLayers().filter(inScope) : scopeItems()
-      ).filter((el) => {
+      const hit = (g.deep ? leafLayers().filter(inScope) : scopeItems()).filter((el) => {
         const b = el.getAttribute('display') !== 'none' && bboxDoc(el);
         return b && b.x < x + w && b.x + b.w > x && b.y < y + h && b.y + b.h > y;
       });

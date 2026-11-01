@@ -115,7 +115,7 @@ function layerViaCut() {
   }
   const els = inDocOrder(liftable());
   if (!els.length)
-    return warn('Pick a shape inside a group (Auto-Select: Layer), or points with Edit Points.');
+    return warn('Pick a shape inside a group (Ctrl/⌘-click it), or points with Edit Points.');
   if (refuseLocked(els, 'edit')) return;
   // Each goes just above the top-level layer it was in, in the same order.
   const after = new Map(els.map((el) => [el, topLevel(el).nextSibling]));

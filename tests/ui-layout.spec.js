@@ -19,7 +19,8 @@ test('Layers keeps room for four rows', async ({ page }) => {
 });
 
 test('an options bar too long for the window shows › and ‹ to scroll it', async ({ page }) => {
-  await page.setViewportSize({ width: 1024, height: 700 });
+  // The Move tool's bar fits 1024 px; at 800 it doesn't.
+  await page.setViewportSize({ width: 800, height: 700 });
   await load(page, SCENE);
   await page.evaluate(() => window.svgcraft.setTool('select'));
   const right = page.locator('.sc-opt-more-r');

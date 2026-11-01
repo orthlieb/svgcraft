@@ -55,15 +55,6 @@ layerList.addEventListener('drop', (e) => {
   moveLayers(dragEls, null, 'end');
 });
 
-for (const b of document.querySelectorAll('[data-autosel]')) {
-  b.addEventListener('click', () => {
-    state.autoSelect = b.dataset.autosel;
-    for (const x of document.querySelectorAll('[data-autosel]'))
-      x.setAttribute('aria-checked', x === b);
-  });
-  b.setAttribute('aria-checked', b.dataset.autosel === state.autoSelect);
-}
-
 // Remaining controls ------------------------------------------------------
 const zoomInput = $('#sc-zoom-input');
 zoomInput.addEventListener('change', () => {
