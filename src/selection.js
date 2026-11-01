@@ -45,6 +45,8 @@ function setSel(els) {
   }
   drawSelection();
   markLayers();
+  // The Shape Builder builds from whatever is selected now.
+  if (state.tool === 'shapebuilder') sbBuild();
 }
 
 // Re-highlight the selected rows without rebuilding the list (a rebuild
@@ -98,7 +100,8 @@ function drawSelection() {
   if (typeof syncActions === 'function') syncActions();
   if (typeof syncLibBars === 'function') syncLibBars();
   $('#sc-pos').dataset.sel = '';
-  if (!state.sel.length || state.tool === 'node') return;
+  // Direct Selection draws points, the Shape Builder its regions (src/shape-builder.js).
+  if (!state.sel.length || state.tool === 'node' || state.tool === 'shapebuilder') return;
   const z = state.zoom;
   if (state.sel.length > 1) {
     for (const el of state.sel) {

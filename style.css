@@ -804,6 +804,27 @@ kbd {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
   white-space: nowrap;
 }
+/* The Shape Builder's regions: the one under the pointer, or those a drag
+   marks (red when Alt deletes them). */
+.sc-sb-region {
+  fill: var(--accent-hi);
+  fill-opacity: 0.3;
+  stroke: var(--accent-hi);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+.sc-sb-edge {
+  fill: none;
+  stroke: var(--accent-hi);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+.sc-sb-region.del {
+  fill: #dc2626;
+  stroke: #dc2626;
+}
 /* Isolation mode (src/scope.js): the rest of the drawing dimmed and out
    of reach; the bar's crumbs go back up. */
 #sc-doc [data-sc-dim] {

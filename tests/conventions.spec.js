@@ -36,6 +36,7 @@ test('the toolbar runs in the familiar order', async ({ page }) => {
     'text',
     'node',
     'sc-shape-btn',
+    'shapebuilder',
     'hand',
     'zoom',
   ]);

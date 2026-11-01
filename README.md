@@ -2589,6 +2589,32 @@ it straight away.
 Show art only through the outline of a shape or text, as Illustrator does.
 The clip stays live, so you can move the window or the art afterwards.
 
+### Shape Builder
+
+![The Shape Builder dragging across three overlapping circles, the regions it will merge shaded](docs/help/shape-builder.png)
+
+Build a shape out of the pieces overlapping shapes make: merge some,
+delete others, without picking an operation first.
+
+1. Select two or more overlapping shapes.
+2. Pick the **Shape Builder** (Shift+M). The piece under the pointer is
+   shaded.
+3. Drag across the pieces you want as one shape, then let go. It takes the
+   colour of the piece you started in.
+4. To delete pieces instead, hold Alt while you drag (or Alt-click one).
+
+#### Good to know
+
+- A plain click on a piece splits it out as a shape of its own.
+- Every piece you didn't touch becomes a separate shape, coloured like the
+  topmost shape that covered it, so you can go on building: the results
+  stay selected.
+- Each drag is one undo step. After an undo nothing is selected; press
+  Ctrl+A (or pick the shapes in Layers) to build again.
+- It works on shapes and paths (a group counts as one shape); text and
+  images are left alone. For a single operation on whole shapes, see
+  [Combine selected shapes](#combine-selected-shapes).
+
 ### Make a clipping mask
 
 ![Stripes and a circle clipped to an ellipse, with the Clipping group in the Layers panel](docs/help/make-a-clipping-mask.png)

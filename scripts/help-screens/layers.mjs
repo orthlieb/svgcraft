@@ -285,6 +285,40 @@ export default [
     },
   },
   {
+    id: 'shape-builder',
+    viewport: SMALL,
+    async shoot(h) {
+      await h.open(
+        `<circle data-name="Red" cx="230" cy="160" r="100" fill="#dc2626"/>
+        <circle data-name="Blue" cx="350" cy="160" r="100" fill="#2563eb"/>
+        <circle data-name="Yellow" cx="290" cy="260" r="100" fill="#facc15"/>`,
+        'circles.svg',
+        600,
+        400,
+      );
+      await h.select('Red', 'Blue', 'Yellow');
+      await h.page.evaluate(() => window.svgcraft.setTool('shapebuilder'));
+      // Part-way through a drag from the red circle's own piece into the
+      // middle, where all three overlap.
+      const pts = [
+        [170, 120],
+        [270, 170],
+        [290, 200],
+      ];
+      const s = [];
+      for (const [x, y] of pts) s.push(await h.at(x, y));
+      await h.page.waitForFunction(
+        // eslint-disable-next-line no-undef -- the editor's own state
+        () => !!sb,
+      );
+      await h.page.mouse.move(s[0].x, s[0].y);
+      await h.page.mouse.down();
+      for (const q of s.slice(1)) await h.page.mouse.move(q.x, q.y, { steps: 6 });
+      await h.shot('#sc-stage-wrap', { pad: 0 });
+      await h.page.mouse.up();
+    },
+  },
+  {
     id: 'combine-selected-shapes',
     viewport: SMALL,
     async shoot(h) {

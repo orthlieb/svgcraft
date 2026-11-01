@@ -10,6 +10,7 @@ const PAINT_FOLD_KEY = 'svgcraft.paintFold'; // { fill, stroke }: folded in the 
 const TOOL_META = {
   select: ['sc-move', 'Selection', 'Move'],
   node: ['sc-direct', 'Direct Selection', 'Edit Points'],
+  shapebuilder: ['sc-unite', 'Shape Builder'],
   pencil: ['pencil', 'Pencil'],
   pen: ['pen-nib', 'Pen'],
   eraser: ['eraser', 'Eraser'],
@@ -110,7 +111,7 @@ function setTool(name) {
   const changed = name !== state.tool;
   if (changed) {
     tools[state.tool].leave?.();
-    if (!['select', 'hand', 'zoom', 'eyedropper'].includes(name)) state.sel = [];
+    if (!['select', 'hand', 'zoom', 'eyedropper', 'shapebuilder'].includes(name)) state.sel = [];
   }
   state.tool = name;
   stage.dataset.tool = name;
