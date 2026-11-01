@@ -2,7 +2,7 @@
 // selection's transparency / move / scale, erasers, undo / redo, export,
 // import sanitising, autosave across reload and the mobile layout.
 import fs from 'node:fs';
-import { test, expect, load, toScreen } from './fixtures.js';
+import { test, expect, load, toScreen, dragDoc, clickDoc } from './fixtures.js';
 
 test.use({ viewport: { width: 1280, height: 800 } });
 
@@ -16,19 +16,7 @@ const lastHTML = (page) =>
   page.evaluate(() => document.getElementById('sc-doc').lastElementChild.outerHTML);
 
 // Press at the first doc point, move through the rest, release.
-async function drag(page, pts) {
-  const s = [];
-  for (const [x, y] of pts) s.push(await toScreen(page, x, y));
-  await page.mouse.move(s[0].x, s[0].y);
-  await page.mouse.down();
-  for (const q of s.slice(1)) await page.mouse.move(q.x, q.y, { steps: 4 });
-  await page.mouse.up();
-}
-
-async function clickDoc(page, x, y) {
-  const s = await toScreen(page, x, y);
-  await page.mouse.click(s.x, s.y);
-}
+const drag = (page, pts) => dragDoc(page, pts, { steps: 4 });
 
 // Numbers in a path d (or any string), for approximate comparison.
 const nums = (s) => s.match(/-?\d*\.?\d+(?:e-?\d+)?/gi).map(Number);

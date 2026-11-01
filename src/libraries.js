@@ -363,7 +363,7 @@ function renderLibraries() {
   libPickers.gradients?.sync();
   renderPatEditor();
   renderSymLib();
-  if (typeof syncLibBars === 'function') syncLibBars();
+  syncLibBars();
 }
 function renderPatTiles(force = false) {
   const ink = state[state.active];

@@ -117,7 +117,7 @@ function syncBoardOpts() {
   $('#sc-board-w').value = b ? inUnits(b.w) : '';
   $('#sc-board-h').value = b ? inUnits(b.h) : '';
   $('#sc-board-moveart').checked = state.boardMoveArt;
-  if (typeof syncActions === 'function') syncActions();
+  syncActions();
 }
 
 // Change the picked artboard (the page goes through setSize).

@@ -118,7 +118,7 @@ function afterChange() {
   $('#sc-undo').disabled = hIdx <= 0;
   $('#sc-redo').disabled = hIdx >= hist.length - 1;
   state.sel = state.sel.filter((el) => doc.contains(el));
-  if (typeof renderBoards === 'function') renderBoards();
+  renderBoards();
   // The isolated group gone (deleted, ungrouped): back to the drawing.
   if (scope && !iso && !doc.contains(scope)) setScope(null);
   drawSelection();

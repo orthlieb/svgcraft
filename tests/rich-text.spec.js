@@ -1,14 +1,9 @@
 // Per-character styling inside the type editor: runs from the options bar,
 // Character panel, swatches and font picker; caret read-back; auto leading;
 // whole-layer settings clearing runs; mixed-size wrapping; round-trip.
-import { test, expect, toScreen, parkLibraries } from './fixtures.js';
+import { test, expect, toScreen, parkLibraries, clickDoc } from './fixtures.js';
 
 const editor = (page) => page.locator('.sc-type-edit');
-
-async function clickDoc(page, x, y) {
-  const p = await toScreen(page, x, y);
-  await page.mouse.click(p.x, p.y);
-}
 
 // The editor's styled spans, as [text, weight, size, first family, decoration, colour].
 const spans = (page) =>

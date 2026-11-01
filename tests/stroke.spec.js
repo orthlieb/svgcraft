@@ -1,4 +1,4 @@
-import { test, expect, load, toScreen, tab } from './fixtures.js';
+import { test, expect, load, toScreen, tab, dragDoc } from './fixtures.js';
 
 // Stroke caps, joins, dash presets and rounded rectangle corners.
 
@@ -6,14 +6,7 @@ const props = '#sc-appearance';
 const opt = '.sc-opt.on';
 
 // Drag between two document points.
-async function drag(page, a, z, steps = 4) {
-  const s = await toScreen(page, ...a);
-  const t = await toScreen(page, ...z);
-  await page.mouse.move(s.x, s.y);
-  await page.mouse.down();
-  await page.mouse.move(t.x, t.y, { steps });
-  await page.mouse.up();
-}
+const drag = (page, a, z, steps = 4) => dragDoc(page, [a, z], { steps });
 
 // Drag the centre of a locator by (dx, dy) page pixels.
 async function dragBy(page, loc, dx, dy, steps = 5) {

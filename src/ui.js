@@ -233,7 +233,7 @@ function syncStyleUI() {
   const show = { strokeWidth: f(state.strokeWidth), opacity: Math.round(state.opacity * 100) };
   for (const el of document.querySelectorAll('[data-bind]'))
     if (document.activeElement !== el) el.value = show[el.dataset.bind];
-  if (typeof syncPaintButtons === 'function') syncPaintButtons();
+  syncPaintButtons();
 }
 
 // Push a style change to the selection; `final` commits it to history.

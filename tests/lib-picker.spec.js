@@ -1,22 +1,15 @@
 // The library pickers: Custom Shape's Shape (the Symbols library) and the
 // pattern editor's pattern (the Patterns library), each a button that opens
 // the library's tiles, and kept in step with the panel's own.
-import { test, expect, load, select, toScreen, tab } from './fixtures.js';
+import { test, expect, load, select, tab, dragDoc } from './fixtures.js';
 
 const pop = (page) => page.locator('#sc-libpick-pop');
 const tiles = (page) => pop(page).locator('.sc-libpick-tile');
 const shapeBtn = (page) => page.locator('#sc-custom-shape');
 const patBtn = (page) => page.locator('#sc-pat-pick');
 
-async function drag(page, [x0, y0], [x1, y1]) {
-  const a = await toScreen(page, x0, y0);
-  const b = await toScreen(page, x1, y1);
-  await page.mouse.move(a.x, a.y);
-  await page.mouse.down();
-  await page.mouse.move((a.x + b.x) / 2, (a.y + b.y) / 2);
-  await page.mouse.move(b.x, b.y);
-  await page.mouse.up();
-}
+const drag = (page, a, b) =>
+  dragDoc(page, [a, [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], b], { steps: 1 });
 
 test.describe('Custom Shape', () => {
   test.beforeEach(async ({ page }) => {

@@ -1,6 +1,6 @@
 // Align / distribute (by command and from the options bar) and the
 // eyedropper's style and pixel modes.
-import { test, expect, toScreen } from './fixtures.js';
+import { test, expect, toScreen, clickDoc } from './fixtures.js';
 
 const DOC = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
   <rect id="a" x="50" y="60" width="100" height="80" fill="#dc2626"/>
@@ -164,11 +164,6 @@ test('the options-bar Align Top button works and its rotated icons render rotate
 });
 
 // ---- Eyedropper -----------------------------------------------------------
-
-async function clickDoc(page, x, y) {
-  const p = await toScreen(page, x, y);
-  await page.mouse.click(p.x, p.y);
-}
 
 const rgb = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
 

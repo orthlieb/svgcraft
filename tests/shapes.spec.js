@@ -1,20 +1,11 @@
-import { test, expect, load, menu, toScreen } from './fixtures.js';
+import { test, expect, load, menu, toScreen, dragDoc } from './fixtures.js';
 
 // The Shape tool group (U): Rectangle, Ellipse, Triangle,
 // Polygon / Star, Line with arrowheads and Custom Shape, one toolbar
 // button with a flyout; a click without dragging asks for an exact size.
 
 const tool = (page) => page.evaluate(() => window.svgcraft.state.tool);
-async function drag(page, [x0, y0], [x1, y1], mods = []) {
-  const a = await toScreen(page, x0, y0);
-  const b = await toScreen(page, x1, y1);
-  for (const m of mods) await page.keyboard.down(m);
-  await page.mouse.move(a.x, a.y);
-  await page.mouse.down();
-  await page.mouse.move(b.x, b.y, { steps: 4 });
-  await page.mouse.up();
-  for (const m of mods) await page.keyboard.up(m);
-}
+const drag = (page, from, to, mods = []) => dragDoc(page, [from, to], { mods, steps: 4 });
 const last = (page, sel = '#sc-doc > *') => page.locator(sel).last();
 // eslint-disable-next-line no-undef -- the editor's own global
 const box = (page) => page.evaluate(() => bboxDoc(document.querySelector('#sc-doc > :last-child')));

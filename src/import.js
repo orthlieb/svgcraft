@@ -91,11 +91,11 @@ function sanitize(root, { smil = false } = {}) {
 }
 
 // A file's own SMIL animations can't stay as they are: SVGCraft writes its
-// animations from settings on the layer (src/animate.js). Each one is noted
+// animations from settings on the layer (src/anim-import.js). Each one is noted
 // on the element it animates (data-sc-smil, read by adoptSmil() once the
 // drawing is on the page), and those it can't be (on the root, in <defs>,
 // CSS @keyframes) are listed, with why, in data-sc-smil-lost (see
-// smilMarkup in src/animate.js). SMIL that SVGCraft
+// smilMarkup in src/anim-import.js). SMIL that SVGCraft
 // wrote itself, on a layer that still has its settings, is just dropped.
 const SMIL_TAGS = new Set(['animate', 'animateTransform', 'animateMotion', 'set']);
 // The list stashSmil left on the root ([] if none or unreadable).

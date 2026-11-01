@@ -355,7 +355,7 @@ function closeMenus() {
 function showMenu(m, focusFirst) {
   closeMenus();
   syncActions();
-  if (typeof syncWindowMenu === 'function') syncWindowMenu();
+  syncWindowMenu();
   const btn = m.querySelector('.sc-menu-btn');
   const list = m.querySelector('.sc-menu-list');
   list.hidden = false;

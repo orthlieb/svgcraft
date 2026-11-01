@@ -1,7 +1,7 @@
 // The Shape Builder (Shift+M): selected shapes split into the regions their
 // outlines make; drag across regions to merge them, click one to split it
 // out, Alt to delete. What's left becomes separate shapes, all selected.
-import { test, expect, load, toScreen } from './fixtures.js';
+import { test, expect, load, toScreen, dragDoc } from './fixtures.js';
 
 // Red A (0–100) and blue B (50–150) overlap in the middle: three regions.
 const SCENE =
@@ -36,15 +36,7 @@ const shapes = (page) =>
     }),
   );
 
-async function drag(page, pts, mods = []) {
-  for (const m of mods) await page.keyboard.down(m);
-  const s = await Promise.all(pts.map(([x, y]) => toScreen(page, x, y)));
-  await page.mouse.move(s[0].x, s[0].y);
-  await page.mouse.down();
-  for (const q of s.slice(1)) await page.mouse.move(q.x, q.y, { steps: 4 });
-  await page.mouse.up();
-  for (const m of mods) await page.keyboard.up(m);
-}
+const drag = (page, pts, mods = []) => dragDoc(page, pts, { mods, steps: 4 });
 
 test('dragging across regions merges them, styled like the first; the rest stay apart', async ({
   page,

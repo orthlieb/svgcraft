@@ -476,7 +476,7 @@ function renderSymbols() {
       grid.replaceChildren(p);
     }
   }
-  if (typeof syncLibBars === 'function') syncLibBars();
+  syncLibBars();
   for (const tile of grid.querySelectorAll('.sc-sym-tile')) {
     tile.classList.toggle('sel', tile.dataset.id === symSel);
     const box = symBox(symById(tile.dataset.id));

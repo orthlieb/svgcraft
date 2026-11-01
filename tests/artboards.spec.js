@@ -2,7 +2,7 @@
 // by dragging on the pasteboard, moves and resizes them, and Del deletes
 // one. Saved, the viewBox covers them all and they're listed, so the file
 // reopens with them; Export Artboards writes one SVG per artboard.
-import { test, expect, load, toScreen } from './fixtures.js';
+import { test, expect, load, dragDoc } from './fixtures.js';
 
 const SCENE =
   '<rect id="a" x="10" y="10" width="80" height="80" fill="#dc2626"/>' +
@@ -10,14 +10,7 @@ const SCENE =
 
 const boards = (page) => page.evaluate(() => window.svgcraft.state.boards.map((b) => ({ ...b })));
 
-async function drag(page, from, to) {
-  const a = await toScreen(page, ...from);
-  const b = await toScreen(page, ...to);
-  await page.mouse.move(a.x, a.y);
-  await page.mouse.down();
-  await page.mouse.move(b.x, b.y, { steps: 5 });
-  await page.mouse.up();
-}
+const drag = (page, from, to) => dragDoc(page, [from, to]);
 
 async function withTwo(page) {
   await load(page, SCENE, 200, 100);
