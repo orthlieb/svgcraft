@@ -68,6 +68,9 @@
             <button role="menuitem" data-action="saveAs">
               <i></i><span>Save As…</span><kbd>Ctrl+Shift+S</kbd>
             </button>
+            <button role="menuitem" data-action="exportArtboards">
+              <i></i><span>Export Artboards…</span>
+            </button>
             <button role="menuitem" data-action="exportCleanSvg">
               <i></i><span>Export Clean SVG…</span>
             </button>
@@ -840,6 +843,46 @@
           <i data-icon="check"></i>
         </button>
       </div>
+      <div class="sc-opt" data-for="artboard">
+        <label class="sc-field"
+          ><span class="sc-opt-label">Name:</span
+          ><input
+            id="sc-board-name"
+            class="sc-board-name-field"
+            aria-label="Artboard name"
+            spellcheck="false"
+        /></label>
+        <label class="sc-field"
+          ><span class="sc-opt-label">W:</span
+          ><input id="sc-board-w" type="number" min="1" aria-label="Artboard width" /><span
+            class="sc-unit"
+            >px</span
+          ></label
+        >
+        <label class="sc-field"
+          ><span class="sc-opt-label">H:</span
+          ><input id="sc-board-h" type="number" min="1" aria-label="Artboard height" /><span
+            class="sc-unit"
+            >px</span
+          ></label
+        >
+        <button
+          class="sc-ibtn"
+          data-action="deleteArtboard"
+          aria-label="Delete the artboard"
+          data-tip="Delete the artboard (the art on it stays)"
+        >
+          <i data-icon="trash-can"></i>
+        </button>
+        <span class="sc-vsep"></span>
+        <button
+          class="sc-tbtn"
+          data-action="exportArtboards"
+          data-tip="Save each artboard as its own SVG, in a zip"
+        >
+          Export Artboards…
+        </button>
+      </div>
       <div class="sc-opt" data-for="select">
         <button
           class="sc-ibtn"
@@ -1377,6 +1420,15 @@
           <i data-shape-icon></i><span class="sc-tool-more" aria-hidden="true"></span>
         </button>
         <button
+          data-tool="artboard"
+          aria-label="Artboard"
+          data-tip="Artboard"
+          data-key="Shift+O"
+          data-tip-desc="Drag on the pasteboard to add an artboard; drag one to move it, its corner to resize it. File → Export Artboards… saves each as its own SVG."
+        >
+          <i data-icon="crop-simple"></i>
+        </button>
+        <button
           data-tool="shapebuilder"
           aria-label="Shape Builder"
           data-tip="Shape Builder"
@@ -1450,6 +1502,7 @@
                   height="600"
                   fill="url(#sc-checker)"
                 />
+                <g id="sc-boards"></g>
                 <rect
                   id="sc-grid-rect"
                   x="0"
@@ -1462,6 +1515,7 @@
                 <defs id="sc-defs"></defs>
                 <g id="sc-doc"></g>
                 <rect id="sc-board-frame" x="0" y="0" width="800" height="600" fill="none" />
+                <g id="sc-board-names"></g>
                 <path id="sc-pixgrid" class="sc-pixgrid" />
                 <g id="sc-keylines"></g>
                 <g id="sc-guidelines"></g>
@@ -4574,6 +4628,7 @@
     <script src="src/new-doc.js"></script>
     <script src="src/commands.js"></script>
     <script src="src/shape-builder.js"></script>
+    <script src="src/artboards.js"></script>
     <script src="src/outlines.js"></script>
     <script src="src/transform.js"></script>
     <script src="src/layer-style.js"></script>

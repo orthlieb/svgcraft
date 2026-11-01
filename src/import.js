@@ -394,6 +394,7 @@ function parseSvg(text, { dedupe = true } = {}) {
     nodes,
     clip: root.getAttribute('data-svgcraft') === 'clip',
     guides: parseGuides(root.getAttribute('data-sc-guides')),
+    boards: readBoards(root.getAttribute('data-sc-artboards')),
     smilLost: readSmilLost(root.getAttribute('data-sc-smil-lost')),
     meta: readMeta(root),
   };
@@ -420,14 +421,27 @@ function openSvg(text, name, { keepSaved = false, step = 'Open', keepView = fals
   dropIso();
   doc.replaceChildren();
   defs.replaceChildren(...s.defs);
-  const shift =
-    s.minX || s.minY || s.k !== 1 ? new DOMMatrix().scale(s.k).translate(-s.minX, -s.minY) : null;
+  // A file with artboards keeps its own coordinates: the first artboard is
+  // the page, so the art is measured from its corner.
+  const page = s.boards?.[0];
+  const shift = page
+    ? page.x || page.y
+      ? new DOMMatrix().translate(-page.x, -page.y)
+      : null
+    : s.minX || s.minY || s.k !== 1
+      ? new DOMMatrix().scale(s.k).translate(-s.minX, -s.minY)
+      : null;
   for (const n of s.nodes) {
     if (shift) setM(n, shift.multiply(getM(n)));
     doc.append(n);
   }
   state.units = s.units;
-  setSize(s.w * s.k, s.h * s.k);
+  state.boardName = page && page.name !== 'Artboard 1' ? page.name : null;
+  state.boards = page
+    ? s.boards.slice(1).map((b) => ({ ...b, x: b.x - page.x, y: b.y - page.y }))
+    : [];
+  if (page) setSize(page.w, page.h);
+  else setSize(s.w * s.k, s.h * s.k);
   adoptGradients(s.nodes);
   const smil = adoptSmil([...s.nodes, ...defs.children], s.smilLost);
   state.guides = s.guides;

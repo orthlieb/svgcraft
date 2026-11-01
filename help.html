@@ -285,6 +285,7 @@
               <li><a href="#image-trace">Image Trace…</a></li>
               <li><a href="#scale-document">Scale Document…</a></li>
               <li><a href="#document-setup">Document Setup…</a></li>
+              <li><a href="#artboards">Artboards</a></li>
               <li><a href="#grayscale-and-black-white">Grayscale and black &amp; white</a></li>
               <li><a href="#crop">Crop</a></li>
               <li><a href="#select-menu">Select menu</a></li>
@@ -571,7 +572,7 @@
                 src="docs/help/offline-and-as-an-app.png"
                 alt="The File menu, with Install SVGCraft…"
                 width="252"
-                height="575"
+                height="601"
                 loading="lazy"
               />
             </figure>
@@ -831,7 +832,7 @@
                 src="docs/help/the-toolbar.png"
                 alt="The toolbar, with the Selection tool chosen and the Shape tools' button below"
                 width="48"
-                height="389"
+                height="421"
                 loading="lazy"
               />
             </figure>
@@ -1144,7 +1145,7 @@
                 src="docs/help/import.png"
                 alt="The File menu, with Import… highlighted"
                 width="252"
-                height="526"
+                height="552"
                 loading="lazy"
               />
             </figure>
@@ -1497,6 +1498,56 @@
               </li>
             </ul>
           </article>
+          <article id="artboards" data-find>
+            <h3>Artboards</h3>
+            <figure>
+              <img
+                src="docs/help/artboards.png"
+                alt="Three artboards, Circle, Square and Triangle, with Triangle picked by the Artboard tool"
+                width="1280"
+                height="744"
+                loading="lazy"
+              />
+            </figure>
+            <p>
+              Keep several pages in one drawing, such as a set of icons, and export each one as its
+              own SVG.
+            </p>
+            <ol>
+              <li>Pick the <strong>Artboard</strong> tool (Shift+O).</li>
+              <li>Drag on the pasteboard, beside the page, to add an artboard.</li>
+              <li>Drag an artboard to move it, or its bottom-right corner to resize it.</li>
+              <li>
+                Choose <strong>File → Export Artboards…</strong> to save each artboard as its own
+                SVG, all in one zip.
+              </li>
+            </ol>
+            <h4>Settings (the options bar)</h4>
+            <ul>
+              <li><strong>Name</strong>: what the artboard and its exported file are called.</li>
+              <li><strong>W</strong> and <strong>H</strong>: its size.</li>
+              <li>
+                <strong>Delete</strong> (the bin, or Del): removes the artboard. The art on it
+                stays.
+              </li>
+              <li><strong>Export Artboards…</strong>: the same as the File menu's.</li>
+            </ul>
+            <h4>Good to know</h4>
+            <ul>
+              <li>
+                The drawing's own page is the first artboard. It can be renamed and resized (from
+                its corner, or <strong>File → Document Setup…</strong>), but not moved or deleted:
+                everything is measured from its corner.
+              </li>
+              <li>Art can sit anywhere. An exported artboard shows only what's on it.</li>
+              <li>
+                The saved file shows every artboard (its viewBox covers them all) and lists them in
+                a <code>data-sc-artboards</code> attribute, so it reopens with all of them. Exported
+                artboards are clean SVG, without it.
+              </li>
+              <li>Fit on Screen fits every artboard.</li>
+            </ul>
+          </article>
           <article id="grayscale-and-black-white" data-find>
             <h3>Grayscale and black &amp; white</h3>
             <figure>
@@ -1780,7 +1831,7 @@
                 src="docs/help/open-recent.png"
                 alt="The File menu's Open Recent submenu, listing four drawings"
                 width="481"
-                height="526"
+                height="552"
                 loading="lazy"
               />
             </figure>
@@ -1822,7 +1873,7 @@
                 src="docs/help/save-and-save-as.png"
                 alt="The File menu, with Save highlighted"
                 width="252"
-                height="526"
+                height="552"
                 loading="lazy"
               />
             </figure>
@@ -1876,7 +1927,7 @@
                 src="docs/help/export.png"
                 alt="The File menu, with Export PNG @2× highlighted"
                 width="252"
-                height="526"
+                height="552"
                 loading="lazy"
               />
             </figure>
@@ -5701,6 +5752,10 @@
                 <tr>
                   <td>T H Z</td>
                   <td>Type · Hand · Zoom</td>
+                </tr>
+                <tr>
+                  <td>Shift+M · Shift+O</td>
+                  <td>Shape Builder · Artboard</td>
                 </tr>
                 <tr>
                   <td>Space (hold)</td>

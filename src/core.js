@@ -148,6 +148,8 @@ const state = {
   strokePat: null,
   gradStop: 0, // selected stop in the gradient editor
   guides: [], // { axis: 'x' | 'y', pos }
+  boards: [], // the artboards after the page, { name, x, y, w, h } (src/artboards.js)
+  boardName: null, // the page's own artboard name, when not “Artboard 1”
   meta: {}, // File Info: see cleanMeta
   guidesOn: true,
   guidesLocked: false,

@@ -355,7 +355,8 @@ window.addEventListener('keydown', (e) => {
     nudge(arrows[k][0] * s, arrows[k][1] * s);
   } else if (k === 'delete' || k === 'backspace') {
     e.preventDefault();
-    ifAllowed('delete');
+    if (state.tool === 'artboard') deleteBoard();
+    else ifAllowed('delete');
   } else if (k === 'escape') {
     // Esc: finish a symbol's editing; else deselect, then step out of an
     // isolated group a level at a time.
@@ -365,6 +366,7 @@ window.addEventListener('keydown', (e) => {
   } else if (k === 'u') shapeKey(e.shiftKey);
   else if (k === 'a') marqueeKey(e.shiftKey);
   else if (k === 'm' && e.shiftKey) setTool('shapebuilder');
+  else if (k === 'o' && e.shiftKey) setTool('artboard');
   else if (k === 'tab') {
     // On the canvas, Tab hides the panels (Shift+Tab just the right-hand
     // ones). With nothing focused it goes into the app,

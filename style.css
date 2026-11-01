@@ -693,6 +693,42 @@ kbd {
   vector-effect: non-scaling-stroke;
   pointer-events: none;
 }
+/* Artboards after the page (src/artboards.js): their pages, edges and names. */
+.sc-board-page {
+  pointer-events: none;
+}
+.sc-board-edge,
+.sc-board-sel {
+  stroke: var(--frame);
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+.sc-board-sel {
+  stroke: var(--accent-hi);
+  stroke-width: 2;
+}
+.sc-board-grip {
+  fill: #fff;
+  stroke: var(--accent-hi);
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+.sc-board-name {
+  fill: var(--text-dim);
+  font-family: inherit;
+  pointer-events: none;
+  user-select: none;
+}
+.sc-board-name.sel {
+  fill: var(--accent-hi);
+}
+.sc-board-name-field {
+  width: 120px;
+}
+#sc-board-w,
+#sc-board-h {
+  width: 64px;
+}
 #sc-board-bg,
 #sc-grid-rect {
   pointer-events: none;

@@ -318,9 +318,19 @@ infoDlg.querySelector('[data-info="cancel"]').addEventListener('click', () => cl
 
 // `animate: false` leaves the animations out, for the still images (PNG,
 // app icons, previews) drawn from it.
-function serialize({ selection = false, fontCss = '', animate = true } = {}) {
+function serialize({ selection = false, fontCss = '', animate = true, board = null } = {}) {
   const root = document.createElementNS(NS, 'svg');
   let box = { x: 0, y: 0, w: state.w, h: state.h };
+  // One artboard on its own (Export Artboards), or every artboard: the
+  // viewBox covers them all and they're listed, so the file reopens with them.
+  if (board) box = { x: board.x, y: board.y, w: board.w, h: board.h };
+  else if (!selection && state.boards.length) {
+    box = boardsBox();
+    root.setAttribute(
+      'data-sc-artboards',
+      JSON.stringify(allBoards().map((b) => ({ ...b, x: +f(b.x), y: +f(b.y) }))),
+    );
+  }
   if (selection) {
     // As painted, so strokes and effects aren't cut off at the edges.
     box = paintBox(normalizeSel(state.sel)) || selBox() || box;

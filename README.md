@@ -636,6 +636,37 @@ Add room round the drawing, or trim it, without scaling anything.
 - The **W** and **H** in Properties → Document also resize the artboard,
   anchored top-left.
 
+### Artboards
+
+![Three artboards, Circle, Square and Triangle, with Triangle picked by the Artboard tool](docs/help/artboards.png)
+
+Keep several pages in one drawing, such as a set of icons, and export
+each one as its own SVG.
+
+1. Pick the **Artboard** tool (Shift+O).
+2. Drag on the pasteboard, beside the page, to add an artboard.
+3. Drag an artboard to move it, or its bottom-right corner to resize it.
+4. Choose **File → Export Artboards…** to save each artboard as its own
+   SVG, all in one zip.
+
+#### Settings (the options bar)
+
+- **Name**: what the artboard and its exported file are called.
+- **W** and **H**: its size.
+- **Delete** (the bin, or Del): removes the artboard. The art on it stays.
+- **Export Artboards…**: the same as the File menu's.
+
+#### Good to know
+
+- The drawing's own page is the first artboard. It can be renamed and
+  resized (from its corner, or **File → Document Setup…**), but not moved
+  or deleted: everything is measured from its corner.
+- Art can sit anywhere. An exported artboard shows only what's on it.
+- The saved file shows every artboard (its viewBox covers them all) and
+  lists them in a `data-sc-artboards` attribute, so it reopens with all of
+  them. Exported artboards are clean SVG, without it.
+- Fit on Screen fits every artboard.
+
 ### Grayscale and black & white
 
 ![The Black & White dialog, previewing the drawing in grey](docs/help/grayscale-and-black-white.png)
@@ -3147,6 +3178,7 @@ in parentheses, taken from the menus, so they always agree.
 | U · Shift+U               | Shape tool · next shape in the group               |
 | R O L                     | Rectangle · Ellipse · Line                         |
 | T H Z                     | Type · Hand · Zoom                                 |
+| Shift+M · Shift+O         | Shape Builder · Artboard                           |
 | Space (hold)              | Pan                                                |
 | D · X                     | Default paint (black fill, no stroke) · swap them  |
 | [ ]                       | Stroke width down / up                             |
