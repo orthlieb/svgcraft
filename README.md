@@ -38,8 +38,8 @@ the editor, so nothing you do there changes a drawing.
 
 - **Play** (▶): plays the drawing's animations. ■, or a tap on the button,
   stops them. It's greyed out when nothing is animated.
-- **Layers**: the layer list, to show and hide layers while you look (see
-  below).
+- **Layers**: the list of objects, to show and hide them while you look
+  (see below).
 - **Text view** (`</>`): the SVG source full-screen, syntax-coloured, to
   read (long lines wrapped), search and **Copy** (or download). The same
   button, now a picture, goes back to the drawing.
@@ -49,21 +49,21 @@ the editor, so nothing you do there changes a drawing.
   remembered.
 - **Share**: the phone's share sheet, with the SVG and a PNG of it. Where
   the browser can't share files, the SVG is downloaded instead.
-- **Info** (ⓘ): the drawing's details (file, size, dimensions, layers,
+- **Info** (ⓘ): the drawing's details (file, size, dimensions, objects,
   animations, fonts) and its metadata from File Info (title, author,
   description, keywords, date, copyright, licence and source, linked),
   read-only. **Help** opens this guide, and **About SVGCraft** is at the
   bottom.
 
-#### Showing and hiding layers
+#### Showing and hiding objects
 
-![The phone's Layers sheet, with the Title layer hidden](docs/help/on-a-phone-layers.png)
+![The phone's Layers sheet, with the Title hidden](docs/help/on-a-phone-layers.png)
 
-- Tap **Layers**, then a layer's eye to hide or show it. Each layer has a
+- Tap **Layers**, then a row's eye to hide or show it. Each row has a
   preview, always on the checkerboard as in the Layers panel.
-- **Hide all** and **Show all** do every layer. Show all includes layers
+- **Hide all** and **Show all** do every object. Show all includes objects
   the file itself hides.
-- Layers inside a hidden group are dimmed: they can't show until the group
+- Objects inside a hidden group are dimmed: they can't show until the group
   does.
 - Only the preview changes. Nothing is saved, and switching tab or moving
   to a bigger screen shows the drawing as it is again.
@@ -154,7 +154,7 @@ Find your way round the editor. From top to bottom:
 
 ### The menu bar
 
-![The Object menu, with Clipping Mask's items greyed out for a single selected layer](docs/help/the-menu-bar.png)
+![The Object menu, with Clipping Mask's items greyed out for a single selected object](docs/help/the-menu-bar.png)
 
 Find every command, in the menu you'd expect.
 
@@ -167,7 +167,7 @@ Find every command, in the menu you'd expect.
 
 - **Fit to Selection** needs a selection.
 - A **Clipping Mask**, **Combine Shapes** or **Text on Path** needs two
-  layers.
+  objects.
 - **Distribute** needs three.
 
 #### Good to know
@@ -177,7 +177,7 @@ Find every command, in the menu you'd expect.
 - **Edit** holds the clipboard, **Duplicate** and **Edit Colours**
   (Grayscale, Black & White, Threshold, Desaturate).
 - **Object** holds what works on what's selected: Transform, Arrange,
-  Align, Group, Lock, Layer via Copy / Cut, Merge, Path, Combine Shapes,
+  Align, Group, Lock, Object via Copy / Cut, Merge, Path, Combine Shapes,
   Clipping Mask, Symbol, Image Trace and Artboard (Fit to Selection /
   Drawing).
 - **Effect** holds the effects: the Effects dialog, each effect on its
@@ -185,16 +185,16 @@ Find every command, in the menu you'd expect.
 
 ### Right-click menus
 
-![The canvas's right-click menu on the palette, with Layers Here listing the red paint, the board and the backdrop under the pointer](docs/help/right-click-menus.png)
+![The canvas's right-click menu on the palette, with Objects Here listing the red paint, the board and the backdrop under the pointer](docs/help/right-click-menus.png)
 
 Reach what the selection can do without going to the menu bar.
 
-- **Right-click a layer** on the canvas: it's selected (unless it's
+- **Right-click an object** on the canvas: it's selected (unless it's
   already in the selection) and the menu lists what the selection can do:
   Cut, Copy, Duplicate, Free Transform, Transform, Arrange, Align, Group,
   Clipping Mask, Combine Shapes, symbols, Effects and Lock, then
   Play Animations, Deselect, Select Inverse and Fit to Selection.
-- **Layers Here** (at the top, when more than one layer is under the
+- **Objects Here** (at the top, when more than one object is under the
   pointer) lists them, top first, so you can pick one that's covered by
   others. The ticked one is selected.
 - **Right-click empty canvas** with nothing selected: Paste, Select All,
@@ -212,10 +212,10 @@ Reach what the selection can do without going to the menu bar.
 
 - The menu only lists what would do something now, rather than greying
   out the rest, to keep it short: Ungroup appears for a group, Create
-  Outlines for text, Image Trace for an image, Distribute for three layers
-  or more; Arrange offers only the ways the layer can move (no Bring
-  Forward on the top layer); Copy Effects needs some; Select Inverse
-  needs layers left unselected; 100% shows when you're not at 100%.
+  Outlines for text, Image Trace for an image, Distribute for three objects
+  or more; Arrange offers only the ways the object can move (no Bring
+  Forward on the top object); Copy Effects needs some; Select Inverse
+  needs objects left unselected; 100% shows when you're not at 100%.
 - Paste is always there: what's on the clipboard can't be known until the
   browser is asked to read it.
 - Each item is the menu bar's own, with its shortcut, so the menu teaches
@@ -509,7 +509,7 @@ can edit.
 3. Pick the **Preset** closest to your image, then adjust the settings while
    you watch the preview. The line under the preview gives the result's
    colours, shapes and size.
-4. Click **Trace**. Each colour becomes its own layer in an "Image Trace"
+4. Click **Trace**. Each colour becomes its own shape in an "Image Trace"
    group, named like "Colour #2563eb · 34%".
 
 #### Settings
@@ -526,7 +526,7 @@ can edit.
 - **Smoothness**: how much outlines are smoothed into curves. 0 gives
   pixel-exact polygons; real corners stay sharp at any setting.
 - **Stacked** (on by default): the largest colour goes at the bottom and
-  each layer also covers every colour above it, so the layers overlap and
+  each shape also covers every colour above it, so the shapes overlap and
   no hairline gaps show. Turn it off for shapes that just touch, each only
   its own colour.
 - **Recognise circles, ellipses and rectangles** (on by default): an
@@ -540,9 +540,9 @@ can edit.
 
 #### What counts as an image
 
-Select one layer that draws exactly one picture:
+Select one object that draws exactly one picture:
 
-- **An image layer**, or **a group** holding one (the trace goes into the
+- **An image**, or **a group** holding one (the trace goes into the
   group, beside the image).
 - **A `<use>` of an image or a symbol**: an image kept in `<defs>` and
   drawn by reference, as other apps export it, or a symbol instance whose
@@ -601,12 +601,12 @@ it.
 - **Constrain proportions**: change the width and the height follows, and
   the other way round.
 - **Scale effects** (on by default): scales
-  layer-effect distances and sizes too (shadow, glow, blur).
+  effect distances and sizes too (shadow, glow, blur).
 
 #### Good to know
 
 - It's SVG, so nothing is resampled or blurred.
-- Each top-level layer gets the scale on top of its transform, so strokes,
+- Each top-level object gets the scale on top of its transform, so strokes,
   text, patterns and gradients scale with the shapes. Guides scale too.
 - Animation distances always follow the art.
 
@@ -640,10 +640,10 @@ Add room round the drawing, or trim it, without scaling anything.
 
 ![The Black & White dialog, previewing the drawing in grey](docs/help/grayscale-and-black-white.png)
 
-Turn a drawing, or just some layers, grey or pure black and white. The
+Turn a drawing, or just some objects, grey or pure black and white. The
 colours themselves change, so the saved SVG really is grey.
 
-1. Select the layers to change, or select nothing to change the whole
+1. Select the objects to change, or select nothing to change the whole
    drawing.
 2. Choose one from **Edit → Edit Colours** (below).
 3. In a dialog, adjust it while the drawing previews, then click **OK**.
@@ -663,10 +663,10 @@ colours themselves change, so the saved SVG really is grey.
 
 - They change fills, strokes, gradient stops, patterns, symbols and markers
   in use, effect colours and embedded images, pixel by pixel.
-- A gradient, pattern or symbol shared with layers outside the selection
+- A gradient, pattern or symbol shared with objects outside the selection
   gets a copy of its own first, so only the selection changes.
 - Each is one undo step.
-- Layers locked against all edits, and linked (not embedded) images, are
+- Objects locked against all edits, and linked (not embedded) images, are
   left as they are.
 
 ### Crop
@@ -676,7 +676,7 @@ colours themselves change, so the saved SVG really is grey.
 Fit the artboard tightly round your artwork, with no empty margin.
 
 - **Object → Artboard → Fit to Selection** → the artboard fits round the
-  selected layers.
+  selected objects.
 - **Object → Artboard → Fit to Drawing** → the artboard fits round
   everything visible.
 
@@ -686,8 +686,8 @@ Fit the artboard tightly round your artwork, with no empty margin.
   so nothing is shaved off. Stroke width and position (Center, Inside,
   Outside), mitre tips at sharp corners (up to the mitre limit), square and
   round caps, round joins and effects (drop shadow, outer glow, blur) all
-  count, including on rotated and scaled layers.
-- Hidden layers don't count.
+  count, including on rotated and scaled objects.
+- Hidden objects don't count.
 - The drawing and the guides shift so the artboard still starts at 0, 0,
   and nothing moves on screen.
 - Anything left outside the artboard is kept, but it isn't exported.
@@ -699,15 +699,15 @@ Fit the artboard tightly round your artwork, with no empty margin.
 
 Select everything, nothing, or everything you haven't selected.
 
-- **Select → All** (Ctrl+A) → selects every layer.
+- **Select → All** (Ctrl+A) → selects every object.
 - **Select → Deselect** (Ctrl+D, or Esc) → selects nothing.
 - **Select → Inverse** (Shift+F7, or Ctrl+Shift+I where the browser allows
-  it) → selects every visible layer that wasn't selected.
+  it) → selects every visible object that wasn't selected.
 
 #### Good to know
 
 - If the selection includes a shape inside a group, Inverse works with
-  individual shapes. Otherwise it works with top-level layers.
+  individual shapes. Otherwise it works with top-level objects.
 
 ### History panel
 
@@ -756,7 +756,7 @@ Every open drawing gets a tab: see
 #### Settings
 
 - **Background**: Transparent, or a White, Black or custom colour. A colour
-  becomes a "Background" layer at the bottom, locked in place. Recolour
+  becomes a "Background" object at the bottom, locked in place. Recolour
   it, or unlock and delete it.
 - **Icon templates…**: switches to New Icon, for app and toolbar icons.
 
@@ -890,7 +890,7 @@ Keep Save for your working copy: a clean SVG reopens as plain shapes.
   too.
 - **Minify** (on by default): one line, with short ids.
 - **Scale to fit** (on by default): only a viewBox, no width and height.
-- **Leave out hidden layers** (on by default).
+- **Leave out hidden objects** (on by default).
 - **Keep File Info** (on by default): the title, description and licence.
 - **Solid colours as currentColor**: for one-colour icons a page can
   recolour with CSS.
@@ -900,7 +900,7 @@ Keep Save for your working copy: a clean SVG reopens as plain shapes.
 - It draws exactly the same: effects, clips, masks, gradients and patterns
   stay as the real SVG that draws them.
 - It leaves out what SVGCraft keeps to reopen the file editable: every
-  `data-*` attribute (layer names, locks, effect settings, guides…),
+  `data-*` attribute (object names, locks, effect settings, guides…),
   unreferenced ids, unused defs, comments, empty and attribute-free groups,
   and attributes set to their defaults.
 
@@ -1164,12 +1164,12 @@ The same commands are in **Object → Path**: **Non-Zero Fill Rule**,
 
 ### Animate
 
-![The Animation panel with Pop in and Float added to a layer](docs/help/animate.png)
+![The Animation panel with Pop in and Float added to an object](docs/help/animate.png)
 
-Make a layer or group fade, slide, spin, pulse, draw itself on and more,
+Make an object or group fade, slide, spin, pulse, draw itself on and more,
 in the saved SVG.
 
-1. Select one layer or group and open the **Animation** tab.
+1. Select one object or group and open the **Animation** tab.
 2. Choose a preset from **Add animation…**.
 3. Click its row and set its options below the list.
 4. Click ▶ **Play** (or **View → Play Animations**) to preview the whole
@@ -1180,7 +1180,7 @@ in the saved SVG.
 - **Entrances**: Fade in, Slide in, Pop in, Zoom in, Drop in (falls in
   and bounces to rest), Back in (slides in, overshoots and settles), Roll
   in, Flip in (turns into view), Wipe in (uncovered from a side), Iris in
-  (uncovered from the middle out) and Blur in (comes into focus). Run any of them in **Reverse** to take the layer away the
+  (uncovered from the middle out) and Blur in (comes into focus). Run any of them in **Reverse** to take the object away the
   same way.
 - **Exits**: Fade out, Slide out, Zoom out, Hinge (swings on its top-left
   corner, then drops away).
@@ -1194,7 +1194,7 @@ in the saved SVG.
   up), Ripple (rings spreading out from under it and fading, one after
   another; **Grow to** sets how far, **Ring width** and **Ring colour**
   their look) and Flipbook (a
-  group's layers shown one at a time, bottom first, as the frames of a
+  group's objects shown one at a time, bottom first, as the frames of a
   flipbook or a loading spinner; the length is the whole round, and a set
   number of times ends on the last frame).
 - **Motion**: Move along path (see [Move along path](#move-along-path)) and
@@ -1223,23 +1223,23 @@ in the saved SVG.
   turns, how far to grow, the colour to cycle to, the angle and point a
   Swing turns about, which way a Flip turns, how blurred Blur in starts,
   or a Glow pulse's size and colour.
-- **Stagger** (a group, or a text layer's letters): see
+- **Stagger** (a group, or a text's letters): see
   [Stagger](#stagger).
 
-#### Several on one layer
+#### Several on one object
 
-- A layer can have several animations. They play together, each after
+- An object can have several animations. They play together, each after
   its own delay.
 - Drag a row's ⠿ grip, or press Alt+↑ / Alt+↓, to reorder them. When two
-  move or scale the layer, they combine in list order.
+  move or scale the object, they combine in list order.
 
 #### In the file
 
-- Animations are kept as settings on the layer (`data-sc-anim`) and
+- Animations are kept as settings on the object (`data-sc-anim`) and
   written out as SVG animation (SMIL: `<animate>`, `<animateTransform>`,
   `<set>`) only when the drawing is saved. Editing and undo always see the
   shapes at rest.
-- Moves, spins and scales are additive, so they happen about the layer's
+- Moves, spins and scales are additive, so they happen about the object's
   own centre, on top of its transform.
 - SMIL plays in every current browser, including SVG shown in an `<img>`
   tag. Each animation adds about 150–300 bytes.
@@ -1247,8 +1247,8 @@ in the saved SVG.
   rest. PNG, app icon and favicon exports use the still drawing.
 - Wipe in, Iris in, Blur in, Glow pulse, Shine, Ripple, Gradient flow and
   Pattern scroll need a clip, filter, mask or paint of their own: the saved
-  file wraps the layer in a group that carries it (Shine's highlight,
-  Ripple's rings, and the gradient or stripes, masked by the layer, go in
+  file wraps the object in a group that carries it (Shine's highlight,
+  Ripple's rings, and the gradient or stripes, masked by the object, go in
   that group too). Reopened in SVGCraft, the group is
   taken off again; a file from Export Clean SVG reopens with it as a group
   of its own, and those animations left out.
@@ -1257,31 +1257,31 @@ in the saved SVG.
 #### Animations from other files
 
 When you open, import or paste an SVG with its own SMIL animations, each
-one that does what a preset does becomes that preset on its layer, ready to
+one that does what a preset does becomes that preset on its object, ready to
 edit and play:
 
-- A rotation about the layer's centre becomes **Spin**; opacity from 0 to 1
+- A rotation about the object's centre becomes **Spin**; opacity from 0 to 1
   or back becomes **Fade in** or **Fade out**; a fill going to another
   colour becomes **Colour cycle**; a motion along a path
   (`<animateMotion>`) becomes **Move along path**, its path a new "Motion
-  path" layer; and so on for every preset, with its length, delay,
+  path" object; and so on for every preset, with its length, delay,
   repeats, direction and ease.
 - A file saved by Export Clean SVG (which drops SVGCraft's settings) comes
   back with the animations it had.
 - A move about another resting place (bars bobbing from 5 below to 5
   above) becomes the preset that moves that way (here **Float**, 10 up and
-  back), with the layer moved to where the move starts.
+  back), with the object moved to where the move starts.
 - What no preset does is left out, and a message says how many; its
   **More info** button says which and why (see
   [Animations left out](#animations-left-out)). Among them: a motion at a
   fixed angle, an animation that starts on another animation's end, one
   inside a symbol, and CSS `@keyframes`.
-- An animation that replaces a layer's own transform (SMIL's default) is
-  only kept when the layer has none, since a preset adds to it.
+- An animation that replaces an object's own transform (SMIL's default) is
+  only kept when the object has none, since a preset adds to it.
 
 ### Animations left out
 
-![The Animations left out report: a rotation on the Card layer, why no preset writes it, and Spin as the nearest preset](docs/help/animations-left-out.png)
+![The Animations left out report: a rotation on the Card, why no preset writes it, and Spin as the nearest preset](docs/help/animations-left-out.png)
 
 See exactly which of a file's animations SVGCraft couldn't keep, and why,
 so you can fix the file or rebuild them with presets.
@@ -1292,7 +1292,7 @@ so you can fix the file or rebuild them with presets.
 
 #### What it shows
 
-- **Where**: the layer it was on, or the part of the file (a `<style>`
+- **Where**: the object it was on, or the part of the file (a `<style>`
   block, the whole drawing, an element that isn't there).
 - **The markup**: the animation element as it was in the file.
 - **Why**: the reason it was left out: its timing can't be set in
@@ -1316,19 +1316,19 @@ so you can fix the file or rebuild them with presets.
 
 ![The Animation tab with Pulse set to start on a click on the Title, and a pause between runs](docs/help/when-an-animation-starts.png)
 
-Start an animation on a click or when the pointer is over a layer, after
-another layer's animations, or with a pause between its runs.
+Start an animation on a click or when the pointer is over an object, after
+another object's animations, or with a pause between its runs.
 
-1. Select the layer, open the **Animation** tab and click the animation's
+1. Select the object, open the **Animation** tab and click the animation's
    row.
 2. Choose under **Start**:
    - **When the file opens** (after its **Delay**).
-   - **On click**: when the layer is clicked, or the one chosen under
+   - **On click**: when the object is clicked, or the one chosen under
      **Clicking**, such as a button.
    - **On hover**: when the pointer is over it (or the one chosen under
      **Pointing at**). One that runs **Forever** stops when the pointer
      leaves.
-   - **After another layer**: when the animations of the layer chosen
+   - **After another object**: when the animations of the object chosen
      under **After** have finished (their first run, for one that runs
      forever).
 3. For a loop, set **Pause** to wait that long between one run and the
@@ -1337,14 +1337,14 @@ another layer's animations, or with a pause between its runs.
 #### Good to know
 
 - **Delay** counts from the start you chose: a click, the end of the other
-  layer's animations, or the file opening.
+  object's animations, or the file opening.
 - An entrance that waits for a click stays hidden until then.
 - Clicks and the pointer work where the SVG is a page of its own or part of
   one (opened directly, inline, or in an `<object>` or `<iframe>`). An
   `<img>` tag never passes them on, so there it waits for ever.
 - ▶ **Play** shows them as if the click had happened.
 - In the file they're SMIL begin times such as `begin="button.click+0.5s"`,
-  so the layer clicked gets an id. A pause makes each run longer, holding
+  so the object clicked gets an id. A pause makes each run longer, holding
   its last frame to the end.
 
 ### Pivot
@@ -1354,82 +1354,82 @@ another layer's animations, or with a pause between its runs.
 Choose the point an animation turns or grows about: a clock hand turning
 about its end, a sign swinging from its hook, a badge growing out of a corner.
 
-1. Select the layer and open the **Animation** tab.
+1. Select the object and open the **Animation** tab.
 2. Pick an animation that turns or grows: Spin, Pulse, Swing, Heartbeat,
    Pop in, Zoom in or out, Roll in, Flip in, Flip, Jello, Rubber band,
    Tada, Head shake or Wobble.
-3. Drag the **⊕** on the canvas to where it should turn. Near the layer's
+3. Drag the **⊕** on the canvas to where it should turn. Near the object's
    corners, edge middles and centre it snaps to them.
 
 #### Settings
 
-- **Pivot**: where the ⊕ is, across and down the layer's box, in %
+- **Pivot**: where the ⊕ is, across and down the object's box, in %
   (50 %, 50 % is the centre). Type a value to place it exactly; it can go
-  outside the layer too.
+  outside the object too.
 - **↺** next to it, or double-click the ⊕ → back to the centre.
-- **Swing from** picks a side of the layer; once you drag the ⊕
+- **Swing from** picks a side of the object; once you drag the ⊕
   elsewhere it reads **Custom**.
 
 #### Good to know
 
 - The ⊕ shows while the Animation tab is open, for the animation chosen
-  in its list. Each animation on a layer has its own pivot.
-- The pivot is kept relative to the layer, so moving or resizing the layer
-  takes it along. On a rotated layer, across and down follow the layer's
+  in its list. Each animation on an object has its own pivot.
+- The pivot is kept relative to the object, so moving or resizing it
+  takes it along. On a rotated object, across and down follow the object's
   own sides.
-- Files that turn or grow a layer about a point of their own (say
+- Files that turn or grow an object about a point of their own (say
   `rotate(0 50 50)` to `rotate(360 50 50)`) open as that animation with
   its pivot there, ready to edit.
 
 ### Stagger
 
-![Three paint layers in a group popping in one after another, with Stagger set in the Animation tab](docs/help/stagger.png)
+![Three paints in a group popping in one after another, with Stagger set in the Animation tab](docs/help/stagger.png)
 
-Run one animation on a group's layers, or a text's letters, one after
+Run one animation on a group's objects, or a text's letters, one after
 another: paints popping in in turn, letters fading in.
 
-1. Select the group (or the text layer) and open the **Animation** tab.
-2. Add an animation, as for one layer.
+1. Select the group (or the text) and open the **Animation** tab.
+2. Add an animation, as for one object.
 3. Set **Stagger** to the time between one starting and the next.
 
 #### Good to know
 
-- The group's layers go from the bottom of the Layers panel to the top,
+- The group's objects go from the bottom of the Layers panel to the top,
   each after the stagger, with the animation's own delay before the first.
-- Each layer runs it about its own centre, as if you'd added it to each.
+- Each object runs it about its own centre, as if you'd added it to each.
 - Letters work with **Fade in**, **Fade out**, **Blink** and **Colour
   cycle**. Spaces are skipped. For letters appearing at a steady pace, use
   the **Typewriter** preset instead.
 - A Stagger of 0 runs it on the group (or text) as a whole.
-- In the file, each layer (or letter) gets its own SMIL. Saved by
+- In the file, each object (or letter) gets its own SMIL. Saved by
   SVGCraft, it reopens as the one animation on the group; Export Clean SVG
-  reopens as an animation on each layer.
+  reopens as an animation on each object.
 
 ### Move along path
 
 ![The brush selected with a dashed flight path above it, and the Animation tab showing Move along path with Orient to path on](docs/help/move-along-path.png)
 
-Send a layer along a line you draw: a car along a road, a plane along its
+Send an object along a line you draw: a car along a road, a plane along its
 flight path.
 
 1. Draw the route with the Pen or Pencil, or use any shape (a rectangle,
-   circle, ellipse, line or polygon). It must be above the layer that
+   circle, ellipse, line or polygon). It must be above the object that
    moves.
-2. Select the layer, then Shift-click the route, and open the **Animation**
+2. Select the object, then Shift-click the route, and open the **Animation**
    tab.
 3. Choose **Add animation… → Move along path**.
-4. Click ▶ **Play**: the layer's centre travels the route from its start to
+4. Click ▶ **Play**: the object's centre travels the route from its start to
    its end, then stays there.
 
 #### Settings
 
-- **Path**: the layer it follows. Pick another shape here to change the
+- **Path**: the shape it follows. Pick another shape here to change the
   route.
-- **Orient to path**: the layer turns to face the way it's going, like a
+- **Orient to path**: the object turns to face the way it's going, like a
   car on a road. It points along the route the way it's drawn facing (its
   own rightward direction leads).
 - **Hide the path when saved**: the route is left out of sight in the saved
-  file, so only the moving layer shows. It stays visible while you edit,
+  file, so only the moving object shows. It stays visible while you edit,
   and comes back when you reopen the file.
 - **Length**, **Delay**, **Times**, **Run** and **Ease** work as for every
   animation. **Reverse** runs from the end of the route to its start;
@@ -1442,10 +1442,10 @@ flight path.
   gone —" until you pick another.
 - A closed shape (a circle, a rectangle) makes a loop: set **Forever** for
   something that keeps circling.
-- It combines with the other animations: a layer can Pulse or Spin while it
+- It combines with the other animations: an object can Pulse or Spin while it
   travels.
 - In the file it's an `<animateMotion>` along the route (as seen from the
-  layer), plus a fixed shift that puts the layer's centre on the line.
+  object), plus a fixed shift that puts the object's centre on the line.
 
 ### Morph
 
@@ -1454,8 +1454,8 @@ flight path.
 Turn one shape into another: a play icon into a pause icon, a circle into
 a star, a blob that wobbles between two outlines.
 
-1. Draw the shape it should become, above the layer that changes.
-2. Select the layer, then Shift-click that shape, and open the **Animation**
+1. Draw the shape it should become, above the object that changes.
+2. Select the object, then Shift-click that shape, and open the **Animation**
    tab.
 3. Choose **Add animation… → Morph**. A rectangle, circle, ellipse, line or
    polygon becomes a path (only a path can change its outline).
@@ -1466,7 +1466,7 @@ a star, a blob that wobbles between two outlines.
 
 - **Into**: the shape it becomes. Pick another here.
 - **Hide that shape when saved**: the target is left out of sight in the
-  saved file, so only the morphing layer shows. It stays visible while you
+  saved file, so only the morphing shape shows. It stays visible while you
   edit, and comes back when you reopen the file.
 - **Run**: **Back and forth** turns it into the other shape and back, and
   with **Forever** keeps doing so; **Reverse** starts as the other shape.
@@ -1478,11 +1478,11 @@ a star, a blob that wobbles between two outlines.
   and the start is chosen to keep the change smooth. A part with no partner
   (a hole that the other shape doesn't have) grows from or shrinks to a
   point.
-- Only the outline changes. The fill and stroke stay the layer's own (add
+- Only the outline changes. The fill and stroke stay the shape's own (add
   Colour cycle to change the colour as well).
 - Reshape the target and the morph follows: it's linked, not copied.
 - In the file it's an `<animate>` of the path's `d`. Opening a file with one
-  gives a Morph, with the outline it ends on as a "Morph target" layer.
+  gives a Morph, with the outline it ends on as a "Morph target" shape.
 
 ### Zoom and pan
 
@@ -1858,7 +1858,7 @@ other:
 
 ### Selecting, moving and arranging
 
-![Two selected layers with their handles, and the Selection tool's options bar](docs/help/selecting-moving-and-arranging.png)
+![Two selected objects with their handles, and the Selection tool's options bar](docs/help/selecting-moving-and-arranging.png)
 
 Pick objects, then move, resize, rotate, group and stack them.
 
@@ -1889,7 +1889,7 @@ Pick objects, then move, resize, rotate, group and stack them.
 - [Group and ungroup](#group-and-ungroup), and
   [Reorder, copy and delete](#reorder-copy-and-delete) in the Layers
   panel.
-- [Show, hide and lock](#show-hide-and-lock) layers.
+- [Show, hide and lock](#show-hide-and-lock) objects.
 - The grid and snapping:
   [Rulers, guides and smart guides](#rulers-guides-and-smart-guides).
 - Document size: [Units and page size](#units-and-page-size).
@@ -1926,7 +1926,7 @@ Type a single line, or a block that wraps inside a box.
 
 ![Rotated text being edited in place on the canvas](docs/help/edit-text-on-the-canvas.png)
 
-Change the words of a text layer right where it sits.
+Change the words of text right where it sits.
 
 - Click the text with the Type tool, or double-click it with Move → it
   opens for editing on the canvas.
@@ -1945,7 +1945,7 @@ Change the words of a text layer right where it sits.
 Find a font and apply it, from your system fonts or the whole Google Fonts
 catalogue.
 
-1. Select a text layer (or the characters you're editing).
+1. Select a text object (or the characters you're editing).
 2. Click the font name in the options bar or the Character panel.
 3. Type to search, or pick a category, then click a font.
 
@@ -1991,9 +1991,9 @@ Give some characters their own font, size or colour.
 - The options bar, Character panel, font picker and colour controls all
   keep the edit open. They show the settings of the characters under the
   caret.
-- With nothing selected while editing, a change applies to the whole layer.
-- Applying a setting to a selected layer when you're not editing styles the
-  whole layer and clears that setting from its characters.
+- With nothing selected while editing, a change applies to the whole text.
+- Applying a setting to a selected text object when you're not editing
+  styles the whole text and clears that setting from its characters.
 - Auto leading is 120% of the largest size on each line. Paragraph text
   wraps by the real width of every run.
 
@@ -2001,12 +2001,12 @@ Give some characters their own font, size or colour.
 
 ![The Character panel: font, style, size, leading, tracking, shift and the type toggles](docs/help/character-panel.png)
 
-Set the font and spacing of a text layer, or of the characters you've
+Set the font and spacing of a text object, or of the characters you've
 selected.
 
 - Open it from **Type → Character Panel**, the Character tab, or the ¶
   button in the Type options bar.
-- Select a text layer → changes apply to the whole layer. While editing →
+- Select a text object → changes apply to all of it. While editing →
   they apply to the selected characters.
 
 #### Settings
@@ -2029,7 +2029,7 @@ Set how lines line up and how wide a text box is, or switch between point
 and paragraph text.
 
 - Open it from **Type → Paragraph Panel** or the Paragraph tab.
-- Select a text layer, then change its settings.
+- Select a text object, then change its settings.
 
 #### Settings
 
@@ -2040,7 +2040,7 @@ and paragraph text.
 
 ### Text in the saved file
 
-![The SVG Source panel showing a text layer with a styled run and the Google Fonts link](docs/help/text-in-the-saved-file.png)
+![The SVG Source panel showing text with a styled run and the Google Fonts link](docs/help/text-in-the-saved-file.png)
 
 Your text and its fonts go with the file, so it looks the same elsewhere.
 
@@ -2055,7 +2055,7 @@ Your text and its fonts go with the file, so it looks the same elsewhere.
 #### Good to know
 
 - No Warp Text yet.
-- A text layer is ordinary SVG text: one `<tspan>` per line and a nested
+- A text object is ordinary SVG text: one `<tspan>` per line and a nested
   `<tspan>` per styled run, with the settings in standard attributes. The
   type details survive export and import, and other editors can read the
   file.
@@ -2067,11 +2067,11 @@ Type on a Path. The text stays live: edit the path and the text follows.
 
 ### Put text on a path
 
-![A text layer and a curve both selected, with Put Text on Path in the Properties panel](docs/help/put-text-on-a-path.png)
+![A text object and a curve both selected, with Put Text on Path in the Properties panel](docs/help/put-text-on-a-path.png)
 
 Run a line of text along a path or round a shape.
 
-1. Select one text layer and one path or shape (a path, rectangle, ellipse,
+1. Select one text object and one path or shape (a path, rectangle, ellipse,
    circle, polygon, polyline or line): Shift-click both.
 2. Choose **Type → Text on Path**, or click **Put Text on Path** in the
    Properties panel.
@@ -2082,7 +2082,7 @@ Run a line of text along a path or round a shape.
   was.
 - Its fonts, per-character styles, fill, effects, blend mode, lock and name
   stay.
-- The path layer stays where it is and keeps its own paint. Give it no
+- The path stays where it is and keeps its own paint. Give it no
   stroke, or hide it, if you only want the text.
 - On a closed shape the text starts where the shape does: an ellipse's or
   circle's right-hand point, a rectangle's top-left corner.
@@ -2094,10 +2094,10 @@ Run a line of text along a path or round a shape.
 Slide the text along its path, flip it, reshape the path or change the
 words.
 
-- Select the text-on-path layer → the Properties panel shows its options.
-- Move, rotate, scale or point-edit the path layer, or the group it's in →
+- Select the text on its path → the Properties panel shows its options.
+- Move, rotate, scale or point-edit the path, or the group it's in →
   the text re-flows along it straight away.
-- Move the text layer on its own → it stays on the path, because the text
+- Move the text on its own → it stays on the path, because the text
   follows the path.
 - Double-click the text with Move, or click it with the Type tool → edit
   the words. It's edited as one straight line where it starts on the path;
@@ -2124,16 +2124,16 @@ words.
 
 Turn text on a path back into ordinary text.
 
-1. Select the text-on-path layer.
+1. Select the text on its path.
 2. Choose **Type → Release Text on Path**, or click **Release Text on
    Path** in the Properties panel.
 
 It becomes one line of point text, placed where it started on the path.
 
-#### If the path layer is deleted
+#### If the path is deleted
 
 - The text keeps the last shape it ran along and stays where it was, so
-  nothing jumps or disappears. The Properties panel says its path layer is
+  nothing jumps or disappears. The Properties panel says its path is
   gone.
 - Release it to make it ordinary text again.
 
@@ -2146,7 +2146,7 @@ Text on a path is standard SVG, so other browsers and editors show it.
 - The text is a standard `<text>` with a `<textPath>` pointing at a copy of
   the path's shape in `<defs>`. SVG ignores the referenced path's own
   transform, so the copy is kept in the text's coordinates.
-- `data-sc-textpath` on the text names the path layer's id. The path layer
+- `data-sc-textpath` on the text names the path's id. The path
   gets an id if it had none.
 - The link survives Save → reopen, Import and paste (ids that clash are
   renamed and the link follows), undo and Duplicate. Duplicating the text
@@ -2154,21 +2154,21 @@ Text on a path is standard SVG, so other browsers and editors show it.
 
 ## Layers
 
-In the Layers panel every shape is a layer and groups are folders. You
-select, stack, hide, lock, blend and style layers from it.
+In the Layers panel every object has a row and groups are folders. You
+select, stack, hide, lock, blend and style objects from it.
 
 ### Layer rows and folders
 
-![The Layers panel, showing the palette drawing's layers with the Brush and Palette groups open](docs/help/layer-rows-and-folders.png)
+![The Layers panel, showing the palette drawing's objects with the Brush and Palette groups open](docs/help/layer-rows-and-folders.png)
 
 Use the Layers panel to see what your drawing is made of and pick out any
 part of it.
 
-- **One row per layer.** Every shape is a layer, including the shapes
+- **One row per object.** Every shape has a row, including the shapes
   inside a group.
 - **Groups are folders.** Click a folder's arrow to expand or collapse it.
   Each level is indented.
-- **Imported SVGs** arrive as a folder named after the file, with one layer
+- **Imported SVGs** arrive as a folder named after the file, with one row
   per shape inside it.
 
 #### With the keyboard
@@ -2176,7 +2176,7 @@ part of it.
 Tab to the list (it lands on the selected row), then:
 
 - **↑ ↓** (Home, End): select the row above or below; Shift adds it.
-- **Alt+↑ / Alt+↓**: move the layer up or down the stack.
+- **Alt+↑ / Alt+↓**: move the object up or down the stack.
 - **F2** or **Enter**: rename it.
 - **→ / ←**: open or fold a folder.
 - **Shift+F10** (or the menu key): its right-click menu.
@@ -2185,35 +2185,35 @@ Tab to the list (it lands on the selected row), then:
 
 - Everything works at any depth. Move, scale, rotate, flip, nudge, align,
   distribute, duplicate, copy, colours, the eraser and point editing all
-  work on a layer inside a group, so you never have to ungroup first.
-- Every row has a preview, groups (of what's in them) and hidden layers too.
+  work on an object inside a group, so you never have to ungroup first.
+- Every row has a preview, groups (of what's in them) and hidden objects too.
 - Previews are drawn just after the list: the rows in view first, the rest
   while the browser is idle. So a long list appears at once.
 
 ### Select objects
 
-![Four paint layers selected in the Layers panel and on the canvas](docs/help/select-objects.png)
+![Four paints selected in the Layers panel and on the canvas](docs/help/select-objects.png)
 
-Pick the layers you want to work on.
+Pick the objects you want to work on.
 
 - **Click** a row to select it.
 - **Ctrl/⌘-click** a row to add it to the selection, or remove it.
 - **Shift-click** a row to select the run of rows from the last one you
   clicked.
 
-A group and a layer inside it are never selected together.
+A group and an object inside it are never selected together.
 
 ### Group and ungroup
 
-![The Layers panel with two paint layers just put in a new group, Group 1](docs/help/group-and-ungroup.png)
+![The Layers panel with two paints just put in a new group, Group 1](docs/help/group-and-ungroup.png)
 
-Put layers in a folder so they move, hide and style together.
+Put objects in a folder so they move, hide and style together.
 
-1. Select the layers.
+1. Select the objects.
 2. Press Ctrl+G, choose **Object → Group**, or click the folder button
    at the bottom of the panel.
 
-The new group (Group 1, Group 2 …) goes where the frontmost of the layers
+The new group (Group 1, Group 2 …) goes where the frontmost of the objects
 was. With nothing selected, you get an empty group.
 
 To take a group apart again, select it and choose **Object → Ungroup**
@@ -2256,7 +2256,7 @@ Work inside a group as if it were the whole drawing.
 #### Good to know
 
 - Esc first deselects, then steps out.
-- Picking a layer outside the group in the Layers panel leaves isolation
+- Picking an object outside the group in the Layers panel leaves isolation
   mode too. The isolated group's row is outlined there.
 - Undo and redo keep you in the group. Switching to another drawing's tab
   leaves it.
@@ -2264,11 +2264,11 @@ Work inside a group as if it were the whole drawing.
 
 ### Reorder, copy and delete
 
-![Dragging the Purple paint layer in the Layers panel, with a line showing where it will drop](docs/help/reorder-copy-and-delete.png)
+![Dragging the Purple paint's row in the Layers panel, with a line showing where it will drop](docs/help/reorder-copy-and-delete.png)
 
-Change what's in front, or copy and delete layers, by dragging their rows.
+Change what's in front, or copy and delete objects, by dragging their rows.
 
-- **Reorder:** drag a row. Drop on the top half of a row to put the layer in
+- **Reorder:** drag a row. Drop on the top half of a row to put the object in
   front of it, or on the bottom half to put it behind.
 - **Into a group:** drop on the middle of a folder.
 - **To the back:** drop on the empty space at the bottom of the list.
@@ -2281,51 +2281,51 @@ Dragging a selected row moves the whole selection.
 #### Good to know
 
 - Clicking New duplicates the selection, a little offset.
-- Layers never move on screen when they change groups. Paint they inherited
+- Objects never move on screen when they change groups. Paint they inherited
   from their old group (such as an icon's `fill="none"`) goes with them.
 
 ### Show, hide and lock
 
-![The Layers panel with the Brush group hidden and the Title layer locked](docs/help/show-hide-and-lock.png)
+![The Layers panel with the Brush group hidden and the Title locked](docs/help/show-hide-and-lock.png)
 
-Hide layers you're not working on, and lock the ones you don't want to
+Hide objects you're not working on, and lock the ones you don't want to
 change by accident.
 
 - **Hide or show:** click a row's eye.
-- **Show just one layer:** Alt-click its eye. Every other
-  layer hides (the groups it's in stay shown). Alt-click it again and the
+- **Show just one object:** Alt-click its eye. Every other
+  object hides (the groups it's in stay shown). Alt-click it again and the
   others come back as they were. Right-clicking the eye offers Hide All
-  Other Layers and Show All Other Layers too.
-- **Lock:** select layers and click a **Lock** button at the top of the
+  Others and Show All Others too.
+- **Lock:** select objects and click a **Lock** button at the top of the
   panel, or use **Object → Lock → Lock Position / Lock All**.
 - **Unlock:** click the padlock on the row, or choose **Object → Lock →
   Unlock All**.
 
 #### Lock options
 
-- **Lock position**: stops the layer moving, scaling, rotating, flipping,
+- **Lock position**: stops the object moving, scaling, rotating, flipping,
   nudging and aligning.
 - **Lock all**: stops every change: paint, styles, blend mode, point and
   text edits, deleting and erasing.
 
 #### Good to know
 
-- Locked layers can still be selected.
+- Locked objects can still be selected.
 - A lock on a group covers everything in it.
 
 ### Right-click a row
 
-![The Layers panel's right-click menu on the Title layer](docs/help/right-click-a-row.png)
+![The Layers panel's right-click menu on the Title's row](docs/help/right-click-a-row.png)
 
-Right-click a row in the Layers panel for what you can do with the layer.
+Right-click a row in the Layers panel for what you can do with the object.
 
 - **The row**: it's selected (unless it's already in the selection), and
-  the menu offers Rename Layer…, Duplicate, Delete, Arrange, Group,
+  the menu offers Rename…, Duplicate, Delete, Arrange, Group,
   Clipping Mask, Combine Shapes, symbols, Effects, Copy / Paste /
   Clear Effects, Lock, Merge Down, Merge Visible and Copy as SVG.
-- **The eye**: Hide (or Show) This Layer, and Hide All Other Layers, which
-  leaves only this one showing (the groups it's in stay shown). Once the
-  others are hidden, the same item reads Show All Other Layers.
+- **The eye**: Hide (or Show) This, and Hide All Others, which leaves
+  only this one showing (the groups it's in stay shown). Once the others
+  are hidden, the same item reads Show All Others.
 
 #### Good to know
 
@@ -2333,11 +2333,11 @@ Right-click a row in the Layers panel for what you can do with the layer.
 
 ### Rename an object
 
-![Renaming the Title layer in the Layers panel](docs/help/rename-an-object.png)
+![Renaming the Title in the Layers panel](docs/help/rename-an-object.png)
 
-Give layers names you'll recognise.
+Give objects names you'll recognise.
 
-1. Double-click the layer's name.
+1. Double-click the object's name.
 2. Type the new name.
 3. Press Enter to save, or Esc to cancel.
 
@@ -2346,16 +2346,16 @@ An empty name goes back to the automatic one.
 #### Good to know
 
 - Names are saved as `data-name`, which Illustrator uses too.
-- Inkscape layer labels are read on import.
+- Inkscape labels are read on import.
 
 ### Blend mode and opacity
 
-![The Layers panel with the Purple paint layer set to Multiply at 70% opacity](docs/help/blend-mode-and-opacity.png)
+![Appearance's Transparency with the Purple paint set to Multiply at 70% opacity](docs/help/blend-mode-and-opacity.png)
 
-Make a layer see-through, or mix it with the layers below.
+Make an object see-through, or mix it with the objects below.
 
-1. Select the layer or group.
-2. Pick a blend mode from the menu at the top of the panel.
+1. Select the object or group.
+2. In Properties → Appearance → **Transparency**, pick a blend mode.
 3. Type an **Opacity**, or drag its label.
 
 #### Blend modes
@@ -2364,23 +2364,23 @@ Make a layer see-through, or mix it with the layers below.
   **Screen**, **Color Dodge**, **Overlay**, **Soft Light**, **Hard Light**,
   **Difference**, **Exclusion**, **Hue**, **Saturation**, **Color** and
   **Luminosity**.
-- **Pass Through** (groups only): the group's layers blend with whatever is
+- **Pass Through** (groups only): the group's objects blend with whatever is
   below the group. A new group starts out on Pass Through.
 
 #### Good to know
 
-- Blend mode and opacity belong to a layer, and a group is a layer: on a
+- Blend mode and opacity belong to an object, and a group is one too: on a
   group they apply to the group as a whole.
-- Setting a group to Normal isolates it, so its layers blend only with each
+- Setting a group to Normal isolates it, so its objects blend only with each
   other. Any other mode isolates it too.
-- They're saved as the layer's CSS (`mix-blend-mode`, `isolation`), which
+- They're saved as the object's CSS (`mix-blend-mode`, `isolation`), which
   browsers apply to exported SVGs too.
 
 ### Merge objects
 
-![The Object menu with two layers selected, offering Merge Layers](docs/help/merge-objects.png)
+![The Object menu with two objects selected, offering Merge Objects](docs/help/merge-objects.png)
 
-Turn several layers into one. The result stays vector and nothing on
+Turn several objects into one. The result stays vector and nothing on
 screen changes.
 
 1. Select what to merge.
@@ -2389,11 +2389,11 @@ screen changes.
 
 #### What gets merged
 
-- **Merge Down**: one layer selected merges it into the one below, keeping
+- **Merge Down**: one object selected merges it into the one below, keeping
   the lower one's name.
-- **Merge Layers**: several layers selected merge into one.
+- **Merge Objects**: several objects selected merge into one.
 - **Merge Group**: a selected group's contents merge into one.
-- **Merge Visible** (Ctrl+Shift+E): merges every visible layer and leaves
+- **Merge Visible** (Ctrl+Shift+E): merges every visible object and leaves
   hidden ones alone.
 
 #### Good to know
@@ -2405,8 +2405,8 @@ screen changes.
   same way: three red shapes and a blue one become a group of one red path
   and the blue shape.
 - A shape is only joined to one lower down when nothing between them
-  overlaps it, so what's on top stays on top. Shapes that can't join keep
-  their own layers in the group.
+  overlaps it, so what's on top stays on top. Shapes that can't join stay
+  shapes of their own in the group.
 
 ### Group by Colour
 
@@ -2416,7 +2416,7 @@ Tidy a drawing, an imported one say, into one group per colour.
 
 1. Choose **Object → Group by Colour…**.
 2. Read the warning and click **Group by Colour**. It asks first, because it
-   takes every group in the drawing apart and reorders the layers.
+   takes every group in the drawing apart and reorders the objects.
 
 Each group is named after its colour or its swatch. One undo puts
 everything back.
@@ -2425,51 +2425,51 @@ everything back.
 
 - Shapes with no fill are grouped by stroke. Gradients and patterns are
   grouped by which one they use.
-- The drawing looks the same afterwards. A layer only joins its colour's
+- The drawing looks the same afterwards. An object only joins its colour's
   group when nothing of another colour that overlaps it is stacked in
   between. Otherwise its colour gets a second group ("Red 2").
 - Groups whose look depends on being a group stay whole and are grouped as
-  one layer: a clipping mask, layer style, filter, blend mode, opacity below
+  one object: a clipping mask, effects, filter, blend mode, opacity below
   100% or an animation. So do locked groups. They're named "Mixed" if they
   hold more than one colour.
 
 ### Object via Copy / Cut
 
-![The Object menu, with Layer via Copy and Layer via Cut](docs/help/object-via-copy-cut.png)
+![The Object menu, with Object via Copy and Object via Cut](docs/help/object-via-copy-cut.png)
 
-Put the selected part of a layer on a new layer above it.
+Put the selected part of an object into a new object above it.
 
-1. Select layers, or pick points with Direct Selection.
-2. Choose **Object → Layer via Copy** (Ctrl+J) or **Layer via Cut**
+1. Select objects, or pick points with Direct Selection.
+2. Choose **Object → Object via Copy** (Ctrl+J) or **Object via Cut**
    (Alt+Shift+J).
 
-The new layer is selected with the Selection tool.
+The new object is selected with the Selection tool.
 
-#### With layers selected
+#### With objects selected
 
-- **Layer via Copy** copies them in place. (Duplicate offsets its copy
+- **Object via Copy** copies them in place. (Duplicate offsets its copy
   by 10 px so it shows.)
-- **Layer via Cut** lifts shapes picked inside a group (Ctrl/⌘-click)
-  out onto layers of their own, just above the group and looking the same.
+- **Object via Cut** lifts shapes picked inside a group (Ctrl/⌘-click)
+  out as objects of their own, just above the group and looking the same.
 
 #### With points picked
 
 - The segments between the points go to a new path, drawn like the
   original.
-- **Layer via Copy** leaves the original whole.
-- **Layer via Cut** takes them out, and the original splits where they were.
+- **Object via Copy** leaves the original whole.
+- **Object via Cut** takes them out, and the original splits where they were.
 
 ### Effects (fx)
 
-![The Effects dialog, editing a drop shadow on the Title layer](docs/help/effects-fx.png)
+![The Effects dialog, editing a drop shadow on the Title](docs/help/effects-fx.png)
 
-Add shadows, glows, an overlay or a blur to a layer with the Effects
+Add shadows, glows, an overlay or a blur to an object with the Effects
 dialog.
 
-1. Select the layer.
+1. Select the object.
 2. Open the dialog: click the **fx** button at the bottom of the Layers
    panel, choose **Effect → Effects…** (or one effect from the Effect
-   menu, which opens the dialog with it turned on), or double-click the layer's fx
+   menu, which opens the dialog with it turned on), or double-click the row's fx
    badge. Double-clicking a row anywhere but its name (the thumbnail, or the
    space after the name) opens it too.
 3. Tick an effect on the left to turn it on, or click its name to turn it on
@@ -2480,10 +2480,10 @@ dialog.
 
 To remove all the effects, choose **Effect → Clear Effects**.
 
-To give other layers the same look, select the styled layer and choose
+To give other objects the same look, select the styled one and choose
 **Effect → Copy Effects**, then select the others and choose **Effect →
 Paste Effects**. It copies the effects, the blend mode and the opacity.
-Both are in the layer's right-click menu too.
+Both are in the object's right-click menu too.
 
 #### Effects
 
@@ -2498,8 +2498,8 @@ Both are in the layer's right-click menu too.
 #### Good to know
 
 - Angles, distances and sizes are in document pixels, so a
-  rotated or scaled layer still casts its shadow the same way.
-- Each layer gets its own SVG `<filter>`, which follows the layer as it
+  rotated or scaled object still casts its shadow the same way.
+- Each object gets its own SVG `<filter>`, which follows the object as it
   changes and is exported with it.
 
 ## Tooltips
@@ -2547,7 +2547,7 @@ it straight away.
 #### Good to know
 
 - A group counts as one shape made of everything in it.
-- Rotated, scaled and nested layers combine where they are on screen.
+- Rotated, scaled and nested shapes combine where they are on screen.
 - Text and images are skipped, and you get a message saying so.
 - The geometry comes from [paper.js](http://paperjs.org), which loads the
   first time you combine shapes.
@@ -2564,7 +2564,7 @@ The clip stays live, so you can move the window or the art afterwards.
 Show your art only through the outline of the topmost shape.
 
 1. Put the shape or text that will be the window on top of the art.
-2. Select it and the layers to clip.
+2. Select it and the objects to clip.
 3. Choose **Object → Clipping Mask → Make** (Ctrl+Alt+G), or click the
    scissors button at the bottom of the Layers panel.
 
@@ -2574,10 +2574,10 @@ outline shows; the clipping path itself isn't painted.
 
 #### Good to know
 
-- The topmost selected layer is the clipping path. It has to be a single
-  shape or a text layer. Anything else (a group, an image) gets a message
+- The topmost selected object is the clipping path. It has to be a single
+  shape or a text object. Anything else (a group, an image) gets a message
   saying why, and nothing changes.
-- Locked layers can't be clipped.
+- Locked objects can't be clipped.
 - The clip is saved in the file and is still live when you open it again.
 
 ### Edit the clip
@@ -2590,7 +2590,7 @@ Change what shows through the window, without touching the art.
   move, transform or point-edit it. The window changes and the art stays
   put.
 - **Move everything:** select the group and move it. Both move together.
-- **Clip more art:** drop another layer into the group.
+- **Clip more art:** drop another object into the group.
 - **End the clip:** delete the clipping path, or drag it out of the group.
 
 In the Layers panel the group and the clipping path are marked with
@@ -2606,10 +2606,10 @@ scissors, and the clipping path's name is underlined.
 
 Turn the clip off and get the clipping path back as an ordinary shape.
 
-1. Select the clipping group, or any layer in it.
+1. Select the clipping group, or any object in it.
 2. Choose **Object → Clipping Mask → Release** (Ctrl+Alt+Shift+G).
 
-The clipping path shows again with its own fill and stroke, and the layers
+The clipping path shows again with its own fill and stroke, and the objects
 stay grouped, the group renamed as a plain group (Group 1 …).
 
 #### Good to know
@@ -2628,10 +2628,10 @@ drawing no longer needs its fonts.
 Use it before sending a drawing to someone without your fonts, or to
 reshape the letters with Direct Selection.
 
-1. Select the text layers, or groups with text inside.
+1. Select the text objects, or groups with text inside.
 2. Choose **Type → Create Outlines** (Ctrl+Shift+O).
 
-Each text layer becomes filled paths that look exactly like the text did.
+Each text becomes filled paths that look exactly like the text did.
 One undo brings the text back.
 
 #### What carries over
@@ -2640,11 +2640,11 @@ One undo brings the text back.
   kerning, tracking, alignment, line spacing, paragraph wrapping, baseline
   shift, super/subscript and rotation all carry over. All Caps becomes
   capitals and Small Caps becomes smaller capitals.
-- **One path per style.** Each layer becomes a group named "…
+- **One path per style.** Each text becomes a group named "…
   (outlines)", holding one path per character style in that style's fill,
   stroke and opacity. So a bold word or a red word is its own path.
   Underline and strikethrough become bars in the same paths.
-- **Keeps the layer.** The group takes the text's place in the stack, its
+- **Keeps the object.** The group takes the text's place in the stack, its
   transform, effects, blend mode, opacity, lock and hidden
   state.
 
@@ -2675,7 +2675,7 @@ that file first.
 - **System fonts** otherwise use open stand-ins, and the message says which.
 - **A font the browser fakes** (an italic the family doesn't have) is
   slanted the same way.
-- **If a font can't be downloaded** (offline, say), that layer is left as
+- **If a font can't be downloaded** (offline, say), that one is left as
   text and the message says why.
 
 #### Stand-ins
@@ -2820,7 +2820,7 @@ Each size is drawn from the vector art, not scaled from one big bitmap.
   (16 to 1024 px), for `iconutil`.
 - **Background**: the colour for icons that can't be transparent (see Good
   to know) and for Android's adaptive background when there's no
-  Background layer.
+  Background object.
 
 #### Android adaptive icons
 
@@ -2831,16 +2831,16 @@ Each size is drawn from the vector art, not scaled from one big bitmap.
   icons.
 - Legacy square and round `ic_launcher` PNGs (48 to 192 px) are there for
   older launchers.
-- A layer named **Background** becomes the background layer, and
-  everything else the foreground. It has to be a layer of its own, not
-  inside a group; it's usually the bottom layer, but its place in the stack
+- An object named **Background** becomes the background layer, and
+  everything else the foreground. It has to be an object of its own, not
+  inside a group; it's usually the bottom object, but its place in the stack
   doesn't matter. Without one, the background is the
   **Background** colour (`values/ic_launcher_background.xml`).
 - Artwork drawn on the Android adaptive template (a 108 dp canvas,
   recognised by its guides 1/6 in) is used as drawn, edge to edge. The
   legacy and Play Store icons show its middle 72 dp, as a launcher does.
 - Any other icon's foreground is fitted into the 66 dp safe zone, so no
-  launcher mask cuts into it, and its Background layer is stretched over
+  launcher mask cuts into it, and its Background object is stretched over
   the whole 108 dp so it still fills the launcher's shape.
 
 #### Good to know
@@ -2848,7 +2848,7 @@ Each size is drawn from the vector art, not scaled from one big bitmap.
 - The iOS icon and the Apple touch icon can't be transparent. They're
   filled with the **Background** colour and saved without an alpha channel,
   as the App Store requires. So is Android's adaptive background when
-  there's no Background layer.
+  there's no Background object.
 - The rest keep their transparency.
 - A non-square artboard is centred in each square icon.
 
@@ -2897,7 +2897,7 @@ Add another copy (an instance) of a symbol to the drawing.
 
 ![Symbol instances on the canvas and in the Layers panel, marked with a clover](docs/help/symbol-instances.png)
 
-Use instances like any other layer, and break the link when one needs to
+Use instances like any other object, and break the link when one needs to
 go its own way.
 
 - Select, move, scale, rotate, flip, align, duplicate, lock and hide them,
@@ -3072,7 +3072,7 @@ Anything else is refused with a note under the fields.
   emoji are escaped properly.
 - Only text and `http(s)` URLs are read from a file's metadata: nothing in
   a `<metadata>` block ever enters the drawing, and none of it (or
-  Inkscape's `sodipodi:namedview`) shows up as a layer.
+  Inkscape's `sodipodi:namedview`) shows up as an object.
 
 ## Shortcuts
 
@@ -3094,8 +3094,8 @@ in parentheses, taken from the menus, so they always agree.
 | [ ]                       | Stroke width down / up                             |
 | Ctrl+Z / Ctrl+Shift+Z     | Undo / redo (Ctrl+Y redoes too)                    |
 | Ctrl+C / X / V            | Copy / cut / paste (as SVG)                        |
-| Ctrl+J · Alt+Shift+J      | Layer via Copy · Layer via Cut                     |
-| Ctrl+E · Ctrl+Shift+E     | Merge Down (Layers, Group) · Merge Visible         |
+| Ctrl+J · Alt+Shift+J      | Object via Copy · Object via Cut                   |
+| Ctrl+E · Ctrl+Shift+E     | Merge Down (Objects, Group) · Merge Visible        |
 | Ctrl+A · Ctrl+D           | Select all · deselect                              |
 | Shift+F7                  | Select inverse                                     |
 | Alt+T · Alt+Shift+T       | Free Transform · Transform Again                   |
@@ -3121,14 +3121,14 @@ in parentheses, taken from the menus, so they always agree.
 | Alt+↑ · Alt+↓             | Move the animation up · down the list              |
 | F1                        | SVGCraft Help                                      |
 | F10 (or Alt alone)        | The menu bar (and back)                            |
-| Shift+F10 · menu key      | The right-click menu of the canvas or layer        |
+| Shift+F10 · menu key      | The right-click menu of the canvas or object       |
 
 #### Where they differ from the usual keys
 
 A browser keeps a few keys for itself, so these are different here:
 
 - Free Transform is Alt+T (Ctrl+T opens a tab).
-- Layer via Cut is Alt+Shift+J (Ctrl+Shift+J opens the console in Chrome
+- Object via Cut is Alt+Shift+J (Ctrl+Shift+J opens the console in Chrome
   and Firefox).
 - Select Inverse is Shift+F7 (Ctrl+Shift+I opens the developer tools in
   some browsers).
@@ -3156,16 +3156,16 @@ Save would write it.
 
 ![The SVG Source pane beside the canvas, with the selected Badge instance's lines highlighted](docs/help/window-svg-source.png)
 
-Read the SVG behind your drawing, find the markup for a layer, or copy it
+Read the SVG behind your drawing, find the markup for an object, or copy it
 into a web page.
 
 1. Choose **Window → SVG Source** (Ctrl+U, as in a browser's view-source).
    A pane docks beside the canvas (see Split view). To change the source,
    click **Edit** (see
    [Edit the source and New from Text](#edit-the-source-and-new-from-text)).
-2. Select layers on the canvas to highlight their lines and scroll them
+2. Select objects on the canvas to highlight their lines and scroll them
    into view. Click an element's start tag in the source to select that
-   layer. A run inside a text layer selects the text.
+   object. A run inside a text object selects the text.
 3. Click **Copy** to put the whole source on the clipboard, or **Download**
    to save it as an `.svg` file. You can also select any part of the text
    and copy that.
@@ -3190,7 +3190,7 @@ into a web page.
 - Long embedded `data:` URIs (images, fonts) are shortened with an … on
   screen, but Copy and Download give the full text. Copying a selection
   with the mouse copies what you see, so use Copy for those.
-- Everything in the drawing is shown as text, never run: a text layer that
+- Everything in the drawing is shown as text, never run: a text object that
   says `<script>` shows up as `&lt;script&gt;`, as it is in the file.
 - Large drawings stay quick: lines are drawn as they scroll into view.
 - Keys pressed inside it don't edit the drawing, apart from undo, redo,
@@ -3249,13 +3249,13 @@ its markup.
   drawing back as it was. The selection is cleared.
 - What's applied is read as an opened file is: scripts and event handlers
   are taken out, animations become presets (or are reported), and
-  SVGCraft's own layer names, locks and effects come back.
+  SVGCraft's own object names, locks and effects come back.
 - A New from Text drawing is named after its `<title>`, if it has one.
 - On a phone, SVG Source is read-only.
 
 ## What the saved SVG keeps
 
-![The SVG Source pane showing a layer's name, effects and lock saved as data attributes](docs/help/what-the-saved-svg-keeps.png)
+![The SVG Source pane showing an object's name, effects and lock saved as data attributes](docs/help/what-the-saved-svg-keeps.png)
 
 Save writes everything you set in SVGCraft into the file itself, so opening
 it again, or importing it into another drawing, gives back the same
@@ -3263,7 +3263,7 @@ editable drawing.
 
 #### Saved in the file
 
-- Layer names, hidden layers, locks, blend modes and opacity.
+- Object names, hidden objects, locks, blend modes and opacity.
 - Effects, stroke align, custom dashes and per-corner radii.
 - Clipping masks, still live and editable.
 - Gradients, patterns, styled text runs, text on a path, guides and the

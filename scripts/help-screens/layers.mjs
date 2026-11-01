@@ -208,14 +208,17 @@ export default [
   {
     id: 'blend-mode-and-opacity',
     async shoot(h) {
-      await foldPanels(h);
       await h.select('Purple paint');
+      await h.page.click('[data-tab="props"]');
+      await h.page.locator('#sc-transparency').scrollIntoViewIfNeeded();
       await h.page.selectOption('#sc-blend', 'multiply');
       const op = h.page.locator('#sc-transparency [data-bind="opacity"]');
       await op.fill('70');
       await op.press('Enter');
       await h.redraw();
-      await h.shot(LAYERS, { pad: 0 });
+      await h.page.locator('#sc-transparency').scrollIntoViewIfNeeded();
+      await op.blur();
+      await h.shot('#sc-transparency', { pad: 10 });
     },
   },
   {

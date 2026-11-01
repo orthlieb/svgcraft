@@ -264,7 +264,7 @@ function canvasMenu(x, y) {
   if (state.tf) return TRANSFORM_ITEMS;
   const here = layersAt(x, y);
   const layersHere = here.length > 1 && {
-    sub: 'Layers Here',
+    sub: 'Objects Here',
     icon: 'layer-group',
     items: here.map((el) => ({
       label: layerName(el),
