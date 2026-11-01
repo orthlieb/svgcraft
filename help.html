@@ -322,6 +322,7 @@
               <li><a href="#rounded-rectangles">Rounded rectangles</a></li>
               <li><a href="#patterns">Patterns</a></li>
               <li><a href="#libraries">Libraries</a></li>
+              <li><a href="#global-swatches">Global swatches</a></li>
               <li><a href="#fill-and-stroke">Fill and stroke</a></li>
               <li><a href="#selecting-moving-and-arranging">Selecting, moving and arranging</a></li>
             </ul>
@@ -3346,6 +3347,14 @@
               </li>
               <li><strong>Rename</strong>: double-click a tile, or use the pencil button.</li>
               <li>
+                <strong>Edit colour</strong> (swatches, the palette button): pick a new colour for
+                the selected swatch. A global one repaints every object using it.
+              </li>
+              <li>
+                <strong>Global</strong> (swatches, the link button): makes the selected swatch
+                global; see <a href="#global-swatches">Global swatches</a>.
+              </li>
+              <li>
                 <strong>Delete</strong>: Alt-click a tile, or use the bin button. The library isn't
                 in the drawing's history, so the message after it has its own <strong>Undo</strong>.
               </li>
@@ -3431,6 +3440,50 @@
                 site's data, so export to keep a copy.
               </li>
               <li>Pattern tiles and symbols from a file are sanitised like imported drawings.</li>
+            </ul>
+          </article>
+          <article id="global-swatches" data-find>
+            <h3>Global swatches</h3>
+            <figure>
+              <img
+                src="docs/help/global-swatches.png"
+                alt="The Swatches tab with a global swatch selected: its tile marked with a white corner, and the Global button on"
+                width="275"
+                height="108"
+                loading="lazy"
+              />
+            </figure>
+            <p>Keep a colour in one place, so changing it changes every object painted with it.</p>
+            <ol>
+              <li>
+                In <strong>Window → Libraries → Swatches</strong>, click a swatch and press the
+                <strong>Global</strong> button (the link). Its tile gets a white corner.
+              </li>
+              <li>
+                Paint objects with it, from its tile or from the Fill and Stroke dropdowns. New
+                shapes drawn with it are linked too.
+              </li>
+              <li>
+                To change them all, select the swatch and press <strong>Edit colour</strong> (the
+                palette). Every object painted with it takes the new colour, in one undo step.
+              </li>
+            </ol>
+            <h4>Good to know</h4>
+            <ul>
+              <li>
+                An object stays linked while it's painted with that colour. Give it any other
+                colour, gradient or pattern and it lets go.
+              </li>
+              <li>
+                The file keeps an ordinary fill or stroke colour, so it looks the same everywhere,
+                plus a small SVGCraft attribute naming the swatch (<code>data-sc-fill-swatch</code>,
+                <code>data-sc-stroke-swatch</code>), so the link survives saving and reopening.
+              </li>
+              <li>
+                Swatches belong to this browser's library. A drawing opened where its swatch doesn't
+                exist keeps its colours; editing a swatch repaints only the drawing that's open.
+              </li>
+              <li>Objects locked against all changes keep their colour.</li>
             </ul>
           </article>
           <article id="fill-and-stroke" data-find>

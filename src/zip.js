@@ -216,6 +216,8 @@ function wireLibraries() {
         ({
           add: () => addLibItem(kind),
           rename: () => renameLibItem(kind),
+          recolour: () => editSwatchColour(),
+          global: () => toggleGlobalSwatch(),
           delete: () => removeLibItem(kind),
           export: exportLibrary,
           import: () => $('#sc-lib-file').click(),

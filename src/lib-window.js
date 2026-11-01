@@ -171,7 +171,10 @@ function syncLibBars() {
   for (const bar of document.querySelectorAll('[data-lib]')) {
     const kind = bar.dataset.lib;
     const b = (act) => bar.querySelector(`[data-lib-act="${act}"]`);
-    for (const act of ['rename', 'delete', 'place']) set(b(act), picked(kind));
+    for (const act of ['rename', 'delete', 'place', 'recolour', 'global'])
+      set(b(act), picked(kind));
+    if (kind === 'swatches')
+      b('global')?.setAttribute('aria-pressed', !!libItem(kind, libSel[kind])?.global);
     if (kind === 'patterns') set(b('add'), state.sel.length > 0);
     if (kind === 'gradients') set(b('add'), !!activeGrad());
     if (kind === 'symbols') set(b('add'), !!panelSymbol());

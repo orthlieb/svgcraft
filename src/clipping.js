@@ -187,6 +187,7 @@ function applyStyle(el, key) {
       else if ((!grad && !pat) || t.localName === 'g')
         t.setAttribute(key, state[key + 'On'] ? state[key] : 'none');
       setPaintAttr(t, `${key}-opacity`, f(state[key + 'A']), 1);
+      linkSwatch(t, key);
     } else if (key === 'width') {
       const k = alignOf(t) === 'center' ? 1 : 2;
       setPaintAttr(t, 'stroke-width', f(state.strokeWidth * k));
@@ -243,6 +244,9 @@ function readStyle(el) {
     state.strokeGrad = gradFor(own.stroke || shape, 'stroke');
     state.strokePat = patFor(own.stroke || shape, 'stroke');
     if (state.strokePat) state.stroke = patInk(own.stroke || shape, 'stroke') || state.stroke;
+    for (const k of ['fill', 'stroke'])
+      state[k + 'Swatch'] =
+        shape.getAttribute(`data-sc-${k}-swatch`) || el.getAttribute(`data-sc-${k}-swatch`);
     state.gradStop = 0;
     state.strokeWidth = strokeW(shape);
     state.strokeAlign = alignOf(shape);
@@ -271,18 +275,22 @@ function newStyle(kind) {
     const alpha = state.strokeOn ? state.strokeA : state.fillA;
     a.stroke = state.strokeOn ? state.stroke : state.fill;
     if (alpha < 1) a['stroke-opacity'] = f(alpha);
+    const sw = paintSwatch(state.strokeOn ? 'stroke' : 'fill');
+    if (sw) a['data-sc-stroke-swatch'] = sw.id;
     a['stroke-width'] = f(state.strokeWidth || 1);
     if (state.cap !== 'butt') a['stroke-linecap'] = state.cap;
     if (state.join !== 'miter') a['stroke-linejoin'] = state.join;
   } else {
     a.fill = state.fillOn ? state.fill : 'none';
     if (state.fillA < 1) a['fill-opacity'] = f(state.fillA);
+    if (paintSwatch('fill')) a['data-sc-fill-swatch'] = state.fillSwatch;
     if (kind !== 'text' && state.strokeOn && state.strokeWidth > 0) {
       a.stroke = state.stroke;
       a['stroke-width'] = f(state.strokeWidth);
       if (state.cap !== 'butt') a['stroke-linecap'] = state.cap;
       if (state.join !== 'miter') a['stroke-linejoin'] = state.join;
       if (state.strokeA < 1) a['stroke-opacity'] = f(state.strokeA);
+      if (paintSwatch('stroke')) a['data-sc-stroke-swatch'] = state.strokeSwatch;
       if (kind === 'shape' && state.strokeAlign !== 'center') {
         a['data-stroke-align'] = state.strokeAlign;
         a['stroke-width'] = f(state.strokeWidth * 2);

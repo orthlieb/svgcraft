@@ -1737,6 +1737,10 @@ Shape tool draws a symbol.
   active gradient, or defines a pattern from the selection. Each asks for
   a name.
 - **Rename**: double-click a tile, or use the pencil button.
+- **Edit colour** (swatches, the palette button): pick a new colour for the
+  selected swatch. A global one repaints every object using it.
+- **Global** (swatches, the link button): makes the selected swatch global;
+  see [Global swatches](#global-swatches).
 - **Delete**: Alt-click a tile, or use the bin button. The library isn't
   in the drawing's history, so the message after it has its own **Undo**.
 - **Reset** (↺): brings back the built-in set for that tab.
@@ -1802,6 +1806,34 @@ It reads:
   you clear the site's data, so export to keep a copy.
 - Pattern tiles and symbols from a file are sanitised like imported
   drawings.
+
+### Global swatches
+
+![The Swatches tab with a global swatch selected: its tile marked with a white corner, and the Global button on](docs/help/global-swatches.png)
+
+Keep a colour in one place, so changing it changes every object painted
+with it.
+
+1. In **Window → Libraries → Swatches**, click a swatch and press the
+   **Global** button (the link). Its tile gets a white corner.
+2. Paint objects with it, from its tile or from the Fill and Stroke
+   dropdowns. New shapes drawn with it are linked too.
+3. To change them all, select the swatch and press **Edit colour** (the
+   palette). Every object painted with it takes the new colour, in one
+   undo step.
+
+#### Good to know
+
+- An object stays linked while it's painted with that colour. Give it any
+  other colour, gradient or pattern and it lets go.
+- The file keeps an ordinary fill or stroke colour, so it looks the same
+  everywhere, plus a small SVGCraft attribute naming the swatch
+  (`data-sc-fill-swatch`, `data-sc-stroke-swatch`), so the link survives
+  saving and reopening.
+- Swatches belong to this browser's library. A drawing opened where its
+  swatch doesn't exist keeps its colours; editing a swatch repaints only
+  the drawing that's open.
+- Objects locked against all changes keep their colour.
 
 ### Fill and stroke
 
