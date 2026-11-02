@@ -150,18 +150,6 @@ test.describe('selection', () => {
     await clickDoc(page, 450, 340);
   });
 
-  // Doc-space position of a point of the rect, through its transform.
-  const rectPoint = (page, x, y) =>
-    page.evaluate(
-      ([x, y]) => {
-        const el = document.getElementById('r');
-        const m = document.getElementById('sc-doc').getCTM().inverse().multiply(el.getCTM());
-        const p = new DOMPoint(x, y).matrixTransform(m);
-        return { x: p.x, y: p.y, a: m.a, d: m.d };
-      },
-      [x, y],
-    );
-
   test('fill alpha and layer opacity apply to the selection', async ({ page }) => {
     await page.locator('#sc-fill-a').fill('40');
     await page.locator('#sc-transparency [data-bind="opacity"]').fill('70');
@@ -187,12 +175,14 @@ test.describe('selection', () => {
     await page.mouse.down();
     await page.mouse.move(hb.x + 54, hb.y + 54, { steps: 3 });
     await page.mouse.up();
-    await expect(page.locator('#sc-doc rect')).toHaveAttribute('transform', /^matrix\(/);
-    const tl = await rectPoint(page, 400, 300);
-    expect(tl.x).toBeCloseTo(400, 1);
-    expect(tl.y).toBeCloseTo(300, 1);
-    expect(tl.a).toBeGreaterThan(1.3);
-    expect(tl.d).toBeGreaterThan(1.3);
+    // The rectangle takes its new size (no transform); its stroke stays 3.
+    const r = page.locator('#sc-doc rect');
+    await expect(r).not.toHaveAttribute('transform', /./);
+    await expect(r).toHaveAttribute('stroke-width', '3');
+    expect(+(await r.getAttribute('x'))).toBeCloseTo(400, 0);
+    expect(+(await r.getAttribute('y'))).toBeCloseTo(300, 0);
+    expect(+(await r.getAttribute('width'))).toBeGreaterThan(130);
+    expect(+(await r.getAttribute('height'))).toBeGreaterThan(104);
   });
 });
 
