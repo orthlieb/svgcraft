@@ -57,6 +57,7 @@ tools.select = {
         box,
         m0: state.sel.map(getM),
       };
+      if (this.g.mode === 'scale') this.g.strokes = strokesOf(state.sel);
       noteStep({ rot: 'Rotate', skew: 'Skew', scale: 'Scale' }[this.g.mode]);
       // The pointer is captured by the stage: it keeps the circle arrow
       // while turning, wherever the handle goes.
@@ -202,6 +203,7 @@ tools.select = {
       T = new DOMMatrix().translate(c.x, c.y).rotate(deg).translate(-c.x, -c.y);
     }
     state.sel.forEach((el, i) => transformDoc(el, T, g.m0[i]));
+    if (g.strokes) keepStrokes(g.strokes, T);
     syncPatterns(state.sel);
     syncGradients(state.sel);
     g.T = T;
@@ -225,6 +227,9 @@ tools.select = {
       if (state.tf && g.mode === 'skew')
         state.tf[g.k === 'n' || g.k === 's' ? 'skx' : 'sky'] += g.deg;
       noteTransform(g.T, g.box);
+      // Outside a Free Transform (which keeps its own record of the
+      // matrix), a scaled rectangle or ellipse takes its new size.
+      if (g.strokes && !state.tf) for (const el of state.sel) bakeScale(el);
       commit();
     }
   },

@@ -124,3 +124,91 @@ new MutationObserver(() => {
     'stroke-width',
   ],
 });
+
+// ---- strokes keep their width when scaled -------------------------------
+// Scaling with the handles or the size fields leaves every stroke the width
+// it was set to, as in a drawing app with Scale Strokes off. While it's
+// scaled each stroked shape's width is divided by the scale; when it's done
+// a rectangle, ellipse, circle or line that isn't turned takes the new size
+// into its own geometry, so its stroke is even all round and its width is
+// the one set. (A turned shape, a path or a group keeps the transform, with
+// its stroke widths divided by the overall scale.)
+// The stroked shapes in els (at any depth), with their drawn widths.
+function strokesOf(els) {
+  const out = [];
+  for (const el of els)
+    for (const t of [el, ...el.querySelectorAll(SHAPE_SEL)]) {
+      if (!t.matches?.(SHAPE_SEL) || t.localName === 'tspan') continue;
+      const cs = getComputedStyle(t);
+      if (cs.stroke && cs.stroke !== 'none') out.push({ t, w: parseFloat(cs.strokeWidth) || 0 });
+    }
+  return out;
+}
+// T: the scale done since the widths were read.
+function keepStrokes(list, T) {
+  const k = Math.sqrt(Math.abs(T.a * T.d - T.b * T.c)) || 1;
+  for (const { t, w } of list) {
+    t.style?.removeProperty('stroke-width');
+    // Finer than f(): a shape that takes the scale into its geometry
+    // multiplies it back (see bakeScale).
+    t.setAttribute('stroke-width', +(w / k).toFixed(4));
+    refreshDash(t);
+  }
+}
+// The geometry a scale can be taken into: plain paint (a gradient or pattern
+// is laid out in the shape's own space) and no clip or mask of its own.
+function bakeable(el) {
+  if (!['rect', 'ellipse', 'circle', 'line'].includes(el.localName)) return false;
+  for (const k of ['fill', 'stroke'])
+    if (/url\(/.test(el.getAttribute(k) || '') || /url\(/.test(el.style?.[k] || '')) return false;
+  for (const k of ['clip-path', 'mask']) if (el.hasAttribute(k) && !saRef(el, k)) return false;
+  const m = getM(el);
+  if (Math.abs(m.b) > 1e-6 || Math.abs(m.c) > 1e-6) return false;
+  return el.localName !== 'circle' || Math.abs(Math.abs(m.a) - Math.abs(m.d)) < 1e-4;
+}
+// Take el's own transform into its geometry, its stroke drawn as wide as
+// before.
+function bakeScale(el) {
+  if (!bakeable(el)) return false;
+  const m = getM(el);
+  const cs = getComputedStyle(el);
+  const stroked = cs.stroke && cs.stroke !== 'none';
+  const sw = (parseFloat(cs.strokeWidth) || 0) * Math.sqrt(Math.abs(m.a * m.d));
+  const [sx, sy] = [Math.abs(m.a), Math.abs(m.d)];
+  const X = (x) => m.a * x + m.e;
+  const Y = (y) => m.d * y + m.f;
+  const v = (k) => parseFloat(el.getAttribute(k)) || 0;
+  const set = (k, n) => el.setAttribute(k, f(n));
+  if (el.localName === 'rect') {
+    const [x, y] = [X(v('x')), Y(v('y'))];
+    const [w, h] = [v('width') * sx, v('height') * sy];
+    // A flip leaves the corner it started from on the far side.
+    set('x', m.a < 0 ? x - w : x);
+    set('y', m.d < 0 ? y - h : y);
+    set('width', w);
+    set('height', h);
+  } else if (el.localName === 'line') {
+    for (const [a, b] of [
+      ['x1', 'y1'],
+      ['x2', 'y2'],
+    ]) {
+      set(a, X(v(a)));
+      set(b, Y(v(b)));
+    }
+  } else {
+    set('cx', X(v('cx')));
+    set('cy', Y(v('cy')));
+    if (el.localName === 'circle') set('r', v('r') * sx);
+    else {
+      set('rx', v('rx') * sx);
+      set('ry', v('ry') * sy);
+    }
+  }
+  el.removeAttribute('transform');
+  if (stroked) {
+    el.style?.removeProperty('stroke-width');
+    el.setAttribute('stroke-width', f(sw));
+    refreshDash(el);
+  }
+  return true;
+}

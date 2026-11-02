@@ -1120,6 +1120,11 @@ Scale, rotate and skew the selection by hand or by exact numbers.
 
 #### Good to know
 
+- Scaling leaves strokes the width you set. A rectangle, ellipse, circle or
+  line that isn't rotated takes its new size into its own geometry. Paths,
+  groups and rotated shapes keep a transform, and their stroke widths are
+  divided by the scale (by its average, when it's more one way than the
+  other). To scale strokes as well, use **File → Scale Document…**.
 - Browsers keep Ctrl+T and Ctrl+Shift+T for their tabs, so these shortcuts
   use Alt.
 - Distort, Perspective and Warp aren't included: SVG transforms can only
@@ -1990,7 +1995,8 @@ Pick objects, then move, resize, rotate, group and stack them.
 - **Move**: drag the selection, or nudge it with the arrow keys (Shift
   moves 10 times as far).
 - **Resize and rotate**: drag the handles. Shift keeps the ratio, and Alt
-  scales from the centre. Drag the knob above to rotate.
+  scales from the centre. Drag the knob above to rotate. Strokes keep their
+  width as you resize, and corner radii stay as they were.
 - **Flip**: the flip buttons on the options bar, or **Object → Transform →
   Flip Horizontal** / **Flip Vertical**.
 - **Group** (Ctrl+G) and **Ungroup** (Ctrl+Shift+G).

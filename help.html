@@ -2327,6 +2327,13 @@
             <h4>Good to know</h4>
             <ul>
               <li>
+                Scaling leaves strokes the width you set. A rectangle, ellipse, circle or line that
+                isn't rotated takes its new size into its own geometry. Paths, groups and rotated
+                shapes keep a transform, and their stroke widths are divided by the scale (by its
+                average, when it's more one way than the other). To scale strokes as well, use
+                <strong>File → Scale Document…</strong>.
+              </li>
+              <li>
                 Browsers keep Ctrl+T and Ctrl+Shift+T for their tabs, so these shortcuts use Alt.
               </li>
               <li>
@@ -3756,7 +3763,8 @@
               </li>
               <li>
                 <strong>Resize and rotate</strong>: drag the handles. Shift keeps the ratio, and Alt
-                scales from the centre. Drag the knob above to rotate.
+                scales from the centre. Drag the knob above to rotate. Strokes keep their width as
+                you resize, and corner radii stay as they were.
               </li>
               <li>
                 <strong>Flip</strong>: the flip buttons on the options bar, or
