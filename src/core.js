@@ -43,6 +43,24 @@ const $ = (s) => document.querySelector(s);
 const icon = (name) => window.SC_ICONS?.[name] || '';
 const THEME_KEY = 'svgcraft.theme';
 
+// A script loaded the first time it's needed (src/print.js and the like),
+// once: the promise resolves when it has run. index.html lists these in its
+// on-demand <template>, so they're kept for offline use all the same.
+const moduleJobs = {};
+function loadModule(src) {
+  moduleJobs[src] ||= new Promise((resolve, reject) => {
+    const sc = document.createElement('script');
+    sc.src = src;
+    sc.onload = () => resolve();
+    sc.onerror = () => {
+      delete moduleJobs[src];
+      reject(new Error(`${src} failed to load`));
+    };
+    document.head.append(sc);
+  });
+  return moduleJobs[src];
+}
+
 // Settings kept in this browser (localStorage). Strings are stored as they
 // are (the theme is read that way before the scripts load), anything else
 // as JSON. Storage can be blocked or full: then a read gives the fallback

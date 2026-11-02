@@ -957,6 +957,38 @@ Keep Save for your working copy: a clean SVG reopens as plain shapes.
   unreferenced ids, unused defs, comments, empty and attribute-free groups,
   and attributes set to their defaults.
 
+### Print
+
+![The Print dialog, offering all the drawing's artboards or just one, at actual size or fitted to the paper](docs/help/print.png)
+
+Print a drawing, or save it as a PDF.
+
+1. Choose **File → Print…** (Ctrl+P).
+2. Pick what to print and how big, then click **Print…**.
+3. In your browser's print dialog, pick a printer, or **Save as PDF**
+   for a vector PDF.
+
+#### Settings
+
+- **Artboards**: all of them, one per page, or **Just** the one you pick.
+  With a single artboard there's nothing to choose.
+- **Size**: **Actual size** prints each artboard on a page its own size,
+  so a drawing set up as A4, or in mm, comes out at that size. **Fit to
+  the paper** scales each one to the printer's paper.
+
+#### Good to know
+
+- Only the artboards print, never the editor around them.
+- Fonts from Google Fonts are embedded, as for a PNG.
+- Animations print as the drawing stands, not mid-move.
+- Colours print as on screen (sRGB): there's no CMYK or spot colour.
+  For a print shop, send the SVG or the PDF.
+- Pages of different sizes need Chrome, Edge or a recent Firefox; Safari
+  may print every page at the first artboard's size, so use **Fit to
+  the paper** there.
+- Printing is loaded the first time you use it, and is kept for offline
+  use with the rest of SVGCraft.
+
 ### Shape tools
 
 ![The Shape tools flyout beside the toolbar's Shape button](docs/help/shape-tools.png)

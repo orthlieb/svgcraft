@@ -296,6 +296,7 @@
               <li><a href="#save-and-save-as">Save and Save As</a></li>
               <li><a href="#export">Export</a></li>
               <li><a href="#export-clean-svg">Export Clean SVG…</a></li>
+              <li><a href="#print">Print</a></li>
               <li><a href="#shape-tools">Shape tools</a></li>
               <li><a href="#pencil">Pencil</a></li>
               <li><a href="#pen">Pen</a></li>
@@ -572,7 +573,7 @@
                 src="docs/help/offline-and-as-an-app.png"
                 alt="The File menu, with Install SVGCraft…"
                 width="252"
-                height="601"
+                height="627"
                 loading="lazy"
               />
             </figure>
@@ -1175,7 +1176,7 @@
                 src="docs/help/import.png"
                 alt="The File menu, with Import… highlighted"
                 width="252"
-                height="552"
+                height="578"
                 loading="lazy"
               />
             </figure>
@@ -1870,7 +1871,7 @@
                 src="docs/help/open-recent.png"
                 alt="The File menu's Open Recent submenu, listing four drawings"
                 width="481"
-                height="552"
+                height="578"
                 loading="lazy"
               />
             </figure>
@@ -1912,7 +1913,7 @@
                 src="docs/help/save-and-save-as.png"
                 alt="The File menu, with Save highlighted"
                 width="252"
-                height="552"
+                height="578"
                 loading="lazy"
               />
             </figure>
@@ -1966,7 +1967,7 @@
                 src="docs/help/export.png"
                 alt="The File menu, with Export PNG @2× highlighted"
                 width="252"
-                height="552"
+                height="578"
                 loading="lazy"
               />
             </figure>
@@ -2037,6 +2038,58 @@
                 <code>data-*</code> attribute (object names, locks, effect settings, guides…),
                 unreferenced ids, unused defs, comments, empty and attribute-free groups, and
                 attributes set to their defaults.
+              </li>
+            </ul>
+          </article>
+          <article id="print" data-find>
+            <h3>Print</h3>
+            <figure>
+              <img
+                src="docs/help/print.png"
+                alt="The Print dialog, offering all the drawing's artboards or just one, at actual size or fitted to the paper"
+                width="260"
+                height="301"
+                loading="lazy"
+              />
+            </figure>
+            <p>Print a drawing, or save it as a PDF.</p>
+            <ol>
+              <li>Choose <strong>File → Print…</strong> (Ctrl+P).</li>
+              <li>Pick what to print and how big, then click <strong>Print…</strong>.</li>
+              <li>
+                In your browser's print dialog, pick a printer, or <strong>Save as PDF</strong> for
+                a vector PDF.
+              </li>
+            </ol>
+            <h4>Settings</h4>
+            <ul>
+              <li>
+                <strong>Artboards</strong>: all of them, one per page, or <strong>Just</strong> the
+                one you pick. With a single artboard there's nothing to choose.
+              </li>
+              <li>
+                <strong>Size</strong>: <strong>Actual size</strong> prints each artboard on a page
+                its own size, so a drawing set up as A4, or in mm, comes out at that size.
+                <strong>Fit to the paper</strong> scales each one to the printer's paper.
+              </li>
+            </ul>
+            <h4>Good to know</h4>
+            <ul>
+              <li>Only the artboards print, never the editor around them.</li>
+              <li>Fonts from Google Fonts are embedded, as for a PNG.</li>
+              <li>Animations print as the drawing stands, not mid-move.</li>
+              <li>
+                Colours print as on screen (sRGB): there's no CMYK or spot colour. For a print shop,
+                send the SVG or the PDF.
+              </li>
+              <li>
+                Pages of different sizes need Chrome, Edge or a recent Firefox; Safari may print
+                every page at the first artboard's size, so use
+                <strong>Fit to the paper</strong> there.
+              </li>
+              <li>
+                Printing is loaded the first time you use it, and is kept for offline use with the
+                rest of SVGCraft.
               </li>
             </ul>
           </article>

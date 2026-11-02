@@ -316,6 +316,7 @@ window.addEventListener('keydown', (e) => {
       z: () => (e.shiftKey ? redo() : undo()),
       y: redo,
       s: () => (e.shiftKey ? saveDocAs() : saveDoc()),
+      p: () => !e.shiftKey && ifAllowed('print'),
       o: () => (e.shiftKey ? ifAllowed('createOutlines', createOutlines) : openPicker('open')),
       u: () => (e.shiftKey ? ifAllowed('adjDesaturate') : toggleSource()),
       j: () => ifAllowed(e.shiftKey ? 'layerViaCut' : 'layerViaCopy'),
