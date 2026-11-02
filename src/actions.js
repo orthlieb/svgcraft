@@ -46,6 +46,11 @@ const actions = {
   exportPng4: () => exportPng(4),
   exportAppIcons: openAppIcons,
   copySvg,
+  print: () =>
+    loadModule('src/print.js').then(
+      () => openPrint(),
+      () => warn('Couldn’t load printing (src/print.js).'),
+    ),
   cut: () => copySelection(true),
   copy: () => copySelection(false),
   paste: () => pasteClipboard(),

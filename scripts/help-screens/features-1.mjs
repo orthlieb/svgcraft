@@ -192,6 +192,17 @@ export default [
     },
   },
   {
+    id: 'print',
+    async shoot(h) {
+      await h.page.evaluate(() => {
+        window.svgcraft.state.boards.push({ name: 'Icon', x: 860, y: 0, w: 256, h: 256 });
+      });
+      await h.page.evaluate(() => window.svgcraft.actions.print());
+      await h.page.locator('#sc-print-dlg').waitFor();
+      await h.shot('#sc-print-dlg', { pad: 0 });
+    },
+  },
+  {
     id: 'export',
     async shoot(h) {
       await h.menu('File', 'exportPng2', { click: false });

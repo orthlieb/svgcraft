@@ -86,6 +86,9 @@
             <button role="menuitem" data-action="exportAppIcons">
               <i data-icon="icons"></i><span>Export App Icons…</span>
             </button>
+            <button role="menuitem" data-action="print">
+              <i data-icon="print"></i><span>Print…</span><kbd>Ctrl+P</kbd>
+            </button>
             <hr />
             <button role="menuitem" data-action="canvasSize">
               <i data-icon="expand"></i><span>Document Setup…</span><kbd>Ctrl+Alt+C</kbd>
@@ -4604,6 +4607,15 @@
     <!-- The editor: classic scripts sharing one scope, in this order (later
          files use what earlier ones define). Not ES modules, so it still
          runs when index.html is opened straight from disk. -->
+    <!-- Loaded on first use (loadModule in src/core.js, and the loaders in
+         src/commands.js and src/outlines.js): listed here, never run from
+         here, so the offline copy (sw.js) and the version
+         (scripts/gen-version.mjs) include them. -->
+    <template id="sc-on-demand">
+      <script src="src/print.js"></script>
+      <script src="vendor/paper-core.min.js"></script>
+      <script src="vendor/opentype.min.js"></script>
+    </template>
     <script src="src/core.js"></script>
     <script src="src/guides.js"></script>
     <script src="src/geometry.js"></script>
