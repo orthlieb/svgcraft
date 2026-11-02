@@ -215,7 +215,8 @@ function syncStyleUI() {
     b.setAttribute('aria-checked', b.dataset.strokeCap === state.cap);
   for (const b of document.querySelectorAll('[data-stroke-join]'))
     b.setAttribute('aria-checked', b.dataset.strokeJoin === state.join);
-  for (const b of document.querySelectorAll('[data-stroke-align]'))
+  // Buttons only: shapes in the drawing carry data-stroke-align too.
+  for (const b of document.querySelectorAll('button[data-stroke-align]'))
     b.setAttribute('aria-checked', b.dataset.strokeAlign === state.strokeAlign);
   for (const sel of document.querySelectorAll('select[data-stroke-dash]')) {
     sel.value = state.dash;

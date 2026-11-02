@@ -32,7 +32,10 @@ function transformAgain(copy) {
     .translate(c.x, c.y)
     .multiply(lastT)
     .multiply(new DOMMatrix().translate(-c.x, -c.y));
+  const strokes = strokesOf(state.sel);
   for (const el of state.sel) transformDoc(el, T);
+  keepStrokes(strokes, T);
+  for (const el of state.sel) bakeScale(el);
   commit();
 }
 
@@ -77,8 +80,15 @@ function endTransform(keep) {
   state.tf = null;
   if (keep) {
     // Transform Again repeats the whole session as one step.
-    if (tf.el0.isConnected && hIdx > tf.entry)
+    if (tf.el0.isConnected && hIdx > tf.entry) {
       noteTransform(fullM(tf.el0).multiply(tf.m0.inverse()), tf.box0);
+      // A scaled rectangle or ellipse takes its new size, in the
+      // session's last step (so one undo still takes it all back).
+      if (state.sel.map(bakeScale).some(Boolean) && hIdx === hist.length - 1) {
+        syncStrokeAlign();
+        hist[hIdx] = { ...snapshot(), label: hist[hIdx].label };
+      }
+    }
   } else if (hIdx > tf.entry) {
     hist.length = tf.entry + 1;
     hIdx = tf.entry;
@@ -139,8 +149,11 @@ function applyTransformField(key, v, final, linkBtn = $('#sc-tf-link')) {
     T = about(c.x, c.y, key === 'skx' ? new DOMMatrix().skewX(d) : new DOMMatrix().skewY(d));
     tf[key] = clamp(v, -89, 89);
   }
+  const strokes = strokesOf(state.sel);
   for (const el of state.sel) transformDoc(el, T);
+  keepStrokes(strokes, T);
   noteTransform(T, box);
+  if (final && !tf) for (const el of state.sel) bakeScale(el);
   if (final) commit();
   else drawSelection();
 }
