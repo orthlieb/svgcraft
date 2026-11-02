@@ -1,6 +1,7 @@
-// Render the app's install icons from favicon.svg: icon-192.png and
-// icon-512.png (the rounded tile as it is), and icon-maskable-512.png
-// (full-bleed, the palette inside the middle 80% that Android's masks keep).
+// Render the app's icons from favicon.svg: icon-192.png, icon-512.png and
+// favicon-32.png (the rounded tile as it is), icon-maskable-512.png
+// (full-bleed, the octopus inside the middle 80% that Android's masks keep)
+// and apple-touch-icon.png (full-bleed and opaque: iOS rounds the corners).
 // Run: node scripts/gen-pwa-icons.mjs
 import fs from 'node:fs';
 import path from 'node:path';
@@ -12,7 +13,13 @@ const inner = svg
   .replace(/^[\s\S]*?<svg[^>]*>/, '')
   .replace(/<\/svg>\s*$/, '')
   .replace(/<rect width="64" height="64" rx="12"[^>]*\/>/, '');
-const maskable = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="#001e36"/><g transform="translate(6.4 6.4) scale(0.8)">${inner}</g></svg>`;
+const TILE = '#0e7c7b';
+const fullBleed = (scale) => {
+  const o = (64 * (1 - scale)) / 2;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="${TILE}"/><g transform="translate(${o} ${o}) scale(${scale})">${inner}</g></svg>`;
+};
+const maskable = fullBleed(0.8);
+const touch = fullBleed(1);
 
 const browser = await chromium.launch();
 const page = await browser.newPage();
@@ -20,6 +27,8 @@ for (const [file, src, size] of [
   ['icon-192.png', svg, 192],
   ['icon-512.png', svg, 512],
   ['icon-maskable-512.png', maskable, 512],
+  ['apple-touch-icon.png', touch, 180],
+  ['favicon-32.png', svg, 32],
 ]) {
   await page.setViewportSize({ width: size, height: size });
   await page.setContent(
