@@ -123,7 +123,15 @@ function setMarquee(shape, save) {
   state.marquee = MARQUEES[shape] ? shape : 'arrow';
   for (const b of document.querySelectorAll('[data-marquee]'))
     b.setAttribute('aria-checked', b.dataset.marquee === state.marquee);
-  nodeBtn.dataset.tip = `Direct Selection · ${MARQUEES[state.marquee]}`;
+  // The toolbar button becomes the one picked, icon and name, as the Shape
+  // tools' button does.
+  const item = document.querySelector(`#sc-node-menu [data-marquee="${state.marquee}"]`);
+  const ic = item.querySelector('[data-icon]').dataset.icon;
+  const glyph = nodeBtn.querySelector('[data-icon]');
+  glyph.dataset.icon = ic;
+  glyph.innerHTML = icon(ic);
+  nodeBtn.dataset.tip = MARQUEES[state.marquee];
+  nodeBtn.setAttribute('aria-label', MARQUEES[state.marquee]);
   if (save) store(MARQUEE_KEY, state.marquee === 'arrow' ? null : state.marquee);
   syncCursor();
 }

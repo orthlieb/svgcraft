@@ -262,7 +262,8 @@ Pick a tool.
 - Click a tool to use it.
 - A small corner mark means more tools share its button. Hold the button
   down, right-click it, Alt-click it or click the mark to pick another
-  from its flyout.
+  from its flyout. The button then shows the tool you picked, and a plain
+  click on it uses that tool again.
 - What a drawing tool paints with is in its options bar: see
   [Fill and stroke](#fill-and-stroke).
 
@@ -1194,7 +1195,7 @@ Reshape a path, or a basic shape, by moving its points and curve handles.
   one away.
 - To pick many at once, drag round them with a marquee. Choose its shape
   from the Direct Selection button's flyout (as with the Shape tools), or
-  step through them with Shift+A:
+  step through them with Shift+A. The button takes on the one you pick:
   - **Point Select** (the arrow, and the default): no marquee. A drag off
     the points picks nothing, so it can't catch points by accident.
   - **Rectangle Select**, **Ellipse Select** (an oval) or **Lasso Select**

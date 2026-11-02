@@ -364,7 +364,10 @@ test('the selection shapes sit in Direct Selection’s toolbar flyout, like the 
   await expect(menu).toBeHidden();
   expect(await page.evaluate(() => window.svgcraft.state.tool)).toBe('node');
   expect(await checked()).toBe('lasso');
-  await expect(btn).toHaveAttribute('data-tip', 'Direct Selection · Lasso Select');
+  // The toolbar button becomes the one picked.
+  await expect(btn).toHaveAttribute('data-tip', 'Lasso Select');
+  await expect(btn).toHaveAttribute('aria-label', 'Lasso Select');
+  await expect(btn.locator('[data-icon]').first()).toHaveAttribute('data-icon', 'sc-lasso');
   // A plain click is just the tool; Shift+A steps through the shapes.
   await page.keyboard.press('v');
   await btn.click();
