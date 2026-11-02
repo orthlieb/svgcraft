@@ -339,6 +339,47 @@ test('points can be picked freeform, with a lasso drawn round them', async ({ pa
   await expect(page.locator('[data-marquee="lasso"]')).toHaveAttribute('aria-checked', 'true');
 });
 
+test('with no shape being edited, a lasso begun off it edits the topmost shape it takes points of', async ({
+  page,
+}) => {
+  await page.evaluate(() =>
+    window.svgcraft.openSvg(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">' +
+        '<rect id="low" x="300" y="200" width="200" height="200" fill="#16a34a"/>' +
+        '<rect id="top" x="300" y="200" width="100" height="100" fill="#2563eb"/>' +
+        '<rect id="far" x="600" y="200" width="100" height="100" fill="#dc2626"/></svg>',
+      'two.svg',
+    ),
+  );
+  await page.locator('#sc-stage').focus();
+  await page.keyboard.press('a');
+  await pickMarquee(page, 'lasso');
+  expect(await page.evaluate(() => window.svgcraft.tools.node.el)).toBeNull();
+  // Round the shared top-left corner, from the empty canvas: the top square.
+  const pts = await Promise.all(
+    [
+      [280, 180],
+      [330, 180],
+      [330, 230],
+      [280, 230],
+    ].map(([x, y]) => toScreen(page, x, y)),
+  );
+  await page.mouse.move(pts[0].x, pts[0].y);
+  await page.mouse.down();
+  for (const q of pts.slice(1)) await page.mouse.move(q.x, q.y, { steps: 4 });
+  await page.mouse.up();
+  expect(await page.evaluate(() => window.svgcraft.tools.node.el?.id)).toBe('top');
+  await expect(page.locator('#sc-nodes .sc-node.on')).toHaveCount(1);
+  // A rectangle marquee round nothing leaves nothing being edited.
+  await pickMarquee(page, 'rect');
+  await page.evaluate(() => window.svgcraft.tools.node.target(null));
+  await dragDoc(page, [
+    [520, 450],
+    [580, 500],
+  ]);
+  expect(await page.evaluate(() => window.svgcraft.tools.node.el)).toBeNull();
+});
+
 test('the selection shapes sit in Direct Selection’s toolbar flyout, like the Shape tools', async ({
   page,
 }) => {

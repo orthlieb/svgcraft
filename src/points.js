@@ -522,7 +522,10 @@ tools.node = {
       this.g = null;
       return;
     }
-    if (!el && !this.el) return;
+    // Off every shape with none being edited: a marquee drawn from here
+    // edits the topmost shape it takes points of (see within()).
+    const free = !el && !this.el;
+    if (free && state.marquee === 'arrow') return;
     // Point Select picks single points only: a click off them clears the
     // pick (Shift or Alt keeps it).
     if (state.marquee === 'arrow') {
@@ -537,7 +540,7 @@ tools.node = {
     // picked, and one begun with Shift adds to it.
     const cut = e.altKey;
     const keep = cut || e.shiftKey;
-    this.g = { mode: 'marquee', p0: p, pts: [p], cut, base: keep ? [...this.picked] : [] };
+    this.g = { mode: 'marquee', p0: p, pts: [p], cut, free, base: keep ? [...this.picked] : [] };
     if (!keep) {
       this.picked = [];
       this.redraw();
@@ -550,7 +553,7 @@ tools.node = {
       const el = inScope(hit) ? hit : null;
       this.over = !!el && el !== this.el;
     }
-    if (!g || !this.el) return;
+    if (!g || (!this.el && !g.free)) return;
     if (g.mode === 'marquee') {
       // A rectangle or an oval (the options bar), corner to corner, or from
       // its centre with Alt, as the usual marquees; or freeform, a lasso
@@ -593,6 +596,11 @@ tools.node = {
               h > 0 &&
               ((q.x - x - w / 2) / (w / 2)) ** 2 + ((q.y - y - h / 2) / (h / 2)) ** 2 <= 1
             : q.x >= x && q.x <= x + w && q.y >= y && q.y <= y + h;
+      }
+      if (g.free) {
+        const el = this.within(inside);
+        if (el !== this.el) this.target(el);
+        if (!el) return;
       }
       const hit = [];
       this.subs.forEach((sp, si) =>
@@ -657,6 +665,23 @@ tools.node = {
       dst.hin = add(src.hin);
       dst.hout = add(src.hout);
     }
+  },
+  // The topmost shape that can be edited with a point inside the marquee
+  // (`inside` tests a document point), or null. The shapes' points are
+  // read once per drag.
+  within(inside) {
+    const g = this.g;
+    g.cands ||= [...scopeRoot().querySelectorAll([...EDITABLE].join(','))]
+      .reverse()
+      .filter((el) => !el.closest('[data-sc-lock], [display="none"]') && el.checkVisibility())
+      .map((el) => {
+        const M = fullM(el);
+        const pts = shapeNodes(el).flatMap((sp) =>
+          sp.nodes.map((n) => new DOMPoint(n.x, n.y).matrixTransform(M)),
+        );
+        return { el, pts };
+      });
+    return g.cands.find((c) => c.pts.some(inside))?.el || null;
   },
   up() {
     const g = this.g;
