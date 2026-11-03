@@ -33,6 +33,7 @@ export default [
       await h.tab('props');
       await h.page.selectOption('#sc-page', { label: 'A4' });
       await h.page.locator('#sc-units').waitFor();
+      await h.page.locator('#sc-docprops').scrollIntoViewIfNeeded();
       await h.shot(['.sc-docunits', '#sc-grid-size', '.sc-subhead:text-is("Document")'], {
         pad: 10,
       });
