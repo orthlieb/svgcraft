@@ -1964,6 +1964,10 @@ other:
 - The stroke's width, alignment, caps, joins and dashes sit under Stroke.
 - In Chromium browsers, the eyedropper button beside **Appearance** picks a
   colour from anywhere on the screen.
+- A colour field (the hex beside Fill, Stroke, a gradient's stop, or in the
+  dropdowns) takes hex, with or without its `#` (`001122`, `#001122`, or
+  short `#012`), or red, green and blue from 0 to 255 (`233, 244, 235`). It
+  then shows the colour as hex.
 
 #### Transparency
 
