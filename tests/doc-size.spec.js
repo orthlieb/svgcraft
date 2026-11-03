@@ -181,3 +181,20 @@ test('Canvas Size: relative, and anchored to a corner or an edge', async ({ page
   );
   await expect(page.locator('#sc-canvassize')).toBeVisible();
 });
+
+test('Properties shows the document settings only with nothing selected', async ({ page }) => {
+  await load(page, '<rect id="r" x="10" y="10" width="50" height="50" fill="#dc2626"/>', 200, 100);
+  await page.evaluate(() => window.svgcraft.setTool('select'));
+  const docProps = page.locator('#sc-docprops');
+  await expect(docProps).toBeVisible();
+  await expect(page.locator('#sc-w')).toHaveValue('200');
+  await page.evaluate(() => {
+    window.svgcraft.state.sel = [document.getElementById('r')];
+    // eslint-disable-next-line no-undef -- the editor's own global
+    drawSelection();
+  });
+  await expect(docProps).toBeHidden();
+  // eslint-disable-next-line no-undef -- the editor's own global
+  await page.evaluate(() => setSel([]));
+  await expect(docProps).toBeVisible();
+});

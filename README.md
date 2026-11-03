@@ -308,7 +308,9 @@ you like.
   **History**. Properties has the selection's **Transform** (X, Y, W and
   H, typed in the document's units, with a link to keep the proportions),
   its **Appearance** (fill and stroke: see [Fill and stroke](#fill-and-stroke)),
-  the shape's settings, the document size, and the grid and snap.
+  and the shape's settings. With nothing selected, it shows the
+  **Document** settings instead: units, page size, W and H, and the grid
+  and snap.
 - Selecting text shows the Character tab; selecting something else
   afterwards goes back to the tab you had.
 - **Layers**: see [Layers](#layers).
@@ -483,8 +485,9 @@ goes into the editor's own page:
 Work in millimetres, inches or points, or set the drawing to a standard
 paper or screen size.
 
-1. Open the **Properties** panel. The **Document** settings are at the
-   bottom.
+1. Click an empty part of the canvas, so nothing is selected, and open the
+   **Properties** panel. The **Document** settings are at the bottom
+   (they hide while something is selected).
 2. Pick the **Units** you want to see and type lengths in.
 3. Pick a **Page size** from the menu beside Units to resize the artboard
    to it, or type a **W** and **H** of your own.
