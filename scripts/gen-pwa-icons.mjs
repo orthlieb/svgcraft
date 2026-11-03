@@ -1,7 +1,8 @@
 // Render the app's icons from favicon.svg: icon-192.png, icon-512.png and
-// favicon-32.png (the rounded tile as it is), icon-maskable-512.png
-// (full-bleed, the octopus inside the middle 80% that Android's masks keep)
-// and apple-touch-icon.png (full-bleed and opaque: iOS rounds the corners).
+// favicon-32.png (the rounded tile as it is), and icon-maskable-512.png and
+// apple-touch-icon.png (full-bleed and opaque: Android's masks and iOS shape
+// the corners themselves). The octopus comes in from the tile's edge, so the
+// full-bleed ones show it unclipped, at the same size.
 // Run: node scripts/gen-pwa-icons.mjs
 import fs from 'node:fs';
 import path from 'node:path';
@@ -12,14 +13,13 @@ const svg = fs.readFileSync(path.join(root, 'favicon.svg'), 'utf8');
 const inner = svg
   .replace(/^[\s\S]*?<svg[^>]*>/, '')
   .replace(/<\/svg>\s*$/, '')
-  .replace(/<rect width="64" height="64" rx="12"[^>]*\/>/, '');
+  .replace(/<rect width="64" height="64" rx="12"[^>]*\/>/, '')
+  .replace(/<clipPath id="tile">[\s\S]*?<\/clipPath>/, '')
+  .replace(/ clip-path="url\(#tile\)"/, '');
 const TILE = '#0e7c7b';
-const fullBleed = (scale) => {
-  const o = (64 * (1 - scale)) / 2;
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="${TILE}"/><g transform="translate(${o} ${o}) scale(${scale})">${inner}</g></svg>`;
-};
-const maskable = fullBleed(0.8);
-const touch = fullBleed(1);
+const fullBleed = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="${TILE}"/>${inner}</svg>`;
+const maskable = fullBleed;
+const touch = fullBleed;
 
 const browser = await chromium.launch();
 const page = await browser.newPage();
