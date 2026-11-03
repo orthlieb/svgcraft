@@ -2718,66 +2718,69 @@
                 </p>
               </div>
             </div>
-            <span class="sc-subhead">Document</span>
-            <div class="sc-docunits">
-              <label class="sc-field"
-                >Units
-                <select id="sc-units" aria-label="Document units"></select
-              ></label>
-              <select id="sc-page" aria-label="Page size" data-tip="Page size">
-                <option value="">Custom size</option>
-              </select>
-              <button
-                class="sc-ibtn"
-                id="sc-orient"
-                aria-label="Turn the page"
-                data-tip="Turn the page: portrait or landscape"
-              >
-                <i data-icon="rotate"></i>
-              </button>
-            </div>
-            <div class="sc-prop-grid">
-              <label class="sc-field"
-                ><span class="sc-scrub" data-tip="Drag to adjust">W</span
-                ><input
-                  id="sc-w"
-                  type="number"
-                  min="1"
-                  max="20000"
-                  value="800"
-                  aria-label="Document width"
-                /><span class="sc-unit" data-doc-unit>px</span></label
-              >
-              <label class="sc-field"
-                ><span class="sc-scrub" data-tip="Drag to adjust">H</span
-                ><input
-                  id="sc-h"
-                  type="number"
-                  min="1"
-                  max="20000"
-                  value="600"
-                  aria-label="Document height"
-                /><span class="sc-unit" data-doc-unit>px</span></label
-              >
-              <label class="sc-check"><input id="sc-grid" type="checkbox" /> Grid</label>
-              <label class="sc-check"><input id="sc-snap" type="checkbox" /> Snap</label>
-              <label class="sc-check"
-                ><input id="sc-pixgrid-on" type="checkbox" /> Pixel grid</label
-              >
-              <label class="sc-check"
-                ><input id="sc-snappix-on" type="checkbox" /> Snap to pixel</label
-              >
-              <label class="sc-field"
-                ><span class="sc-scrub" data-tip="Drag to adjust">Grid</span
-                ><input
-                  id="sc-grid-size"
-                  type="number"
-                  min="2"
-                  max="500"
-                  value="20"
-                  aria-label="Grid size"
-                /><span class="sc-unit" data-doc-unit>px</span></label
-              >
+            <!-- With nothing selected: the document's own settings. -->
+            <div id="sc-docprops">
+              <span class="sc-subhead">Document</span>
+              <div class="sc-docunits">
+                <label class="sc-field"
+                  >Units
+                  <select id="sc-units" aria-label="Document units"></select
+                ></label>
+                <select id="sc-page" aria-label="Page size" data-tip="Page size">
+                  <option value="">Custom size</option>
+                </select>
+                <button
+                  class="sc-ibtn"
+                  id="sc-orient"
+                  aria-label="Turn the page"
+                  data-tip="Turn the page: portrait or landscape"
+                >
+                  <i data-icon="rotate"></i>
+                </button>
+              </div>
+              <div class="sc-prop-grid">
+                <label class="sc-field"
+                  ><span class="sc-scrub" data-tip="Drag to adjust">W</span
+                  ><input
+                    id="sc-w"
+                    type="number"
+                    min="1"
+                    max="20000"
+                    value="800"
+                    aria-label="Document width"
+                  /><span class="sc-unit" data-doc-unit>px</span></label
+                >
+                <label class="sc-field"
+                  ><span class="sc-scrub" data-tip="Drag to adjust">H</span
+                  ><input
+                    id="sc-h"
+                    type="number"
+                    min="1"
+                    max="20000"
+                    value="600"
+                    aria-label="Document height"
+                  /><span class="sc-unit" data-doc-unit>px</span></label
+                >
+                <label class="sc-check"><input id="sc-grid" type="checkbox" /> Grid</label>
+                <label class="sc-check"><input id="sc-snap" type="checkbox" /> Snap</label>
+                <label class="sc-check"
+                  ><input id="sc-pixgrid-on" type="checkbox" /> Pixel grid</label
+                >
+                <label class="sc-check"
+                  ><input id="sc-snappix-on" type="checkbox" /> Snap to pixel</label
+                >
+                <label class="sc-field"
+                  ><span class="sc-scrub" data-tip="Drag to adjust">Grid</span
+                  ><input
+                    id="sc-grid-size"
+                    type="number"
+                    min="2"
+                    max="500"
+                    value="20"
+                    aria-label="Grid size"
+                  /><span class="sc-unit" data-doc-unit>px</span></label
+                >
+              </div>
             </div>
           </div>
         </section>

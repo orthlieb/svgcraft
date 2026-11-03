@@ -89,6 +89,8 @@ function handlePos(box, k) {
 
 function drawSelection() {
   srcSyncSel();
+  // Properties shows the document's settings only with nothing selected.
+  $('#sc-docprops').hidden = state.sel.length > 0;
   selLayer.replaceChildren();
   syncCornerUI();
   syncFillRuleUI();
