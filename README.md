@@ -1202,7 +1202,9 @@ Reshape a path, or a basic shape, by moving its points and curve handles.
   - **Point Select** (the arrow, and the default): no marquee. A drag off
     the points picks nothing, so it can't catch points by accident.
   - **Rectangle Select**, **Ellipse Select** (an oval) or **Lasso Select**
-    (freeform): drag round the points to pick them.
+    (freeform): drag round the points to pick them. You can start the drag
+    off the shape. With no shape being edited yet, the drag edits the
+    topmost shape it takes points of.
 - With a marquee, a drag begun with Shift adds to what's picked, and one
   begun with Alt takes points away. Alt pressed during a drag grows a
   rectangle or oval from its centre.
