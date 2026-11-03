@@ -11,7 +11,12 @@ const LIB_KEY = 'svgcraft.library.v1';
 const uid = () => Math.random().toString(36).slice(2, 10);
 function defaultLibrary(kind) {
   const all = {
-    swatches: PALETTE.filter((c) => c !== 'none').map((c) => ({ id: uid(), name: c, c, a: 1 })),
+    // White comes global (a paper colour that's often changed later).
+    swatches: PALETTE.filter((c) => c !== 'none').map((c) =>
+      c === '#ffffff'
+        ? { id: 'white', name: 'White', c, a: 1, global: true }
+        : { id: uid(), name: c === '#000000' ? 'Black' : c, c, a: 1 },
+    ),
     gradients: Object.entries(GRAD_PRESETS)
       .filter(([k]) => k !== 'fade')
       .map(([id, [name, fn]]) => ({ id, name, type: 'linear', angle: 0, stops: fn() })),
