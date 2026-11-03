@@ -2268,10 +2268,16 @@ select[data-stroke-dash],
   position: absolute;
   right: 0;
   bottom: 0;
-  border-style: solid;
-  border-width: 0 0 7px 7px;
-  border-color: transparent transparent #fff transparent;
-  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.6));
+  width: 8px;
+  height: 8px;
+  /* A white corner with a dark edge, so it shows on a white swatch too. */
+  background: linear-gradient(
+    135deg,
+    transparent 50%,
+    #1f2933 50%,
+    #1f2933 calc(50% + 1.2px),
+    #fff calc(50% + 1.2px)
+  );
   pointer-events: none;
 }
 .sc-palette .sc-tile.sel {
