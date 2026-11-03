@@ -119,3 +119,35 @@ test('Appearance’s hex is empty for a gradient or no paint, and typing one mak
   await expect(page.locator('#a')).toHaveAttribute('fill', '#00ff00');
   await expect(hexOf('fill')).toHaveAttribute('placeholder', '');
 });
+
+test('a colour field takes hex with or without #, short hex, or red, green and blue', async ({
+  page,
+}) => {
+  await fillBtn(page).click();
+  const hex = pop(page).locator('.sc-hex');
+  for (const [typed, want] of [
+    ['001122', '#001122'],
+    ['#00AAff', '#00aaff'],
+    ['abc', '#aabbcc'],
+    ['233, 244, 235', '#e9f4eb'],
+    ['10 20 30', '#0a141e'],
+    ['rgb(255,0,128)', '#ff0080'],
+  ]) {
+    await hex.fill(typed);
+    await hex.press('Enter');
+    expect((await st(page)).fill, typed).toBe(want);
+  }
+  // Not a colour (or out of range): the paint stays as it was.
+  for (const typed of ['300, 0, 0', 'banana', '12345']) {
+    await hex.fill(typed);
+    await hex.press('Enter');
+    expect((await st(page)).fill, typed).toBe('#ff0080');
+  }
+  // The panels' fields take it too.
+  await select(page, 'b');
+  await tab(page, 'props');
+  await page.fill('#sc-fill-hex', '37, 99, 235');
+  await page.press('#sc-fill-hex', 'Enter');
+  await expect(page.locator('#b')).toHaveAttribute('fill', '#2563eb');
+  await expect(page.locator('#sc-fill-hex')).toHaveValue('#2563eb');
+});
