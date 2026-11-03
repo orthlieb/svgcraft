@@ -1917,6 +1917,9 @@ with it.
 
 #### Good to know
 
+- **White** comes as a global swatch. A library you already have keeps its
+  swatches: the Swatches tab's **Reset** button (the curved arrow) brings in
+  the built-in set, global White included.
 - An object stays linked while it's painted with that colour. Give it any
   other colour, gradient or pattern and it lets go.
 - The file keeps an ordinary fill or stroke colour, so it looks the same
