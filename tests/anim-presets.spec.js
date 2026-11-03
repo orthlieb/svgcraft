@@ -349,3 +349,19 @@ test('Shine comes back from a clean export, its highlight box gone', async ({ pa
   expect(await el.evaluate((e) => e.localName)).toBe('text');
   await expect(page.locator('#sc-doc rect[mask]')).toHaveCount(0);
 });
+
+test('a scaled layer’s Glow pulse is as big as set, in the drawing', async ({ page }) => {
+  // A layer drawn at a fifth of its size: the glow's blur, on the group
+  // round it (outside that scale), is still 10 drawing units.
+  await page.evaluate(() => {
+    const r = document.getElementById('r');
+    r.setAttribute('transform', 'scale(0.2)');
+    r.setAttribute(
+      'data-sc-anim',
+      JSON.stringify([{ p: 'glowPulse', dur: 1, rep: 0, size: 10, to: '#9fdcff' }]),
+    );
+    window.svgcraft.commit();
+  });
+  const svg = await saved(page);
+  expect(svg).toMatch(/<feGaussianBlur[^>]*stdDeviation="10"/);
+});

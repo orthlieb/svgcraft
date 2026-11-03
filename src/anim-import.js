@@ -830,7 +830,8 @@ function smilWrapped(el, n) {
     }),
   };
   if (glow) {
-    const m = fullM(el);
+    // (The blur is in the wrapping group's space: the layer's parent's.)
+    const m = parentM(el);
     const k = Math.hypot(m.a, m.b) || 1;
     out.size = Math.round(parseFloat(a.blur) * k * 10) / 10;
     out.to = smilHex(a.color) || '#ffffff';
