@@ -107,6 +107,41 @@ function readSmilLost(v) {
     return [];
   }
 }
+// Shine, as SVGCraft writes it: a box over the layer (pointer-events none)
+// filled with a white band (a linearGradient whose gradientTransform
+// slides it) and masked by the layer itself (a mask holding a <use> of
+// it). Taken off before the file's gradients are adopted (which would drop
+// the band's animation), its layer noted with an sc-shine note for
+// smilWrapped. The notes so far, as a Map of layer → notes.
+function stashShines(root) {
+  const notes = new Map();
+  const byId = (id) => id && [...root.querySelectorAll('[id]')].find((e) => e.id === id);
+  const ref = (v) => /^url\(#([^)]+)\)$/.exec(v || '')?.[1];
+  for (const box of [...root.querySelectorAll('rect[mask]')]) {
+    if (box.getAttribute('pointer-events') !== 'none') continue;
+    const mask = byId(ref(box.getAttribute('mask')));
+    const grad = byId(ref(box.getAttribute('fill')));
+    if (mask?.localName !== 'mask' || grad?.localName !== 'linearGradient') continue;
+    const use = mask.children.length === 1 ? mask.firstElementChild : null;
+    const href = use?.getAttribute('href') ?? use?.getAttributeNS(XLINK, 'href');
+    const layer = byId(/^#(.+)$/.exec(href || '')?.[1]);
+    const anim = [...grad.children].find(
+      (c) =>
+        c.localName === 'animateTransform' &&
+        c.getAttribute('attributeName') === 'gradientTransform',
+    );
+    // (A layer with its settings, from a normal save, keeps them.)
+    if (use?.localName !== 'use' || !layer || !anim || layer.hasAttribute('data-sc-anim')) continue;
+    const attrs = {};
+    for (const a of anim.attributes) if (!a.name.startsWith('on')) attrs[a.localName] = a.value;
+    if (!notes.has(layer)) notes.set(layer, []);
+    notes.get(layer).push({ tag: 'sc-shine', attrs });
+    box.remove();
+    for (const d of [mask, grad])
+      if (!root.querySelector(`[mask="url(#${d.id})"], [fill="url(#${d.id})"]`)) d.remove();
+  }
+  return notes;
+}
 function stashSmil(root) {
   const lost = [];
   for (const st of root.querySelectorAll('style'))
@@ -116,7 +151,7 @@ function stashSmil(root) {
         what: `@keyframes ${m[1]} { … }`,
         why: 'A CSS animation: SVGCraft keeps animations as SVG animation (SMIL) only, so CSS ones aren’t read.',
       });
-  const notes = new Map();
+  const notes = stashShines(root);
   for (const n of [...root.querySelectorAll('*')]) {
     if (n.namespaceURI !== NS || !SMIL_TAGS.has(n.localName)) continue;
     const href = n.getAttribute('href') ?? n.getAttributeNS(XLINK, 'href');

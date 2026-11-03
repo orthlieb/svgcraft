@@ -502,14 +502,25 @@ function smilToAnims(el, notes0, own) {
   const drop = (n, why, near) =>
     lost.push({ where, what: smilMarkup(n.tag, n.attrs), why, ...(near ? { near } : {}) });
   const sets = notes.filter((n) => n.tag === 'set');
+  const anims = [];
+  for (const n of notes) {
+    if (n.tag !== 'sc-glow' && n.tag !== 'sc-shine') continue;
+    const w = smilWrapped(el, n);
+    if (w) anims.push(w);
+    else
+      drop(
+        n,
+        `A ${n.tag === 'sc-glow' ? 'glow' : 'shine'} whose timing ${n.tag === 'sc-glow' ? 'Glow pulse' : 'Shine'} can’t rebuild.`,
+      );
+  }
   let pool = [];
   for (const n of notes) {
-    if (n.tag === 'set' || n.tag === 'animateMotion' || n.attrs.attributeName === 'd') continue;
+    if (n.tag === 'set' || n.tag === 'animateMotion' || n.tag.startsWith('sc-')) continue;
+    if (n.attrs.attributeName === 'd') continue;
     const c = smilChannel(n, el);
     if (c) pool.push(Object.assign(c, { note: n }));
     else drop(n, smilUnreadable(n));
   }
-  const anims = [];
   // An outline changing: Morph, into a layer of its own made from the
   // outline it ends on.
   for (const n of notes) {
@@ -739,9 +750,98 @@ function smilToAnims(el, notes0, own) {
 // After a file is opened or placed: turn the noted SMIL on its layers
 // (under roots) into presets. { kept, lost }, lost starting at the count
 // the importer couldn't note at all.
+// A Glow pulse, as SVGCraft writes it: a group round the layer whose
+// filter blurs its outline (feGaussianBlur of SourceAlpha), floods it with
+// the glow colour (feFlood, its flood-opacity animated) and merges that
+// under the layer. Before the layers' SMIL is read: each such group taken
+// off again, its layer noted with a Glow pulse to rebuild (an sc-glow note:
+// the flood's animation, its colour and the blur), and the filter dropped.
+function unwrapGlows(roots) {
+  const out = [];
+  for (const r of roots)
+    for (const g of [r, ...(r.querySelectorAll?.('g[filter]') || [])]) {
+      if (g.localName !== 'g' || !g.isConnected || g.children.length !== 1) continue;
+      const id = /^url\(#([^)]+)\)$/.exec(g.getAttribute('filter') || '')?.[1];
+      const fl = id && defs.querySelector(`filter[id="${CSS.escape(id)}"]`);
+      const kids = fl ? [...fl.children].map((c) => c.localName) : [];
+      if (kids.join() !== 'feGaussianBlur,feFlood,feComposite,feMerge') continue;
+      const [blur, flood] = fl.children;
+      if (blur.getAttribute('in') !== 'SourceAlpha') continue;
+      let note;
+      try {
+        note = JSON.parse(flood.getAttribute('data-sc-smil'));
+      } catch {
+        continue;
+      }
+      const a = note?.list?.find(
+        (n) => n.tag === 'animate' && n.attrs?.attributeName === 'flood-opacity',
+      )?.attrs;
+      if (!a) continue;
+      const layer = g.firstElementChild;
+      if (layer.hasAttribute('data-sc-anim')) continue;
+      let mine = { own: layer.hasAttribute('transform'), list: [] };
+      try {
+        mine = JSON.parse(layer.getAttribute('data-sc-smil')) || mine;
+      } catch {
+        /* none of its own */
+      }
+      mine.list.push({
+        tag: 'sc-glow',
+        attrs: {
+          ...a,
+          color: flood.getAttribute('flood-color') || '#ffffff',
+          blur: blur.getAttribute('stdDeviation') || '0',
+        },
+      });
+      layer.setAttribute('data-sc-smil', JSON.stringify(mine));
+      flood.removeAttribute('data-sc-smil');
+      g.replaceWith(layer);
+      out.push(layer);
+      if (!doc.querySelector(`[filter="url(#${id})"]`)) fl.remove();
+    }
+  return out;
+}
+// A Glow pulse or Shine noted by unwrapGlows or stashShines (src/import.js), or null: its
+// direction read off the flood's opacity (0 to 1) or the band's slide
+// (-1 to 1).
+function smilWrapped(el, n) {
+  const a = n.attrs;
+  const t = smilTiming(a);
+  if (!t || t.base) return null;
+  const glow = n.tag === 'sc-glow';
+  const v = (a.values || '').split(';').map((x) => smilNums(x)[0]);
+  const [lo, hi] = glow ? [0, 1] : [-1, 1];
+  const is = (y) => v.length === y.length && v.every((x, i) => smilNear(x, y[i]));
+  let dir;
+  let dur = t.dur;
+  if (is([lo, hi])) dir = 'normal';
+  else if (is([hi, lo])) dir = 'reverse';
+  else if (is([lo, hi, lo])) [dir, dur] = ['alternate', dur / 2];
+  else return null;
+  const out = {
+    p: glow ? 'glowPulse' : 'shine',
+    dur,
+    delay: t.begin,
+    rep: t.rep,
+    dir,
+    ease: smilEase({
+      calc: a.calcMode === 'spline' ? 'spline' : 'linear',
+      spline: smilNums((a.keySplines || '').split(';')[0]),
+    }),
+  };
+  if (glow) {
+    const m = fullM(el);
+    const k = Math.hypot(m.a, m.b) || 1;
+    out.size = Math.round(parseFloat(a.blur) * k * 10) / 10;
+    out.to = smilHex(a.color) || '#ffffff';
+  }
+  return out;
+}
 function adoptSmil(roots, lost = []) {
   lost = [...lost];
   let kept = 0;
+  // (A layer taken out of its glow's group may have been a root's place.)
+  roots = [...roots, ...unwrapGlows(roots)];
   for (const r of roots)
     for (const el of [r, ...(r.querySelectorAll?.('[data-sc-smil]') || [])]) {
       if (!el.hasAttribute?.('data-sc-smil')) continue;
