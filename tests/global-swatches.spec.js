@@ -111,3 +111,11 @@ test('an ordinary swatch edits its colour without touching the drawing', async (
   expect(await attr(page, 'a', 'fill')).not.toBe('#dc2626');
   await expect(tile(page, 0)).not.toHaveClass(/\bglobal\b/);
 });
+
+test('White comes as a global swatch', async ({ page }) => {
+  // eslint-disable-next-line no-undef -- the editor's own library
+  const white = await page.evaluate(() => lib.swatches.find((s) => s.c === '#ffffff'));
+  expect(white).toMatchObject({ name: 'White', global: true });
+  // eslint-disable-next-line no-undef
+  expect(await page.evaluate(() => lib.swatches.filter((s) => s.global).length)).toBe(1);
+});
