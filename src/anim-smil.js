@@ -227,6 +227,13 @@ function animChannels(el, a) {
       ];
     }
     case 'flip':
+      // Half turns: over, back, over… one per run, the whole lot in one go.
+      if (a._halves)
+        return growXY(
+          Array.from({ length: a._halves + 1 }, (_, i) =>
+            a.axis === 'horizontal' ? [1, i % 2 ? -1 : 1] : [i % 2 ? -1 : 1, 1],
+          ),
+        );
       return growXY(
         a.axis === 'horizontal'
           ? [
@@ -350,11 +357,17 @@ function animChannels(el, a) {
           values: ['0', '1'],
           keyTimes: [0, 1],
         },
-        {
-          tag: 'animateTransform',
-          attrs: { attributeName: 'transform', type: 'translate', additive: 'sum' },
-          values: [at, at],
-        },
+        // The same shift for every Move along path on the layer, so only
+        // the first writes it (it stays, frozen, for the ones after).
+        ...(a._shared
+          ? []
+          : [
+              {
+                tag: 'animateTransform',
+                attrs: { attributeName: 'transform', type: 'translate', additive: 'sum' },
+                values: [at, at],
+              },
+            ]),
       ];
     }
     case 'morph': {
@@ -402,7 +415,15 @@ function animUnfit(el, p, a = null) {
 // each node remembers its start in seconds.
 function animNodes(el, a, preview = false, start = a.delay) {
   if (animUnfit(el, a.p, a)) return [];
+  a = halfFlip(a);
   return chanNodes(a, animChannels(el, a), preview, start);
+}
+// A Flip in half turns as one run of all of them, held at the last (so it
+// stays turned over); forever, a turn over and back, repeated.
+function halfFlip(a) {
+  if (a.p !== 'flip' || !a.half) return a;
+  const n = a.rep || 2;
+  return { ...a, dur: a.dur * n, rep: a.rep ? 1 : 0, _halves: n, _freeze: !!a.rep };
 }
 // keyTimes, finer than other numbers: a pause makes them long fractions.
 const kf = (t) => +t.toFixed(4);
@@ -424,7 +445,7 @@ function chanNodes(a, channels, preview, start, hideWith = ['opacity']) {
   const spline = EASES[a.ease][1];
   const forever = a.rep === 0;
   // Entrances and exits hold their last frame; loops go back to rest.
-  const hold = (def.enter || def.exit || def.line || def.hold) && !forever;
+  const hold = (def.enter || def.exit || def.line || def.hold || a._freeze) && !forever;
   const nodes = [];
   for (const ch of channels) {
     const attrs = { ...ch.attrs };

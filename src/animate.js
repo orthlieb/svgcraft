@@ -172,7 +172,17 @@ const ANIM_PRESETS = {
   wobble: { name: 'Wobble', group: 'Loops', dur: 1, rep: 0, ease: 'linear' },
   breathe: { name: 'Breathe', group: 'Loops', dur: 3, rep: 0, ease: 'inout' },
   // Turned over like a card, about its centre, and back.
-  flip: { name: 'Flip', group: 'Loops', dur: 1.2, rep: 1, ease: 'inout', axis: 'vertical' },
+  // Turned over like a card, about its centre, and back; with `half`, each
+  // run is a half turn, so it stays turned over after an odd number.
+  flip: {
+    name: 'Flip',
+    group: 'Loops',
+    dur: 1.2,
+    rep: 1,
+    ease: 'inout',
+    axis: 'vertical',
+    half: false,
+  },
   // A text layer's letters shown one by one.
   typewriter: {
     name: 'Typewriter',
@@ -352,7 +362,7 @@ function readAnims(el) {
     if ('to' in def) a.to = /^#[0-9a-f]{6}$/i.test(r.to || '') ? r.to.toLowerCase() : def.to;
     if ('path' in def)
       a.path = typeof r.path === 'string' && /^[^\s"'<>#]{1,100}$/.test(r.path) ? r.path : '';
-    for (const k of ['orient', 'hide'])
+    for (const k of ['orient', 'hide', 'half'])
       if (k in def) a[k] = typeof r[k] === 'boolean' ? r[k] : def[k];
     if (
       PIVOT_PRESETS.has(r.p) &&
@@ -374,6 +384,7 @@ function readAnims(el) {
     } else if (id(r.afterLayer)) a.afterLayer = r.afterLayer;
     const ps = num(r.pause, 0, 600, 0);
     if (ps > 0) a.pause = ps;
+    if (r.loop === true) a.loop = true;
     out.push(a);
   }
   return out;
@@ -430,9 +441,95 @@ function animTimes(el, list = readAnims(el), seen = new Set()) {
   });
   return out;
 }
+// Repeat the sequence: an animation with `loop` and the ones chained after
+// it (Start after the one above) as a chain that starts again when its last
+// one ends; [first, last] index pairs. Only chains of runs that end (not
+// Forever, not started by a click or the pointer) repeat.
+function animChains(list) {
+  const out = [];
+  list.forEach((a, i) => {
+    if (!a.loop || a.trigger) return;
+    let k = i;
+    while (list[k + 1]?.after) k++;
+    if (list.slice(i, k + 1).every((x) => x.rep > 0)) out.push([i, k]);
+  });
+  return out;
+}
+// Make a chain's SMIL start again: `nodes[j]` holds animation j's nodes
+// (times from animTimes), already in place. A pair of timers, <set>s of an
+// attribute nothing reads, keeps the beat: the first runs as long as the
+// chain and the second, an instant, starts it again (an element can't
+// start again on its own end). Each node starts that long after the first
+// timer does. A node that adds to the others (a transform with
+// additive="sum") starts with the chain instead, held at its first value
+// until its own start, so each time round sets it back: else a Flip left
+// turned over from the last time would add to the new one. Returns the
+// timers (made, for the preview to start).
+let loopSeq = 0;
+function loopId() {
+  let id;
+  do id = `scloop${++loopSeq}`;
+  while (document.getElementById(id));
+  return id;
+}
+function loopChains(list, times, nodes, preview) {
+  const timers = [];
+  for (const [i, k] of animChains(list)) {
+    const host = nodes[i].find((n) => n.localName !== 'set')?.parentNode;
+    if (!host) continue;
+    const t0 = times[i].t;
+    const T = times[k].t + animLength(list[k]) - t0;
+    // Ids without a hyphen: in a begin, "a-b.end" would read as "a" less "b.end".
+    const [ta, tb] = [loopId(), loopId()];
+    const beat = (id, begin, dur) =>
+      mk('set', { id, attributeName: 'data-sc-loop', to: '1', dur, begin });
+    const a = beat(ta, `${preview ? 'indefinite' : `${f(t0)}s`};${tb}.end`, `${f(T)}s`);
+    a.dataset.scBegin = t0;
+    // Ahead of the nodes that start from it.
+    host.insertBefore(a, nodes[i].find((n) => n.parentNode === host) || host.firstChild);
+    a.after(beat(tb, `${ta}.end`, '0.001s'));
+    timers.push(a);
+    for (let j = i; j <= k; j++) {
+      const off = times[j].t - t0;
+      for (const n of nodes[j]) {
+        if (n.localName === 'set') continue;
+        const pad = n.getAttribute('additive') === 'sum' && list[j].rep === 1 && off > 0;
+        if (pad) {
+          const d = parseFloat(n.getAttribute('dur'));
+          const total = d + off;
+          const vk = n.getAttribute('keyPoints') != null ? 'keyPoints' : 'values';
+          const vals = n.getAttribute(vk).split(';');
+          const kt = (n.getAttribute('keyTimes') || '').split(';').filter(Boolean).map(Number);
+          const at = kt.length
+            ? kt
+            : vals.map((_, x) => (vals.length > 1 ? x / (vals.length - 1) : 0));
+          n.setAttribute(vk, [vals[0], ...vals].join(';'));
+          n.setAttribute(
+            'keyTimes',
+            [0, ...at.map((t) => (off + t * d) / total)].map((t) => +t.toFixed(4)).join(';'),
+          );
+          const ks = n.getAttribute('keySplines');
+          if (ks) n.setAttribute('keySplines', `0 0 1 1;${ks}`);
+          n.setAttribute('dur', `${f(total)}s`);
+        }
+        const at = pad ? 0 : off;
+        n.setAttribute('begin', `${ta}.begin${at ? `+${f(at)}s` : ''}`);
+        // The preview starts the timer; the rest follow it.
+        n.dataset.scFollow = '';
+      }
+    }
+  }
+  return timers;
+}
 // Animation a as it plays at time w (animTimes): its start event carried
 // along for the SMIL to name.
 const timed = (a, w) => ({ ...a, _base: w.base, _end: w.end });
+// A layer's animations as they're written: a Move along path after another
+// shares its shift onto the line (see the SMIL for it).
+const withShared = (list) => {
+  const first = list.findIndex((a) => a.p === 'followPath');
+  return list.map((a, j) => (a.p === 'followPath' && j > first ? { ...a, _shared: true } : a));
+};
 
 // ---- Move along path --------------------------------------------------------------
 // Shapes a layer can move along (as text can run along them).
