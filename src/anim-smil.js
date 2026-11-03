@@ -355,6 +355,23 @@ function animChannels(el, a) {
           attrs: { attributeName: 'transform', type: 'translate', additive: 'sum' },
           values: [at, at],
         },
+        // Back and forth, turned round at each end: mirrored about its
+        // centre for the way back.
+        ...(a.turn && a.dir === 'alternate'
+          ? [
+              [`${f(cx)} ${f(cy)}`, null],
+              ['1 1', '-1 1'],
+              [`${f(-cx)} ${f(-cy)}`, null],
+            ].map(([v, back]) => ({
+              tag: 'animateTransform',
+              attrs: {
+                attributeName: 'transform',
+                type: back ? 'scale' : 'translate',
+                additive: 'sum',
+              },
+              raw: { values: back ? [v, back] : [v, v], kt: [0, 0.5] },
+            }))
+          : []),
       ];
     }
     case 'morph': {

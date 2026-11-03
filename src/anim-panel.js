@@ -349,6 +349,7 @@ function syncAnimUI() {
   }
   for (const [k, label] of [
     ['orient', 'Orient to path'],
+    ['turn', 'Turn round at each end (Alternate)'],
     ['hide', a.p === 'morph' ? 'Hide that shape when saved' : 'Hide the path when saved'],
   ])
     if (k in a) {
@@ -569,6 +570,7 @@ function addAnimation(p) {
     'scale',
     'to',
     'orient',
+    'turn',
     'hide',
     'angle',
     'pivot',
@@ -637,7 +639,7 @@ function wireAnimations() {
         else delete a.stagger;
       } else if (['dur', 'delay', 'dist', 'turns', 'scale', 'angle', 'size'].includes(k))
         a[k] = +t.value;
-      else if (k === 'orient' || k === 'hide') a[k] = t.checked;
+      else if (k === 'orient' || k === 'turn' || k === 'hide') a[k] = t.checked;
       else if (k === 'originX' || k === 'originY') {
         const o = [...animOrigin(a)];
         if (isFinite(+t.value) && t.value !== '') o[k === 'originX' ? 0 : 1] = +t.value / 100;

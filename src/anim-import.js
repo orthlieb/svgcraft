@@ -341,8 +341,9 @@ function smilMorph(el, a) {
     hide: true,
   };
 }
-// An <animateMotion> as Move along path: { anim, used } (used: the fixed
-// shift SVGCraft writes alongside, from the pool), or null. Its path becomes
+// An <animateMotion> as Move along path: { anim, used } (used: the
+// channels SVGCraft writes alongside, from the pool: the fixed shift, and
+// the mirror that turns it round at each end), or null. Its path becomes
 // a new layer beside el, in the same space the motion moves it in.
 function smilMotion(el, a, pool) {
   const t = smilTiming(a);
@@ -400,6 +401,46 @@ function smilMotion(el, a, pool) {
   );
   // Turning about el's own place only matches when that's its centre.
   if (!used && orient && Math.hypot(c.x, c.y) > 0.5) return null;
+  // Turned round at each end (back and forth): a mirror about a point,
+  // written as a fixed shift there, a scale of 1 then -1 across, and the
+  // shift back, all discrete and timed with the motion.
+  const timed = (ch) =>
+    ch.type &&
+    ch.additive &&
+    ch.calc === 'discrete' &&
+    smilNear(ch.begin, t.begin) &&
+    smilNear(ch.dur, t.dur) &&
+    ch.rep === t.rep &&
+    ch.kt.length === 2 &&
+    smilNear(ch.kt[1], 0.5);
+  const flip =
+    dir === 'alternate' &&
+    pool.find(
+      (ch) =>
+        timed(ch) &&
+        ch.type === 'scale' &&
+        smilNear(ch.values[0][0], 1) &&
+        smilNear(ch.values[0][1], 1) &&
+        smilNear(ch.values[1][0], -1) &&
+        smilNear(ch.values[1][1], 1),
+    );
+  let turned = [];
+  if (flip) {
+    const shift = (sx, sy) =>
+      pool.find(
+        (ch) =>
+          timed(ch) &&
+          ch.type === 'translate' &&
+          ch.values.every((p) => smilNear(p[0], sx) && smilNear(p[1], sy)),
+      );
+    const i = pool.indexOf(flip);
+    const there = pool
+      .slice(0, i)
+      .reverse()
+      .find((ch) => timed(ch) && ch.type === 'translate');
+    const back = there && shift(-there.values[0][0], -there.values[0][1]);
+    if (there && back) turned = [there, flip, back];
+  }
   const T = used ? (p) => p : (p) => ({ x: p.x + c.x, y: p.y + c.y });
   const route = mk('path', {
     d: nodesD(
@@ -431,9 +472,10 @@ function smilMotion(el, a, pool) {
           : 'linear',
       path: ensureId(route, 'motion-path'),
       orient,
+      turn: turned.length > 0,
       hide: true,
     },
-    used,
+    used: [used, ...turned].filter(Boolean),
   };
 }
 // A layer's noted SMIL as presets: { anims, lost }.
@@ -476,7 +518,7 @@ function smilToAnims(el, notes, own) {
       );
       continue;
     }
-    if (m.used) pool = pool.filter((c) => c !== m.used);
+    pool = pool.filter((c) => !m.used.includes(c));
     anims.push(m.anim);
   }
   const setsUsed = new Set();

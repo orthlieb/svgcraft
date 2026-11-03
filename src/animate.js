@@ -214,7 +214,9 @@ const ANIM_PRESETS = {
   },
   // Along another layer's outline (its id in `path`), the layer's centre
   // on the line; `orient` turns it to face the way it goes, `hide` leaves
-  // the path out of sight in the saved file.
+  // the path out of sight in the saved file. `turn`, going back and forth
+  // (Alternate), mirrors it at each end so it faces the way it's going (a
+  // fish swimming to and fro).
   followPath: {
     name: 'Move along path',
     group: 'Motion',
@@ -224,6 +226,7 @@ const ANIM_PRESETS = {
     hold: true,
     path: '',
     orient: false,
+    turn: false,
     hide: true,
   },
   // Its outline turning into another layer's (`path`: that layer's id).
@@ -352,7 +355,7 @@ function readAnims(el) {
     if ('to' in def) a.to = /^#[0-9a-f]{6}$/i.test(r.to || '') ? r.to.toLowerCase() : def.to;
     if ('path' in def)
       a.path = typeof r.path === 'string' && /^[^\s"'<>#]{1,100}$/.test(r.path) ? r.path : '';
-    for (const k of ['orient', 'hide'])
+    for (const k of ['orient', 'turn', 'hide'])
       if (k in def) a[k] = typeof r[k] === 'boolean' ? r[k] : def[k];
     if (
       PIVOT_PRESETS.has(r.p) &&
