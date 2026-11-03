@@ -18,6 +18,20 @@ function hex(c) {
   );
 }
 
+// A colour typed into a hex field: hex, with or without its #, in six
+// digits or three ("001122", "#012"), or red, green and blue from 0 to 255
+// ("233, 244, 235", "233 244 235", "rgb(233 244 235)"). Null if it's neither.
+function parseColour(text) {
+  const t = String(text ?? '').trim();
+  const h = /^#?([0-9a-f]{6}|[0-9a-f]{3})$/i.exec(t);
+  if (h) return hex('#' + h[1]);
+  const m = /^(?:rgb\(\s*)?(\d{1,3})\s*[,\s]\s*(\d{1,3})\s*[,\s]\s*(\d{1,3})\s*\)?$/i.exec(t);
+  if (!m) return null;
+  const rgb = m.slice(1).map(Number);
+  if (rgb.some((n) => n > 255)) return null;
+  return '#' + rgb.map((n) => n.toString(16).padStart(2, '0')).join('');
+}
+
 function colorAlpha(c) {
   const m = c && c.match(/rgba\([^)]*[,/]\s*([\d.]+%?)\s*\)/);
   if (!m) return 1;

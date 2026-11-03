@@ -1199,7 +1199,9 @@ Reshape a path, or a basic shape, by moving its points and curve handles.
   - **Point Select** (the arrow, and the default): no marquee. A drag off
     the points picks nothing, so it can't catch points by accident.
   - **Rectangle Select**, **Ellipse Select** (an oval) or **Lasso Select**
-    (freeform): drag round the points to pick them.
+    (freeform): drag round the points to pick them. You can start the drag
+    off the shape. With no shape being edited yet, the drag edits the
+    topmost shape it takes points of.
 - With a marquee, a drag begun with Shift adds to what's picked, and one
   begun with Alt takes points away. Alt pressed during a drag grows a
   rectangle or oval from its centre.
@@ -1962,6 +1964,10 @@ other:
 - The stroke's width, alignment, caps, joins and dashes sit under Stroke.
 - In Chromium browsers, the eyedropper button beside **Appearance** picks a
   colour from anywhere on the screen.
+- A colour field (the hex beside Fill, Stroke, a gradient's stop, or in the
+  dropdowns) takes hex, with or without its `#` (`001122`, `#001122`, or
+  short `#012`), or red, green and blue from 0 to 255 (`233, 244, 235`). It
+  then shows the colour as hex.
 
 #### Transparency
 

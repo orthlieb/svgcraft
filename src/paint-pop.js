@@ -297,10 +297,11 @@ function renderPaintPop() {
     hx.value = state[k];
     hx.spellcheck = false;
     hx.setAttribute('aria-label', 'Hex');
+    hx.dataset.tip = 'Hex (#001122) or RGB (233, 244, 235)';
     hx.addEventListener('change', () => {
-      const v = hex(hx.value.trim().startsWith('#') ? hx.value.trim() : '#' + hx.value.trim());
-      if (v && /^#[0-9a-f]{6}$/.test(v)) setSolidPaint(k, v);
-      else hx.value = state[k];
+      const v = parseColour(hx.value);
+      if (v) setSolidPaint(k, v);
+      hx.value = v || state[k];
     });
     const al = document.createElement('input');
     al.type = 'number';

@@ -174,9 +174,11 @@ function wireGradEditor() {
   color.addEventListener('change', () => editGrad(() => {}, true));
   const hx = $('#sc-gstop-hex');
   hx.addEventListener('change', () => {
-    const v = hex(hx.value.trim().startsWith('#') ? hx.value.trim() : '#' + hx.value.trim());
-    if (v && /^#[0-9a-f]{6}$/.test(v)) editGrad((g) => (g.stops[state.gradStop].c = v));
-    else renderGradEditor();
+    const v = parseColour(hx.value);
+    if (v) {
+      hx.value = v;
+      editGrad((g) => (g.stops[state.gradStop].c = v));
+    } else renderGradEditor();
   });
   for (const [id, key] of [
     ['#sc-gstop-a', 'a'],

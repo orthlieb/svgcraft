@@ -281,8 +281,10 @@ function wireStyle() {
     color.addEventListener('change', () => styleChanged(k, true));
     const hx = $(`#sc-${k}-hex`);
     hx.addEventListener('change', () => {
-      const v = hex(hx.value.trim().startsWith('#') ? hx.value.trim() : '#' + hx.value.trim());
-      if (v && /^#[0-9a-f]{6}$/.test(v)) {
+      const v = parseColour(hx.value);
+      if (v) {
+        // Shown as hex, however it was typed.
+        hx.value = v;
         state[k] = v;
         state[k + 'On'] = true;
         state[k + 'Grad'] = null;
