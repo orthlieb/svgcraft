@@ -344,7 +344,7 @@ function smilMorph(el, a) {
 // An <animateMotion> as Move along path: { anim, used } (used: the fixed
 // shift SVGCraft writes alongside, from the pool), or null. Its path becomes
 // a new layer beside el, in the same space the motion moves it in.
-function smilMotion(el, a, pool) {
+function smilMotion(el, a, pool, shared = false) {
   const t = smilTiming(a);
   if (!t || a.calcMode === 'discrete') return null;
   let d = a.path;
@@ -399,8 +399,8 @@ function smilMotion(el, a, pool) {
       ch.values.every((p) => smilNear(p[0], v.x) && smilNear(p[1], v.y)),
   );
   // Turning about el's own place only matches when that's its centre.
-  if (!used && orient && Math.hypot(c.x, c.y) > 0.5) return null;
-  const T = used ? (p) => p : (p) => ({ x: p.x + c.x, y: p.y + c.y });
+  if (!used && !shared && orient && Math.hypot(c.x, c.y) > 0.5) return null;
+  const T = used || shared ? (p) => p : (p) => ({ x: p.x + c.x, y: p.y + c.y });
   const route = mk('path', {
     d: nodesD(
       subs.map((sp) => ({
@@ -437,7 +437,66 @@ function smilMotion(el, a, pool) {
   };
 }
 // A layer's noted SMIL as presets: { anims, lost }.
-function smilToAnims(el, notes, own) {
+// Repeat the sequence, as SVGCraft writes it: a pair of timer <set>s (of
+// data-sc-loop; the first as long as the chain, starting again when the
+// second, an instant, ends) and the chain's nodes starting from the first's
+// begin, the ones that add up held at their first value until their own
+// start. Read back: each node at its own time, unheld, and the chains
+// (start, length, starts) to join up again once they're presets.
+function smilLoops(notes) {
+  const timer = (n) => n.tag === 'set' && n.attrs.attributeName === 'data-sc-loop';
+  const chains = [];
+  const out = notes.filter((n) => !timer(n));
+  for (const a of notes.filter(timer)) {
+    const m = /^\s*([\d.]+m?s?)\s*;\s*([A-Za-z_][\w:]*)\.end\s*$/.exec(a.attrs.begin || '');
+    // (The second timer, which only restarts the first, is skipped.)
+    const b = m && notes.find((n) => timer(n) && n.attrs.id === m[2]);
+    const x = m && smilClock(m[1]);
+    const T = smilClock(a.attrs.dur);
+    if (!b || !(x >= 0) || !(T > 0) || !a.attrs.id) continue;
+    const starts = [];
+    for (const [i, n] of out.entries()) {
+      const r = new RegExp(`^\\s*${a.attrs.id}\\.begin\\s*(?:\\+\\s*(\\S+))?\\s*$`).exec(
+        n.attrs.begin || '',
+      );
+      if (!r) continue;
+      let off = r[1] ? smilClock(r[1]) : 0;
+      const at = { ...n.attrs };
+      const vk = at.keyPoints != null ? 'keyPoints' : 'values';
+      const vals = (at[vk] || '').split(';').map((v) => v.trim());
+      const kt = (at.keyTimes || '').split(';').map(Number);
+      const total = smilClock(at.dur);
+      // Held until its own start: unhold it.
+      if (
+        !off &&
+        at.additive === 'sum' &&
+        vals.length > 2 &&
+        kt.length === vals.length &&
+        vals[0] === vals[1] &&
+        kt[1] > 1e-4 &&
+        kt[1] < 1
+      ) {
+        off = kt[1] * total;
+        const d = total - off;
+        at[vk] = vals.slice(1).join(';');
+        at.keyTimes = kt
+          .slice(1)
+          .map((t) => +((t * total - off) / d).toFixed(4))
+          .join(';');
+        if (at.keySplines) at.keySplines = at.keySplines.split(';').slice(1).join(';');
+        at.dur = `${+d.toFixed(4)}s`;
+      }
+      at.begin = `${+(x + off).toFixed(4)}s`;
+      out[i] = { ...n, attrs: at };
+      starts.push(x + off);
+    }
+    chains.push({ x, T, starts });
+  }
+  return { notes: out, chains };
+}
+function smilToAnims(el, notes0, own) {
+  const loops = smilLoops(notes0);
+  const notes = loops.notes;
   const lost = [];
   const where = smilWhere(el);
   const drop = (n, why, near) =>
@@ -466,9 +525,11 @@ function smilToAnims(el, notes, own) {
       );
   }
   // Motion along a path: Move along path, its route a layer of its own.
+  // After the first, the others share its shift onto the line.
+  let shifted = false;
   for (const n of notes) {
     if (n.tag !== 'animateMotion') continue;
-    const m = smilMotion(el, n.attrs, pool);
+    const m = smilMotion(el, n.attrs, pool, shifted);
     if (!m) {
       drop(
         n,
@@ -477,6 +538,7 @@ function smilToAnims(el, notes, own) {
       continue;
     }
     if (m.used) pool = pool.filter((c) => c !== m.used);
+    if (m.used) shifted = true;
     anims.push(m.anim);
   }
   const setsUsed = new Set();
@@ -529,7 +591,7 @@ function smilToAnims(el, notes, own) {
             ...Object.keys(ANIM_PRESETS).map((k) => [k, 0]),
             // A Flip in half turns: one run of n of them (n + 1 scales).
             ...peers
-              .filter((c) => c.type === 'scale' && c.values.length > 2)
+              .filter((c) => c.type === 'scale' && c.values.length >= 2)
               .map((c) => ['flip', c.values.length - 1]),
           ]) {
             const def = ANIM_PRESETS[p];
@@ -658,6 +720,20 @@ function smilToAnims(el, notes, own) {
       );
   });
   anims.sort((x, y) => x.delay - y.delay);
+  // Repeated chains: the first repeats the sequence, the rest run after
+  // the one above (their delays from its end).
+  for (const c of loops.chains) {
+    const near = (t) => c.starts.some((s) => Math.abs(s - t) < 0.01);
+    const run = anims.filter((a) => !a.trigger && near(a.delay) && a.delay < c.x + c.T - 1e-3);
+    const at = run.map((a) => a.delay);
+    run.forEach((a, i) => {
+      if (!i) a.loop = true;
+      else {
+        a.delay = Math.max(0, +(at[i] - at[i - 1] - animLength(run[i - 1])).toFixed(3));
+        a.after = true;
+      }
+    });
+  }
   return { anims, lost };
 }
 // After a file is opened or placed: turn the noted SMIL on its layers

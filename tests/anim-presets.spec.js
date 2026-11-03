@@ -246,6 +246,20 @@ test('Repeat the sequence starts a chain again when its last one ends', async ({
   await page.locator('#sc-anim-list .sc-anim-name').first().click();
   await expect(page.locator('[data-anim="loop"]')).toBeVisible();
   await expect(page.locator('[data-anim="loop"]')).toBeChecked();
+  // Exported clean and opened again: the same chain, repeating.
+  await page.evaluate(() => {
+    /* eslint-disable no-undef -- the editor's own globals */
+    const s = window.svgcraft;
+    s.openSvg(cleanSvgText(s.serialize(), { ...CLEAN_DEFAULTS }), 'clean.svg');
+    /* eslint-enable no-undef */
+  });
+  const back = JSON.parse(
+    await page.locator('#sc-doc [data-sc-anim]').first().getAttribute('data-sc-anim'),
+  );
+  expect(back).toEqual([
+    expect.objectContaining({ p: 'flip', dur: 1, rep: 1, half: true, loop: true }),
+    expect.objectContaining({ p: 'flip', dur: 1, rep: 1, half: true, after: true, delay: 0 }),
+  ]);
 });
 
 test('Moving along a path and back keeps to the path', async ({ page }) => {
@@ -272,4 +286,22 @@ test('Moving along a path and back keeps to the path', async ({ page }) => {
     expect(c.x, `at ${t} s`).toBeCloseTo(x, 0);
     expect(c.y, `at ${t} s`).toBeCloseTo(120, 0);
   }
+  // Exported clean and opened again: both moves, along the same line.
+  await page.evaluate(() => {
+    /* eslint-disable no-undef -- the editor's own globals */
+    const s = window.svgcraft;
+    s.openSvg(cleanSvgText(s.serialize(), { ...CLEAN_DEFAULTS }), 'clean.svg');
+    /* eslint-enable no-undef */
+  });
+  await expect(page.locator('#sc-doc [data-sc-anim]')).not.toHaveCount(0);
+  const back = await page.evaluate(() => {
+    const el = [...document.querySelectorAll('#sc-doc [data-sc-anim]')].at(-1);
+    const list = JSON.parse(el.getAttribute('data-sc-anim'));
+    return list.map((a) => [a.p, a.dir, document.getElementById(a.path)?.getAttribute('d')]);
+  });
+  expect(back.map(([p, dir]) => [p, dir])).toEqual([
+    ['followPath', 'normal'],
+    ['followPath', 'reverse'],
+  ]);
+  for (const [, , d] of back) expect(d.replace(/\s+/g, ' ')).toMatch(/^M\s?140 120/);
 });
