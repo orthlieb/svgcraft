@@ -1313,6 +1313,11 @@ in the saved SVG.
   (after its first run, if that one loops forever), with its delay counted
   from there. An entrance, a loop and an exit can then follow one another
   without adding up delays.
+- **Repeat the sequence** (on the first of a chain): when the last one
+  after it ends, the chain starts again, for good. For example, Move along
+  path, a half-turn Flip, Move along path in Reverse and another Flip make
+  a fish swim to and fro, turning round at each end. Each one in the chain
+  needs a number of **Times**, not Forever.
 - **Run**: **Normal**, **Reverse** or **Back and forth**.
 - **Ease**: Linear, Ease, Ease in, Ease out or Ease in-out.
 - Each preset's own options, such as the slide or wipe side and distance,

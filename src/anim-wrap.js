@@ -307,7 +307,8 @@ function writeAnimations(live, copy, on, addDef = () => {}) {
   lives.forEach((el, i) => {
     const list = readAnims(el);
     const times = animTimes(el, list);
-    list.forEach((a0, j) => {
+    const made = list.map(() => []);
+    withShared(list).forEach((a0, j) => {
       const a = timed(a0, times[j]);
       const start = times[j].t;
       if (ANIM_PRESETS[a.p].wrap) {
@@ -318,13 +319,18 @@ function writeAnimations(live, copy, on, addDef = () => {}) {
       for (const { at: where, nodes } of animEmit(el, a, false, start)) {
         const host = copies[i] && animHost(copies[i], where, letters);
         for (const n of nodes) {
-          delete n.dataset.scBegin;
           // On a layer inside it, or a letter: dropped when the file reopens.
           if (where) n.setAttribute('data-sc-gen', '');
           host?.append(n);
+          made[j].push(n);
         }
       }
     });
+    const timers = loopChains(list, times, made, false);
+    for (const n of [...made.flat(), ...timers]) {
+      delete n.dataset.scBegin;
+      delete n.dataset.scFollow;
+    }
   });
   let top = copy;
   while (top.parentNode?.hasAttribute?.('data-sc-gen')) top = top.parentNode;

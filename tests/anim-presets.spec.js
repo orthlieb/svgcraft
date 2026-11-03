@@ -224,3 +224,52 @@ test('Flip in half turns stays turned over after an odd number, and reopens so',
   });
   expect(back).toEqual([expect.objectContaining({ p: 'flip', rep: 3, dur: 1, half: true })]);
 });
+
+test('Repeat the sequence starts a chain again when its last one ends', async ({ page }) => {
+  // Turn over, then back: a 2 s chain, repeated.
+  await setAnims(page, 'r', [
+    { p: 'flip', dur: 1, rep: 1, ease: 'linear', half: true, loop: true },
+    { p: 'flip', dur: 1, rep: 1, ease: 'linear', half: true, after: true },
+  ]);
+  const svg = await saved(page);
+  for (const [t, sx] of [
+    [1, -1],
+    [2, 1],
+    // The second time round: turned over again, and back.
+    [3, -1],
+    [4, 1],
+    [5, -1],
+  ])
+    expect((await at(page, svg, t, where, ['r', 140, 120])).sx, `at ${t} s`).toBeCloseTo(sx, 1);
+  // The checkbox shows on the first of a chain.
+  await select(page, 'r');
+  await page.locator('#sc-anim-list .sc-anim-name').first().click();
+  await expect(page.locator('[data-anim="loop"]')).toBeVisible();
+  await expect(page.locator('[data-anim="loop"]')).toBeChecked();
+});
+
+test('Moving along a path and back keeps to the path', async ({ page }) => {
+  await page.evaluate(() => {
+    const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    p.id = 'route';
+    p.setAttribute('d', 'M140 120 L440 120');
+    p.setAttribute('fill', 'none');
+    document.getElementById('sc-doc').append(p);
+  });
+  await setAnims(page, 'r', [
+    { p: 'followPath', dur: 1, rep: 1, ease: 'linear', path: 'route', hide: true },
+    { p: 'followPath', dur: 1, rep: 1, ease: 'linear', path: 'route', dir: 'reverse', after: true },
+  ]);
+  const svg = await saved(page);
+  // The middle of the rectangle (its centre, 140 120 in its own units) on
+  // the line: at its end after 1 s, halfway back at 1.5 s, home at 2 s.
+  for (const [t, x] of [
+    [1, 440],
+    [1.5, 290],
+    [2, 140],
+  ]) {
+    const c = await at(page, svg, t, where, ['r', 140, 120]);
+    expect(c.x, `at ${t} s`).toBeCloseTo(x, 0);
+    expect(c.y, `at ${t} s`).toBeCloseTo(120, 0);
+  }
+});

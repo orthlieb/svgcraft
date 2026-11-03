@@ -357,11 +357,17 @@ function animChannels(el, a) {
           values: ['0', '1'],
           keyTimes: [0, 1],
         },
-        {
-          tag: 'animateTransform',
-          attrs: { attributeName: 'transform', type: 'translate', additive: 'sum' },
-          values: [at, at],
-        },
+        // The same shift for every Move along path on the layer, so only
+        // the first writes it (it stays, frozen, for the ones after).
+        ...(a._shared
+          ? []
+          : [
+              {
+                tag: 'animateTransform',
+                attrs: { attributeName: 'transform', type: 'translate', additive: 'sum' },
+                values: [at, at],
+              },
+            ]),
       ];
     }
     case 'morph': {

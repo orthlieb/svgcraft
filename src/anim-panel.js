@@ -12,7 +12,8 @@ function playAnimations() {
     const list = readAnims(el);
     // The preview plays click and hover starts as if they'd happened.
     const times = animTimes(el, list);
-    list.forEach((a, j) => {
+    const made = list.map(() => []);
+    withShared(list).forEach((a, j) => {
       const start = times[j].t;
       if (ANIM_PRESETS[a.p].wrap) {
         const w = wrapLayer(el, el, a, true, start, (d) => defs.append(d));
@@ -30,11 +31,14 @@ function playAnimations() {
           n.setAttribute('data-sc-preview', '');
           host?.append(n);
           animPlay.nodes.push(n);
+          made[j].push(n);
         }
       }
     });
+    animPlay.nodes.push(...loopChains(list, times, made, true));
   }
-  for (const n of animPlay.nodes) n.beginElementAt(+n.dataset.scBegin || 0);
+  for (const n of animPlay.nodes)
+    if (!('scFollow' in n.dataset)) n.beginElementAt(+n.dataset.scBegin || 0);
   animPlay.playing = true;
   syncAnimUI();
 }
@@ -185,6 +189,11 @@ function syncAnimUI() {
   set('[data-anim="ease"]', a.ease);
   set('[data-anim="after"]', !!a.after);
   box.querySelector('[data-anim="after"]').disabled = animUI.edit === 0;
+  // Repeat the sequence: offered on the first of a chain.
+  const chainStart = !a.after && !!list[animUI.edit + 1]?.after;
+  // (.sc-check sets display, so [hidden] wouldn't hide it.)
+  box.querySelector('.sc-anim-loop').style.display = chainStart || a.loop ? '' : 'none';
+  set('[data-anim="loop"]', !!a.loop);
   // Preset options.
   const opts = $('#sc-anim-opts');
   const field = (label, input) => {
@@ -630,9 +639,9 @@ function wireAnimations() {
       if (!a) return;
       if (k === 'forever')
         a.rep = t.checked ? 0 : Math.max(1, +box.querySelector('[data-anim="rep"]').value || 1);
-      else if (k === 'after') {
-        if (t.checked) a.after = true;
-        else delete a.after;
+      else if (k === 'after' || k === 'loop') {
+        if (t.checked) a[k] = true;
+        else delete a[k];
       } else if (k === 'rep') a.rep = Math.max(1, Math.round(+t.value) || 1);
       else if (k === 'stagger') {
         if (+t.value > 0) a.stagger = +t.value;
