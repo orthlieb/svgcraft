@@ -172,7 +172,17 @@ const ANIM_PRESETS = {
   wobble: { name: 'Wobble', group: 'Loops', dur: 1, rep: 0, ease: 'linear' },
   breathe: { name: 'Breathe', group: 'Loops', dur: 3, rep: 0, ease: 'inout' },
   // Turned over like a card, about its centre, and back.
-  flip: { name: 'Flip', group: 'Loops', dur: 1.2, rep: 1, ease: 'inout', axis: 'vertical' },
+  // Turned over like a card, about its centre, and back; with `half`, each
+  // run is a half turn, so it stays turned over after an odd number.
+  flip: {
+    name: 'Flip',
+    group: 'Loops',
+    dur: 1.2,
+    rep: 1,
+    ease: 'inout',
+    axis: 'vertical',
+    half: false,
+  },
   // A text layer's letters shown one by one.
   typewriter: {
     name: 'Typewriter',
@@ -352,7 +362,7 @@ function readAnims(el) {
     if ('to' in def) a.to = /^#[0-9a-f]{6}$/i.test(r.to || '') ? r.to.toLowerCase() : def.to;
     if ('path' in def)
       a.path = typeof r.path === 'string' && /^[^\s"'<>#]{1,100}$/.test(r.path) ? r.path : '';
-    for (const k of ['orient', 'hide'])
+    for (const k of ['orient', 'hide', 'half'])
       if (k in def) a[k] = typeof r[k] === 'boolean' ? r[k] : def[k];
     if (
       PIVOT_PRESETS.has(r.p) &&

@@ -198,3 +198,29 @@ test('Stroke pulse thickens the outline and back; it needs a stroke', async ({ p
   await page.selectOption('#sc-anim-add', 'strokePulse');
   await expect(page.locator('#sc-alert-text')).toHaveText('Stroke pulse needs a stroke.');
 });
+
+test('Flip in half turns stays turned over after an odd number, and reopens so', async ({
+  page,
+}) => {
+  await setAnims(page, 'r', [{ p: 'flip', dur: 1, rep: 3, ease: 'linear', half: true }]);
+  const svg = await saved(page);
+  // One half turn a second: turned over at 1 s, back at 2 s, over at 3 s…
+  for (const [t, sx] of [
+    [1, -1],
+    [2, 1],
+    [3, -1],
+  ])
+    expect((await at(page, svg, t, where, ['r', 140, 120])).sx, `at ${t} s`).toBeCloseTo(sx, 1);
+  // … and it stays that way.
+  expect((await at(page, svg, 6, where, ['r', 140, 120])).sx).toBeCloseTo(-1, 1);
+  // Exported clean and opened again, it's the same Flip.
+  const back = await page.evaluate(() => {
+    /* eslint-disable no-undef -- the editor's own globals */
+    const s = window.svgcraft;
+    s.openSvg(cleanSvgText(s.serialize(), { ...CLEAN_DEFAULTS }), 'clean.svg');
+    /* eslint-enable no-undef */
+    const el = document.querySelector('#sc-doc [data-sc-anim]');
+    return JSON.parse(el.getAttribute('data-sc-anim'));
+  });
+  expect(back).toEqual([expect.objectContaining({ p: 'flip', rep: 3, dur: 1, half: true })]);
+});

@@ -525,7 +525,13 @@ function smilToAnims(el, notes, own) {
             : c;
         const opts0 = smilOptions(peers.map(run), dir, el);
         for (const opts of [opts0, opts0.shifted].filter(Boolean))
-          for (const p of Object.keys(ANIM_PRESETS)) {
+          for (const [p, halves] of [
+            ...Object.keys(ANIM_PRESETS).map((k) => [k, 0]),
+            // A Flip in half turns: one run of n of them (n + 1 scales).
+            ...peers
+              .filter((c) => c.type === 'scale' && c.values.length > 2)
+              .map((c) => ['flip', c.values.length - 1]),
+          ]) {
             const def = ANIM_PRESETS[p];
             const a = {
               p,
@@ -539,6 +545,14 @@ function smilToAnims(el, notes, own) {
             };
             for (const k of ['from', 'dist', 'turns', 'scale', 'to', 'angle', 'pivot', 'axis'])
               if (k in def && opts[k] != null) a[k] = opts[k];
+            if (halves) {
+              if (dir !== 'normal') continue;
+              a.half = true;
+              // Forever, it's written as a turn over and back.
+              if (a.rep) [a.rep, a.dur] = [halves, a.dur / halves];
+              else if (halves === 2) a.dur /= 2;
+              else continue;
+            }
             // A pivot of its own, if it isn't where the preset turns anyway.
             if (PIVOT_PRESETS.has(p) && opts.origin) {
               const [x, y] = animOrigin(a);

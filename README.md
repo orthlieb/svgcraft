@@ -1319,6 +1319,9 @@ in the saved SVG.
   turns, how far to grow, the colour to cycle to, the angle and point a
   Swing turns about, which way a Flip turns, how blurred Blur in starts,
   or a Glow pulse's size and colour.
+- **Half turns** (Flip): each time is a half turn instead of over and
+  back, so after an odd number of **Times** the object stays turned over.
+  Forever, it turns over and back for good.
 - **Stagger** (a group, or a text's letters): see
   [Stagger](#stagger).
 
