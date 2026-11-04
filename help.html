@@ -208,6 +208,26 @@
         border-radius: 8px;
         box-shadow: 0 2px 10px rgb(0 0 0 / 12%);
       }
+      figure.live object {
+        display: block;
+        width: 100%;
+        height: auto;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgb(0 0 0 / 12%);
+      }
+      figure.live object img {
+        border: 0;
+        box-shadow: none;
+      }
+      figure.live figcaption {
+        margin-top: 6px;
+        font-size: 13px;
+        color: var(--text-dim);
+      }
+      figure.live figcaption::before {
+        content: '▶ Live: ';
+        font-weight: 600;
+      }
       code {
         padding: 1px 4px;
         border-radius: 4px;
@@ -2623,6 +2643,25 @@
                 Run backwards, they go one by one.
               </li>
             </ul>
+            <p>Every preset, playing (the entrances and exits run again after a pause):</p>
+            <figure class="live">
+              <object
+                data="docs/help/animate-presets.svg"
+                type="image/svg+xml"
+                width="840"
+                height="1276"
+                style="aspect-ratio: 840 / 1276"
+                aria-label="Every preset playing, from Fade in to Pattern scroll"
+              >
+                <img
+                  src="docs/help/animate-presets.svg"
+                  alt="Every preset playing, from Fade in to Pattern scroll"
+                  width="840"
+                  height="1276"
+                />
+              </object>
+              <figcaption>Every preset playing, from Fade in to Pattern scroll</figcaption>
+            </figure>
             <h4>Settings</h4>
             <ul>
               <li><strong>Length</strong> and <strong>Delay</strong>, in seconds.</li>
@@ -2803,6 +2842,28 @@
               Start an animation on a click or when the pointer is over an object, after another
               object's animations, or with a pause between its runs.
             </p>
+            <figure class="live">
+              <object
+                data="docs/help/when-an-animation-starts-live.svg"
+                type="image/svg+xml"
+                width="840"
+                height="200"
+                style="aspect-ratio: 840 / 200"
+                aria-label="A star that spins when its button is clicked, a square that spins while pointed at, a square that pops in after another fades in, and a ball bouncing with a pause between bounces"
+              >
+                <img
+                  src="docs/help/when-an-animation-starts-live.svg"
+                  alt="A star that spins when its button is clicked, a square that spins while pointed at, a square that pops in after another fades in, and a ball bouncing with a pause between bounces"
+                  width="840"
+                  height="200"
+                />
+              </object>
+              <figcaption>
+                A star that spins when its button is clicked, a square that spins while pointed at,
+                a square that pops in after another fades in, and a ball bouncing with a pause
+                between bounces
+              </figcaption>
+            </figure>
             <ol>
               <li>
                 Select the object, open the <strong>Animation</strong> tab and click the animation's
@@ -2869,6 +2930,27 @@
               Choose the point an animation turns or grows about: a clock hand turning about its
               end, a sign swinging from its hook, a badge growing out of a corner.
             </p>
+            <figure class="live">
+              <object
+                data="docs/help/pivot-live.svg"
+                type="image/svg+xml"
+                width="840"
+                height="220"
+                style="aspect-ratio: 840 / 220"
+                aria-label="A sign swinging from its top, a clock hand spinning about its end, and a badge popping in from its bottom-left corner"
+              >
+                <img
+                  src="docs/help/pivot-live.svg"
+                  alt="A sign swinging from its top, a clock hand spinning about its end, and a badge popping in from its bottom-left corner"
+                  width="840"
+                  height="220"
+                />
+              </object>
+              <figcaption>
+                A sign swinging from its top, a clock hand spinning about its end, and a badge
+                popping in from its bottom-left corner
+              </figcaption>
+            </figure>
             <ol>
               <li>Select the object and open the <strong>Animation</strong> tab.</li>
               <li>
@@ -2925,6 +3007,27 @@
               Run one animation on a group's objects, or a text's letters, one after another: paints
               popping in in turn, letters fading in.
             </p>
+            <figure class="live">
+              <object
+                data="docs/help/stagger-live.svg"
+                type="image/svg+xml"
+                width="840"
+                height="200"
+                style="aspect-ratio: 840 / 200"
+                aria-label='Six dots popping in one after another, and the letters of "Hello there" fading in one by one'
+              >
+                <img
+                  src="docs/help/stagger-live.svg"
+                  alt='Six dots popping in one after another, and the letters of "Hello there" fading in one by one'
+                  width="840"
+                  height="200"
+                />
+              </object>
+              <figcaption>
+                Six dots popping in one after another, and the letters of "Hello there" fading in
+                one by one
+              </figcaption>
+            </figure>
             <ol>
               <li>Select the group (or the text) and open the <strong>Animation</strong> tab.</li>
               <li>Add an animation, as for one object.</li>
@@ -2966,6 +3069,27 @@
               Send an object along a line you draw: a car along a road, a plane along its flight
               path.
             </p>
+            <figure class="live">
+              <object
+                data="docs/help/move-along-path-live.svg"
+                type="image/svg+xml"
+                width="840"
+                height="260"
+                style="aspect-ratio: 840 / 260"
+                aria-label="An arrow following a wavy route, facing the way it goes, and a ball circling a closed route"
+              >
+                <img
+                  src="docs/help/move-along-path-live.svg"
+                  alt="An arrow following a wavy route, facing the way it goes, and a ball circling a closed route"
+                  width="840"
+                  height="260"
+                />
+              </object>
+              <figcaption>
+                An arrow following a wavy route, facing the way it goes, and a ball circling a
+                closed route
+              </figcaption>
+            </figure>
             <ol>
               <li>
                 Draw the route with the Pen or Pencil, or use any shape (a rectangle, circle,
@@ -3039,6 +3163,27 @@
               Turn one shape into another: a play icon into a pause icon, a circle into a star, a
               blob that wobbles between two outlines.
             </p>
+            <figure class="live">
+              <object
+                data="docs/help/morph-live.svg"
+                type="image/svg+xml"
+                width="840"
+                height="220"
+                style="aspect-ratio: 840 / 220"
+                aria-label="A circle turning into a star and back, and a Play button turning into a Pause button and back"
+              >
+                <img
+                  src="docs/help/morph-live.svg"
+                  alt="A circle turning into a star and back, and a Play button turning into a Pause button and back"
+                  width="840"
+                  height="220"
+                />
+              </object>
+              <figcaption>
+                A circle turning into a star and back, and a Play button turning into a Pause button
+                and back
+              </figcaption>
+            </figure>
             <ol>
               <li>Draw the shape it should become, above the object that changes.</li>
               <li>

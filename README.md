@@ -1305,6 +1305,10 @@ in the saved SVG.
 - **Text**: Typewriter: the letters appear one by one over the length.
   Run backwards, they go one by one.
 
+Every preset, playing (the entrances and exits run again after a pause):
+
+![Every preset playing, from Fade in to Pattern scroll](docs/help/animate-presets.svg)
+
 #### Settings
 
 - **Length** and **Delay**, in seconds.
@@ -1423,6 +1427,8 @@ so you can fix the file or rebuild them with presets.
 Start an animation on a click or when the pointer is over an object, after
 another object's animations, or with a pause between its runs.
 
+![A star that spins when its button is clicked, a square that spins while pointed at, a square that pops in after another fades in, and a ball bouncing with a pause between bounces](docs/help/when-an-animation-starts-live.svg)
+
 1. Select the object, open the **Animation** tab and click the animation's
    row.
 2. Choose under **Start**:
@@ -1458,6 +1464,8 @@ another object's animations, or with a pause between its runs.
 Choose the point an animation turns or grows about: a clock hand turning
 about its end, a sign swinging from its hook, a badge growing out of a corner.
 
+![A sign swinging from its top, a clock hand spinning about its end, and a badge popping in from its bottom-left corner](docs/help/pivot-live.svg)
+
 1. Select the object and open the **Animation** tab.
 2. Pick an animation that turns or grows: Spin, Pulse, Swing, Heartbeat,
    Pop in, Zoom in or out, Roll in, Flip in, Flip, Jello, Rubber band,
@@ -1492,6 +1500,8 @@ about its end, a sign swinging from its hook, a badge growing out of a corner.
 Run one animation on a group's objects, or a text's letters, one after
 another: paints popping in in turn, letters fading in.
 
+![Six dots popping in one after another, and the letters of "Hello there" fading in one by one](docs/help/stagger-live.svg)
+
 1. Select the group (or the text) and open the **Animation** tab.
 2. Add an animation, as for one object.
 3. Set **Stagger** to the time between one starting and the next.
@@ -1515,6 +1525,8 @@ another: paints popping in in turn, letters fading in.
 
 Send an object along a line you draw: a car along a road, a plane along its
 flight path.
+
+![An arrow following a wavy route, facing the way it goes, and a ball circling a closed route](docs/help/move-along-path-live.svg)
 
 1. Draw the route with the Pen or Pencil, or use any shape (a rectangle,
    circle, ellipse, line or polygon). It must be above the object that
@@ -1557,6 +1569,8 @@ flight path.
 
 Turn one shape into another: a play icon into a pause icon, a circle into
 a star, a blob that wobbles between two outlines.
+
+![A circle turning into a star and back, and a Play button turning into a Pause button and back](docs/help/morph-live.svg)
 
 1. Draw the shape it should become, above the object that changes.
 2. Select the object, then Shift-click that shape, and open the **Animation**
