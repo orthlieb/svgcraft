@@ -27,7 +27,7 @@ async function editor(theme = 'dark') {
   await page.goto(pathToFileURL(path.join(root, 'index.html')).href);
   await page.waitForFunction(() => !!window.svgcraft);
   await page.evaluate(() => window.svgcraft.ready);
-  await page.evaluate((t) => window.svgcraft.openSvg(t, 'palette.svg'), demo);
+  await page.evaluate((t) => window.svgcraft.openSvg(t, 'octopus.svg'), demo);
   return page;
 }
 
@@ -52,32 +52,38 @@ async function shot(page, name) {
   console.log(`wrote about/${name}.png`);
 }
 
-// 1. The workspace, with the palette selected.
+// 1. The workspace, with the octopus selected.
 let page = await editor();
-await clickDoc(page, 400, 200);
+await clickDoc(page, 700, 130);
 await shot(page, 'workspace');
 
-// 2. Effects on the palette's drop shadow.
+// 2. Effects: the octopus's soft blue outer glow.
 await page.click('.sc-menu-btn:text-is("Effect")');
 await page.click('.sc-menu-list:not([hidden]) [data-action="layerStyle"]');
-await page.click('#sc-fx [data-fx-page="ds"] button');
+await page.click('#sc-fx [data-fx-page="og"] button');
 await shot(page, 'layer-style');
 await page.keyboard.press('Escape');
 
-// 3. The gradient editor and its handles on the canvas, on the radial backdrop
+// 3. The gradient editor and its handles on the canvas, on the radial sea
 // (made SVGCraft's own, so it has handles: Radial again keeps its stops).
-await clickDoc(page, 70, 90);
+await clickDoc(page, 330, 40);
 await page.click('[data-kind-for="fill"] [data-kind="radial"]');
 await page.click('[data-tab="props"]');
 await shot(page, 'gradients');
 
-// 4. Editing points on the palette board, with one point picked.
-await clickDoc(page, 460, 230, 'node');
-await clickDoc(page, 587.5, 223.5, 'node');
+// 4. Editing points on the left strand of kelp, its tip picked.
+// (Picked by name: the strand is thin, and a click beside it misses.)
+await page.evaluate(() => {
+  const s = window.svgcraft;
+  s.setTool('select');
+  s.state.sel = [document.querySelector('#sc-doc [data-name="Kelp 1"]')];
+  s.setTool('node');
+});
+await clickDoc(page, 55, 370, 'node');
 await shot(page, 'points');
 
 // 5. The Symbols library.
-await clickDoc(page, 400, 200);
+await clickDoc(page, 700, 130);
 await page.evaluate(() => window.openLibraries('symbols'));
 await page.click('[data-symview="lib"]');
 await shot(page, 'symbols');
@@ -88,21 +94,78 @@ await page.keyboard.press('Control+u');
 await shot(page, 'source');
 await page.close();
 
-// 7. Animation: the palette pops in, its paints pulse in turn, the brush
-// dabs, the title glows and the frame's dashes march. The saved drawing,
-// cleaned, is the About page's demo (about/animated.svg); the shot shows
-// the brush's settings in Properties → Animate.
+// 7. Animation: the octopus drifts and glows, the bream and the tuna swim
+// to and fro (a repeated chain: along a path, half a Flip, back, half a
+// Flip), the ink puffs, the kelp sways, the bubbles bob, the light rays
+// breathe, the title shines and the frame's dashes march. The saved
+// drawing, cleaned, is the About page's demo (about/animated.svg); the shot
+// shows the bream's chain in Properties → Animate.
 page = await editor();
 await page.evaluate(() => {
-  const by = (n) => document.querySelector(`#sc-doc [data-name="${n}"]`);
+  const doc = document.getElementById('sc-doc');
+  const by = (n) => doc.querySelector(`[data-name="${n}"]`);
   const set = (n, list) => by(n).setAttribute('data-sc-anim', JSON.stringify(list));
-  set('Palette', [{ p: 'popIn', dur: 0.7 }]);
-  ['Red', 'Yellow', 'Green', 'Blue', 'Purple'].forEach((c, i) =>
-    set(`${c} paint`, [{ p: 'pulse', dur: 1.5, delay: 0.7 + i * 0.15, scale: 118 }]),
+  const centre = (el) => {
+    const b = el.getBoundingClientRect();
+    const m = doc.getScreenCTM().inverse();
+    const q = new DOMPoint(b.left + b.width / 2, b.top + b.height / 2).matrixTransform(m);
+    return [q.x, q.y];
+  };
+  // The paths things move along, starting at their centres (hidden when
+  // saved).
+  const route = (id, name, d) => {
+    const r = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    Object.entries({ id, 'data-name': name, d, fill: 'none', stroke: '#ffffff' }).forEach(
+      ([k, v]) => r.setAttribute(k, v),
+    );
+    r.setAttribute('stroke-opacity', '0.4');
+    doc.append(r);
+  };
+  const [ox, oy] = centre(by('Octopus'));
+  route('octopus-drift', 'Octopus drift', `M${ox} ${oy} q-30 -14 -60 -6`);
+  const [bx, bY] = centre(by('Bream'));
+  route('bream-route', 'Bream route', `M${bx} ${bY} c50 -26 100 26 160 0`);
+  const [tx, tY] = centre(by('Tuna'));
+  route('tuna-route', 'Tuna route', `M${tx} ${tY} c50 18 100 -18 170 4`);
+  const drift = { p: 'followPath', dur: 5, rep: 0, dir: 'alternate', ease: 'inout' };
+  set('Octopus', [
+    { ...drift, path: 'octopus-drift', orient: false, hide: true },
+    { p: 'glowPulse', dur: 3.5, rep: 0, dir: 'alternate', ease: 'inout', size: 22, to: '#9fdcff' },
+  ]);
+  const swim = (path, dur, extra = {}) => {
+    const go = { p: 'followPath', dur, rep: 1, ease: 'inout', path, orient: false, hide: true };
+    const turn = { p: 'flip', dur: 0.6, rep: 1, ease: 'inout', axis: 'vertical', half: true };
+    return [
+      { ...go, loop: true, ...extra },
+      { ...turn, after: true },
+      { ...go, dir: 'reverse', after: true },
+      { ...turn, after: true },
+    ];
+  };
+  set('Bream', swim('bream-route', 7));
+  set('Tuna', swim('tuna-route', 4.5, { delay: 1 }));
+  set('Ink puff', [
+    { p: 'pulse', dur: 4, rep: 0, ease: 'inout', scale: 170 },
+    { p: 'breathe', dur: 4, rep: 0, ease: 'inout' },
+  ]);
+  [
+    [3.2, 6],
+    [2.6, 8],
+    [2.9, 9],
+    [3.6, 6],
+    [2.7, 8],
+  ].forEach(([dur, angle], i) =>
+    set(`Kelp ${i + 1}`, [
+      { p: 'swing', dur, rep: 0, ease: 'inout', angle, pivot: 'bottom', delay: i * 0.3 },
+    ]),
   );
-  set('Brush', [{ p: 'float', dur: 0.9, dist: 14 }]);
-  set('Title', [{ p: 'colourCycle', dur: 2.5, to: '#9fd8ff' }]);
-  set('Frame', [{ p: 'dashMarch', dur: 1.2 }]);
+  for (let i = 1; i <= 5; i++)
+    set(`Bubble ${i}`, [
+      { p: 'float', dur: 1.6 + i * 0.25, rep: 0, dir: 'alternate', ease: 'inout', dist: 8 },
+    ]);
+  set('Light rays', [{ p: 'breathe', dur: 6, rep: 0, ease: 'inout' }]);
+  set('Title', [{ p: 'shine', dur: 2.4, rep: 0, ease: 'inout' }]);
+  set('Frame', [{ p: 'dashMarch', dur: 1.2, rep: 0, ease: 'linear' }]);
   window.svgcraft.commit();
 });
 const animated = await page.evaluate(() =>
@@ -111,14 +174,14 @@ const animated = await page.evaluate(() =>
 );
 fs.writeFileSync(path.join(out, 'animated.svg'), animated);
 console.log(`wrote about/animated.svg (${animated.length} bytes)`);
-await clickDoc(page, 613, 338);
+await clickDoc(page, 180, 374);
 await page.click('[data-tab="animation"]');
 await shot(page, 'animate');
 await page.close();
 
 // 8. The light theme.
 page = await editor('light');
-await clickDoc(page, 400, 200);
+await clickDoc(page, 700, 130);
 await shot(page, 'light');
 
 await browser.close();

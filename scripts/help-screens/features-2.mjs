@@ -150,7 +150,7 @@ export default [
   {
     id: 'align-and-distribute',
     async shoot(h) {
-      await h.select('Red paint', 'Yellow paint', 'Blue paint');
+      await h.select('Bubble 1', 'Bubble 2', 'Bubble 4');
       await h.menu('Object', 'alignHCenter', { click: false });
       const menus = h.page.locator('.sc-menu-list:not([hidden])');
       await h.shot([menus.nth(0), menus.nth(1)], { pad: 6 });
@@ -202,7 +202,7 @@ export default [
   {
     id: 'animate',
     async shoot(h) {
-      await h.select('Brush');
+      await h.select('Bream');
       await h.tab('animation');
       await tall(h, PROPS_GROUP);
       await h.page.selectOption('#sc-anim-add', 'popIn');
@@ -232,7 +232,7 @@ export default [
   {
     id: 'when-an-animation-starts',
     async shoot(h) {
-      await h.select('Red paint');
+      await h.select('Bubble 1');
       await h.tab('animation');
       await tall(h, PROPS_GROUP);
       await h.page.selectOption('#sc-anim-add', 'pulse');
@@ -248,7 +248,7 @@ export default [
   {
     id: 'pivot',
     async shoot(h) {
-      await h.select('Brush');
+      await h.select('Bream');
       await h.tab('animation');
       await tall(h, PROPS_GROUP);
       await h.page.selectOption('#sc-anim-add', 'swing');
@@ -270,17 +270,8 @@ export default [
   {
     id: 'stagger',
     async shoot(h) {
-      // The five paints in a group of their own.
-      await h.page.evaluate(() => {
-        /* eslint-disable no-undef -- the editor's own globals */
-        const first = doc.querySelector('[data-name="Red paint"]');
-        const g = mk('g', { 'data-name': 'Paints' });
-        first.before(g);
-        g.append(...doc.querySelectorAll('[data-name$=" paint"]'));
-        afterChange();
-        /* eslint-enable no-undef */
-      });
-      await h.select('Paints');
+      // The five bubbles, a group of their own.
+      await h.select('Bubbles');
       await h.tab('animation');
       await tall(h, PROPS_GROUP);
       await h.page.selectOption('#sc-anim-add', 'popIn');
@@ -297,7 +288,7 @@ export default [
   {
     id: 'move-along-path',
     async shoot(h) {
-      // A curve for the brush to fly along, above it.
+      // A curve for the bream to swim along, above it.
       await h.page.evaluate(() => {
         /* eslint-disable no-undef -- the editor's own globals */
         mk(
@@ -315,7 +306,7 @@ export default [
         afterChange();
         /* eslint-enable no-undef */
       });
-      await h.select('Brush', 'Flight path');
+      await h.select('Bream', 'Flight path');
       await h.tab('animation');
       await tall(h, PROPS_GROUP);
       await h.page.selectOption('#sc-anim-add', 'followPath');
@@ -330,7 +321,7 @@ export default [
   {
     id: 'morph',
     async shoot(h) {
-      // A star for the red paint to turn into, above it.
+      // A star for a bubble to turn into, above it.
       await h.page.evaluate(() => {
         /* eslint-disable no-undef -- the editor's own globals */
         mk(
@@ -349,7 +340,7 @@ export default [
         afterChange();
         /* eslint-enable no-undef */
       });
-      await h.select('Red paint', 'Star');
+      await h.select('Bubble 1', 'Star');
       await h.tab('animation');
       await tall(h, PROPS_GROUP);
       await h.page.selectOption('#sc-anim-add', 'morph');

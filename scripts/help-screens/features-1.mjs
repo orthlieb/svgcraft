@@ -111,7 +111,7 @@ export default [
   {
     id: 'crop',
     async shoot(h) {
-      await h.select('Brush');
+      await h.select('Bream');
       await h.menu('Object', 'cropToSelection', { click: false });
       await menuShot(h, 'cropToSelection');
     },
@@ -119,7 +119,7 @@ export default [
   {
     id: 'select-menu',
     async shoot(h) {
-      await h.select('Red paint');
+      await h.select('Bubble 1');
       await h.menu('Select', 'invertSelection', { click: false });
       await menuShot(h, 'invertSelection');
     },
@@ -127,10 +127,10 @@ export default [
   {
     id: 'history-panel',
     async shoot(h) {
-      await h.select('Brush');
+      await h.select('Bream');
       await h.menu('Object', 'flipH');
       await h.page.keyboard.press('ArrowRight');
-      await h.select('Red paint');
+      await h.select('Bubble 1');
       await h.menu('Edit', 'adjDesaturate');
       await h.tab('history');
       const list = h.page.locator('#sc-history');
