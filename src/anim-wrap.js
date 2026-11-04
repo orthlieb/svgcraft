@@ -22,7 +22,9 @@ const genEl = (tag, attrs = {}, kids = []) => {
 // group), overlay? (Shine's highlight), under? (drawn below the layer:
 // Ripple's rings), use? (a <use> to point at the layer) }.
 function wrapParts(el, a, preview, start) {
-  const m = fullM(el);
+  // The wrapping group sits in the layer's parent's space, outside its own
+  // transform: sizes in drawing units are divided by that space's scale.
+  const m = parentM(el);
   const k = Math.hypot(m.a, m.b) || 1;
   const nodes = (channels) => chanNodes(a, channels, preview, start, []);
   const anim = (name, values) => ({ tag: 'animate', attrs: { attributeName: name }, values });

@@ -37,8 +37,15 @@ function playAnimations() {
     });
     animPlay.nodes.push(...loopChains(list, times, made, true));
   }
-  for (const n of animPlay.nodes)
-    if (!('scFollow' in n.dataset)) n.beginElementAt(+n.dataset.scBegin || 0);
+  // Each starts at its time from now, written into its begin: Safari
+  // doesn't reliably start animations added after the page loaded with
+  // beginElementAt(), but keeps to a begin time on the page's clock.
+  const now = doc.ownerSVGElement.getCurrentTime() + 0.05;
+  for (const n of animPlay.nodes) {
+    if ('scFollow' in n.dataset) continue;
+    const at = `${(now + (+n.dataset.scBegin || 0)).toFixed(3)}s`;
+    n.setAttribute('begin', (n.getAttribute('begin') || 'indefinite').replace('indefinite', at));
+  }
   animPlay.playing = true;
   syncAnimUI();
 }

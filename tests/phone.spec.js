@@ -35,6 +35,34 @@ test.describe('phone, portrait', () => {
     expect(stage.x + stage.width).toBeLessThanOrEqual(390);
   });
 
+  test('▶ Play plays the animations, each written to start at its time from now', async ({
+    page,
+  }) => {
+    await load(page, DRAWING, 300, 200);
+    await page.evaluate(() => {
+      document
+        .getElementById('r')
+        .setAttribute('data-sc-anim', JSON.stringify([{ p: 'spin', dur: 2, rep: 0, delay: 0 }]));
+      window.svgcraft.commit();
+    });
+    await page.locator('[data-action="toggleAnimations"]:visible').first().tap();
+    // A begin time on the page's clock, not one left to beginElementAt(),
+    // which Safari doesn't keep to for animations added after load.
+    const begins = await page.$$eval('#sc-doc [data-sc-preview]', (ns) =>
+      ns.map((n) => n.getAttribute('begin')),
+    );
+    expect(begins.length).toBeGreaterThan(0);
+    for (const b of begins) expect(b).toMatch(/^\d+(\.\d+)?s$/);
+    const turn = () =>
+      page.evaluate(() => {
+        const m = document.getElementById('r').getCTM();
+        return Math.round((Math.atan2(m.b, m.a) * 180) / Math.PI);
+      });
+    const a = await turn();
+    await page.waitForTimeout(500);
+    expect(await turn()).not.toBe(a);
+  });
+
   test('only the Hand tool: tool keys, shortcuts and drags do not edit', async ({ page }) => {
     await load(page, DRAWING, 300, 200);
     const before = await page.evaluate(() => window.svgcraft.serialize());
