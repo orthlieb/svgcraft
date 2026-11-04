@@ -59,7 +59,7 @@ export default [
   {
     id: 'offline-and-as-an-app-update',
     async shoot(h) {
-      await h.select('Red paint');
+      await h.select('Bubble 1');
       await h.page.evaluate(() => (document.getElementById('sc-update').hidden = false));
       const bar = h.page.locator('#sc-update');
       const box = await bar.boundingBox();
@@ -73,14 +73,14 @@ export default [
     id: 'the-editor-window',
     async shoot(h) {
       await flatBackdrop(h);
-      await h.select('Red paint');
+      await h.select('Bubble 1');
       await h.shot();
     },
   },
   {
     id: 'the-menu-bar',
     async shoot(h) {
-      await h.select('Red paint');
+      await h.select('Bubble 1');
       await h.menu('Object', 'clipMake', { click: false });
       await h.shot(
         [
@@ -95,10 +95,10 @@ export default [
   {
     id: 'right-click-menus',
     async shoot(h) {
-      // Right-click the red paint, where it lies on the palette, and point
-      // at Objects Here.
+      // Right-click a bubble, where it lies over the octopus, and point at
+      // Objects Here.
       const p = await h.page.evaluate(() => {
-        const r = document.querySelector('#sc-doc [data-name="Red paint"]').getBoundingClientRect();
+        const r = document.querySelector('#sc-doc [data-name="Bubble 1"]').getBoundingClientRect();
         return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
       });
       await h.page.evaluate(() => window.svgcraft.setTool('select'));
@@ -118,7 +118,7 @@ export default [
   {
     id: 'the-options-bar',
     async shoot(h) {
-      await h.select('Red paint');
+      await h.select('Bubble 1');
       const bar = h.page.locator('#sc-options');
       await bar.waitFor();
       const b = await bar.boundingBox();
@@ -139,7 +139,7 @@ export default [
   {
     id: 'docked-panels',
     async shoot(h) {
-      await h.select('Red paint');
+      await h.select('Bubble 1');
       await h.shot('#sc-panel', { pad: 0 });
     },
   },

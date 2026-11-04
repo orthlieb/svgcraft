@@ -10,7 +10,7 @@
 //   { id, viewport?, theme?, async shoot(h) }
 // where id is the help topic's anchor (and the PNG's name), and shoot()
 // sets the editor up through the helpers below and calls h.shot().
-// Every shot starts on a fresh page with about/demo.svg (the palette) open.
+// Every shot starts on a fresh page with about/demo.svg (the octopus) open.
 import { chromium } from '@playwright/test';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -205,7 +205,7 @@ for (const s of shots) {
   await page.goto(pathToFileURL(path.join(ROOT, 'index.html')).href);
   await page.waitForFunction(() => !!window.svgcraft);
   await page.evaluate(() => window.svgcraft.ready);
-  await page.evaluate(openFresh, [DEMO, 'palette.svg']);
+  await page.evaluate(openFresh, [DEMO, 'octopus.svg']);
   try {
     await s.shoot(helpers(page, s.id));
   } catch (e) {

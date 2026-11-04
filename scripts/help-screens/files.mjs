@@ -117,7 +117,7 @@ export default [
   {
     id: 'make-a-symbol',
     async shoot(h) {
-      await h.select('Red paint', 'Yellow paint', 'Green paint');
+      await h.select('Bubble 1', 'Bubble 2', 'Bubble 3');
       await h.menu('Object', 'makeSymbol');
       await h.page.waitForSelector('#sc-ask[open]');
       await h.shot('#sc-ask', { pad: 0 });
@@ -188,9 +188,11 @@ export default [
       await h.menu('File', 'fileInfo');
       await h.page.waitForSelector('#sc-fileinfo[open]');
       const f = (k) => h.page.locator(`#sc-fileinfo [data-meta="${k}"]`);
-      await f('title').fill('Palette');
+      await f('title').fill('Octopus');
       await f('creator').fill('Sam Rivera');
-      await f('description').fill('Seven paint blobs and a brush, for the SVGCraft demo.');
+      await f('description').fill(
+        'An octopus, a bream and a tuna among kelp and bubbles, for the SVGCraft demo.',
+      );
       await f('keywords').fill('palette, paint, colour');
       await f('marked').selectOption('true');
       await f('rights').fill('© 2026 Sam Rivera');
@@ -203,7 +205,7 @@ export default [
   {
     id: 'shortcuts',
     async shoot(h) {
-      await h.select('Brush');
+      await h.select('Bream');
       await h.menu('Edit');
       const list = h.page.locator('.sc-menu-list:not([hidden])').first();
       await list.waitFor();

@@ -88,7 +88,7 @@ export default [
     id: 'layer-rows-and-folders',
     async shoot(h) {
       await foldPanels(h);
-      await h.select('Red paint');
+      await h.select('Bubble 1');
       await h.shot(LAYERS, { pad: 0 });
     },
   },
@@ -97,7 +97,7 @@ export default [
     viewport: SMALL,
     async shoot(h) {
       await foldPanels(h);
-      await h.select('Red paint', 'Yellow paint', 'Green paint', 'Purple paint');
+      await h.select('Bubble 1', 'Bubble 2', 'Bubble 3', 'Bubble 5');
       await h.shot(['#sc-doc', LAYERS], { pad: 0 });
     },
   },
@@ -105,7 +105,7 @@ export default [
     id: 'group-and-ungroup',
     async shoot(h) {
       await foldPanels(h);
-      await h.select('Red paint', 'Yellow paint');
+      await h.select('Bubble 1', 'Bubble 2');
       await h.page.evaluate(() => window.svgcraft.actions.group());
       await h.redraw();
       await row(h, 'Group 1').waitFor();
@@ -117,10 +117,9 @@ export default [
     viewport: SMALL,
     async shoot(h) {
       await foldPanels(h);
-      // Ctrl-click the blue paint, inside the Palette group (which sits at
-      // translate(160 6) scale(7.5): the paint's centre is 44.5, 18.5).
+      // Ctrl-click the bream's body, inside the Bream group.
       await h.page.keyboard.down('Control');
-      await h.clickDoc(160 + 44.5 * 7.5, 6 + 18.5 * 7.5);
+      await h.clickDoc(180, 374);
       await h.page.keyboard.up('Control');
       await h.page.mouse.move(0, 0);
       await h.shot(['#sc-doc', LAYERS], { pad: 0 });
@@ -130,10 +129,10 @@ export default [
     id: 'isolation-mode',
     viewport: SMALL,
     async shoot(h) {
-      // Double-click the palette to isolate it, then pick its red paint.
-      const p = await h.at(460, 230);
+      // Double-click the octopus to isolate it, then pick its skin.
+      const p = await h.at(700, 130);
       await h.page.mouse.dblclick(p.x, p.y);
-      await h.clickDoc(160 + 16.5 * 7.5, 6 + 32 * 7.5);
+      await h.clickDoc(700, 130);
       await h.page.mouse.move(0, 0);
       await h.shot(['#sc-doc', '#sc-scope'], { pad: 12 });
     },
@@ -142,13 +141,13 @@ export default [
     id: 'reorder-copy-and-delete',
     async shoot(h) {
       await foldPanels(h);
-      await h.select('Purple paint');
-      // Part-way through dragging Purple paint above Green paint.
+      await h.select('Bubble 5');
+      // Part-way through dragging Bubble 5 above Bubble 3.
       await h.page.evaluate(() => {
         const rows = [...document.querySelectorAll('#sc-layers li')];
         const find = (n) => rows.find((r) => r.querySelector('.sc-layer-name')?.textContent === n);
-        const from = find('Purple paint');
-        const to = find('Green paint');
+        const from = find('Bubble 5');
+        const to = find('Bubble 3');
         const dt = new DataTransfer();
         from.dispatchEvent(new DragEvent('dragstart', { bubbles: true, dataTransfer: dt }));
         const r = to.getBoundingClientRect();
@@ -169,7 +168,7 @@ export default [
     id: 'show-hide-and-lock',
     async shoot(h) {
       await foldPanels(h);
-      await row(h, 'Brush').locator('.sc-eye').first().click();
+      await row(h, 'Bream').locator('.sc-eye').first().click();
       await h.select('Title');
       await h.page.click('[data-lock="all"]');
       await row(h, 'Title').locator('.sc-row-lock').waitFor();
@@ -208,7 +207,7 @@ export default [
   {
     id: 'blend-mode-and-opacity',
     async shoot(h) {
-      await h.select('Purple paint');
+      await h.select('Bubble 5');
       await h.page.click('[data-tab="props"]');
       await h.page.locator('#sc-transparency').scrollIntoViewIfNeeded();
       await h.page.selectOption('#sc-blend', 'multiply');
@@ -224,7 +223,7 @@ export default [
   {
     id: 'merge-objects',
     async shoot(h) {
-      await h.select('Red paint', 'Yellow paint');
+      await h.select('Bubble 1', 'Bubble 2');
       await h.menu('Object', 'mergeDown', { click: false });
       await still(h, '.sc-menu-list:not([hidden])', { pad: 4, name: 'merge-objects' });
     },
@@ -258,7 +257,7 @@ export default [
   {
     id: 'object-via-copy-cut',
     async shoot(h) {
-      await h.select('Red paint');
+      await h.select('Bubble 1');
       await h.menu('Object', 'layerViaCopy', { click: false });
       await still(h, h.page.locator('.sc-menu-list:not([hidden])').first(), {
         pad: 4,
