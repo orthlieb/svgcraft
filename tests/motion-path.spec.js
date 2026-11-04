@@ -325,3 +325,35 @@ test('Move along path comes back from Export Clean SVG', async ({ page }) => {
   ]);
   expect(back.same).toBe(true);
 });
+
+test('▶ Play hides the path, as the saved file does, and shows it again after', async ({
+  page,
+}) => {
+  await page.evaluate(() => {
+    document
+      .getElementById('c')
+      .setAttribute(
+        'data-sc-anim',
+        JSON.stringify([{ p: 'followPath', dur: 2, rep: 0, path: 'p', hide: true }]),
+      );
+    window.svgcraft.commit();
+  });
+  const route = page.locator('#p');
+  await expect(route).toBeVisible();
+  await page.evaluate(() => window.svgcraft.actions.toggleAnimations());
+  await expect(route).toBeHidden();
+  await page.evaluate(() => window.svgcraft.actions.toggleAnimations());
+  await expect(route).toBeVisible();
+  expect(await route.getAttribute('style')).toBeNull();
+  // Not hidden when the animation shows it (Hide the path when saved off).
+  await page.evaluate(() => {
+    const c = document.getElementById('c');
+    c.setAttribute(
+      'data-sc-anim',
+      JSON.stringify([{ p: 'followPath', dur: 2, rep: 0, path: 'p', hide: false }]),
+    );
+    window.svgcraft.commit();
+    window.svgcraft.actions.toggleAnimations();
+  });
+  await expect(route).toBeVisible();
+});

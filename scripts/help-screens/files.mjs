@@ -193,11 +193,11 @@ export default [
       await f('description').fill(
         'An octopus, a bream and a tuna among kelp and bubbles, for the SVGCraft demo.',
       );
-      await f('keywords').fill('palette, paint, colour');
+      await f('keywords').fill('octopus, fish, sea');
       await f('marked').selectOption('true');
       await f('rights').fill('© 2026 Sam Rivera');
       await f('license').selectOption('cc-by');
-      await f('source').fill('https://example.com/palette');
+      await f('source').fill('https://example.com/octopus');
       await f('language').fill('en');
       await h.shot('#sc-fileinfo', { pad: 0 });
     },

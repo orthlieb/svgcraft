@@ -37,6 +37,18 @@ function playAnimations() {
     });
     animPlay.nodes.push(...loopChains(list, times, made, true));
   }
+  // The paths things move along, hidden in the saved file, are out of
+  // sight while it plays too.
+  for (const id of hiddenRoutes()) {
+    const r = document.getElementById(id);
+    if (!r) continue;
+    const was = r.style.visibility;
+    r.style.visibility = 'hidden';
+    animPlay.undos.push(() => {
+      r.style.visibility = was;
+      if (!r.getAttribute('style')) r.removeAttribute('style');
+    });
+  }
   // Each starts at its time from now, written into its begin: Safari
   // doesn't reliably start animations added after the page loaded with
   // beginElementAt(), but keeps to a begin time on the page's clock.
