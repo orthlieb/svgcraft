@@ -20,6 +20,13 @@ Help → SVGCraft Help (F1, and the ? on dialogs and panels) opens
   `scripts/gen-help-screens.mjs` for the helpers) and run
   `node scripts/gen-help-screens.mjs <anchor>`. Crop to the dialog, panel or
   part of the canvas being discussed, and look at the PNG before committing.
+- **An animation feature** also gets a live demo the help plays in place:
+  an image line `![what it shows](docs/help/<name>.svg)` after the
+  topic's opening sentence. The demo is scripted too: a shot in
+  `scripts/help-screens/animations.mjs` builds the drawing with its
+  animations set and calls `h.live()`, which saves it as Export Clean SVG
+  does. `gen-help.mjs` shows an `.svg` in an `<object>`, so clicks and the
+  pointer reach it.
 - **A change to an existing feature** gets that topic edited to match, and
   its screenshot retaken if what it shows changed, in the same branch.
 - Then run `node scripts/gen-help.mjs` and commit `help.html` with it.

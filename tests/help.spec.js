@@ -98,3 +98,47 @@ test('every topic opens with its screenshot, and every screenshot is used', asyn
     'unused screenshots',
   ).toEqual([]);
 });
+
+test('the animation topics play live demos, and clicks reach them', async ({ page }) => {
+  // The .svg images in docs/help are animated drawings, shown in an
+  // <object> so they play and take clicks and the pointer.
+  for (const id of [
+    'animate',
+    'when-an-animation-starts',
+    'pivot',
+    'stagger',
+    'move-along-path',
+    'morph',
+  ]) {
+    const art = HELP.match(new RegExp(`<article id="${id}"[\\s\\S]*?</article>`))[0];
+    const src = art.match(/<figure class="live">\s*<object\s+data="([^"]+\.svg)"/)?.[1];
+    expect(src, `#${id} has a live demo`).toBeTruthy();
+    expect(fs.readFileSync(path.join(ROOT, src), 'utf8'), src).toMatch(/<animate/);
+  }
+  await page.goto(pathToFileURL(path.join(ROOT, 'help.html')).href + '#when-an-animation-starts');
+  const demo = page.locator('#when-an-animation-starts object');
+  // The object's document, once it has loaded.
+  const doc = async () => {
+    await expect
+      .poll(() => page.frames().some((f) => f.url().endsWith('when-an-animation-starts-live.svg')))
+      .toBe(true);
+    return page.frames().find((f) => f.url().endsWith('when-an-animation-starts-live.svg'));
+  };
+  const frame = await doc();
+  await frame.waitForSelector('svg');
+  // The star's spin waits for a click on the button.
+  const spun = () =>
+    frame.evaluate(() => {
+      const a = document.querySelector('animateTransform[begin$=".click"]');
+      try {
+        return a.getStartTime() >= 0;
+      } catch {
+        return false;
+      }
+    });
+  expect(await spun()).toBe(false);
+  // Click the button, through the page (its box: 60–150 by 104–138 of 840 × 200).
+  const b = await demo.boundingBox();
+  await page.mouse.click(b.x + (b.width * 105) / 840, b.y + (b.height * 121) / 200);
+  await expect.poll(spun).toBe(true);
+});

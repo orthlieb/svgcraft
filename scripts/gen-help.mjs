@@ -8,7 +8,8 @@
 // becomes a section of the help, and every ### heading in it a topic with
 // its own anchor (#image-trace, #gradients, …), which the editor's ?
 // buttons link to. A topic opens with its screenshot (docs/help/*.png,
-// taken by scripts/gen-help-screens.mjs). Run it after editing the README;
+// taken by scripts/gen-help-screens.mjs); an .svg image is a live demo,
+// played in place. Run it after editing the README;
 // tests/help.spec.js fails while help.html is stale.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -131,6 +132,20 @@ function pngSize(src) {
   return [b.readUInt32BE(16), b.readUInt32BE(20)];
 }
 
+// An SVG's size, from its viewBox (it has no width or height, so it
+// scales to fit).
+function svgSize(src) {
+  const f = path.join(ROOT, src);
+  if (!fs.existsSync(f)) throw new Error(`README links a missing image: ${src}`);
+  const vb = fs.readFileSync(f, 'utf8').match(/<svg\b[^>]*\sviewBox="([^"]+)"/);
+  if (!vb) throw new Error(`${src} has no viewBox`);
+  return vb[1]
+    .trim()
+    .split(/[\s,]+/)
+    .slice(2)
+    .map(Number);
+}
+
 function tableHtml(rows) {
   const cells = (r) =>
     r
@@ -157,6 +172,13 @@ function html(bs) {
       if (b.k === 'h4') return `<h4>${inline(b.text)}</h4>`;
       if (b.k === 'p') return `<p>${inline(b.text)}</p>`;
       if (b.k === 'table') return tableHtml(b.rows);
+      if (b.k === 'img' && b.src.endsWith('.svg')) {
+        // A live demo: an <object>, so it plays, and clicks and the pointer
+        // reach it (an <img> would play it but pass neither on).
+        const [w, h] = svgSize(b.src);
+        const alt = esc(b.alt).replace(/"/g, '&quot;');
+        return `<figure class="live"><object data="${b.src}" type="image/svg+xml" width="${w}" height="${h}" style="aspect-ratio: ${w} / ${h}" aria-label="${alt}"><img src="${b.src}" alt="${alt}" width="${w}" height="${h}" /></object><figcaption>${esc(b.alt)}</figcaption></figure>`;
+      }
       if (b.k === 'img') {
         const [w, h] = pngSize(b.src);
         return `<figure><img src="${b.src}" alt="${esc(b.alt)}" width="${w}" height="${h}" loading="lazy" /></figure>`;
@@ -280,6 +302,10 @@ article:target { box-shadow: inset 3px 0 var(--accent); }
 article.flash { background: var(--mark); }
 figure { margin: 4px 0 14px; }
 figure img { display: block; max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 2px 10px rgb(0 0 0 / 12%); }
+figure.live object { display: block; width: 100%; height: auto; border-radius: 12px; box-shadow: 0 2px 10px rgb(0 0 0 / 12%); }
+figure.live object img { border: 0; box-shadow: none; }
+figure.live figcaption { margin-top: 6px; font-size: 13px; color: var(--text-dim); }
+figure.live figcaption::before { content: '▶ Live: '; font-weight: 600; }
 code { padding: 1px 4px; border-radius: 4px; background: var(--kbd); font-size: 13px; }
 table { width: 100%; border-collapse: collapse; font-size: 14px; }
 th, td { padding: 5px 8px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }

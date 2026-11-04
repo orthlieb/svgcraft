@@ -9,7 +9,8 @@
 // the README. Each file's default export is a list of
 //   { id, viewport?, theme?, async shoot(h) }
 // where id is the help topic's anchor (and the PNG's name), and shoot()
-// sets the editor up through the helpers below and calls h.shot().
+// sets the editor up through the helpers below and calls h.shot(), or
+// h.live() for an animated SVG the help plays in place.
 // Every shot starts on a fresh page with about/demo.svg (the octopus) open.
 import { chromium } from '@playwright/test';
 import fs from 'node:fs';
@@ -185,6 +186,16 @@ function helpers(page, id) {
       const file = path.join(OUT, `${name}.png`);
       await page.screenshot({ path: file, clip });
       console.log(`wrote docs/help/${name}.png`);
+    },
+    // Save the drawing as Export Clean SVG writes it (docs/help/<name>.svg),
+    // for a live demo the help plays in place.
+    async live(name = id) {
+      const svg = await page.evaluate(() =>
+        // eslint-disable-next-line no-undef -- the editor's own globals
+        cleanSvgText(window.svgcraft.serialize(), CLEAN_DEFAULTS),
+      );
+      fs.writeFileSync(path.join(OUT, `${name}.svg`), svg);
+      console.log(`wrote docs/help/${name}.svg (${svg.length} bytes)`);
     },
   };
   return h;
