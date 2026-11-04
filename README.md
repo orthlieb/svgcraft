@@ -22,7 +22,7 @@ a phone gets a preview to look at drawings.
 
 ### On a phone
 
-![SVGCraft on a phone, previewing the palette drawing](docs/help/on-a-phone.png)
+![SVGCraft on a phone, previewing the octopus drawing](docs/help/on-a-phone.png)
 
 Look at, check and share SVGs on your phone. A phone gets a preview, not
 the editor, so nothing you do there changes a drawing.
@@ -202,7 +202,7 @@ Find every command, in the menu you'd expect.
 
 ### Right-click menus
 
-![The canvas's right-click menu on the palette, with Objects Here listing the red paint, the board and the backdrop under the pointer](docs/help/right-click-menus.png)
+![The canvas's right-click menu on a bubble over the octopus, with Objects Here listing the objects under the pointer](docs/help/right-click-menus.png)
 
 Reach what the selection can do without going to the menu bar.
 
@@ -1453,7 +1453,7 @@ another object's animations, or with a pause between its runs.
 
 ### Pivot
 
-![A brush set to Swing, its pivot ⊕ dragged to the end of its handle, beside the Animation tab's Pivot fields](docs/help/pivot.png)
+![The bream set to Swing, its pivot ⊕ dragged away from its centre, beside the Animation tab's Pivot fields](docs/help/pivot.png)
 
 Choose the point an animation turns or grows about: a clock hand turning
 about its end, a sign swinging from its hook, a badge growing out of a corner.
@@ -1511,7 +1511,7 @@ another: paints popping in in turn, letters fading in.
 
 ### Move along path
 
-![The brush selected with a dashed flight path above it, and the Animation tab showing Move along path with Orient to path on](docs/help/move-along-path.png)
+![The bream selected with a dashed path above it, and the Animation tab showing Move along path with Orient to path on](docs/help/move-along-path.png)
 
 Send an object along a line you draw: a car along a road, a plane along its
 flight path.
@@ -1553,7 +1553,7 @@ flight path.
 
 ### Morph
 
-![The red paint selected with a dashed star above it, and the Animation tab showing Morph into the star](docs/help/morph.png)
+![A bubble selected with a dashed star beside it, and the Animation tab showing Morph into the star](docs/help/morph.png)
 
 Turn one shape into another: a play icon into a pause icon, a circle into
 a star, a blob that wobbles between two outlines.
@@ -2303,7 +2303,7 @@ select, stack, hide, lock, blend and style objects from it.
 
 ### Layer rows and folders
 
-![The Layers panel, showing the palette drawing's objects with the Brush and Palette groups open](docs/help/layer-rows-and-folders.png)
+![The Layers panel, showing the octopus drawing's objects with the Bream and Octopus groups open](docs/help/layer-rows-and-folders.png)
 
 Use the Layers panel to see what your drawing is made of and pick out any
 part of it.
@@ -2365,7 +2365,7 @@ To take a group apart again, select it and choose **Object → Ungroup**
 
 ### Select inside a group
 
-![The Blue paint picked inside the Palette group with Ctrl-click, and its row in the Layers panel](docs/help/select-inside-a-group.png)
+![The bream's body picked inside the Bream group with Ctrl-click, and its row in the Layers panel](docs/help/select-inside-a-group.png)
 
 Pick one shape inside a group without taking the group apart.
 
@@ -2384,7 +2384,7 @@ Pick one shape inside a group without taking the group apart.
 
 ### Isolation mode
 
-![The Palette group isolated, its red paint picked: the rest of the drawing dimmed, and the bar reading Drawing › Palette](docs/help/isolation-mode.png)
+![The Octopus group isolated, a part of it picked: the rest of the drawing dimmed, and the bar reading Drawing › Octopus](docs/help/isolation-mode.png)
 
 Work inside a group as if it were the whole drawing.
 
@@ -2408,7 +2408,7 @@ Work inside a group as if it were the whole drawing.
 
 ### Reorder, copy and delete
 
-![Dragging the Purple paint's row in the Layers panel, with a line showing where it will drop](docs/help/reorder-copy-and-delete.png)
+![Dragging Bubble 5's row in the Layers panel, with a line showing where it will drop](docs/help/reorder-copy-and-delete.png)
 
 Change what's in front, or copy and delete objects, by dragging their rows.
 
@@ -2430,7 +2430,7 @@ Dragging a selected row moves the whole selection.
 
 ### Show, hide and lock
 
-![The Layers panel with the Brush group hidden and the Title locked](docs/help/show-hide-and-lock.png)
+![The Layers panel with the Bream group hidden and the Title locked](docs/help/show-hide-and-lock.png)
 
 Hide objects you're not working on, and lock the ones you don't want to
 change by accident.
@@ -2494,7 +2494,7 @@ An empty name goes back to the automatic one.
 
 ### Blend mode and opacity
 
-![Appearance's Transparency with the Purple paint set to Multiply at 70% opacity](docs/help/blend-mode-and-opacity.png)
+![Appearance's Transparency with Bubble 5 set to Multiply at 70% opacity](docs/help/blend-mode-and-opacity.png)
 
 Make an object see-through, or mix it with the objects below.
 
