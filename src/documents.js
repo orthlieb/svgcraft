@@ -321,8 +321,9 @@ function showNoDoc() {
 function syncNoDoc() {
   const none = !curDoc;
   document.body.classList.toggle('sc-no-doc', none);
+  // A panel's header stays live, so its ? still opens the help.
   for (const el of document.querySelectorAll(
-    '#sc-panel > .sc-pgroup, .sc-dock-strip, .sc-options, .sc-tools, #sc-split',
+    '#sc-panel > .sc-pgroup > :not(.sc-ptabs), .sc-dock-strip, .sc-options, .sc-tools, #sc-split',
   ))
     el.inert = none;
   $('#sc-nodoc').hidden = !none;

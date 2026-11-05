@@ -239,6 +239,7 @@ const NO_DOC_ACTIONS = new Set([
   'aboutFeatures',
   'aboutShortcuts',
   'help',
+  'phoneInfo',
   'checkUpdates',
   'themeSystem',
   'themeDark',
