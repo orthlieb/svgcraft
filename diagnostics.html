@@ -460,8 +460,30 @@
             type,
             target,
             tdesc,
-            begin: el.getAttribute('begin') || '0s',
+            begin: shortBegin(el.getAttribute('begin') || '0s'),
           };
+        }
+
+        // A long list of begin times (a repeated sequence) as its first few.
+        function shortBegin(b) {
+          const parts = b.split(';');
+          return parts.length > 3 ? `${parts.slice(0, 3).join(';')}… (${parts.length} times)` : b;
+        }
+        // Whether an animation has started by now. Asked at each sample, since
+        // once a run ends Safari gives the next start in its list, not the
+        // last one; and a list of plain times has started once its first has
+        // passed.
+        function hasStarted(a, now) {
+          const firstAt = /^\s*([\d.]+)(m?s)?\s*(;|$)/.exec(a.el.getAttribute('begin') || '0s');
+          if (firstAt) {
+            const t = parseFloat(firstAt[1]) / (firstAt[2] === 'ms' ? 1000 : 1);
+            if (t <= now) return true;
+          }
+          try {
+            return a.el.getStartTime() <= now;
+          } catch {
+            return false;
+          }
         }
 
         async function fileCheck() {
@@ -481,23 +503,21 @@
           const timers = list.length - ui.length;
           const first = new Map(ui.map((a) => [a, snapshot(a.target, a.attr)]));
           const changed = new Set();
+          const begun = new Set();
           const t0 = svg.getCurrentTime?.();
           const paused = svg.animationsPaused?.();
           // Sample for 8 seconds, so chains and delays get going.
           for (let k = 0; k < 32; k++) {
             await wait(250);
-            for (const a of ui)
+            const now = svg.getCurrentTime?.();
+            for (const a of ui) {
               if (a.target && !changed.has(a) && snapshot(a.target, a.attr) !== first.get(a))
                 changed.add(a);
+              if (!begun.has(a) && hasStarted(a, now)) begun.add(a);
+            }
           }
           const t1 = svg.getCurrentTime?.();
-          const started = (a) => {
-            try {
-              return a.el.getStartTime() <= t1;
-            } catch {
-              return false;
-            }
-          };
+          const started = (a) => begun.has(a) || hasStarted(a, t1);
           const ticks = t1 > t0;
           const run = ui.filter(started);
           const moved = run.filter((a) => changed.has(a));

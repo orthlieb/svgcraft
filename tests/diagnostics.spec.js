@@ -36,6 +36,11 @@ test('the animation check reports the About animation playing', async ({ browser
   expect(text).toMatch(/File: about\/animated\.svg/);
   expect(text).toMatch(/Summary: Everything that has started plays/);
   expect(text).not.toMatch(/started, NO change/);
+  // A repeated sequence's long begin lists are cut short, and its first
+  // runs count as started though they've ended (Safari then reports the
+  // next start).
+  expect(text).toMatch(/begin=0s;15\.2s;30\.4s… \(\d+ times\)/);
+  expect(text.split('\n').every((l) => l.length < 200)).toBe(true);
   await page.close();
 });
 
