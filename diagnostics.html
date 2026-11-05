@@ -119,6 +119,27 @@
         border-radius: 8px;
         border: 1px solid var(--line);
       }
+      .parts {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 10px;
+      }
+      .parts figure {
+        margin: 0;
+      }
+      .parts img {
+        display: block;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 800 / 560;
+        border-radius: 6px;
+        border: 1px solid var(--line);
+      }
+      .parts figcaption {
+        font-size: 12px;
+        color: var(--text-dim);
+        margin-top: 2px;
+      }
       .ok {
         color: var(--ok);
         font-weight: 600;
@@ -244,7 +265,18 @@
       </section>
 
       <section>
-        <h2>5. Errors</h2>
+        <h2>5. Which part stops it</h2>
+        <p class="dim">
+          The file as an image again, each copy with one thing taken out. If the file doesn't move
+          in section 3, note the numbers of the copies here that do: what they lack is what stops
+          it. Some copies look odd (things out of place, squares for drawings); only whether they
+          move matters.
+        </p>
+        <div id="parts" class="parts"></div>
+      </section>
+
+      <section>
+        <h2>6. Errors</h2>
         <div id="errors" class="dim">None so far.</div>
       </section>
 
@@ -502,6 +534,109 @@
           return { ticks, total: run.length, changed: moved.length };
         }
 
+        // 5. Copies of the file as images, each without one thing.
+        const SVGNS = 'http://www.w3.org/2000/svg';
+        const PARTS = [
+          ['As it is', () => {}],
+          [
+            'No filters (glow, blur)',
+            (d) => {
+              d.querySelectorAll('filter').forEach((e) => e.remove());
+              d.querySelectorAll('[filter]').forEach((e) => e.removeAttribute('filter'));
+            },
+          ],
+          [
+            'No masks or clips',
+            (d) => {
+              d.querySelectorAll('mask, clipPath').forEach((e) => e.remove());
+              d.querySelectorAll('[mask], [clip-path]').forEach((e) => {
+                e.removeAttribute('mask');
+                e.removeAttribute('clip-path');
+              });
+            },
+          ],
+          [
+            'No sequences (all start at once)',
+            (d) => {
+              d.querySelectorAll('set').forEach((e) => {
+                if (/^data-/.test(e.getAttribute('attributeName') || '')) e.remove();
+              });
+              d.querySelectorAll('[begin]').forEach((e) => {
+                if (/[A-Za-z_][\w-]*\.(begin|end|click|mouse)/.test(e.getAttribute('begin')))
+                  e.setAttribute('begin', '0s');
+              });
+            },
+          ],
+          [
+            'No moving along paths',
+            (d) => d.querySelectorAll('animateMotion').forEach((e) => e.remove()),
+          ],
+          [
+            'No colour or opacity changes',
+            (d) =>
+              d.querySelectorAll('animate').forEach((e) => {
+                if (e.getAttribute('attributeName') !== 'stroke-dashoffset') e.remove();
+              }),
+          ],
+          [
+            'No gradients or fills from url()',
+            (d) => {
+              d.querySelectorAll('[fill^="url("]').forEach((e) =>
+                e.setAttribute('fill', '#8fd3ff'),
+              );
+              d.querySelectorAll('[stroke^="url("]').forEach((e) =>
+                e.setAttribute('stroke', '#8fd3ff'),
+              );
+            },
+          ],
+          [
+            'Engravings simplified',
+            (d) =>
+              d.querySelectorAll('path').forEach((e) => {
+                if ((e.getAttribute('d') || '').length > 3000)
+                  e.setAttribute('d', 'M0 0h300v300H0z');
+              }),
+          ],
+          [
+            'Only the bubbles animated',
+            (d) => {
+              const anims = [
+                ...d.querySelectorAll('animate, animateTransform, animateMotion, set'),
+              ];
+              anims.forEach((e) => {
+                const t = e.parentElement;
+                if (!(t && t.localName === 'circle')) e.remove();
+              });
+            },
+          ],
+        ];
+        async function partsCheck() {
+          let text;
+          try {
+            text = await (await fetch(file)).text();
+          } catch (e) {
+            $('parts').textContent = `Couldn't fetch the file: ${e.message}`;
+            return;
+          }
+          $('parts').innerHTML = PARTS.map(
+            ([name], i) =>
+              `<figure><img data-part="${i}" alt="${esc(name)}" /><figcaption>${i + 1}. ${esc(name)}</figcaption></figure>`,
+          ).join('');
+          PARTS.forEach(([name, cut], i) => {
+            const d = new DOMParser().parseFromString(text, 'image/svg+xml');
+            if (d.documentElement.namespaceURI !== SVGNS) return;
+            try {
+              cut(d);
+            } catch (e) {
+              noteError(`Part ${i + 1} (${name}): ${e.message}`);
+            }
+            const out = new XMLSerializer().serializeToString(d);
+            document.querySelector(`[data-part="${i}"]`).src =
+              'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(out);
+          });
+        }
+        partsCheck();
+
         Promise.all([tinyCheck(), fileCheck()]).then(([tinyOk, f]) => {
           let html;
           if (!tinyOk)
@@ -516,6 +651,9 @@
           $('summary').innerHTML = html;
           say('');
           say(`Summary: ${$('summary').textContent}`);
+          say('');
+          say('Which part stops it (copies of the file, each without one thing; note which move):');
+          PARTS.forEach(([name], i) => say(`  ${i + 1}. ${name}`));
           if (errors.length) say(`Errors: ${errors.join(' / ')}`);
           $('report').textContent = report.join('\n');
         });
