@@ -232,6 +232,10 @@ test('Repeat the sequence starts a chain again when its last one ends', async ({
     { p: 'flip', dur: 1, rep: 1, ease: 'linear', half: true, after: true },
   ]);
   const svg = await saved(page);
+  // Plain begin times, one each time round: no timers restarting each other,
+  // which stop all animation in Safari.
+  expect(svg).not.toMatch(/data-sc-loop|\.(begin|end)\b/);
+  expect(svg).toMatch(/begin="0s;2s;4s;6s;/);
   for (const [t, sx] of [
     [1, -1],
     [2, 1],
@@ -253,6 +257,33 @@ test('Repeat the sequence starts a chain again when its last one ends', async ({
     s.openSvg(cleanSvgText(s.serialize(), { ...CLEAN_DEFAULTS }), 'clean.svg');
     /* eslint-enable no-undef */
   });
+  const back = JSON.parse(
+    await page.locator('#sc-doc [data-sc-anim]').first().getAttribute('data-sc-anim'),
+  );
+  expect(back).toEqual([
+    expect.objectContaining({ p: 'flip', dur: 1, rep: 1, half: true, loop: true }),
+    expect.objectContaining({ p: 'flip', dur: 1, rep: 1, half: true, after: true, delay: 0 }),
+  ]);
+});
+
+test('Repeat the sequence from a file saved with timers still opens as a chain', async ({
+  page,
+}) => {
+  // Files saved before begin lists kept the beat with a pair of <set>s.
+  await setAnims(page, 'r', [
+    { p: 'flip', dur: 1, rep: 1, ease: 'linear', half: true, loop: true },
+    { p: 'flip', dur: 1, rep: 1, ease: 'linear', half: true, after: true },
+  ]);
+  const old = (await saved(page))
+    .replace(/begin="([\d.]+)s(?:;[\d.]+s)+"/g, (m, t) => `begin="scloop1.begin+${t}s"`)
+    .replace(
+      /(<animateTransform)/,
+      '<set id="scloop1" attributeName="data-sc-loop" to="1" dur="2s" begin="0s;scloop2.end"/>' +
+        '<set id="scloop2" attributeName="data-sc-loop" to="1" dur="0.001s" begin="scloop1.end"/>$1',
+    )
+    .replace(/ data-sc-anim="[^"]*"/g, '');
+  expect(old).toContain('scloop1.begin');
+  await page.evaluate((t) => window.svgcraft.openSvg(t, 'old.svg'), old);
   const back = JSON.parse(
     await page.locator('#sc-doc [data-sc-anim]').first().getAttribute('data-sc-anim'),
   );

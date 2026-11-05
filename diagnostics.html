@@ -637,7 +637,11 @@
         }
         partsCheck();
 
-        Promise.all([tinyCheck(), fileCheck()]).then(([tinyOk, f]) => {
+        // Safari starts a page's animation clock only once the page has loaded.
+        const pageLoaded = new Promise((r) =>
+          document.readyState === 'complete' ? r() : addEventListener('load', r, { once: true }),
+        );
+        Promise.all([pageLoaded.then(tinyCheck), fileCheck()]).then(([tinyOk, f]) => {
           let html;
           if (!tinyOk)
             html = `<span class="bad">This browser isn't running SVG animation at all, even a tiny one in the page.</span> Check Reduce Motion and any low-power or data-saving mode, and try another browser.`;

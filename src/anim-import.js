@@ -437,16 +437,70 @@ function smilMotion(el, a, pool, shared = false) {
   };
 }
 // A layer's noted SMIL as presets: { anims, lost }.
-// Repeat the sequence, as SVGCraft writes it: a pair of timer <set>s (of
+// Repeat the sequence, as SVGCraft writes it: each of the chain's nodes with
+// a list of begin times, one each time round (a steady period T), the ones
+// that add up starting with the chain and held at their first value until
+// their own start. Files saved before that use a pair of timer <set>s (of
 // data-sc-loop; the first as long as the chain, starting again when the
-// second, an instant, ends) and the chain's nodes starting from the first's
-// begin, the ones that add up held at their first value until their own
-// start. Read back: each node at its own time, unheld, and the chains
-// (start, length, starts) to join up again once they're presets.
+// second, an instant, ends) and the chain's nodes starting from the
+// first's begin. Read back: each node at its own time, unheld, and the
+// chains (start, length, starts) to join up again once they're presets.
 function smilLoops(notes) {
   const timer = (n) => n.tag === 'set' && n.attrs.attributeName === 'data-sc-loop';
   const chains = [];
   const out = notes.filter((n) => !timer(n));
+  // Node i of out, a member of a chain from x: at its own time, unheld.
+  const member = (i, x, off0) => {
+    const n = out[i];
+    let off = off0;
+    const at = { ...n.attrs };
+    const vk = at.keyPoints != null ? 'keyPoints' : 'values';
+    const vals = (at[vk] || '').split(';').map((v) => v.trim());
+    const kt = (at.keyTimes || '').split(';').map(Number);
+    const total = smilClock(at.dur);
+    // Held until its own start: unhold it.
+    if (
+      !off &&
+      at.additive === 'sum' &&
+      vals.length > 2 &&
+      kt.length === vals.length &&
+      vals[0] === vals[1] &&
+      kt[1] > 1e-4 &&
+      kt[1] < 1
+    ) {
+      off = kt[1] * total;
+      const d = total - off;
+      at[vk] = vals.slice(1).join(';');
+      at.keyTimes = kt
+        .slice(1)
+        .map((t) => +((t * total - off) / d).toFixed(4))
+        .join(';');
+      if (at.keySplines) at.keySplines = at.keySplines.split(';').slice(1).join(';');
+      at.dur = `${+d.toFixed(4)}s`;
+    }
+    at.begin = `${+(x + off).toFixed(4)}s`;
+    out[i] = { ...n, attrs: at };
+    return x + off;
+  };
+  // Begin lists: three or more plain times a steady period apart.
+  const lists = new Map();
+  for (const [i, n] of out.entries()) {
+    const parts = (n.attrs.begin || '').split(';').map((b) => b.trim());
+    if (parts.length < 3) continue;
+    const ts = parts.map((b) => (/^[\d.]+m?s?$/.test(b) ? smilClock(b) : NaN));
+    if (ts.some((t) => !(t >= 0))) continue;
+    const T = ts[1] - ts[0];
+    if (!(T > 0) || ts.some((t, r) => Math.abs(t - ts[0] - r * T) > 0.01)) continue;
+    const key = T.toFixed(2);
+    if (!lists.has(key)) lists.set(key, []);
+    lists.get(key).push([i, ts[0], T]);
+  }
+  for (const group of lists.values()) {
+    const x = Math.min(...group.map(([, b]) => b));
+    const T = group[0][2];
+    const starts = group.map(([i, b]) => member(i, x, b - x));
+    chains.push({ x, T, starts });
+  }
   for (const a of notes.filter(timer)) {
     const m = /^\s*([\d.]+m?s?)\s*;\s*([A-Za-z_][\w:]*)\.end\s*$/.exec(a.attrs.begin || '');
     // (The second timer, which only restarts the first, is skipped.)
@@ -460,35 +514,7 @@ function smilLoops(notes) {
         n.attrs.begin || '',
       );
       if (!r) continue;
-      let off = r[1] ? smilClock(r[1]) : 0;
-      const at = { ...n.attrs };
-      const vk = at.keyPoints != null ? 'keyPoints' : 'values';
-      const vals = (at[vk] || '').split(';').map((v) => v.trim());
-      const kt = (at.keyTimes || '').split(';').map(Number);
-      const total = smilClock(at.dur);
-      // Held until its own start: unhold it.
-      if (
-        !off &&
-        at.additive === 'sum' &&
-        vals.length > 2 &&
-        kt.length === vals.length &&
-        vals[0] === vals[1] &&
-        kt[1] > 1e-4 &&
-        kt[1] < 1
-      ) {
-        off = kt[1] * total;
-        const d = total - off;
-        at[vk] = vals.slice(1).join(';');
-        at.keyTimes = kt
-          .slice(1)
-          .map((t) => +((t * total - off) / d).toFixed(4))
-          .join(';');
-        if (at.keySplines) at.keySplines = at.keySplines.split(';').slice(1).join(';');
-        at.dur = `${+d.toFixed(4)}s`;
-      }
-      at.begin = `${+(x + off).toFixed(4)}s`;
-      out[i] = { ...n, attrs: at };
-      starts.push(x + off);
+      starts.push(member(i, x, r[1] ? smilClock(r[1]) : 0));
     }
     chains.push({ x, T, starts });
   }

@@ -456,39 +456,26 @@ function animChains(list) {
   return out;
 }
 // Make a chain's SMIL start again: `nodes[j]` holds animation j's nodes
-// (times from animTimes), already in place. A pair of timers, <set>s of an
-// attribute nothing reads, keeps the beat: the first runs as long as the
-// chain and the second, an instant, starts it again (an element can't
-// start again on its own end). Each node starts that long after the first
-// timer does. A node that adds to the others (a transform with
-// additive="sum") starts with the chain instead, held at its first value
-// until its own start, so each time round sets it back: else a Flip left
-// turned over from the last time would add to the new one. Returns the
-// timers (made, for the preview to start).
-let loopSeq = 0;
-function loopId() {
-  let id;
-  do id = `scloop${++loopSeq}`;
-  while (document.getElementById(id));
-  return id;
+// (times from animTimes), already in place. Each node gets a list of begin
+// times, one each time round the chain (for an hour, or LOOP_MAX times):
+// plain times on the clock, which every browser keeps to. (A pair of timers
+// restarting each other, the neater way, stops all animation in Safari.) A
+// node that adds to the others (a transform with additive="sum") starts
+// with the chain instead, held at its first value until its own start, so
+// each time round sets it back: else a Flip left turned over from the last
+// time would add to the new one. In the preview the times count from when
+// it plays (data-sc-loop: the first start and the period).
+const LOOP_SPAN = 3600;
+const LOOP_MAX = 400;
+function loopBegins(start, T) {
+  const n = Math.min(LOOP_MAX, Math.ceil(LOOP_SPAN / T));
+  return Array.from({ length: n }, (_, r) => `${+(start + r * T).toFixed(3)}s`).join(';');
 }
 function loopChains(list, times, nodes, preview) {
-  const timers = [];
   for (const [i, k] of animChains(list)) {
-    const host = nodes[i].find((n) => n.localName !== 'set')?.parentNode;
-    if (!host) continue;
     const t0 = times[i].t;
     const T = times[k].t + animLength(list[k]) - t0;
-    // Ids without a hyphen: in a begin, "a-b.end" would read as "a" less "b.end".
-    const [ta, tb] = [loopId(), loopId()];
-    const beat = (id, begin, dur) =>
-      mk('set', { id, attributeName: 'data-sc-loop', to: '1', dur, begin });
-    const a = beat(ta, `${preview ? 'indefinite' : `${f(t0)}s`};${tb}.end`, `${f(T)}s`);
-    a.dataset.scBegin = t0;
-    // Ahead of the nodes that start from it.
-    host.insertBefore(a, nodes[i].find((n) => n.parentNode === host) || host.firstChild);
-    a.after(beat(tb, `${ta}.end`, '0.001s'));
-    timers.push(a);
+    if (!(T > 0)) continue;
     for (let j = i; j <= k; j++) {
       const off = times[j].t - t0;
       for (const n of nodes[j]) {
@@ -512,14 +499,15 @@ function loopChains(list, times, nodes, preview) {
           if (ks) n.setAttribute('keySplines', `0 0 1 1;${ks}`);
           n.setAttribute('dur', `${f(total)}s`);
         }
-        const at = pad ? 0 : off;
-        n.setAttribute('begin', `${ta}.begin${at ? `+${f(at)}s` : ''}`);
-        // The preview starts the timer; the rest follow it.
-        n.dataset.scFollow = '';
+        const start = t0 + (pad ? 0 : off);
+        if (preview) {
+          n.setAttribute('begin', 'indefinite');
+          n.dataset.scLoop = `${start} ${T}`;
+        } else n.setAttribute('begin', loopBegins(start, T));
       }
     }
   }
-  return timers;
+  return [];
 }
 // Animation a as it plays at time w (animTimes): its start event carried
 // along for the SMIL to name.
