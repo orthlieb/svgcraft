@@ -35,7 +35,7 @@ function playAnimations() {
         }
       }
     });
-    animPlay.nodes.push(...loopChains(list, times, made, true));
+    loopChains(list, times, made, true);
   }
   // The paths things move along, hidden in the saved file, are out of
   // sight while it plays too.
@@ -54,7 +54,11 @@ function playAnimations() {
   // beginElementAt(), but keeps to a begin time on the page's clock.
   const now = doc.ownerSVGElement.getCurrentTime() + 0.05;
   for (const n of animPlay.nodes) {
-    if ('scFollow' in n.dataset) continue;
+    if ('scLoop' in n.dataset) {
+      const [start, T] = n.dataset.scLoop.split(' ').map(Number);
+      n.setAttribute('begin', loopBegins(now + start, T));
+      continue;
+    }
     const at = `${(now + (+n.dataset.scBegin || 0)).toFixed(3)}s`;
     n.setAttribute('begin', (n.getAttribute('begin') || 'indefinite').replace('indefinite', at));
   }

@@ -328,10 +328,10 @@ function writeAnimations(live, copy, on, addDef = () => {}) {
         }
       }
     });
-    const timers = loopChains(list, times, made, false);
-    for (const n of [...made.flat(), ...timers]) {
+    loopChains(list, times, made, false);
+    for (const n of made.flat()) {
       delete n.dataset.scBegin;
-      delete n.dataset.scFollow;
+      delete n.dataset.scLoop;
     }
   });
   let top = copy;
