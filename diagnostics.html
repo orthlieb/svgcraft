@@ -1,0 +1,677 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Animation Check</title>
+    <meta
+      name="description"
+      content="Checks whether this browser plays SVG animation (SMIL), and which of a file's animations run, with a report to copy."
+    />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <script>
+      try {
+        const t = localStorage.getItem('svgcraft.theme');
+        if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t;
+      } catch {
+        /* storage blocked — follow the OS theme */
+      }
+    </script>
+    <style>
+      :root {
+        --bg: #f5f5f5;
+        --card: #ffffff;
+        --text: #2c2c2c;
+        --text-dim: #5f5f5f;
+        --line: #dadada;
+        --accent: #1473e6;
+        --ok: #15803d;
+        --bad: #b91c1c;
+        --warn: #a16207;
+        color-scheme: light;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme='light']) {
+          --bg: #1b1b1b;
+          --card: #262626;
+          --text: #dcdcdc;
+          --text-dim: #9a9a9a;
+          --line: #363636;
+          --accent: #4d9bf0;
+          --ok: #4ade80;
+          --bad: #f87171;
+          --warn: #facc15;
+          color-scheme: dark;
+        }
+      }
+      :root[data-theme='dark'] {
+        --bg: #1b1b1b;
+        --card: #262626;
+        --text: #dcdcdc;
+        --text-dim: #9a9a9a;
+        --line: #363636;
+        --accent: #4d9bf0;
+        --ok: #4ade80;
+        --bad: #f87171;
+        --warn: #facc15;
+        color-scheme: dark;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font:
+          15px/1.5 system-ui,
+          -apple-system,
+          'Segoe UI',
+          sans-serif;
+      }
+      main {
+        max-width: 860px;
+        margin: 0 auto;
+        padding: 16px;
+      }
+      h1 {
+        font-size: 22px;
+        margin: 8px 0 4px;
+      }
+      h2 {
+        font-size: 16px;
+        margin: 0 0 8px;
+      }
+      p {
+        margin: 0 0 8px;
+      }
+      a {
+        color: var(--accent);
+      }
+      .dim {
+        color: var(--text-dim);
+      }
+      section {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 14px;
+        margin: 12px 0;
+      }
+      .row {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .tiny {
+        width: 160px;
+        height: 60px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: #123d63;
+      }
+      .scene {
+        display: block;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 800 / 560;
+        border-radius: 8px;
+        border: 1px solid var(--line);
+      }
+      .parts {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 10px;
+      }
+      .parts figure {
+        margin: 0;
+      }
+      .parts img {
+        display: block;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 800 / 560;
+        border-radius: 6px;
+        border: 1px solid var(--line);
+      }
+      .parts figcaption {
+        font-size: 12px;
+        color: var(--text-dim);
+        margin-top: 2px;
+      }
+      .ok {
+        color: var(--ok);
+        font-weight: 600;
+      }
+      .bad {
+        color: var(--bad);
+        font-weight: 600;
+      }
+      .warn {
+        color: var(--warn);
+        font-weight: 600;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 4px 6px;
+        border-top: 1px solid var(--line);
+        vertical-align: top;
+      }
+      code,
+      pre {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 12px;
+      }
+      pre {
+        white-space: pre-wrap;
+        word-break: break-word;
+        background: var(--bg);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 8px;
+        max-height: 320px;
+        overflow: auto;
+      }
+      button {
+        font: inherit;
+        padding: 6px 14px;
+        border-radius: 6px;
+        border: 1px solid var(--accent);
+        background: var(--accent);
+        color: #fff;
+      }
+      .scroll {
+        overflow-x: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Animation Check</h1>
+      <p class="dim">
+        Checks whether this browser plays SVG animation, and which of a file's animations run. It
+        takes about ten seconds. Then copy the report, or take a screenshot of this page.
+      </p>
+      <p class="dim">
+        File: <code id="file"></code>. Check another with <code>?svg=path/to/file.svg</code> (a file
+        on this site).
+      </p>
+
+      <section>
+        <h2>Summary</h2>
+        <div id="summary"><span class="warn">Running…</span></div>
+        <p style="margin-top: 10px">
+          <button id="copy" type="button">Copy report</button>
+          <span id="copied" class="dim"></span>
+        </p>
+      </section>
+
+      <section>
+        <h2>1. This browser</h2>
+        <div class="scroll"><table id="browser"></table></div>
+      </section>
+
+      <section>
+        <h2>2. A tiny animation</h2>
+        <p class="dim">A dot sliding to and fro, three ways. Each should move.</p>
+        <div class="row">
+          <div>
+            <div class="dim">In the page</div>
+            <svg
+              id="tiny-inline"
+              class="tiny"
+              viewBox="0 0 160 60"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <circle cx="20" cy="30" r="12" fill="#8fd3ff">
+                <animate attributeName="cx" values="20;140;20" dur="2s" repeatCount="indefinite" />
+              </circle>
+            </svg>
+          </div>
+          <div>
+            <div class="dim">As an image</div>
+            <img id="tiny-img" class="tiny" alt="A dot sliding to and fro" />
+          </div>
+          <div>
+            <div class="dim">As an image, moved by a transform</div>
+            <img id="tiny-img-t" class="tiny" alt="A dot sliding to and fro" />
+          </div>
+        </div>
+        <p id="tiny-result" style="margin-top: 8px"></p>
+      </section>
+
+      <section>
+        <h2>3. The file, as the About page shows it (an image)</h2>
+        <p class="dim">Look: does it move? An image can't be inspected from the page.</p>
+        <img id="scene-img" class="scene" alt="The file being checked, as an image" />
+      </section>
+
+      <section>
+        <h2>4. The file, inspected</h2>
+        <p class="dim">
+          The same file in an object, where each animation can be checked: whether it started, and
+          whether what it animates changed.
+        </p>
+        <object id="scene-obj" class="scene" type="image/svg+xml"></object>
+        <p id="clock" style="margin-top: 8px"></p>
+        <div class="scroll"><table id="anims"></table></div>
+      </section>
+
+      <section>
+        <h2>5. Which part stops it</h2>
+        <p class="dim">
+          The file as an image again, each copy with one thing taken out. If the file doesn't move
+          in section 3, note the numbers of the copies here that do: what they lack is what stops
+          it. Some copies look odd (things out of place, squares for drawings); only whether they
+          move matters.
+        </p>
+        <div id="parts" class="parts"></div>
+      </section>
+
+      <section>
+        <h2>6. Errors</h2>
+        <div id="errors" class="dim">None so far.</div>
+      </section>
+
+      <section>
+        <h2>Report</h2>
+        <pre id="report">Running…</pre>
+      </section>
+      <p class="dim"><a href="about.html">About SVGCraft</a> · <a href="./">The editor</a></p>
+    </main>
+
+    <script>
+      (() => {
+        const $ = (id) => document.getElementById(id);
+        const report = [];
+        const errors = [];
+        const say = (line) => report.push(line);
+        const mark = (ok, yes = 'yes', no = 'no') =>
+          `<span class="${ok ? 'ok' : 'bad'}">${ok ? yes : no}</span>`;
+        const esc = (s) =>
+          String(s).replace(
+            /[&<>"]/g,
+            (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c],
+          );
+        const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+
+        function noteError(msg) {
+          errors.push(msg);
+          $('errors').innerHTML = errors.map((e) => `<div class="bad">${esc(e)}</div>`).join('');
+        }
+        window.addEventListener('error', (e) =>
+          noteError(`${e.message || 'Error'}${e.filename ? ` (${e.filename}:${e.lineno})` : ''}`),
+        );
+        window.addEventListener('unhandledrejection', (e) =>
+          noteError(`Unhandled: ${e.reason?.message || e.reason}`),
+        );
+
+        // The file to check: a relative .svg path on this site.
+        const asked = new URLSearchParams(location.search).get('svg');
+        const file =
+          asked && /^[\w./-]+\.svg$/.test(asked) && !asked.includes('..')
+            ? asked
+            : 'about/animated.svg';
+        $('file').textContent = file;
+        $('scene-img').src = file;
+        $('scene-obj').data = file;
+
+        // 1. The browser.
+        const mq = (q) => (window.matchMedia ? matchMedia(q).matches : 'unknown');
+        const facts = [
+          ['Browser', navigator.userAgent],
+          ['Screen', `${innerWidth} × ${innerHeight} CSS px, ${devicePixelRatio}× pixels`],
+          ['SMIL in the page', 'SVGAnimateElement' in window ? 'supported' : 'not supported'],
+          ['Reduce Motion', mq('(prefers-reduced-motion: reduce)') === true ? 'on' : 'off'],
+          ['Low data / Save-Data', navigator.connection?.saveData ? 'on' : 'off or unknown'],
+          ['Page visible', document.visibilityState],
+        ];
+        $('browser').innerHTML = facts
+          .map(([k, v]) => `<tr><th>${esc(k)}</th><td>${esc(v)}</td></tr>`)
+          .join('');
+        say('SVGCraft animation check');
+        say(`Page: ${location.href}`);
+        say(`Time: ${new Date().toISOString()}`);
+        for (const [k, v] of facts) say(`${k}: ${v}`);
+
+        // 2. A tiny animation: inline, and as two images.
+        const tiny = (inner) =>
+          'data:image/svg+xml,' +
+          encodeURIComponent(
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 60"><rect width="160" height="60" fill="#123d63"/>${inner}</svg>`,
+          );
+        $('tiny-img').src = tiny(
+          '<circle cx="20" cy="30" r="12" fill="#8fd3ff"><animate attributeName="cx" values="20;140;20" dur="2s" repeatCount="indefinite"/></circle>',
+        );
+        $('tiny-img-t').src = tiny(
+          '<circle cx="20" cy="30" r="12" fill="#f3e0de"><animateTransform attributeName="transform" type="translate" values="0 0;120 0;0 0" dur="2s" repeatCount="indefinite"/></circle>',
+        );
+
+        async function tinyCheck() {
+          const svg = $('tiny-inline');
+          const c = svg.querySelector('circle');
+          const t0 = svg.getCurrentTime?.();
+          const x0 = c.cx.animVal.value;
+          await wait(700);
+          const t1 = svg.getCurrentTime?.();
+          const x1 = c.cx.animVal.value;
+          const ticks = t1 > t0;
+          const moves = Math.abs(x1 - x0) > 0.5;
+          $('tiny-result').innerHTML =
+            `In the page: clock running ${mark(ticks)}, dot moving ${mark(moves)}. ` +
+            `The two images: look whether their dots move.`;
+          say('');
+          say(
+            `Tiny inline animation: clock ${ticks ? 'running' : 'NOT running'} (${t0?.toFixed(2)} → ${t1?.toFixed(2)} s), dot ${moves ? 'moving' : 'NOT moving'} (cx ${x0.toFixed(1)} → ${x1.toFixed(1)})`,
+          );
+          return ticks && moves;
+        }
+
+        // 4. The file in an <object>: each animation, whether it started and
+        // whether what it animates changed.
+        const loaded = new Promise((resolve) => {
+          const o = $('scene-obj');
+          const done = () => resolve(o.contentDocument);
+          o.addEventListener('load', done, { once: true });
+          o.addEventListener('error', () => resolve(null), { once: true });
+          setTimeout(done, 8000);
+        });
+
+        // What an animation changes, now, as a string to compare over time.
+        function snapshot(target, attr) {
+          const parts = [];
+          try {
+            const r = target.getBoundingClientRect();
+            parts.push([r.x, r.y, r.width, r.height].map((v) => v.toFixed(1)).join(','));
+          } catch {
+            /* not rendered */
+          }
+          try {
+            const cs = getComputedStyle(target);
+            parts.push(
+              cs.opacity,
+              cs.fill,
+              cs.stroke,
+              cs.strokeDashoffset,
+              cs.strokeWidth,
+              cs.visibility,
+            );
+          } catch {
+            /* no style */
+          }
+          const a = attr && target[attr.replace(/-(\w)/g, (m, c) => c.toUpperCase())];
+          if (a && a.animVal !== undefined) {
+            const v = a.animVal;
+            parts.push(
+              v && typeof v === 'object'
+                ? 'value' in v
+                  ? v.value
+                  : 'numberOfItems' in v
+                    ? Array.from({ length: v.numberOfItems }, (_, i) => {
+                        const it = v.getItem(i);
+                        const m = it.matrix;
+                        if (m)
+                          return [m.a, m.b, m.c, m.d, m.e, m.f].map((n) => n.toFixed(2)).join(',');
+                        return it.value ?? it.x ?? it.type;
+                      }).join(' ')
+                    : JSON.stringify(v)
+                : v,
+            );
+          } else if (attr) {
+            try {
+              parts.push(getComputedStyle(target).getPropertyValue(attr));
+            } catch {
+              /* no such property */
+            }
+          }
+          if (attr === 'd') {
+            try {
+              const b = target.getBBox();
+              parts.push([b.x, b.y, b.width, b.height].map((v) => v.toFixed(1)).join(','));
+            } catch {
+              /* no box */
+            }
+          }
+          return parts.join('|');
+        }
+
+        function describe(el, i) {
+          const tag = el.localName;
+          const attr =
+            el.getAttribute('attributeName') || (tag === 'animateMotion' ? 'motion' : '');
+          const type = el.getAttribute('type') || '';
+          const href = el.getAttribute('href') || el.getAttribute('xlink:href');
+          const target = href ? el.ownerDocument.getElementById(href.slice(1)) : el.parentElement;
+          const tdesc = target
+            ? `${target.localName}${target.id ? '#' + target.id : ''}`
+            : '(missing)';
+          return {
+            i: i + 1,
+            el,
+            tag,
+            attr,
+            type,
+            target,
+            tdesc,
+            begin: el.getAttribute('begin') || '0s',
+          };
+        }
+
+        async function fileCheck() {
+          const doc = await loaded;
+          say('');
+          say(`File: ${file}`);
+          if (!doc || !doc.documentElement || doc.documentElement.localName !== 'svg') {
+            $('clock').innerHTML = mark(false, '', 'The file did not load into the object.');
+            say('File did NOT load into the object');
+            return null;
+          }
+          const svg = doc.documentElement;
+          const list = [
+            ...doc.querySelectorAll('animate, animateTransform, animateMotion, set'),
+          ].map(describe);
+          const ui = list.filter((a) => !/^data-/.test(a.attr));
+          const timers = list.length - ui.length;
+          const first = new Map(ui.map((a) => [a, snapshot(a.target, a.attr)]));
+          const changed = new Set();
+          const t0 = svg.getCurrentTime?.();
+          const paused = svg.animationsPaused?.();
+          // Sample for 8 seconds, so chains and delays get going.
+          for (let k = 0; k < 32; k++) {
+            await wait(250);
+            for (const a of ui)
+              if (a.target && !changed.has(a) && snapshot(a.target, a.attr) !== first.get(a))
+                changed.add(a);
+          }
+          const t1 = svg.getCurrentTime?.();
+          const started = (a) => {
+            try {
+              return a.el.getStartTime() <= t1;
+            } catch {
+              return false;
+            }
+          };
+          const ticks = t1 > t0;
+          const run = ui.filter(started);
+          const moved = run.filter((a) => changed.has(a));
+          const state = (a) =>
+            !started(a) ? '<span class="warn">waiting</span>' : mark(changed.has(a));
+          $('clock').innerHTML =
+            `Clock running ${mark(ticks)} (${t0?.toFixed(2)} → ${t1?.toFixed(2)} s)` +
+            `${paused ? ', <span class="bad">paused</span>' : ''}. ` +
+            `${ui.length} animations (and ${timers} sequence timers): ` +
+            `${run.length} started, and ${moved.length} of those changed what they animate. ` +
+            `“Waiting” ones begin later (later in a sequence, or on a click).`;
+          say(
+            `Clock ${ticks ? 'running' : 'NOT running'} (${t0?.toFixed(2)} → ${t1?.toFixed(2)} s)${paused ? ', PAUSED' : ''}`,
+          );
+          say(
+            `${ui.length} animations, ${timers} sequence timers; ${run.length} started; ${moved.length} of those changed what they animate`,
+          );
+          $('anims').innerHTML =
+            '<tr><th>#</th><th>Started</th><th>Changed</th><th>Animation</th><th>On</th><th>Begins</th></tr>' +
+            ui
+              .map(
+                (a) =>
+                  `<tr><td>${a.i}</td><td>${mark(started(a))}</td><td>${state(a)}</td><td><code>${esc(a.tag)}${a.attr ? ' ' + esc(a.attr) : ''}${a.type ? ' ' + esc(a.type) : ''}</code></td>` +
+                  `<td><code>${esc(a.tdesc)}</code></td><td><code>${esc(a.begin)}</code></td></tr>`,
+              )
+              .join('');
+          for (const a of ui)
+            say(
+              `#${a.i} ${a.tag} ${a.attr} ${a.type} on ${a.tdesc} begin=${a.begin}: ` +
+                (started(a)
+                  ? `started, ${changed.has(a) ? 'changed' : 'NO change'}`
+                  : 'waiting (not started)'),
+            );
+          return { ticks, total: run.length, changed: moved.length };
+        }
+
+        // 5. Copies of the file as images, each without one thing.
+        const SVGNS = 'http://www.w3.org/2000/svg';
+        const PARTS = [
+          ['As it is', () => {}],
+          [
+            'No filters (glow, blur)',
+            (d) => {
+              d.querySelectorAll('filter').forEach((e) => e.remove());
+              d.querySelectorAll('[filter]').forEach((e) => e.removeAttribute('filter'));
+            },
+          ],
+          [
+            'No masks or clips',
+            (d) => {
+              d.querySelectorAll('mask, clipPath').forEach((e) => e.remove());
+              d.querySelectorAll('[mask], [clip-path]').forEach((e) => {
+                e.removeAttribute('mask');
+                e.removeAttribute('clip-path');
+              });
+            },
+          ],
+          [
+            'No sequences (all start at once)',
+            (d) => {
+              d.querySelectorAll('set').forEach((e) => {
+                if (/^data-/.test(e.getAttribute('attributeName') || '')) e.remove();
+              });
+              d.querySelectorAll('[begin]').forEach((e) => {
+                if (/[A-Za-z_][\w-]*\.(begin|end|click|mouse)/.test(e.getAttribute('begin')))
+                  e.setAttribute('begin', '0s');
+              });
+            },
+          ],
+          [
+            'No moving along paths',
+            (d) => d.querySelectorAll('animateMotion').forEach((e) => e.remove()),
+          ],
+          [
+            'No colour or opacity changes',
+            (d) =>
+              d.querySelectorAll('animate').forEach((e) => {
+                if (e.getAttribute('attributeName') !== 'stroke-dashoffset') e.remove();
+              }),
+          ],
+          [
+            'No gradients or fills from url()',
+            (d) => {
+              d.querySelectorAll('[fill^="url("]').forEach((e) =>
+                e.setAttribute('fill', '#8fd3ff'),
+              );
+              d.querySelectorAll('[stroke^="url("]').forEach((e) =>
+                e.setAttribute('stroke', '#8fd3ff'),
+              );
+            },
+          ],
+          [
+            'Engravings simplified',
+            (d) =>
+              d.querySelectorAll('path').forEach((e) => {
+                if ((e.getAttribute('d') || '').length > 3000)
+                  e.setAttribute('d', 'M0 0h300v300H0z');
+              }),
+          ],
+          [
+            'Only the bubbles animated',
+            (d) => {
+              const anims = [
+                ...d.querySelectorAll('animate, animateTransform, animateMotion, set'),
+              ];
+              anims.forEach((e) => {
+                const t = e.parentElement;
+                if (!(t && t.localName === 'circle')) e.remove();
+              });
+            },
+          ],
+        ];
+        async function partsCheck() {
+          let text;
+          try {
+            text = await (await fetch(file)).text();
+          } catch (e) {
+            $('parts').textContent = `Couldn't fetch the file: ${e.message}`;
+            return;
+          }
+          $('parts').innerHTML = PARTS.map(
+            ([name], i) =>
+              `<figure><img data-part="${i}" alt="${esc(name)}" /><figcaption>${i + 1}. ${esc(name)}</figcaption></figure>`,
+          ).join('');
+          PARTS.forEach(([name, cut], i) => {
+            const d = new DOMParser().parseFromString(text, 'image/svg+xml');
+            if (d.documentElement.namespaceURI !== SVGNS) return;
+            try {
+              cut(d);
+            } catch (e) {
+              noteError(`Part ${i + 1} (${name}): ${e.message}`);
+            }
+            const out = new XMLSerializer().serializeToString(d);
+            document.querySelector(`[data-part="${i}"]`).src =
+              'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(out);
+          });
+        }
+        partsCheck();
+
+        Promise.all([tinyCheck(), fileCheck()]).then(([tinyOk, f]) => {
+          let html;
+          if (!tinyOk)
+            html = `<span class="bad">This browser isn't running SVG animation at all, even a tiny one in the page.</span> Check Reduce Motion and any low-power or data-saving mode, and try another browser.`;
+          else if (!f) html = `<span class="bad">The file didn't load.</span>`;
+          else if (!f.ticks)
+            html = `<span class="bad">SVG animation works here, but the file's clock isn't running.</span>`;
+          else if (f.changed === f.total)
+            html = `<span class="ok">Everything that has started plays: ${f.changed} of ${f.total} animations change.</span> If the image above (section 3) still doesn't move, the browser plays animation in the page but not in images.`;
+          else
+            html = `<span class="warn">Only ${f.changed} of the ${f.total} animations that started change.</span> The ones marked "no" in section 4 are the ones this browser doesn't play.`;
+          $('summary').innerHTML = html;
+          say('');
+          say(`Summary: ${$('summary').textContent}`);
+          say('');
+          say('Which part stops it (copies of the file, each without one thing; note which move):');
+          PARTS.forEach(([name], i) => say(`  ${i + 1}. ${name}`));
+          if (errors.length) say(`Errors: ${errors.join(' / ')}`);
+          $('report').textContent = report.join('\n');
+        });
+
+        $('copy').addEventListener('click', async () => {
+          const text = $('report').textContent;
+          try {
+            await navigator.clipboard.writeText(text);
+            $('copied').textContent = 'Copied.';
+          } catch {
+            const r = document.createRange();
+            r.selectNodeContents($('report'));
+            getSelection().removeAllRanges();
+            getSelection().addRange(r);
+            $('copied').textContent = 'Selected: copy it from the menu.';
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>

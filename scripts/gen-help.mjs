@@ -311,6 +311,7 @@ table { width: 100%; border-collapse: collapse; font-size: 14px; }
 th, td { padding: 5px 8px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
 [hidden] { display: none !important; }
 @media (max-width: 760px) { .wrap { grid-template-columns: minmax(0, 1fr); } nav { display: none; } main section { padding: 4px 14px 10px; } }
+@media (max-width: 760px) { header { flex-wrap: wrap; gap: 8px 12px; } header h1 { flex: 1; } header input { order: 3; flex: 1 0 100%; max-width: none; height: 38px; } header .count { order: 4; flex-basis: 100%; } header .count:empty { display: none; } html { scroll-padding-top: 116px; } }
 </style>
 </head>
 <body>

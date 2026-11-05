@@ -1361,6 +1361,11 @@ Every preset, playing (the entrances and exits run again after a pause):
   taken off again; a file from Export Clean SVG reopens with it as a group
   of its own, and those animations left out.
 - Reopening a saved file rebuilds the animations from their settings.
+- If a browser doesn't play them, open the
+  [animation check](https://orthlieb.github.io/svgcraft/diagnostics.html)
+  in it: it tests whether that browser plays SVG animation at all, and which
+  of a file's animations start and move, with a report to copy. Add
+  `?svg=` and a file's path on the site to check another file.
 
 #### Animations from other files
 
