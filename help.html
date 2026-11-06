@@ -91,10 +91,17 @@
       header a {
         color: var(--hero-text);
       }
+      .findbar {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        min-width: 0;
+        max-width: 560px;
+      }
       header input {
         flex: 1;
         min-width: 0;
-        max-width: 420px;
         height: 32px;
         padding: 0 10px;
         border: 0;
@@ -304,15 +311,17 @@
         header h1 {
           flex: 1;
         }
-        header input {
+        header .findbar {
           order: 3;
           flex: 1 0 100%;
           max-width: none;
+        }
+        header input {
           height: 38px;
         }
-        header .findnav {
-          order: 4;
-          flex-basis: 100%;
+        .findnav button {
+          width: 34px;
+          height: 34px;
         }
         html {
           scroll-padding-top: 116px;
@@ -323,25 +332,27 @@
   <body>
     <header>
       <h1>SVGCraft Help</h1>
-      <input
-        type="search"
-        id="find"
-        placeholder="Search the help"
-        aria-label="Search the help"
-        autocomplete="off"
-      />
-      <span class="findnav" id="findnav" hidden
-        ><button
-          type="button"
-          id="find-prev"
-          aria-label="Previous match"
-          title="Previous match (Shift+Enter)"
-        >
-          ↑</button
-        ><button type="button" id="find-next" aria-label="Next match" title="Next match (Enter)">
-          ↓</button
-        ><span class="count" id="count" aria-live="polite"></span
-      ></span>
+      <div class="findbar">
+        <input
+          type="search"
+          id="find"
+          placeholder="Search the help"
+          aria-label="Search the help"
+          autocomplete="off"
+        />
+        <span class="findnav" id="findnav" hidden
+          ><button
+            type="button"
+            id="find-prev"
+            aria-label="Previous match"
+            title="Previous match (Shift+Enter)"
+          >
+            ↑</button
+          ><button type="button" id="find-next" aria-label="Next match" title="Next match (Enter)">
+            ↓</button
+          ><span class="count" id="count" aria-live="polite"></span
+        ></span>
+      </div>
       <a href="index.html">Open SVGCraft</a>
     </header>
     <div class="wrap">
