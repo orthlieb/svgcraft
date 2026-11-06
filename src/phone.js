@@ -158,7 +158,14 @@ function phoneInfo() {
   ];
   const body = $('#sc-pinfo-body');
   body.replaceChildren();
-  for (const [head, rows] of sections) {
+  // With nothing open there are no details, but Help and About are here.
+  if (!curDoc) {
+    const p = document.createElement('p');
+    p.className = 'sc-hint';
+    p.textContent = 'No drawing open.';
+    body.append(p);
+  }
+  for (const [head, rows] of curDoc ? sections : []) {
     const h = document.createElement('span');
     h.className = 'sc-subhead';
     h.textContent = head;

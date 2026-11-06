@@ -258,9 +258,10 @@ test('with every tab closed, only New and Open work until one is made', async ({
   await expect(item('undo')).toBeDisabled();
   await page.keyboard.press('Escape');
   // Panels and tools can't be used, and shortcuts do nothing.
-  expect(await page.evaluate(() => document.querySelector('#sc-panel > .sc-pgroup').inert)).toBe(
-    true,
-  );
+  // (A panel's header stays live, for its ?.)
+  expect(
+    await page.evaluate(() => document.querySelector('#sc-panel > .sc-pgroup > .sc-pbody').inert),
+  ).toBe(true);
   await page.keyboard.press('Control+a');
   await page.keyboard.press('r');
   expect(await page.evaluate(() => window.svgcraft.state.sel.length)).toBe(0);
@@ -278,9 +279,9 @@ test('with every tab closed, only New and Open work until one is made', async ({
   expect(await tabNames(page)).toEqual(['Untitled-1.svg']);
   await expect(page.locator('#sc-nodoc')).toBeHidden();
   await expect(page.locator('#sc-stage')).toBeVisible();
-  expect(await page.evaluate(() => document.querySelector('#sc-panel > .sc-pgroup').inert)).toBe(
-    false,
-  );
+  expect(
+    await page.evaluate(() => document.querySelector('#sc-panel > .sc-pgroup > .sc-pbody').inert),
+  ).toBe(false);
   await page.click('.sc-menu-btn:text-is("File")');
   await expect(item('save')).toBeEnabled();
   await expect(item('closeDoc')).toBeEnabled();
@@ -313,4 +314,31 @@ test('a drawing autosaved by the previous version is brought over', async ({ pag
   expect(await tabNames(page)).toEqual(['legacy.svg']);
   await expect(page.locator('#sc-doc #old')).toHaveCount(1);
   expect(await page.evaluate(() => localStorage.getItem('svgcraft.v1'))).toBeNull();
+});
+
+test('with nothing open, Help, About and a panel’s ? still work', async ({ page }) => {
+  await page.evaluate(() => {
+    window.__opened = [];
+    window.open = (url) => window.__opened.push(String(url));
+  });
+  await page.evaluate(async () => {
+    // eslint-disable-next-line no-undef -- the editor's own globals
+    while (docs.length) await closeDoc(docs[0]);
+  });
+  await expect(page.locator('#sc-nodoc')).toBeVisible();
+  await menu(page, 'Help', 'help');
+  await menu(page, 'Help', 'about');
+  // The panels stay inert, but not their headers.
+  await page.locator('#sc-panel .sc-ptabs button[aria-label="Help on this panel"]').first().click();
+  expect(await page.evaluate(() => window.__opened)).toEqual([
+    expect.stringMatching(/^help\.html/),
+    expect.stringMatching(/^about\.html/),
+    expect.stringMatching(/^help\.html#/),
+  ]);
+  expect(
+    await page
+      .locator('#sc-panel > .sc-pgroup > .sc-pbody')
+      .first()
+      .evaluate((e) => e.inert),
+  ).toBe(true);
 });

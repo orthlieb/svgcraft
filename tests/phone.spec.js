@@ -422,3 +422,29 @@ test('growing a window past phone size switches back to the editor', async ({ pa
   expect(await page.evaluate(() => window.svgcraft.state.tool)).toBe('select');
   await expect(page.locator('.sc-tools')).toBeVisible();
 });
+
+test.describe('phone, nothing open', () => {
+  test.use({ viewport: { width: 390, height: 800 }, hasTouch: true, isMobile: true });
+
+  test('Info still opens, with Help and About', async ({ page }) => {
+    await page.evaluate(() => {
+      window.__opened = [];
+      window.open = (url) => window.__opened.push(String(url));
+    });
+    await page.evaluate(async () => {
+      // eslint-disable-next-line no-undef -- the editor's own globals
+      while (docs.length) await closeDoc(docs[0]);
+    });
+    const info = page.locator('.sc-menubar-end [data-action="phoneInfo"]');
+    await expect(info).toBeEnabled();
+    await info.tap();
+    await expect(page.locator('#sc-pinfo-body')).toHaveText('No drawing open.');
+    await page.tap('#sc-pinfo-help');
+    await info.tap();
+    await page.tap('#sc-pinfo-about');
+    expect(await page.evaluate(() => window.__opened)).toEqual([
+      expect.stringMatching(/^help\.html/),
+      expect.stringMatching(/^about\.html/),
+    ]);
+  });
+});

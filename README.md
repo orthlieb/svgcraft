@@ -851,8 +851,9 @@ Work on several drawings at once, each in its own tab.
   turned) until you zoom or pan it yourself. A fitted drawing comes back
   fitted, whatever size the window is then.
 - Closing the last tab leaves a blank workspace. Only New,
-  Open (or dropping a file on it) and the view settings work until a
-  drawing is open, and it stays blank after a reload.
+  Open (or dropping a file on it), the view settings, Help and About work
+  until a drawing is open (a panel's ? too, and on a phone the Info
+  button), and it stays blank after a reload.
 
 ### Open Recent
 
