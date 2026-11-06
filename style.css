@@ -1645,15 +1645,20 @@ button.sc-fx-item.sel {
 /* A newer version is on the server (src/update.js): a bar along the
    bottom of the window, above the status bar, until Update or Later. */
 .sc-update {
+  /* Centred by margins, not left: 50%, which would leave it half the
+     window's width to lay out in and squeeze the message on a phone. */
   position: fixed;
-  left: 50%;
+  left: 16px;
+  right: 16px;
   bottom: 40px;
   z-index: 50;
-  transform: translateX(-50%);
+  width: fit-content;
+  margin: 0 auto;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 10px;
-  max-width: calc(100vw - 32px);
+  justify-content: flex-end;
+  gap: 8px 10px;
   padding: 8px 10px 8px 14px;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -1664,6 +1669,14 @@ button.sc-fx-item.sel {
 }
 .sc-update[hidden] {
   display: none;
+}
+.sc-update > span:not(.sc-update-btns) {
+  flex: 1 1 200px;
+}
+.sc-update-btns {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
 }
 .sc-update > i {
   display: grid;
