@@ -327,7 +327,7 @@ th, td { padding: 5px 8px; border-bottom: 1px solid var(--line); text-align: lef
 <h1>SVGCraft Help</h1>
 <div class="findbar"><input type="search" id="find" placeholder="Search the help" aria-label="Search the help" autocomplete="off" />
 <span class="findnav" id="findnav" hidden><button type="button" id="find-prev" aria-label="Previous match" title="Previous match (Shift+Enter)">↑</button><button type="button" id="find-next" aria-label="Next match" title="Next match (Enter)">↓</button><span class="count" id="count" aria-live="polite"></span></span></div>
-<a href="index.html">Open SVGCraft</a>
+<a href="index.html">← Back</a>
 </header>
 <div class="wrap">
 <nav aria-label="Topics"><ul>${nav.join('')}</ul></nav>
