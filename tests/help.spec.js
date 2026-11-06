@@ -68,7 +68,7 @@ test('the help page loads, searches, and lights up a linked topic', async ({ pag
   await expect(page.locator('#gradients')).toHaveClass(/flash/);
   await expect(page.locator('nav a[href="#image-trace"]')).toBeVisible();
   await page.fill('#find', 'keylines');
-  await expect(page.locator('#count')).toHaveText(/match/);
+  await expect(page.locator('#count')).toHaveText(/^1 of \d+$/);
   await expect(page.locator('#view-icon-keylines')).toBeVisible();
   await expect(page.locator('#gradients')).toBeHidden();
   await page.fill('#find', '');
@@ -141,4 +141,35 @@ test('the animation topics play live demos, and clicks reach them', async ({ pag
   const b = await demo.boundingBox();
   await page.mouse.click(b.x + (b.width * 105) / 840, b.y + (b.height * 121) / 200);
   await expect.poll(spun).toBe(true);
+});
+
+test('the help search steps through its matches with ↑ ↓ and Enter', async ({ page }) => {
+  await page.goto(pathToFileURL(path.join(ROOT, 'help.html')).href);
+  await expect(page.locator('#findnav')).toBeHidden();
+  await page.fill('#find', 'stagger');
+  const count = page.locator('#count');
+  await expect(count).toHaveText(/^1 of (\d+)$/);
+  const n = +(await count.textContent()).split(' of ')[1];
+  expect(n).toBeGreaterThan(2);
+  await page.press('#find', 'Enter');
+  await expect(count).toHaveText(`2 of ${n}`);
+  await page.click('#find-next');
+  await expect(count).toHaveText(`3 of ${n}`);
+  await page.press('#find', 'Shift+Enter');
+  await page.click('#find-prev');
+  await expect(count).toHaveText(`1 of ${n}`);
+  // Back past the first goes round to the last.
+  await page.click('#find-prev');
+  await expect(count).toHaveText(`${n} of ${n}`);
+  // The current one is in view, below the header.
+  const cur = await page.evaluate(() => {
+    const r = CSS.highlights.get('find-cur').values().next().value.getBoundingClientRect();
+    return { top: r.top, bottom: r.bottom, head: document.querySelector('header').offsetHeight };
+  });
+  expect(cur.top).toBeGreaterThan(cur.head);
+  expect(cur.bottom).toBeLessThan(800);
+  await page.fill('#find', 'zzqx');
+  await expect(count).toHaveText('No matches');
+  await page.fill('#find', '');
+  await expect(page.locator('#findnav')).toBeHidden();
 });

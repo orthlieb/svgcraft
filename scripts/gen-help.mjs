@@ -278,7 +278,14 @@ header { position: sticky; top: 0; z-index: 2; display: flex; align-items: cente
 header h1 { margin: 0; font-size: 18px; white-space: nowrap; }
 header a { color: var(--hero-text); }
 header input { flex: 1; min-width: 0; max-width: 420px; height: 32px; padding: 0 10px; border: 0; border-radius: 6px; font: inherit; }
+.findnav { display: flex; align-items: center; gap: 6px; }
+.findnav[hidden] { display: none; }
+.findnav button { width: 28px; height: 28px; padding: 0; border: 0; border-radius: 6px; background: rgb(255 255 255 / 14%); color: var(--hero-text); font: inherit; font-size: 15px; line-height: 1; cursor: pointer; }
+.findnav button:hover { background: rgb(255 255 255 / 24%); }
+.findnav button:disabled { opacity: 0.4; cursor: default; }
 .count { font-size: 13px; opacity: 0.8; white-space: nowrap; }
+::highlight(find) { background: var(--mark); color: inherit; }
+::highlight(find-cur) { background: #f59e0b; color: #000; }
 .wrap { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 32px; max-width: 1180px; margin: 0 auto; padding: 24px 16px 80px; }
 nav { position: sticky; top: 72px; align-self: start; max-height: calc(100vh - 96px); overflow-y: auto; font-size: 14px; }
 nav ul { margin: 0; padding: 0; list-style: none; }
@@ -311,14 +318,14 @@ table { width: 100%; border-collapse: collapse; font-size: 14px; }
 th, td { padding: 5px 8px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
 [hidden] { display: none !important; }
 @media (max-width: 760px) { .wrap { grid-template-columns: minmax(0, 1fr); } nav { display: none; } main section { padding: 4px 14px 10px; } }
-@media (max-width: 760px) { header { flex-wrap: wrap; gap: 8px 12px; } header h1 { flex: 1; } header input { order: 3; flex: 1 0 100%; max-width: none; height: 38px; } header .count { order: 4; flex-basis: 100%; } header .count:empty { display: none; } html { scroll-padding-top: 116px; } }
+@media (max-width: 760px) { header { flex-wrap: wrap; gap: 8px 12px; } header h1 { flex: 1; } header input { order: 3; flex: 1 0 100%; max-width: none; height: 38px; } header .findnav { order: 4; flex-basis: 100%; } html { scroll-padding-top: 116px; } }
 </style>
 </head>
 <body>
 <header>
 <h1>SVGCraft Help</h1>
 <input type="search" id="find" placeholder="Search the help" aria-label="Search the help" autocomplete="off" />
-<span class="count" id="count" aria-live="polite"></span>
+<span class="findnav" id="findnav" hidden><button type="button" id="find-prev" aria-label="Previous match" title="Previous match (Shift+Enter)">↑</button><button type="button" id="find-next" aria-label="Next match" title="Next match (Enter)">↓</button><span class="count" id="count" aria-live="polite"></span></span>
 <a href="index.html">Open SVGCraft</a>
 </header>
 <div class="wrap">
@@ -332,24 +339,81 @@ ${body}
 const find = document.getElementById('find');
 const blocks = [...document.querySelectorAll('[data-find]')];
 const text = new Map(blocks.map((b) => [b, b.textContent.toLowerCase()]));
+// Each place a searched word occurs, in the topics that match, in page
+// order: highlighted, and stepped through with ↑ ↓ (or Enter, Shift+Enter).
+let hits = [];
+let cur = -1;
+const marks = 'highlights' in CSS;
+function occurrences(words) {
+  const out = [];
+  for (const b of blocks) {
+    if (b.hidden) continue;
+    const walk = document.createTreeWalker(b, NodeFilter.SHOW_TEXT);
+    while (walk.nextNode()) {
+      const n = walk.currentNode;
+      const t = n.data.toLowerCase();
+      const found = [];
+      for (const w of words)
+        for (let i = t.indexOf(w); i >= 0; i = t.indexOf(w, i + w.length)) found.push([i, w.length]);
+      found.sort((a, c) => a[0] - c[0]);
+      for (const [i, len] of found) {
+        const r = new Range();
+        r.setStart(n, i);
+        r.setEnd(n, i + len);
+        out.push(r);
+        if (out.length >= 2000) return out;
+      }
+    }
+  }
+  return out;
+}
+function showCur(scroll) {
+  const n = hits.length;
+  document.getElementById('count').textContent = n
+    ? \`\${cur + 1} of \${n}\`
+    : find.value.trim()
+      ? 'No matches'
+      : '';
+  document.getElementById('find-prev').disabled = document.getElementById('find-next').disabled = n < 2;
+  if (marks) {
+    if (n) CSS.highlights.set('find', new Highlight(...hits));
+    else CSS.highlights.delete('find');
+    if (n) CSS.highlights.set('find-cur', new Highlight(hits[cur]));
+    else CSS.highlights.delete('find-cur');
+  }
+  if (scroll && n) {
+    const r = hits[cur].getBoundingClientRect();
+    const top = document.querySelector('header').getBoundingClientRect().bottom;
+    if (r.top < top + 8 || r.bottom > innerHeight - 8)
+      scrollBy({ top: r.top - (top + innerHeight) / 2 });
+  }
+}
+function step(by) {
+  if (!hits.length) return;
+  cur = (cur + by + hits.length) % hits.length;
+  showCur(true);
+}
 find.addEventListener('input', () => {
   const words = find.value.toLowerCase().split(/\\s+/).filter(Boolean);
-  let shown = 0;
-  for (const b of blocks) {
-    const hit = words.every((w) => text.get(b).includes(w));
-    b.hidden = !hit;
-    if (hit) shown++;
-  }
+  for (const b of blocks) b.hidden = !words.every((w) => text.get(b).includes(w));
   for (const s of document.querySelectorAll('main section'))
     s.hidden = !s.querySelector('[data-find]:not([hidden])');
   for (const a of document.querySelectorAll('nav a')) {
     const t = document.getElementById(a.getAttribute('href').slice(1));
     a.parentElement.hidden = !!t && t.hidden;
   }
-  document.getElementById('count').textContent = words.length
-    ? shown + (shown === 1 ? ' match' : ' matches')
-    : '';
+  document.getElementById('findnav').hidden = !words.length;
+  hits = words.length ? occurrences(words) : [];
+  cur = hits.length ? 0 : -1;
+  showCur(true);
 });
+find.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter') return;
+  e.preventDefault();
+  step(e.shiftKey ? -1 : 1);
+});
+document.getElementById('find-next').addEventListener('click', () => step(1));
+document.getElementById('find-prev').addEventListener('click', () => step(-1));
 // A link from the editor (help.html#topic) lights the topic up.
 const flash = () => {
   const t = location.hash && document.getElementById(decodeURIComponent(location.hash.slice(1)));

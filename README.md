@@ -419,6 +419,10 @@ Look up how to do something, from anywhere in SVGCraft.
 
 - Choose **Help → SVGCraft Help** (F1) to open this guide in its own tab,
   with every feature listed down the side and a search box.
+- Type in the search box: only the topics with every word stay, and each
+  place a word occurs is highlighted. **↑** and **↓** beside it (or Enter
+  and Shift+Enter) step from one to the next, with "3 of 12" saying where
+  you are.
 - Click the **?** in a dialog's title bar, or a panel's tab bar, to open
   the topic for it.
 - Press F1 with a dialog open to go to that dialog's topic.

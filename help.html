@@ -101,10 +101,46 @@
         border-radius: 6px;
         font: inherit;
       }
+      .findnav {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .findnav[hidden] {
+        display: none;
+      }
+      .findnav button {
+        width: 28px;
+        height: 28px;
+        padding: 0;
+        border: 0;
+        border-radius: 6px;
+        background: rgb(255 255 255 / 14%);
+        color: var(--hero-text);
+        font: inherit;
+        font-size: 15px;
+        line-height: 1;
+        cursor: pointer;
+      }
+      .findnav button:hover {
+        background: rgb(255 255 255 / 24%);
+      }
+      .findnav button:disabled {
+        opacity: 0.4;
+        cursor: default;
+      }
       .count {
         font-size: 13px;
         opacity: 0.8;
         white-space: nowrap;
+      }
+      ::highlight(find) {
+        background: var(--mark);
+        color: inherit;
+      }
+      ::highlight(find-cur) {
+        background: #f59e0b;
+        color: #000;
       }
       .wrap {
         display: grid;
@@ -274,12 +310,9 @@
           max-width: none;
           height: 38px;
         }
-        header .count {
+        header .findnav {
           order: 4;
           flex-basis: 100%;
-        }
-        header .count:empty {
-          display: none;
         }
         html {
           scroll-padding-top: 116px;
@@ -297,7 +330,18 @@
         aria-label="Search the help"
         autocomplete="off"
       />
-      <span class="count" id="count" aria-live="polite"></span>
+      <span class="findnav" id="findnav" hidden
+        ><button
+          type="button"
+          id="find-prev"
+          aria-label="Previous match"
+          title="Previous match (Shift+Enter)"
+        >
+          ↑</button
+        ><button type="button" id="find-next" aria-label="Next match" title="Next match (Enter)">
+          ↓</button
+        ><span class="count" id="count" aria-live="polite"></span
+      ></span>
       <a href="index.html">Open SVGCraft</a>
     </header>
     <div class="wrap">
@@ -1177,6 +1221,11 @@
               <li>
                 Choose <strong>Help → SVGCraft Help</strong> (F1) to open this guide in its own tab,
                 with every feature listed down the side and a search box.
+              </li>
+              <li>
+                Type in the search box: only the topics with every word stay, and each place a word
+                occurs is highlighted. <strong>↑</strong> and <strong>↓</strong> beside it (or Enter
+                and Shift+Enter) step from one to the next, with "3 of 12" saying where you are.
               </li>
               <li>
                 Click the <strong>?</strong> in a dialog's title bar, or a panel's tab bar, to open
@@ -6480,24 +6529,84 @@
       const find = document.getElementById('find');
       const blocks = [...document.querySelectorAll('[data-find]')];
       const text = new Map(blocks.map((b) => [b, b.textContent.toLowerCase()]));
+      // Each place a searched word occurs, in the topics that match, in page
+      // order: highlighted, and stepped through with ↑ ↓ (or Enter, Shift+Enter).
+      let hits = [];
+      let cur = -1;
+      const marks = 'highlights' in CSS;
+      function occurrences(words) {
+        const out = [];
+        for (const b of blocks) {
+          if (b.hidden) continue;
+          const walk = document.createTreeWalker(b, NodeFilter.SHOW_TEXT);
+          while (walk.nextNode()) {
+            const n = walk.currentNode;
+            const t = n.data.toLowerCase();
+            const found = [];
+            for (const w of words)
+              for (let i = t.indexOf(w); i >= 0; i = t.indexOf(w, i + w.length))
+                found.push([i, w.length]);
+            found.sort((a, c) => a[0] - c[0]);
+            for (const [i, len] of found) {
+              const r = new Range();
+              r.setStart(n, i);
+              r.setEnd(n, i + len);
+              out.push(r);
+              if (out.length >= 2000) return out;
+            }
+          }
+        }
+        return out;
+      }
+      function showCur(scroll) {
+        const n = hits.length;
+        document.getElementById('count').textContent = n
+          ? `${cur + 1} of ${n}`
+          : find.value.trim()
+            ? 'No matches'
+            : '';
+        document.getElementById('find-prev').disabled = document.getElementById(
+          'find-next',
+        ).disabled = n < 2;
+        if (marks) {
+          if (n) CSS.highlights.set('find', new Highlight(...hits));
+          else CSS.highlights.delete('find');
+          if (n) CSS.highlights.set('find-cur', new Highlight(hits[cur]));
+          else CSS.highlights.delete('find-cur');
+        }
+        if (scroll && n) {
+          const r = hits[cur].getBoundingClientRect();
+          const top = document.querySelector('header').getBoundingClientRect().bottom;
+          if (r.top < top + 8 || r.bottom > innerHeight - 8)
+            scrollBy({ top: r.top - (top + innerHeight) / 2 });
+        }
+      }
+      function step(by) {
+        if (!hits.length) return;
+        cur = (cur + by + hits.length) % hits.length;
+        showCur(true);
+      }
       find.addEventListener('input', () => {
         const words = find.value.toLowerCase().split(/\s+/).filter(Boolean);
-        let shown = 0;
-        for (const b of blocks) {
-          const hit = words.every((w) => text.get(b).includes(w));
-          b.hidden = !hit;
-          if (hit) shown++;
-        }
+        for (const b of blocks) b.hidden = !words.every((w) => text.get(b).includes(w));
         for (const s of document.querySelectorAll('main section'))
           s.hidden = !s.querySelector('[data-find]:not([hidden])');
         for (const a of document.querySelectorAll('nav a')) {
           const t = document.getElementById(a.getAttribute('href').slice(1));
           a.parentElement.hidden = !!t && t.hidden;
         }
-        document.getElementById('count').textContent = words.length
-          ? shown + (shown === 1 ? ' match' : ' matches')
-          : '';
+        document.getElementById('findnav').hidden = !words.length;
+        hits = words.length ? occurrences(words) : [];
+        cur = hits.length ? 0 : -1;
+        showCur(true);
       });
+      find.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        step(e.shiftKey ? -1 : 1);
+      });
+      document.getElementById('find-next').addEventListener('click', () => step(1));
+      document.getElementById('find-prev').addEventListener('click', () => step(-1));
       // A link from the editor (help.html#topic) lights the topic up.
       const flash = () => {
         const t =
