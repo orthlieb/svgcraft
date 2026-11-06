@@ -277,7 +277,8 @@ body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.55 sys
 header { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; gap: 16px; padding: 12px max(16px, calc((100vw - 1180px) / 2)); background: var(--hero); color: var(--hero-text); }
 header h1 { margin: 0; font-size: 18px; white-space: nowrap; }
 header a { color: var(--hero-text); }
-header input { flex: 1; min-width: 0; max-width: 420px; height: 32px; padding: 0 10px; border: 0; border-radius: 6px; font: inherit; }
+.findbar { flex: 1; display: flex; align-items: center; gap: 6px; min-width: 0; max-width: 560px; }
+header input { flex: 1; min-width: 0; height: 32px; padding: 0 10px; border: 0; border-radius: 6px; font: inherit; }
 .findnav { display: flex; align-items: center; gap: 6px; }
 .findnav[hidden] { display: none; }
 .findnav button { width: 28px; height: 28px; padding: 0; border: 0; border-radius: 6px; background: rgb(255 255 255 / 14%); color: var(--hero-text); font: inherit; font-size: 15px; line-height: 1; cursor: pointer; }
@@ -318,14 +319,14 @@ table { width: 100%; border-collapse: collapse; font-size: 14px; }
 th, td { padding: 5px 8px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
 [hidden] { display: none !important; }
 @media (max-width: 760px) { .wrap { grid-template-columns: minmax(0, 1fr); } nav { display: none; } main section { padding: 4px 14px 10px; } }
-@media (max-width: 760px) { header { flex-wrap: wrap; gap: 8px 12px; } header h1 { flex: 1; } header input { order: 3; flex: 1 0 100%; max-width: none; height: 38px; } header .findnav { order: 4; flex-basis: 100%; } html { scroll-padding-top: 116px; } }
+@media (max-width: 760px) { header { flex-wrap: wrap; gap: 8px 12px; } header h1 { flex: 1; } header .findbar { order: 3; flex: 1 0 100%; max-width: none; } header input { height: 38px; } .findnav button { width: 34px; height: 34px; } html { scroll-padding-top: 116px; } }
 </style>
 </head>
 <body>
 <header>
 <h1>SVGCraft Help</h1>
-<input type="search" id="find" placeholder="Search the help" aria-label="Search the help" autocomplete="off" />
-<span class="findnav" id="findnav" hidden><button type="button" id="find-prev" aria-label="Previous match" title="Previous match (Shift+Enter)">↑</button><button type="button" id="find-next" aria-label="Next match" title="Next match (Enter)">↓</button><span class="count" id="count" aria-live="polite"></span></span>
+<div class="findbar"><input type="search" id="find" placeholder="Search the help" aria-label="Search the help" autocomplete="off" />
+<span class="findnav" id="findnav" hidden><button type="button" id="find-prev" aria-label="Previous match" title="Previous match (Shift+Enter)">↑</button><button type="button" id="find-next" aria-label="Next match" title="Next match (Enter)">↓</button><span class="count" id="count" aria-live="polite"></span></span></div>
 <a href="index.html">Open SVGCraft</a>
 </header>
 <div class="wrap">
