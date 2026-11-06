@@ -53,7 +53,7 @@ the editor, so nothing you do there changes a drawing.
 - **Info** (ⓘ): the drawing's details (file, size, dimensions, objects,
   animations, fonts) and its metadata from File Info (title, author,
   description, keywords, date, copyright, licence and source, linked),
-  read-only. **Help** opens this guide, and **About SVGCraft** is at the
+  read-only. **Help** opens this guide, and **About** is at the
   bottom.
 
 #### Showing and hiding objects
@@ -3578,7 +3578,7 @@ name only to throw the kept copy away. `manifest.webmanifest` describes the
 app; its PNG icons are rendered from `favicon.svg` by
 `node scripts/gen-pwa-icons.mjs`.
 
-**The About page.** `about.html` (Help → About SVGCraft, Feature List or
+**The About page.** `about.html` (Help → About, Feature List or
 Keyboard Shortcuts, which open it in its own tab) is a static page with a
 feature overview, the shortcuts and the credits. Its screenshots in
 `about/` are taken from the real app by `node scripts/gen-about-screens.mjs`,
