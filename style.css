@@ -761,6 +761,25 @@ kbd {
   fill: var(--sel);
   fill-opacity: 0.08;
 }
+/* Selection marquees: marching ants, dotted black over white. */
+.sc-mq-under {
+  stroke: #fff;
+}
+.sc-ov.sc-mq-ants {
+  stroke: #000;
+  stroke-dasharray: 2 2;
+  animation: sc-ants 0.5s linear infinite;
+}
+@keyframes sc-ants {
+  to {
+    stroke-dashoffset: -4;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sc-ov.sc-mq-ants {
+    animation: none;
+  }
+}
 .sc-handle,
 .sc-anchor {
   fill: #ffffff;

@@ -558,13 +558,12 @@ tools.node = {
       // A rectangle or an oval (the options bar), corner to corner, or from
       // its centre with Alt, as the usual marquees; or freeform, a lasso
       // drawn round the points.
-      const cls = 'sc-ov sc-ov-fill sc-ov-dash';
       guides.replaceChildren();
       let inside;
       if (state.marquee === 'lasso') {
         const pts = g.pts;
         pts.push(p);
-        mk('polygon', { points: pts.map((q) => `${q.x},${q.y}`).join(' '), class: cls }, guides);
+        marquee('polygon', { points: pts.map((q) => `${q.x},${q.y}`).join(' ') }, guides);
         // Even-odd: a ray from the point crosses the outline an odd number of times.
         inside = (q) => {
           let odd = false;
@@ -588,8 +587,8 @@ tools.node = {
             : [Math.min(g.p0.x, p.x), Math.min(g.p0.y, p.y), dx, dy];
         const oval = state.marquee === 'oval';
         if (oval)
-          mk('ellipse', { cx: x + w / 2, cy: y + h / 2, rx: w / 2, ry: h / 2, class: cls }, guides);
-        else mk('rect', { x, y, width: w, height: h, class: cls }, guides);
+          marquee('ellipse', { cx: x + w / 2, cy: y + h / 2, rx: w / 2, ry: h / 2 }, guides);
+        else marquee('rect', { x, y, width: w, height: h }, guides);
         inside = (q) =>
           oval
             ? w > 0 &&

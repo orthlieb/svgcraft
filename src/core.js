@@ -289,6 +289,13 @@ function mk(tag, attrs = {}, parent) {
   if (parent) parent.append(el);
   return el;
 }
+// A selection marquee (rectangle, ellipse or lasso, given as tag and
+// attributes): dotted black over solid white, so it shows on any colour,
+// the dots marching round it, over a faint fill.
+function marquee(tag, attrs, parent) {
+  mk(tag, { ...attrs, class: 'sc-ov sc-ov-fill sc-mq-under' }, parent);
+  return mk(tag, { ...attrs, class: 'sc-ov sc-ov-dash sc-mq-ants' }, parent);
+}
 
 // The SVG Source window's state (see openSource); afterChange and
 // drawSelection look at it from the start, so it lives up here.
