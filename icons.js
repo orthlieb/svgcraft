@@ -219,6 +219,11 @@ window.SC_ICONS = {
     '<svg viewBox="0 0 512 512" aria-hidden="true"><path fill-rule="evenodd" d="M40 40H320V320H40ZM192 192H472V472H192Z"/></svg>',
   'sc-triangle':
     '<svg viewBox="0 0 512 512" aria-hidden="true"><path d="M256 40 488 456H24Z"/></svg>',
+  // Rectangle and Ellipse Select: dashed outlines, as their marquees are.
+  'sc-marquee-rect':
+    '<svg viewBox="0 0 512 512" aria-hidden="true"><rect x="52" y="100" width="408" height="312" fill="none" stroke="currentColor" stroke-width="40" pathLength="28" stroke-dasharray="1 1" stroke-dashoffset="0.5"/></svg>',
+  'sc-marquee-oval':
+    '<svg viewBox="0 0 512 512" aria-hidden="true"><ellipse cx="256" cy="256" rx="212" ry="164" fill="none" stroke="currentColor" stroke-width="40" pathLength="24" stroke-dasharray="1 1"/></svg>',
   'sc-lasso':
     '<svg viewBox="0 0 512 512" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="40" stroke-linecap="round"><ellipse cx="272" cy="200" rx="200" ry="136"/><path d="M164 316c-40 40-36 96 4 120s52 40 28 56"/></g></svg>',
   'sc-wrap':

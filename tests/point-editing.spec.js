@@ -460,3 +460,44 @@ test('Point Select picks single points: Shift adds, Alt takes away, no marquee',
   await drag(page, [300, 200], [320, 220]);
   expect(await pathD(page)).toMatch(/^M\s*320[ ,]220/);
 });
+
+test('selection marquees are marching ants: dotted black over white', async ({ page }) => {
+  await page.evaluate(() =>
+    window.svgcraft.openSvg(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><rect x="50" y="50" width="200" height="120" fill="#2563eb"/></svg>',
+      'm.svg',
+    ),
+  );
+  for (const [tool, mode, tag] of [
+    ['select', null, 'rect'],
+    ['node', 'rect', 'rect'],
+    ['node', 'oval', 'ellipse'],
+    ['node', 'lasso', 'polygon'],
+  ]) {
+    await page.evaluate(
+      ([t, m]) => {
+        window.svgcraft.setTool(t);
+        if (m) window.svgcraft.state.marquee = m;
+      },
+      [tool, mode],
+    );
+    const a = await toScreen(page, 20, 20);
+    const b = await toScreen(page, 300, 220);
+    await page.mouse.move(a.x, a.y);
+    await page.mouse.down();
+    await page.mouse.move((a.x + b.x) / 2, b.y, { steps: 3 });
+    await page.mouse.move(b.x, b.y, { steps: 3 });
+    const look = await page.evaluate((tag) => {
+      const ants = document.querySelector(`#sc-guides ${tag}.sc-mq-ants`);
+      const under = document.querySelector(`#sc-guides ${tag}.sc-mq-under`);
+      const cs = ants && getComputedStyle(ants);
+      return ants && under ? [cs.stroke, cs.strokeDasharray, getComputedStyle(under).stroke] : null;
+    }, tag);
+    expect(look, `${tool} ${mode || ''}`).toEqual([
+      'rgb(0, 0, 0)',
+      '2px, 2px',
+      'rgb(255, 255, 255)',
+    ]);
+    await page.mouse.up();
+  }
+});

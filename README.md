@@ -1210,6 +1210,9 @@ Reshape a path, or a basic shape, by moving its points and curve handles.
     (freeform): drag round the points to pick them. You can start the drag
     off the shape. With no shape being edited yet, the drag edits the
     topmost shape it takes points of.
+- The marquee shows as a dotted line, black over white so it stands out
+  on any colour, its dots marching round it (still when your system is
+  set to reduce motion).
 - With a marquee, a drag begun with Shift adds to what's picked, and one
   begun with Alt takes points away. Alt pressed during a drag grows a
   rectangle or oval from its centre.

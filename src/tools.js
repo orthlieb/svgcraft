@@ -106,7 +106,7 @@ tools.select = {
       const w = Math.abs(p.x - g.p0.x);
       const h = Math.abs(p.y - g.p0.y);
       guides.replaceChildren();
-      mk('rect', { x, y, width: w, height: h, class: 'sc-ov sc-ov-fill sc-ov-dash' }, guides);
+      marquee('rect', { x, y, width: w, height: h }, guides);
       const hit = (g.deep ? leafLayers().filter(inScope) : scopeItems()).filter((el) => {
         const b = el.getAttribute('display') !== 'none' && bboxDoc(el);
         return b && b.x < x + w && b.x + b.w > x && b.y < y + h && b.y + b.h > y;
