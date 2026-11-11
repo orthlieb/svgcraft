@@ -148,6 +148,16 @@ function marqueeKey(next) {
   setTool('node');
 }
 setMarquee(stored(MARQUEE_KEY));
+// "All objects": Direct Selection's marquee picks points on every shape it
+// takes in, not just the layer picked (remembered).
+const POINTS_ALL_KEY = 'svgcraft.pointsAll';
+const pointsAllBox = $('#sc-points-all');
+state.pointsAll = stored(POINTS_ALL_KEY) === true;
+pointsAllBox.checked = state.pointsAll;
+pointsAllBox.addEventListener('change', () => {
+  state.pointsAll = pointsAllBox.checked;
+  store(POINTS_ALL_KEY, state.pointsAll || null);
+});
 for (const el of document.querySelectorAll('[data-tf]')) {
   el.addEventListener('input', () =>
     applyTransformField(el.dataset.tf, parseFloat(el.value), false),

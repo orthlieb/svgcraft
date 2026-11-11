@@ -24,7 +24,8 @@ const pickPoints = (page, id, picked) =>
       const s = window.svgcraft;
       s.setTool('node');
       s.tools.node.target(document.getElementById(id));
-      s.tools.node.picked = picked;
+      const t = s.tools.node.targets[0];
+      s.tools.node.picked = picked.map(([si, ni]) => [t, si, ni]);
     },
     [id, picked],
   );

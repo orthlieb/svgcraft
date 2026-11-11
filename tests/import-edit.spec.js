@@ -97,7 +97,7 @@ test('Edit Points on a path inside nested groups puts the markers on its corners
   expect((await target(page)).fill).toBe('#dc2626');
   // The marker for (10,70) sits on the real corner, nested transforms composed.
   const want = await screenOf(page, '#dc2626', 10, 70);
-  const got = await markerCentre(page, '0:0');
+  const got = await markerCentre(page, '0:0:0');
   expect(got.x).toBeCloseTo(want.x, 0);
   expect(got.y).toBeCloseTo(want.y, 0);
 });
@@ -108,13 +108,13 @@ test('a nested point can be moved, a point added on an edge and deleted again', 
   await editTriangle(page);
   const d = () => page.evaluate(() => window.svgcraft.tools.node.el.getAttribute('d'));
 
-  const n1 = await markerCentre(page, '0:1');
-  const n1Box = await page.locator('#sc-nodes [data-node="0:1"]').boundingBox();
+  const n1 = await markerCentre(page, '0:0:1');
+  const n1Box = await page.locator('#sc-nodes [data-node="0:0:1"]').boundingBox();
   const drop = { x: n1Box.x + 40, y: n1Box.y + 30 };
   await dragBy(page, n1, drop.x - n1.x, drop.y - n1.y);
   // Only the dragged point (was 60,70) changes, and it lands under the cursor.
   expect(await d()).toMatch(/^M10 70L(?!60 70L)[-\d.]+ [-\d.]+L35 90Z$/);
-  const moved = await markerCentre(page, '0:1');
+  const moved = await markerCentre(page, '0:0:1');
   expect(moved.x).toBeCloseTo(drop.x, 0);
   expect(moved.y).toBeCloseTo(drop.y, 0);
 
@@ -141,7 +141,7 @@ test('a nested rect becomes a path in place when edited; fill and undo/redo hit 
   await page.mouse.click(rc.x, rc.y);
   expect(await target(page)).toEqual({ tag: 'rect', parent: 'g', fill: '#2563eb' });
 
-  await dragBy(page, await markerCentre(page, '0:0'), -20, -20, 4);
+  await dragBy(page, await markerCentre(page, '0:0:0'), -20, -20, 4);
   expect(await target(page)).toEqual({ tag: 'path', parent: 'g', fill: '#2563eb' });
 
   // A colour change while point editing applies only to the edited shape.

@@ -65,9 +65,10 @@ test('Direct Selection: the white arrow, the marquee’s cross or lasso, with + 
   await expectCursor(page, 'cross+sub');
   await page.keyboard.up('Alt');
   await expectCursor(page, 'cross');
-  // Another shape, to pick up instead: the white arrow.
+  // Over another shape too: a drag from there draws the marquee (a click
+  // picks the shape up).
   await hover(page, 650, 150);
-  await expectCursor(page, 'direct');
+  await expectCursor(page, 'cross');
   // A point marker shows it too.
   expect(await page.$eval('#sc-nodes [data-node]', (n) => getComputedStyle(n).cursor)).toBe(
     await named(page, 'direct'),
