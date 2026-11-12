@@ -96,3 +96,40 @@ test('Simplify needs a path, polygon or polyline', async ({ page }) => {
     page.locator('.sc-sub-list:not([hidden]) [data-action="simplifyPath"]'),
   ).toBeDisabled();
 });
+
+test('in Direct Selection, Simplify works on the picked points only', async ({ page }) => {
+  // A square whose top edge wobbles: 41 points along it, then three corners.
+  const top = Array.from(
+    { length: 41 },
+    (_, i) => `${100 + i * 5} ${100 + (i % 2 ? 2 : -2) * (i > 0 && i < 40 ? 1 : 0)}`,
+  );
+  await load(page, `<path id="w" d="M${top.join('L')}L300 300L100 300Z" fill="#2563eb"/>`);
+  await select(page, 'w');
+  await page.keyboard.press('a');
+  // Pick the top edge's points (all but the last two corners).
+  await page.evaluate(() => {
+    const t = window.svgcraft.tools.node;
+    const tg = t.targets[0];
+    t.picked = tg.subs[0].nodes.slice(0, 41).map((_, ni) => [tg, 0, ni]);
+    t.redraw();
+  });
+  await page.click('[data-node-cmd="simplify"]');
+  await expect(page.locator('#sc-simplify')).toBeVisible();
+  await amount(page, 60);
+  await expect(page.locator('[data-simp-count]')).toHaveText(/^43 points → \d+$/);
+  await page.click('[data-simp-btn="ok"]');
+  const nodes = await page.evaluate(() =>
+    window.svgcraft.tools.node.targets[0].subs[0].nodes.map((n) => [n.x, n.y]),
+  );
+  // The wobble is gone, its ends and the two corners not picked are as they were.
+  expect(nodes.length).toBeLessThan(10);
+  expect(nodes[0]).toEqual([100, 100]);
+  expect(nodes.at(-3)).toEqual([300, 100]);
+  expect(nodes.slice(-2)).toEqual([
+    [300, 300],
+    [100, 300],
+  ]);
+  // One undo.
+  await page.keyboard.press('Control+z');
+  await expect(page.locator('#w')).toHaveAttribute('d', /^M100 100L105 102/);
+});

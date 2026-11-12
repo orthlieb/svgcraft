@@ -212,7 +212,7 @@ const actionRules = {
   convertTextKind: () => selectedTexts().some((el) => !isTP(el)),
   createOutlines: someSel((el) => el.localName === 'text' || !!el.querySelector?.('text')),
   reversePath: () => shapesIn(state.sel, REVERSIBLE).length > 0,
-  simplifyPath: () => shapesIn(state.sel, SIMPLIFIABLE).length > 0,
+  simplifyPath: () => simplifyPoints() || shapesIn(state.sel, SIMPLIFIABLE).length > 0,
   fillRuleNonzero: () => shapesIn(state.sel, RULE_SHAPES).length > 0,
   fillRuleEvenodd: () => shapesIn(state.sel, RULE_SHAPES).length > 0,
   freeTransform: anySel,

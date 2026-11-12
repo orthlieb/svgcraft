@@ -2602,6 +2602,12 @@
               </li>
               <li><strong>Delete</strong> (Del) removes the picked points.</li>
               <li><strong>Close / open</strong> adds or removes the closing segment.</li>
+              <li>
+                <strong>Simplify…</strong> (or Object → Path → Simplify…) with points picked thins
+                and smooths just them: each run of picked points in a row between its first and
+                last, which stay where they are. Points not picked don't change. See
+                <a href="#simplify">Simplify</a>.
+              </li>
               <li>Smooth points keep their handles in line. Alt-drag a handle to break one.</li>
             </ul>
             <h4>Good to know</h4>
@@ -2663,6 +2669,11 @@
               <li>
                 Works on paths, polygons and polylines, in groups too. Polygons and polylines become
                 paths.
+              </li>
+              <li>
+                In Direct Selection with points picked, it works on just those points (see
+                <a href="#edit-points">Edit points</a>): the ends of each run of picked points stay
+                put, and the rest of the outline doesn't change.
               </li>
               <li>A path left with nothing (all specks) is removed.</li>
             </ul>
