@@ -150,10 +150,11 @@ test('▶ Play previews in the editor; editing, Esc or a click stops it', async 
   await play.click();
   await expect(play).toHaveText('■ Stop');
   await expect(page.locator('#sc-doc [data-sc-preview]')).toHaveCount(1);
-  // The rectangle really moves.
+  // The rectangle really moves. (Polled, not one look after a fixed wait: at
+  // a quarter or half turn a rectangle's box can be as it was, and a busy
+  // machine can land the look on one.)
   const a = await page.locator('#r').boundingBox();
-  await page.waitForTimeout(300);
-  expect(await page.locator('#r').boundingBox()).not.toEqual(a);
+  await expect.poll(() => page.locator('#r').boundingBox()).not.toEqual(a);
   await page.keyboard.press('Escape');
   await expect(play).toHaveText('▶ Play');
   await expect(page.locator('#sc-doc [data-sc-preview]')).toHaveCount(0);
