@@ -86,9 +86,18 @@ function showTip(el, life = TIP_LIFE) {
   fillTip(el);
   tip.hidden = false;
   // Re-enter the top layer so the tip lands above a dialog opened since.
+  // The browser refuses while another popover is being shown or hidden (a
+  // picker closing hands focus back to its button, whose tip asks to show):
+  // then try again a moment later.
   if (tip.popover) {
-    if (tip.matches(':popover-open')) tip.hidePopover();
-    tip.showPopover();
+    try {
+      if (tip.matches(':popover-open')) tip.hidePopover();
+      tip.showPopover();
+    } catch {
+      tip.hidden = true;
+      tipWait = setTimeout(() => tipFor === el && showTip(el, life), 0);
+      return;
+    }
   }
   placeTip(el);
   tip.classList.add('on');
@@ -101,7 +110,11 @@ function hideTip() {
   if (tip.hidden) return;
   tipLast = Date.now();
   tip.classList.remove('on');
-  if (tip.popover && tip.matches(':popover-open')) tip.hidePopover();
+  try {
+    if (tip.popover && tip.matches(':popover-open')) tip.hidePopover();
+  } catch {
+    /* mid-way through another popover's change: hiding it below does */
+  }
   tip.hidden = true;
 }
 

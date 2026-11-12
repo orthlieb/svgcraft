@@ -1068,19 +1068,31 @@ Click without dragging (with any Shape tool but Line) to open the
 
 ![The Pencil tool's options bar, with Smoothing, over two freehand lines](docs/help/pencil.png)
 
-Draw freehand lines, smoothed as you go.
+Draw freehand lines, simplified as you go: fewer points, smooth curves,
+with sharp corners kept where you turn sharply.
 
 1. Pick the **Pencil**.
-2. Set **Smoothing** in the options bar (0 to 10; 4 to start with). Higher
-   gives smoother, simpler curves.
-3. Drag on the canvas to draw.
+2. Set **Smoothing** and **Corners** in the options bar.
+3. Drag on the canvas to draw. The line simplifies while you draw it.
+
+#### Settings
+
+- **Smoothing** (0 to 10; 4 to start with): how much the line may move to
+  lose points. Higher gives smoother, simpler curves; 0 keeps every point
+  you drew through. It's measured on the screen, so it feels the same at
+  any zoom.
+- **Corners** (0° to 180°; 90° to start with): where the line turns by
+  more than this, the point stays a sharp corner; elsewhere it's smooth.
+  180° makes it all curves, 0° all corners.
 
 #### Good to know
 
 - The stroke settings in the options bar ([Stroke options](#stroke-options))
   apply to what you draw.
-- How it works: the line you draw is simplified (RDP) and then fitted with
-  curves (Catmull-Rom → Bézier).
+- It's the same as [Simplify](#simplify) on the line as you draw it: the
+  points are thinned (Ramer–Douglas–Peucker), then smooth handles are
+  added except at the corners. To simplify a line further afterwards, use
+  Simplify.
 
 ### Pen
 

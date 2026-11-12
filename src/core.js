@@ -121,6 +121,8 @@ const state = {
   tf: null, // an open Free Transform / Scale / Rotate / Skew session
   eraserSize: 12,
   smoothing: 4,
+  // The Pencil keeps a point sharp where the line turns by more than this.
+  pencilCorners: 90,
   type: {
     family: 'System UI',
     weight: 400,

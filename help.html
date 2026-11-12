@@ -2329,20 +2329,35 @@
               <img
                 src="docs/help/pencil.png"
                 alt="The Pencil tool's options bar, with Smoothing, over two freehand lines"
-                width="878"
+                width="1004"
                 height="497"
                 loading="lazy"
               />
             </figure>
-            <p>Draw freehand lines, smoothed as you go.</p>
+            <p>
+              Draw freehand lines, simplified as you go: fewer points, smooth curves, with sharp
+              corners kept where you turn sharply.
+            </p>
             <ol>
               <li>Pick the <strong>Pencil</strong>.</li>
               <li>
-                Set <strong>Smoothing</strong> in the options bar (0 to 10; 4 to start with). Higher
-                gives smoother, simpler curves.
+                Set <strong>Smoothing</strong> and <strong>Corners</strong> in the options bar.
               </li>
-              <li>Drag on the canvas to draw.</li>
+              <li>Drag on the canvas to draw. The line simplifies while you draw it.</li>
             </ol>
+            <h4>Settings</h4>
+            <ul>
+              <li>
+                <strong>Smoothing</strong> (0 to 10; 4 to start with): how much the line may move to
+                lose points. Higher gives smoother, simpler curves; 0 keeps every point you drew
+                through. It's measured on the screen, so it feels the same at any zoom.
+              </li>
+              <li>
+                <strong>Corners</strong> (0° to 180°; 90° to start with): where the line turns by
+                more than this, the point stays a sharp corner; elsewhere it's smooth. 180° makes it
+                all curves, 0° all corners.
+              </li>
+            </ul>
             <h4>Good to know</h4>
             <ul>
               <li>
@@ -2350,8 +2365,9 @@
                 >) apply to what you draw.
               </li>
               <li>
-                How it works: the line you draw is simplified (RDP) and then fitted with curves
-                (Catmull-Rom → Bézier).
+                It's the same as <a href="#simplify">Simplify</a> on the line as you draw it: the
+                points are thinned (Ramer–Douglas–Peucker), then smooth handles are added except at
+                the corners. To simplify a line further afterwards, use Simplify.
               </li>
             </ul>
           </article>
