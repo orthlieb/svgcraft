@@ -408,6 +408,7 @@
               <li><a href="#align-and-distribute">Align and distribute</a></li>
               <li><a href="#eyedropper">Eyedropper</a></li>
               <li><a href="#edit-points">Edit points</a></li>
+              <li><a href="#simplify">Simplify</a></li>
               <li><a href="#fill-rule-and-path-direction">Fill rule and path direction</a></li>
               <li><a href="#animate">Animate</a></li>
               <li><a href="#animations-left-out">Animations left out</a></li>
@@ -2610,6 +2611,60 @@
                 circles, lines, polylines and polygons.
               </li>
               <li>A basic shape turns into a <code>&lt;path&gt;</code> only once you change it.</li>
+            </ul>
+          </article>
+          <article id="simplify" data-find>
+            <h3>Simplify</h3>
+            <figure>
+              <img
+                src="docs/help/simplify.png"
+                alt="A jagged traced blob being simplified: the Simplify dialog with its Amount and Corners sliders, and the point count"
+                width="732"
+                height="381"
+                loading="lazy"
+              />
+            </figure>
+            <p>
+              Take out the extra points and jags from a path with too many, such as a detailed Image
+              Trace, so it is lighter and smoother.
+            </p>
+            <ol>
+              <li>Select the path, or a group of them (an Image Trace result).</li>
+              <li>Choose <strong>Object → Path → Simplify…</strong>.</li>
+              <li>
+                Move <strong>Amount</strong> until it looks right; the drawing previews it, and the
+                dialog shows how many points there were and will be.
+              </li>
+              <li>Click <strong>OK</strong>. One undo puts it back.</li>
+            </ol>
+            <h4>Settings</h4>
+            <ul>
+              <li>
+                <strong>Amount</strong>: how far the outline may move to lose points, up to 10
+                pixels. Low keeps the detail; high gives a few smooth curves.
+              </li>
+              <li>
+                <strong>Corners</strong>: where the outline turns by more than this angle, the point
+                stays a sharp corner; elsewhere it becomes smooth. 0 makes every point a corner, 180
+                none.
+              </li>
+              <li>
+                <strong>Straight lines only</strong>: no curves, just the points joined by straight
+                lines.
+              </li>
+              <li>
+                <strong>Remove specks</strong>: closed bits smaller than about twice the Amount (the
+                dust a trace picks up) go.
+              </li>
+              <li><strong>Preview</strong>: off shows the drawing as it was, to compare.</li>
+            </ul>
+            <h4>Good to know</h4>
+            <ul>
+              <li>
+                Works on paths, polygons and polylines, in groups too. Polygons and polylines become
+                paths.
+              </li>
+              <li>A path left with nothing (all specks) is removed.</li>
             </ul>
           </article>
           <article id="fill-rule-and-path-direction" data-find>

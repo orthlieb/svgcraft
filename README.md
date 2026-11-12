@@ -1242,6 +1242,38 @@ Reshape a path, or a basic shape, by moving its points and curve handles.
   ellipses, circles, lines, polylines and polygons.
 - A basic shape turns into a `<path>` only once you change it.
 
+### Simplify
+
+![A jagged traced blob being simplified: the Simplify dialog with its Amount and Corners sliders, and the point count](docs/help/simplify.png)
+
+Take out the extra points and jags from a path with too many, such as a
+detailed Image Trace, so it is lighter and smoother.
+
+1. Select the path, or a group of them (an Image Trace result).
+2. Choose **Object → Path → Simplify…**.
+3. Move **Amount** until it looks right; the drawing previews it, and the
+   dialog shows how many points there were and will be.
+4. Click **OK**. One undo puts it back.
+
+#### Settings
+
+- **Amount**: how far the outline may move to lose points, up to 10
+  pixels. Low keeps the detail; high gives a few smooth curves.
+- **Corners**: where the outline turns by more than this angle, the point
+  stays a sharp corner; elsewhere it becomes smooth. 0 makes every point
+  a corner, 180 none.
+- **Straight lines only**: no curves, just the points joined by straight
+  lines.
+- **Remove specks**: closed bits smaller than about twice the Amount (the
+  dust a trace picks up) go.
+- **Preview**: off shows the drawing as it was, to compare.
+
+#### Good to know
+
+- Works on paths, polygons and polylines, in groups too. Polygons and
+  polylines become paths.
+- A path left with nothing (all specks) is removed.
+
 ### Fill rule and path direction
 
 ![Even-odd rings, and the Fill rule and Reverse controls in Properties](docs/help/fill-rule-and-path-direction.png)
