@@ -181,6 +181,50 @@ export default [
     },
   },
   {
+    id: 'simplify',
+    async shoot(h) {
+      // A traced-looking blob: a wobbly outline of 240 points, and specks.
+      const pts = [];
+      for (let i = 0; i < 240; i++) {
+        const t = (i / 240) * Math.PI * 2;
+        const r = 150 + 25 * Math.sin(3 * t) + ((i * 7919) % 5) - 2;
+        pts.push(`${(330 + r * Math.cos(t)).toFixed(1)} ${(300 + r * Math.sin(t)).toFixed(1)}`);
+      }
+      const specks = [
+        [560, 140],
+        [590, 420],
+        [120, 520],
+      ]
+        .map(([x, y]) => `M${x} ${y}l3 -2l2 3l-3 2Z`)
+        .join('');
+      await h.open(
+        `<path data-name="Trace" d="M${pts.join('L')}Z${specks}" fill="#2563eb"/>`,
+        'trace.svg',
+        1000,
+        620,
+      );
+      await h.select('Trace');
+      await h.menu('Object', 'simplifyPath');
+      await h.page.locator('#sc-simplify').waitFor();
+      await h.page.fill('[data-simp="amount"] input[type=number]', '60');
+      await h.page.dispatchEvent('[data-simp="amount"] input[type=number]', 'input');
+      await h.page.waitForTimeout(300);
+      // The dialog off to the right of the shape.
+      const at = await h.at(560, 150);
+      await h.page.evaluate(
+        ([x, y]) => {
+          const d = document.getElementById('sc-simplify');
+          d.style.margin = '0';
+          d.style.transform = 'none';
+          d.style.left = `${x}px`;
+          d.style.top = `${y}px`;
+        },
+        [at.x, at.y],
+      );
+      await h.shot(null, await around(h, { doc: [[150, 120, 520, 480]], els: ['#sc-simplify'] }));
+    },
+  },
+  {
     id: 'fill-rule-and-path-direction',
     async shoot(h) {
       await h.open(

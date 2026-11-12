@@ -326,6 +326,9 @@
                 ><i data-icon="chevron-right" class="sc-sub-caret"></i>
               </button>
               <div class="sc-menu-list sc-sub-list" role="menu" hidden>
+                <button role="menuitem" data-action="simplifyPath">
+                  <i></i><span>Simplify…</span>
+                </button>
                 <button role="menuitem" data-action="reversePath">
                   <i></i><span>Reverse Direction</span>
                 </button>
@@ -3303,6 +3306,55 @@
       </div>
     </dialog>
 
+    <!-- Object → Path → Simplify…: fewer points, smoother outlines, with a preview. -->
+    <dialog
+      class="sc-dialog sc-simplify"
+      id="sc-simplify"
+      data-help="simplify"
+      aria-labelledby="sc-simp-title"
+    >
+      <div class="sc-dialog-title" id="sc-simp-title">Simplify</div>
+      <div class="sc-dialog-body">
+        <div class="sc-adj-rows">
+          <label class="sc-adj-row" data-simp="amount"
+            ><span>Amount</span
+            ><input type="range" min="0" max="100" value="25" aria-label="Amount" /><input
+              type="number"
+              min="0"
+              max="100"
+              value="25"
+              aria-label="Amount number"
+            /><span>%</span></label
+          >
+          <label class="sc-adj-row" data-simp="corner"
+            ><span>Corners</span
+            ><input type="range" min="0" max="180" value="60" aria-label="Corner angle" /><input
+              type="number"
+              min="0"
+              max="180"
+              value="60"
+              aria-label="Corner angle number"
+            /><span>°</span></label
+          >
+        </div>
+        <p class="sc-hint">
+          Points where the outline turns by more than the corner angle stay sharp.
+        </p>
+        <label class="sc-check"
+          ><input type="checkbox" data-simp-opt="straight" /> Straight lines only</label
+        >
+        <label class="sc-check"
+          ><input type="checkbox" data-simp-opt="specks" checked /> Remove specks</label
+        >
+        <label class="sc-check"><input type="checkbox" data-simp-preview checked /> Preview</label>
+        <p class="sc-hint" data-simp-count></p>
+      </div>
+      <div class="sc-dialog-foot">
+        <button class="sc-tbtn" data-simp-btn="cancel">Cancel</button>
+        <button class="sc-tbtn sc-primary-btn" data-simp-btn="ok">OK</button>
+      </div>
+    </dialog>
+
     <!-- File → Document Setup…: the artboard grows or shrinks around an anchor. -->
     <dialog
       class="sc-dialog sc-docsize"
@@ -4661,6 +4713,7 @@
     <script src="src/canvas-tools.js"></script>
     <script src="src/points.js"></script>
     <script src="src/fill-rule.js"></script>
+    <script src="src/simplify.js"></script>
     <script src="src/animate.js"></script>
     <script src="src/anim-smil.js"></script>
     <script src="src/anim-wrap.js"></script>

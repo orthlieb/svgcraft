@@ -3125,6 +3125,14 @@ body.sc-no-doc .sc-status > * {
 .sc-adjust .sc-dialog-foot {
   display: flex;
 }
+/* ---- Object → Path → Simplify… ----------------------------------------------- */
+.sc-simplify {
+  width: min(360px, calc(100vw - 32px));
+}
+.sc-simplify .sc-check {
+  display: flex;
+  margin: 4px 0;
+}
 /* ---- File → Export App Icons… ------------------------------------------------ */
 .sc-appicons {
   width: min(380px, calc(100vw - 32px));
