@@ -105,7 +105,13 @@ export default [
       await h.open('', 'sketch.svg', 1000, 700);
       await h.page.evaluate(() => window.svgcraft.setTool('pencil'));
       await stroke(h, wave(60, 560, 130, 60));
-      await stroke(h, wave(60, 560, 300, 40, 30));
+      await stroke(h, wave(60, 560, 260, 40, 30));
+      // A zigzag: sharp where it turns (Corners), straight between.
+      const zig = [];
+      for (let i = 0; i < 5; i++)
+        for (let k = 0; k < 6; k++)
+          zig.push([80 + i * 100 + k * 16, (i % 2 ? 300 : 390) + (i % 2 ? 1 : -1) * k * 18]);
+      await stroke(h, zig);
       await h.shot(
         null,
         await around(h, {

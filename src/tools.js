@@ -274,8 +274,20 @@ tools.select = {
   },
 };
 
+// The Pencil's line, simplified as Object → Path → Simplify does: the
+// points it was drawn through thinned to within Smoothing (screen pixels,
+// so it feels the same at any zoom), then smooth curves through them,
+// except where it turns by more than Corners, which stay sharp.
+function pencilD(pts) {
+  if (pts.length < 3) return smoothD(pts);
+  const eps = (state.smoothing * 0.45) / state.zoom;
+  const keep = state.smoothing ? rdp(pts, eps) : pts;
+  if (keep.length < 3) return smoothD(keep);
+  return nodesD([{ closed: false, nodes: smoothNodes(keep, false, state.pencilCorners, false) }]);
+}
+
 tools.pencil = {
-  hint: 'Drag to draw freehand · Smoothing is in the options bar',
+  hint: 'Drag to draw freehand, simplified as you go · Smoothing and Corners are in the options bar',
   cursor: cursorFor.pencil,
   down(e, p) {
     this.pts = [p];
@@ -287,13 +299,18 @@ tools.pencil = {
     const pts = evs.length ? evs.map(toDoc) : [p];
     const minD = 0.75 / state.zoom;
     for (const q of pts) if (dist(q, this.pts.at(-1)) >= minD) this.pts.push(q);
-    this.el.setAttribute('d', 'M' + this.pts.map((q) => `${f(q.x)} ${f(q.y)}`).join('L'));
+    // Simplified as it's drawn (once a frame).
+    if (!this.frame)
+      this.frame = requestAnimationFrame(() => {
+        this.frame = 0;
+        this.el?.setAttribute('d', pencilD(this.pts));
+      });
   },
   up() {
     if (!this.el) return;
-    const eps = (state.smoothing * 0.45) / state.zoom;
-    const pts = state.smoothing ? rdp(this.pts, eps) : this.pts;
-    this.el.setAttribute('d', smoothD(pts));
+    cancelAnimationFrame(this.frame);
+    this.frame = 0;
+    this.el.setAttribute('d', pencilD(this.pts));
     this.el = null;
     commit();
   },

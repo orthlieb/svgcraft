@@ -123,3 +123,21 @@ test.describe('the pattern editor', () => {
     await expect(page.locator('#sc-patlib .sc-tile.sel')).toHaveAttribute('data-id', 'bricks');
   });
 });
+
+test('Esc in a picker opened from the keyboard hands focus back without an error', async ({
+  page,
+}) => {
+  // Its button, refocused, shows its tip while the picker's popover is
+  // still closing; Chrome refuses a second popover then, so the tip waits.
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.evaluate(() => window.svgcraft.setTool('custom'));
+  await shapeBtn(page).focus();
+  await page.keyboard.press('Enter');
+  await expect(pop(page)).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(pop(page)).toBeHidden();
+  await expect(shapeBtn(page)).toBeFocused();
+  await page.waitForTimeout(200);
+  expect(errors).toEqual([]);
+});

@@ -17,6 +17,7 @@ wireLayerStyle();
 wireSource();
 wireScrubbers();
 bindNumber('#sc-smooth', 'smoothing');
+bindNumber('#sc-pencil-corners', 'pencilCorners');
 bindNumber('#sc-eraser-size', 'eraserSize');
 syncTypeUI();
 syncStyleUI();

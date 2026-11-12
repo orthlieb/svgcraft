@@ -63,8 +63,24 @@ function smoothNodes(pts, closed, corner, straight) {
     const next = pts[i + 1] || (closed ? pts[0] : null);
     const nd = { x: fp(p.x), y: fp(p.y), hin: null, hout: null };
     if (straight || !prev || !next) return nd;
-    const a = Math.atan2(p.y - prev.y, p.x - prev.x);
-    const b = Math.atan2(next.y - p.y, next.x - p.x);
+    // How far the line turns here, seen past a short hop on either side: a
+    // sharp turn drawn by hand often leaves two close points, each turning
+    // only half of it.
+    const reach = 0.3 * Math.max(dist(p, prev), dist(p, next));
+    const far = (step) => {
+      let j = i;
+      for (let k = 0; k < N; k++) {
+        const nj = closed ? (j + step + N) % N : j + step;
+        if (nj < 0 || nj >= N || nj === i) break;
+        j = nj;
+        if (dist(pts[j], p) >= reach) break;
+      }
+      return pts[j];
+    };
+    const pf = far(-1);
+    const nf = far(1);
+    const a = Math.atan2(p.y - pf.y, p.x - pf.x);
+    const b = Math.atan2(nf.y - p.y, nf.x - p.x);
     const turn = Math.abs(((b - a + 3 * Math.PI) % (2 * Math.PI)) - Math.PI);
     if (turn > lim) return nd;
     const tx = next.x - prev.x;
