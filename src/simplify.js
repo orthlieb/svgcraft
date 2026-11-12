@@ -80,6 +80,82 @@ function smoothNodes(pts, closed, corner, straight) {
 
 const countNodes = (subs) => subs.reduce((a, sp) => a + sp.nodes.length, 0);
 
+// Direct Selection's picked points: each run of picked points in a row is
+// simplified between its first and last, which stay put; points not picked
+// are left as they are. A subpath picked whole is simplified whole.
+// `isPicked(si, ni)` says which are picked.
+function simplifyPicked(subs, isPicked, tol, o) {
+  return subs.map((sp, si) => {
+    const n = sp.nodes;
+    const N = n.length;
+    const on = n.map((_, ni) => isPicked(si, ni));
+    if (on.every(Boolean)) {
+      const whole = simplifySubs([sp], tol, { ...o, specks: false });
+      return whole[0] || sp;
+    }
+    // Start the walk at a point not picked, so no run is split.
+    const start = sp.closed ? on.indexOf(false) : 0;
+    const order = sp.closed ? n.map((_, k) => (start + k) % N) : n.map((_, k) => k);
+    const out = [];
+    // Where the path's first point lands, to start there again.
+    let first = -1;
+    for (let k = 0; k < order.length; k++) {
+      const i = order[k];
+      if (!on[i]) {
+        if (i === 0) first = out.length;
+        out.push(n[i]);
+        continue;
+      }
+      // The run: k .. e (positions in `order`).
+      let e = k;
+      while (e + 1 < order.length && on[order[e + 1]]) e++;
+      const run = order.slice(k, e + 1).map((ni) => n[ni]);
+      const done = simplifyRun(run, tol, o);
+      if (order[k] === 0) first = out.length;
+      else if (order[e] === 0) first = out.length + done.length - 1;
+      out.push(...done);
+      k = e;
+    }
+    const nodes = first > 0 ? [...out.slice(first), ...out.slice(0, first)] : out;
+    return { closed: sp.closed, nodes };
+  });
+}
+// One run of nodes, its ends kept: the outline between them sampled,
+// thinned and smoothed; the ends keep their outer handles, and their inner
+// ones point the way they did, sized to the new neighbour.
+function simplifyRun(run, tol, o) {
+  if (run.length < 3) return run;
+  const pts = [];
+  for (let i = 0; i < run.length - 1; i++) {
+    const a = run[i];
+    const b = run[i + 1];
+    pts.push({ x: a.x, y: a.y });
+    if (a.hout || b.hin) {
+      const len = dist(a, a.hout || a) + dist(a.hout || a, b.hin || b) + dist(b.hin || b, b);
+      const steps = Math.min(64, Math.max(2, Math.ceil(len / Math.max(tol / 2, 0.01))));
+      for (let k = 1; k < steps; k++) pts.push(bezierPt(a, b, k / steps));
+    }
+  }
+  pts.push({ x: run.at(-1).x, y: run.at(-1).y });
+  const keep = rdp(pts, tol);
+  const mid = smoothNodes(keep, false, o.corner, o.straight).slice(1, -1);
+  const first = run[0];
+  const last = run.at(-1);
+  const toward = (nd, h, q) => {
+    if (!h || o.straight) return null;
+    const hl = Math.hypot(h.x - nd.x, h.y - nd.y) || 1;
+    const l = dist(nd, q) / 3;
+    return { x: fp(nd.x + ((h.x - nd.x) / hl) * l), y: fp(nd.y + ((h.y - nd.y) / hl) * l) };
+  };
+  const nextOf = mid[0] || last;
+  const prevOf = mid.at(-1) || first;
+  return [
+    { ...first, hout: toward(first, first.hout, nextOf) },
+    ...mid,
+    { ...last, hin: toward(last, last.hin, prevOf) },
+  ];
+}
+
 // ---- the dialog: Amount, Corners, Straight lines, Remove specks, with a
 // live preview and the point count. Cancel puts the drawing back; OK is one
 // undo step.
@@ -103,8 +179,10 @@ function simplifyPreview() {
   for (const it of simp.items) {
     // Measured in document pixels: the shape's own scale divides it.
     const m = fullM(it.el);
-    const s = Math.sqrt(Math.abs(m.a * m.d - m.b * m.c)) || 1;
-    const subs = simplifySubs(it.subs, o.tol / s, o);
+    const sc = Math.sqrt(Math.abs(m.a * m.d - m.b * m.c)) || 1;
+    const subs = it.isPicked
+      ? simplifyPicked(it.subs, it.isPicked, o.tol / sc, o)
+      : simplifySubs(it.subs, o.tol / sc, o);
     before += countNodes(it.subs);
     after += countNodes(subs);
     it.next = subs;
@@ -114,7 +192,10 @@ function simplifyPreview() {
     `${before.toLocaleString()} points → ${after.toLocaleString()}`;
   drawSelection();
 }
+// In Direct Selection with points picked: just those points.
+const simplifyPoints = () => state.tool === 'node' && tools.node.picked.length > 2;
 function openSimplify() {
+  if (simplifyPoints()) return openSimplifyPoints();
   const els = shapesIn(state.sel, SIMPLIFIABLE);
   if (!els.length) return warn('Select a path, or a group of them, to simplify.');
   if (refuseLocked(state.sel, 'edit')) return;
@@ -140,13 +221,61 @@ function openSimplify() {
   simplifyPreview();
   setTimeout(() => simpDlg.querySelector('.sc-primary-btn').focus(), 0);
 }
+function openSimplifyPoints() {
+  const t = tools.node;
+  const hit = t.pickedTargets();
+  if (
+    refuseLocked(
+      hit.map((x) => x.el),
+      'edit',
+    )
+  )
+    return;
+  closeMenus();
+  simp.base = snapshot();
+  simp.paths = state.sel.map(treePath);
+  simp.points = true;
+  // Rectangles and the like become paths now (Cancel puts them back).
+  t.write(hit);
+  simp.items = hit.map((x) => ({
+    el: x.el,
+    target: x,
+    subs: clone(x.subs),
+    d: x.el.getAttribute('d'),
+    isPicked: (si, ni) => t.isPicked(si, ni, x),
+  }));
+  // The old points' markers would sit over the preview.
+  $('#sc-nodes').replaceChildren();
+  simpDlg.querySelector('[data-simp-preview]').checked = true;
+  showDialog(simpDlg, () => closeSimplify(false));
+  simplifyPreview();
+  setTimeout(() => simpDlg.querySelector('.sc-primary-btn').focus(), 0);
+}
 function closeSimplify(ok) {
   if (!simpDlg.open) return;
   hideDialog(simpDlg);
+  const points = simp.points;
+  simp.points = false;
   if (!ok) {
     restore(simp.base, true);
     state.sel = simp.paths.map(fromTreePath).filter(Boolean);
+    if (points) tools.node.redraw();
     drawSelection();
+    return;
+  }
+  if (points) {
+    const t = tools.node;
+    const before = simp.items.reduce((a, it) => a + countNodes(it.subs), 0);
+    let after = 0;
+    for (const it of simp.items) {
+      it.target.subs = it.next || it.subs;
+      after += countNodes(it.target.subs);
+    }
+    // The points are new: nothing stays picked.
+    t.picked = [];
+    t.write(simp.items.map((it) => it.target));
+    commit();
+    say(`Simplify: ${before.toLocaleString()} points → ${after.toLocaleString()}.`);
     return;
   }
   const before = simp.items.reduce((a, it) => a + countNodes(it.subs), 0);

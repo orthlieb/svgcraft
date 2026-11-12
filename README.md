@@ -1233,6 +1233,10 @@ Reshape a path, or a basic shape, by moving its points and curve handles.
   **Corner** and **Smooth** in the options bar).
 - **Delete** (Del) removes the picked points.
 - **Close / open** adds or removes the closing segment.
+- **Simplify…** (or Object → Path → Simplify…) with points picked thins
+  and smooths just them: each run of picked points in a row between its
+  first and last, which stay where they are. Points not picked don't
+  change. See [Simplify](#simplify).
 - Smooth points keep their handles in line. Alt-drag a handle to break
   one.
 
@@ -1272,6 +1276,9 @@ detailed Image Trace, so it is lighter and smoother.
 
 - Works on paths, polygons and polylines, in groups too. Polygons and
   polylines become paths.
+- In Direct Selection with points picked, it works on just those points
+  (see [Edit points](#edit-points)): the ends of each run of picked
+  points stay put, and the rest of the outline doesn't change.
 - A path left with nothing (all specks) is removed.
 
 ### Fill rule and path direction

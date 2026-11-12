@@ -95,7 +95,10 @@ for (const b of document.querySelectorAll('[data-node-cmd]')) {
     const n = tools.node;
     const c = b.dataset.nodeCmd;
     if (c === 'delete') n.removePicked();
-    else if (c === 'close') n.toggleClosed();
+    else if (c === 'simplify') {
+      if (n.picked.length > 2) openSimplify();
+      else warn('Pick three or more points in a row to simplify between them.');
+    } else if (c === 'close') n.toggleClosed();
     else n.setKind(c);
   });
 }
