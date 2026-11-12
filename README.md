@@ -1191,11 +1191,15 @@ Copy a style or a colour from something already in the drawing.
 
 Reshape a path, or a basic shape, by moving its points and curve handles.
 
-1. Pick **Direct Selection** (A), or double-click a shape with the
+1. Pick the layer in **Layers** (a shape, or a group for all the shapes
+   in it), then **Direct Selection** (A). Or double-click a shape with the
    Selection tool (inside a group, double-click until you reach it).
-2. Click the shape, then drag its points and Bézier handles. The arrow
-   keys nudge picked points.
-3. Press Esc, or pick another tool, when you're done.
+2. Its points show. Drag them and their Bézier handles; the arrow keys
+   nudge picked points. With a group, the points of all its shapes show,
+   and moving, nudging and the options bar's commands work on them all.
+3. Pick another layer in Layers to edit its points instead, or click a
+   shape on the canvas to edit just that one.
+4. Press Esc, or pick another tool, when you're done.
 
 #### Picking points
 
@@ -1207,9 +1211,14 @@ Reshape a path, or a basic shape, by moving its points and curve handles.
   - **Point Select** (the arrow, and the default): no marquee. A drag off
     the points picks nothing, so it can't catch points by accident.
   - **Rectangle Select**, **Ellipse Select** (an oval) or **Lasso Select**
-    (freeform): drag round the points to pick them. You can start the drag
-    off the shape. With no shape being edited yet, the drag edits the
+    (freeform): drag round the points to pick them. The drag can start
+    anywhere, on a shape or off it; it picks points of the layer being
+    edited only. (A click on another shape, without dragging, edits that
+    shape instead.) With nothing being edited yet, the drag edits the
     topmost shape it takes points of.
+- **All objects** (in the options bar): a marquee picks points on every
+  visible, unlocked shape it takes in, not just the layer being edited.
+  It stays on until you turn it off.
 - The marquee shows as a dotted line, black over white so it stands out
   on any colour, its dots marching round it (still when your system is
   set to reduce motion).

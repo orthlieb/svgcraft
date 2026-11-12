@@ -221,7 +221,9 @@ test('points can be picked with an oval too, or from the centre with Alt', async
   await page.evaluate(() => window.svgcraft.tools.node.target(document.getElementById('p')));
   await expect(nodes(page)).toHaveCount(8);
   const picked = () =>
-    page.evaluate(() => window.svgcraft.tools.node.picked.map(([, n]) => n).sort((a, b) => a - b));
+    page.evaluate(() =>
+      window.svgcraft.tools.node.picked.map(([, , n]) => n).sort((a, b) => a - b),
+    );
 
   // Point Select is the default; a rectangle round the square takes all eight.
   await expect(page.locator('[data-marquee="arrow"]')).toHaveAttribute('aria-checked', 'true');
@@ -288,7 +290,9 @@ test('points can be picked freeform, with a lasso drawn round them', async ({ pa
   await page.evaluate(() => window.svgcraft.tools.node.target(document.getElementById('p')));
   await expect(nodes(page)).toHaveCount(8);
   const picked = () =>
-    page.evaluate(() => window.svgcraft.tools.node.picked.map(([, n]) => n).sort((a, b) => a - b));
+    page.evaluate(() =>
+      window.svgcraft.tools.node.picked.map(([, , n]) => n).sort((a, b) => a - b),
+    );
   const lasso = async (pts, mod) => {
     const [first, ...rest] = await Promise.all(pts.map(([x, y]) => toScreen(page, x, y)));
     if (mod) await page.keyboard.down(mod);
@@ -436,7 +440,9 @@ test('Point Select picks single points: Shift adds, Alt takes away, no marquee',
   await page.evaluate(() => window.svgcraft.tools.node.target(document.getElementById('p')));
   await expect(nodes(page)).toHaveCount(4);
   const picked = () =>
-    page.evaluate(() => window.svgcraft.tools.node.picked.map(([, n]) => n).sort((a, b) => a - b));
+    page.evaluate(() =>
+      window.svgcraft.tools.node.picked.map(([, , n]) => n).sort((a, b) => a - b),
+    );
   const click = async (x, y, modifiers = []) => {
     const p = await toScreen(page, x, y);
     for (const m of modifiers) await page.keyboard.down(m);
@@ -500,4 +506,115 @@ test('selection marquees are marching ants: dotted black over white', async ({ p
     ]);
     await page.mouse.up();
   }
+});
+
+// Two squares in a group, and one outside it.
+const LAYERED =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400">' +
+  '<g data-name="Pair"><rect data-name="A" x="40" y="40" width="100" height="100" fill="#2563eb"/>' +
+  '<rect data-name="B" x="200" y="40" width="100" height="100" fill="#16a34a"/></g>' +
+  '<rect data-name="C" x="400" y="40" width="100" height="100" fill="#dc2626"/></svg>';
+const pickedBy = (page) =>
+  page.evaluate(() => {
+    const out = {};
+    for (const [t] of window.svgcraft.tools.node.picked) {
+      const n = t.el.getAttribute('data-name');
+      out[n] = (out[n] || 0) + 1;
+    }
+    return out;
+  });
+async function dragDocPts(page, from, to, mods = []) {
+  const a = await toScreen(page, ...from);
+  const b = await toScreen(page, ...to);
+  for (const m of mods) await page.keyboard.down(m);
+  await page.mouse.move(a.x, a.y);
+  await page.mouse.down();
+  await page.mouse.move((a.x + b.x) / 2, (a.y + b.y) / 2, { steps: 3 });
+  await page.mouse.move(b.x, b.y, { steps: 3 });
+  await page.mouse.up();
+  for (const m of mods) await page.keyboard.up(m);
+}
+
+test('a layer picked in Layers: a marquee picks points on its shapes, wherever the drag starts', async ({
+  page,
+}) => {
+  await page.evaluate((svg) => window.svgcraft.openSvg(svg, 'pair.svg'), LAYERED);
+  await page.keyboard.press('a');
+  await pickMarquee(page, 'rect');
+  // The group, in Layers: both its squares are edited, not the red one.
+  await page.locator('#sc-layers li', { hasText: 'Pair' }).first().click();
+  expect(
+    await page.evaluate(() =>
+      window.svgcraft.tools.node.els().map((e) => e.getAttribute('data-name')),
+    ),
+  ).toEqual(['A', 'B']);
+  await expect(page.locator('#sc-nodes [data-node]')).toHaveCount(8);
+  // A drag that starts on square A takes A's and B's bottom corners in it,
+  // and none of C's (it isn't being edited).
+  await dragDocPts(page, [90, 90], [580, 180]);
+  expect(await pickedBy(page)).toEqual({ A: 1, B: 2 });
+  await dragDocPts(page, [20, 20], [580, 180]);
+  expect(await pickedBy(page)).toEqual({ A: 4, B: 4 });
+  // Moving one moves them all, and one undo puts them back.
+  const before = await page.evaluate(() =>
+    [...document.querySelectorAll('#sc-doc g *')].map(
+      (e) => e.getAttribute('d') || e.getAttribute('x'),
+    ),
+  );
+  const p = await toScreen(page, 40, 40);
+  await page.mouse.move(p.x + 1, p.y + 1);
+  await page.mouse.down();
+  await page.mouse.move(p.x + 31, p.y + 1, { steps: 4 });
+  await page.mouse.up();
+  const moved = await page.evaluate(() =>
+    [...document.querySelectorAll('#sc-doc g path')].map((e) => e.getAttribute('d')),
+  );
+  expect(moved).toHaveLength(2);
+  // Both squares went right by the same amount.
+  const [ax, bx] = moved.map((d) => parseFloat(d.slice(1)));
+  expect(ax).toBeGreaterThan(40);
+  expect(bx - 200).toBeCloseTo(ax - 40, 3);
+  await page.keyboard.press('Control+z');
+  expect(
+    await page.evaluate(() =>
+      [...document.querySelectorAll('#sc-doc g *')].map(
+        (e) => e.getAttribute('d') || e.getAttribute('x'),
+      ),
+    ),
+  ).toEqual(before);
+});
+
+test('a click on another shape edits it; a drag from it draws the marquee', async ({ page }) => {
+  await page.evaluate((svg) => window.svgcraft.openSvg(svg, 'pair.svg'), LAYERED);
+  await page.keyboard.press('a');
+  await pickMarquee(page, 'rect');
+  await page.locator('#sc-layers li', { hasText: 'C' }).first().click();
+  const editing = () =>
+    page.evaluate(() => window.svgcraft.tools.node.els().map((e) => e.getAttribute('data-name')));
+  expect(await editing()).toEqual(['C']);
+  // From square A, round C's bottom-left corner: still C, that point.
+  await dragDocPts(page, [90, 90], [450, 200]);
+  expect(await editing()).toEqual(['C']);
+  expect(await pickedBy(page)).toEqual({ C: 1 });
+  // A click on A edits A.
+  const a = await toScreen(page, 90, 90);
+  await page.mouse.click(a.x, a.y);
+  expect(await editing()).toEqual(['A']);
+});
+
+test('All objects: a marquee picks points on every shape it takes in', async ({ page }) => {
+  await page.evaluate((svg) => window.svgcraft.openSvg(svg, 'pair.svg'), LAYERED);
+  await page.keyboard.press('a');
+  await pickMarquee(page, 'rect');
+  await page.locator('#sc-layers li', { hasText: 'C' }).first().click();
+  await page.check('#sc-points-all');
+  await dragDocPts(page, [100, 20], [450, 80]);
+  expect(await pickedBy(page)).toEqual({ A: 1, B: 2, C: 1 });
+  // Shift adds to it, from the other shapes too.
+  await dragDocPts(page, [20, 120], [60, 160], ['Shift']);
+  expect(await pickedBy(page)).toEqual({ A: 2, B: 2, C: 1 });
+  // Remembered.
+  await page.reload();
+  await page.evaluate(() => window.svgcraft.ready);
+  await expect(page.locator('#sc-points-all')).toBeChecked();
 });

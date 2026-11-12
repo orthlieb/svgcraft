@@ -55,7 +55,7 @@ function buildSnapTargets() {
     for (const el of items()) {
       if (el.getAttribute('display') === 'none') continue;
       if (state.sel.some((s) => el === s || el.contains(s))) continue;
-      if (tools.node.el && el.contains(tools.node.el)) continue;
+      if (tools.node.targets.some((t) => el.contains(t.el))) continue;
       const b = bboxDoc(el);
       if (!b) continue;
       for (const v of [b.x, b.x + b.w / 2, b.x + b.w])

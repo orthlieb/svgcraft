@@ -2540,12 +2540,18 @@
             <p>Reshape a path, or a basic shape, by moving its points and curve handles.</p>
             <ol>
               <li>
-                Pick <strong>Direct Selection</strong> (A), or double-click a shape with the
+                Pick the layer in <strong>Layers</strong> (a shape, or a group for all the shapes in
+                it), then <strong>Direct Selection</strong> (A). Or double-click a shape with the
                 Selection tool (inside a group, double-click until you reach it).
               </li>
               <li>
-                Click the shape, then drag its points and Bézier handles. The arrow keys nudge
-                picked points.
+                Its points show. Drag them and their Bézier handles; the arrow keys nudge picked
+                points. With a group, the points of all its shapes show, and moving, nudging and the
+                options bar's commands work on them all.
+              </li>
+              <li>
+                Pick another layer in Layers to edit its points instead, or click a shape on the
+                canvas to edit just that one.
               </li>
               <li>Press Esc, or pick another tool, when you're done.</li>
             </ol>
@@ -2564,10 +2570,17 @@
                   <li>
                     <strong>Rectangle Select</strong>, <strong>Ellipse Select</strong> (an oval) or
                     <strong>Lasso Select</strong> (freeform): drag round the points to pick them.
-                    You can start the drag off the shape. With no shape being edited yet, the drag
-                    edits the topmost shape it takes points of.
+                    The drag can start anywhere, on a shape or off it; it picks points of the layer
+                    being edited only. (A click on another shape, without dragging, edits that shape
+                    instead.) With nothing being edited yet, the drag edits the topmost shape it
+                    takes points of.
                   </li>
                 </ul>
+              </li>
+              <li>
+                <strong>All objects</strong> (in the options bar): a marquee picks points on every
+                visible, unlocked shape it takes in, not just the layer being edited. It stays on
+                until you turn it off.
               </li>
               <li>
                 The marquee shows as a dotted line, black over white so it stands out on any colour,

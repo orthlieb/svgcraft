@@ -244,7 +244,7 @@ function styleChanged(key, final) {
     applyToEdit({ fill: state.fillOn ? state.fill : 'none', fillA: state.fillA }, final);
     return;
   }
-  const targets = state.tool === 'node' && tools.node.el ? [tools.node.el] : state.sel;
+  const targets = state.tool === 'node' && tools.node.targets.length ? tools.node.els() : state.sel;
   if (!targets.length) return;
   // Lock All: the layer keeps its own look (the panels go back to showing it).
   if (refuseLocked(targets, 'edit')) {

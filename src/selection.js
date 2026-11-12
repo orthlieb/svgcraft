@@ -43,6 +43,8 @@ function setSel(els) {
     propTab(tabBeforeText);
     tabBeforeText = null;
   }
+  // Direct Selection edits the points of the layers picked.
+  if (state.tool === 'node') tools.node.fromSel(els);
   drawSelection();
   markLayers();
   // The Shape Builder builds from whatever is selected now.
