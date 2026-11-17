@@ -126,6 +126,8 @@ function drawSelection() {
   if (state.tool !== 'select') return;
   // A locked layer shows its box, not handles it would refuse.
   if (state.sel.some((el) => lockOf(el))) return;
+  // Distort / Perspective: four corners, nothing else.
+  if (isQuadMode()) return drawQuad();
   const mode = state.tf?.mode;
   const ce = !state.tf && cornerTarget();
   if (ce) {

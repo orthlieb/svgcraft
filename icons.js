@@ -219,6 +219,12 @@ window.SC_ICONS = {
     '<svg viewBox="0 0 512 512" aria-hidden="true"><path fill-rule="evenodd" d="M40 40H320V320H40ZM192 192H472V472H192Z"/></svg>',
   'sc-triangle':
     '<svg viewBox="0 0 512 512" aria-hidden="true"><path d="M256 40 488 456H24Z"/></svg>',
+  // Distort: a quadrilateral with a corner pulled out; Perspective: a
+  // trapezoid narrowing away.
+  'sc-distort':
+    '<svg viewBox="0 0 512 512" aria-hidden="true"><path d="M72 120 440 56 392 456 120 392Z" fill="none" stroke="currentColor" stroke-width="40" stroke-linejoin="round"/></svg>',
+  'sc-perspective':
+    '<svg viewBox="0 0 512 512" aria-hidden="true"><path d="M160 96H352L472 416H40Z" fill="none" stroke="currentColor" stroke-width="40" stroke-linejoin="round"/></svg>',
   // Rectangle and Ellipse Select: dashed outlines, as their marquees are.
   'sc-marquee-rect':
     '<svg viewBox="0 0 512 512" aria-hidden="true"><rect x="52" y="100" width="408" height="312" fill="none" stroke="currentColor" stroke-width="40" pathLength="28" stroke-dasharray="1 1" stroke-dashoffset="0.5"/></svg>',

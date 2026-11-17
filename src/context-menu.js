@@ -169,6 +169,8 @@ const TRANSFORM_ITEMS = [
   'tfScale',
   'tfRotate',
   'tfSkew',
+  'tfDistort',
+  'tfPerspective',
   '-',
   'rot180',
   'rot90cw',

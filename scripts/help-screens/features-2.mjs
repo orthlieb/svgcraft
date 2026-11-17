@@ -154,6 +154,35 @@ export default [
     },
   },
   {
+    id: 'distort-and-perspective',
+    async shoot(h) {
+      await h.open(
+        '<rect data-name="Card" x="80" y="60" width="320" height="220" rx="18" fill="#2563eb"/>' +
+          '<circle data-name="Dot" cx="240" cy="170" r="70" fill="#f59e0b"/>',
+        'card.svg',
+        800,
+        340,
+      );
+      await h.select('Card', 'Dot');
+      await h.menu('Object', 'tfPerspective');
+      // Pull the top-left corner in: the top-right comes in to match.
+      const c = await h.page.locator('[data-handle="q0"]').boundingBox();
+      await h.page.mouse.move(c.x + c.width / 2, c.y + c.height / 2);
+      await h.page.mouse.down();
+      await h.page.mouse.move(c.x + c.width / 2 + 70, c.y + c.height / 2 + 2, { steps: 6 });
+      await h.page.mouse.up();
+      await h.shot(
+        null,
+        await around(h, {
+          doc: [[0, 0, 480, 320]],
+          els: ['.sc-opt[data-for="transform"]'],
+          bars: true,
+          pad: 4,
+        }),
+      );
+    },
+  },
+  {
     id: 'align-and-distribute',
     async shoot(h) {
       await h.select('Bubble 1', 'Bubble 2', 'Bubble 4');
