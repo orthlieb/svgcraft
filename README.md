@@ -1130,6 +1130,8 @@ Scale, rotate and skew the selection by hand or by exact numbers.
   handles set to that job: corners and edges only scale, any handle
   rotates, or edge handles slide along their edge to skew. Shift snaps
   angles to 15°.
+- **Distort** and **Perspective** pull the corners themselves (see
+  [Distort and Perspective](#distort-and-perspective)).
 - **Rotate 180°**, **Rotate 90° Clockwise**, **Rotate 90° Counter
   Clockwise**, **Flip Horizontal** and **Flip Vertical** each apply in one
   step, about the selection's centre.
@@ -1147,8 +1149,44 @@ Scale, rotate and skew the selection by hand or by exact numbers.
   other). To scale strokes as well, use **File → Scale Document…**.
 - Browsers keep Ctrl+T and Ctrl+Shift+T for their tabs, so these shortcuts
   use Alt.
-- Distort, Perspective and Warp aren't included: SVG transforms can only
-  make straight-line (affine) changes.
+- Warp isn't included.
+
+### Distort and Perspective
+
+![A card and a circle in Perspective: the top edge pulled in from both corners, the shape narrowing upwards like a plane tilting away](docs/help/distort-and-perspective.png)
+
+Pull a shape's corners to tilt it into perspective or bend it to any
+four-sided outline, such as a sign seen at an angle or a label on a box.
+
+1. Select the shapes (or a group of them).
+2. Choose **Object → Transform → Distort** or **Perspective** (also on the
+   right-click menu's Transform). Four corner handles appear round the
+   selection.
+3. Drag the corners. Switch between Distort and Perspective in the same
+   session as you go.
+4. Press Enter or click ✓ to keep it. Esc or ✕ puts it all back.
+
+#### The two ways
+
+- **Distort**: each corner goes wherever you drag it.
+- **Perspective**: a corner and its partner on the same edge move
+  together, the other way. Drag mostly sideways to pinch or spread the top
+  or bottom edge; drag mostly up or down for the left or right edge. The
+  shape narrows towards that edge, like a plane tilting away.
+- With **Snap** on, the corner you drag snaps to the grid.
+
+#### Good to know
+
+- SVG's own transforms can only make straight-line (affine) changes, so
+  the shapes' points are moved instead: rectangles, ellipses and the like
+  become paths, and stay as drawn after the session. Curves are split into
+  pieces first, so they follow the corners closely.
+- Text, images and symbol instances can't be distorted: they stay as they
+  are, and a message says so. Convert text to outlines first
+  (**Type → Create Outlines**) to distort it.
+- Strokes keep their width; gradients and patterns follow the shape's new
+  outline box.
+- Transform Again doesn't repeat a distort.
 
 ### Align and distribute
 

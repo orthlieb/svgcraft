@@ -41,6 +41,17 @@ tools.select = {
     }
     const h = e.target.closest?.('[data-handle]');
     const box = selBox();
+    // A Distort / Perspective corner.
+    if (h && /^q\d$/.test(h.dataset.handle) && isQuadMode()) {
+      this.g = {
+        mode: 'quad',
+        i: +h.dataset.handle[1],
+        p0: p,
+        q0: state.tf.quad.map((q) => ({ ...q })),
+      };
+      noteStep(state.tf.mode === 'perspective' ? 'Perspective' : 'Distort');
+      return;
+    }
     if (h && box) {
       if (refuseLocked(state.sel)) return;
       const k = h.dataset.handle;
@@ -112,6 +123,16 @@ tools.select = {
         return b && b.x < x + w && b.x + b.w > x && b.y < y + h && b.y + b.h > y;
       });
       state.sel = normalizeSel([...g.base, ...hit]);
+      drawSelection();
+      return;
+    }
+    if (g.mode === 'quad') {
+      // The corner to where it's dragged (on the grid, with Snap).
+      const c = g.q0[g.i];
+      const to = snapPt({ x: c.x + p.x - g.p0.x, y: c.y + p.y - g.p0.y });
+      state.tf.quad = dragQuad(g.q0, g.i, to.x - c.x, to.y - c.y, state.tf.mode === 'perspective');
+      applyQuad();
+      g.changed = true;
       drawSelection();
       return;
     }

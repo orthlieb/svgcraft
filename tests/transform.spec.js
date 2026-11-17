@@ -65,13 +65,13 @@ const transformSub = (page) =>
     .filter({ has: page.locator('.sc-sub-btn', { hasText: 'Transform' }) });
 
 test.describe('Object → Transform submenu', () => {
-  test('opens on hover and lists its eleven commands, Free Transform first', async ({ page }) => {
+  test('opens on hover and lists its thirteen commands, Free Transform first', async ({ page }) => {
     await page.click('.sc-menu-btn:text-is("Object")');
     const sub = transformSub(page);
     await sub.locator('.sc-sub-btn').hover();
     await expect(page.locator('.sc-sub-list:not([hidden])')).toHaveCount(1);
     await expect(sub.locator('.sc-sub-list')).toBeVisible();
-    await expect(sub.locator('.sc-sub-list button')).toHaveCount(11);
+    await expect(sub.locator('.sc-sub-list button')).toHaveCount(13);
     await expect(sub.locator('.sc-sub-list button').first()).toHaveAttribute(
       'data-action',
       'freeTransform',

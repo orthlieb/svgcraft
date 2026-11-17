@@ -93,6 +93,8 @@ function updateOptions() {
         scale: ['maximize', 'Scale'],
         rotate: ['rotate', 'Rotate'],
         skew: ['italic', 'Skew'],
+        distort: ['sc-distort', 'Distort'],
+        perspective: ['sc-perspective', 'Perspective'],
       }[state.tf.mode]
     : TOOL_META[state.tool];
   const oi = $('#sc-opt-icon');

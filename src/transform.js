@@ -47,8 +47,16 @@ function beginTransform(mode) {
   if (!state.sel.length) return warn('Select something to transform first.');
   if (refuseLocked(state.sel)) return;
   if (state.tool !== 'select') setTool('select');
+  const quad = QUAD_MODES.has(mode);
   if (state.tf) {
+    const was = state.tf.mode;
     state.tf.mode = mode;
+    // Into Distort / Perspective: the corners of the box as it is now.
+    if (quad && !QUAD_MODES.has(was) && !beginQuad(state.tf)) {
+      state.tf.mode = was;
+      return;
+    }
+    if (!quad) delete state.tf.quad;
   } else {
     const box = selBox();
     state.tf = {
@@ -62,7 +70,13 @@ function beginTransform(mode) {
       m0: fullM(state.sel[0]),
       box0: box,
     };
+    if (quad && !beginQuad(state.tf)) {
+      state.tf = null;
+      return;
+    }
   }
+  // The number fields make straight-line changes: not while distorting.
+  for (const el of document.querySelectorAll('[data-tf], #sc-tf-link')) el.disabled = quad;
   updateOptions();
   drawSelection();
   $('#sc-hint').textContent = {
@@ -72,15 +86,20 @@ function beginTransform(mode) {
     rotate:
       'Rotate: drag any handle around the centre (Shift snaps to 15°) · Enter commits, Esc cancels',
     skew: 'Skew: drag an edge handle along its edge (Shift snaps to 15°) · Enter commits, Esc cancels',
+    distort: 'Distort: drag any corner anywhere · Enter commits, Esc cancels',
+    perspective:
+      'Perspective: drag a corner; its partner on the same edge moves the other way · Enter commits, Esc cancels',
   }[mode];
 }
 function endTransform(keep) {
   const tf = state.tf;
   if (!tf) return;
   state.tf = null;
+  for (const el of document.querySelectorAll('[data-tf], #sc-tf-link')) el.disabled = false;
   if (keep) {
-    // Transform Again repeats the whole session as one step.
-    if (tf.el0.isConnected && hIdx > tf.entry) {
+    // Transform Again repeats the whole session as one step (not a
+    // distort's, which no matrix can repeat).
+    if (tf.el0.isConnected && hIdx > tf.entry && !tf.qshapes) {
       noteTransform(fullM(tf.el0).multiply(tf.m0.inverse()), tf.box0);
       // A scaled rectangle or ellipse takes its new size, in the
       // session's last step (so one undo still takes it all back).
