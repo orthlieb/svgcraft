@@ -26,6 +26,9 @@ const WORLD = ['400', '32px', 'Georgia', 'none', 'rgb(220, 38, 38)'];
 // Select `n` characters starting at offset `from` in the editor, and let the
 // app's selectionchange handler (which tracks the range for the panels) run.
 async function selectChars(page, from, n) {
+  // A popup that just closed (the font picker) hands the caret back a moment
+  // later: keys pressed before then would go nowhere.
+  await expect(editor(page)).toBeFocused();
   await page.keyboard.press('Control+Home');
   for (let i = 0; i < from; i++) await page.keyboard.press('ArrowRight');
   for (let i = 0; i < n; i++) await page.keyboard.press('Shift+ArrowRight');
@@ -330,4 +333,27 @@ test.describe('mixed-size paragraph text', () => {
     await page.keyboard.press('Control+z');
     await expect(page.locator('#sc-doc text')).not.toHaveCount(0);
   });
+});
+
+test('a slow click on a swatch colours the selected characters and keeps editing', async ({
+  page,
+}) => {
+  // The swatch takes focus on the press and the colour comes on the
+  // release: a pause between them mustn't end the edit.
+  await startText(page);
+  await selectChars(page, 0, 5);
+  await page.evaluate(() => {
+    const w = document.getElementById('sc-libraries');
+    w.hidden = false;
+    w.querySelector('[data-tab="swatches"]').click();
+  });
+  await parkLibraries(page);
+  const b = await page.locator('#sc-palette button[aria-label="#dc2626"]').boundingBox();
+  await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
+  await page.mouse.down();
+  await page.waitForTimeout(150);
+  await page.mouse.up();
+  await expect(editor(page)).toBeVisible();
+  await expect(editor(page)).toBeFocused();
+  expect((await spans(page))[0]).toEqual(['Hello', ...PLAIN.slice(0, 4), 'rgb(220, 38, 38)']);
 });
