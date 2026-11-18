@@ -21,7 +21,8 @@ test('Enter on a focused button presses that button, not OK', async ({ page }) =
     page.context().waitForEvent('page'),
     page.keyboard.press('Enter'),
   ]);
-  expect(help.url()).toContain('help.html');
+  // A new tab's address can still be blank when it opens: wait for it.
+  await help.waitForURL(/help\.html/);
   await page.waitForTimeout(300);
   expect(downloaded).toBe(false);
 });

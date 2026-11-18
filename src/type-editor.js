@@ -204,13 +204,19 @@ function editTextLayer(el, isNew = false) {
     const text = e.clipboardData.getData('text/plain');
     document.execCommand('insertText', false, isTP(el) ? text.replace(/\s*\n\s*/g, ' ') : text);
   });
-  // Clicks on the panels, options bar, font picker or the Fill / Stroke
-  // dropdown keep the edit open (they style the selected characters);
-  // anywhere else ends it.
+  // Clicks on the panels, options bar, font picker, the Fill / Stroke
+  // dropdown or the Libraries (window or docked column) keep the edit open
+  // (they style the selected characters); anywhere else ends it. A
+  // swatch's button takes focus on the press and gives it back on the
+  // click, which can come later than this check: so the Libraries count.
   div.addEventListener('blur', () =>
     setTimeout(() => {
       if (typeEdit !== ed || document.activeElement === div) return;
-      if (document.activeElement?.closest?.('.sc-options, .sc-panel, #sc-fontpop, #sc-paintpop'))
+      if (
+        document.activeElement?.closest?.(
+          '.sc-options, .sc-panel, #sc-fontpop, #sc-paintpop, #sc-libraries, #sc-libdock',
+        )
+      )
         return;
       finishTypeEdit(true);
     }, 0),
