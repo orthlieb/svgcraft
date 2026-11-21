@@ -326,6 +326,45 @@ $('#sc-layers').addEventListener('keyup', (e) => {
 const folded = new Set();
 let rangeAnchor = null;
 
+// Every group in the drawing (folders in Layers), and every hidden layer.
+const allGroups = () => [...doc.querySelectorAll('g')].filter(selectable);
+const hiddenLayers = () => [...doc.querySelectorAll('[display="none"]')].filter(selectable);
+// The bar's Collapse / Expand all folders and Show all layers buttons
+// follow the drawing.
+function syncLayersTools() {
+  const groups = allGroups();
+  const anyOpen = groups.some((g) => !folded.has(treePath(g).join('/')));
+  const fold = $('#sc-layers-fold');
+  fold.disabled = !groups.length;
+  const label = anyOpen ? 'Collapse all folders' : 'Expand all folders';
+  fold.setAttribute('aria-label', label);
+  fold.dataset.tip = label;
+  const ic = anyOpen ? 'angles-up' : 'angles-down';
+  const i = fold.querySelector('[data-icon]');
+  if (i.dataset.icon !== ic) {
+    i.dataset.icon = ic;
+    i.innerHTML = icon(ic);
+  }
+  $('#sc-layers-showall').disabled = !hiddenLayers().length;
+}
+$('#sc-layers-fold').addEventListener('click', () => {
+  const groups = allGroups();
+  const anyOpen = groups.some((g) => !folded.has(treePath(g).join('/')));
+  for (const g of groups) {
+    const key = treePath(g).join('/');
+    if (anyOpen) folded.add(key);
+    else folded.delete(key);
+  }
+  renderLayers();
+});
+$('#sc-layers-showall').addEventListener('click', () => {
+  const els = hiddenLayers();
+  if (!els.length) return;
+  noteStep('Show All Layers');
+  for (const el of els) el.removeAttribute('display');
+  commit();
+});
+
 function renderLayers() {
   const ol = $('#sc-layers');
   // The row with the keyboard keeps it through the redraw.
@@ -340,6 +379,7 @@ function renderLayers() {
       ? 'Nothing here yet. Draw something, or drop an SVG onto the canvas.'
       : 'No drawing open. File → New, or Open.';
     ol.append(li);
+    syncLayersTools();
     return;
   }
   let rows = 0;
@@ -366,6 +406,7 @@ function renderLayers() {
   rowsNow.find((r) => r.classList.contains('sel'))?.scrollIntoView({ block: 'nearest' });
   fillThumbs(ol);
   syncLayerHead();
+  syncLayersTools();
 }
 
 function layerRow(el, depth, open) {

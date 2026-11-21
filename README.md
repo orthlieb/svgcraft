@@ -2440,6 +2440,11 @@ part of it.
   inside a group.
 - **Groups are folders.** Click a folder's arrow to expand or collapse it.
   Each level is indented.
+- **Collapse all / Expand all** (the double arrow at the right of the bar
+  above the list): folds every folder away, or opens them all.
+- **Show all layers** (the eye beside it): makes every hidden layer
+  visible again, in one step you can undo. It's greyed out while nothing
+  is hidden.
 - **The selection's row stays in view.** Select an object on the canvas
   and its row scrolls into view; if it's inside a folded folder, the
   folder opens to show it.

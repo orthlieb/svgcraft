@@ -1180,6 +1180,12 @@ kbd {
 .sc-layers-lock .sc-opt-label {
   margin-right: 4px;
 }
+/* Collapse / expand all folders and Show all, at the bar's far end. */
+.sc-layers-tools {
+  display: flex;
+  gap: 2px;
+  margin-left: auto;
+}
 .sc-layers-lock [aria-pressed='true'],
 .sc-lib-bar [aria-pressed='true'] {
   background: var(--row-sel);

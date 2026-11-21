@@ -402,3 +402,33 @@ test('a click on an object brings its row into view in Layers, unfolding its gro
   await clickOn('Inner', ['Control']);
   await expect.poll(() => inView('Inner')).toBe('in view');
 });
+
+test('Collapse all / Expand all folders, and Show all layers', async ({ page }) => {
+  await page.evaluate(() =>
+    window.svgcraft.openSvg(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">' +
+        '<g data-name="A"><rect data-name="a1" width="10" height="10"/>' +
+        '<g data-name="B"><rect data-name="b1" display="none" width="10" height="10"/></g></g>' +
+        '<rect data-name="c" display="none" x="50" width="10" height="10"/></svg>',
+      'f.svg',
+    ),
+  );
+  const rows = page.locator('#sc-layers li');
+  const fold = page.locator('#sc-layers-fold');
+  const show = page.locator('#sc-layers-showall');
+  // All open to start: A, a1, B, b1, c.
+  await expect(rows).toHaveCount(5);
+  await expect(fold).toHaveAttribute('aria-label', 'Collapse all folders');
+  await fold.click();
+  await expect(rows).toHaveCount(2);
+  await expect(fold).toHaveAttribute('aria-label', 'Expand all folders');
+  await fold.click();
+  await expect(rows).toHaveCount(5);
+  // Show all: both hidden layers, nested ones too, in one undo step.
+  await expect(show).toBeEnabled();
+  await show.click();
+  await expect(page.locator('#sc-doc [display="none"]')).toHaveCount(0);
+  await expect(show).toBeDisabled();
+  await page.keyboard.press('Control+z');
+  await expect(page.locator('#sc-doc [display="none"]')).toHaveCount(2);
+});
