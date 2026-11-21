@@ -54,6 +54,16 @@ function setSel(els) {
 // Re-highlight the selected rows without rebuilding the list (a rebuild
 // between the two clicks of a double-click would swallow the rename).
 function markLayers() {
+  // A layer picked inside a folded group (a Ctrl/⌘-click on the canvas, say)
+  // has no row: unfold the groups round it, so its row shows.
+  const rowEls = new Set([...$('#sc-layers').children].map((li) => li.layerEl));
+  let unfolded = false;
+  for (const el of state.sel) {
+    if (rowEls.has(el) || !doc.contains(el)) continue;
+    for (let g = el.parentNode; g && g !== doc; g = g.parentNode)
+      unfolded = folded.delete(treePath(g).join('/')) || unfolded;
+  }
+  if (unfolded) return renderLayers();
   let first = null;
   for (const li of $('#sc-layers').children)
     if (li.layerEl) {

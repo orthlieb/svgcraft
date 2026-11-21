@@ -2440,6 +2440,9 @@ part of it.
   inside a group.
 - **Groups are folders.** Click a folder's arrow to expand or collapse it.
   Each level is indented.
+- **The selection's row stays in view.** Select an object on the canvas
+  and its row scrolls into view; if it's inside a folded folder, the
+  folder opens to show it.
 - **Imported SVGs** arrive as a folder named after the file, with one row
   per shape inside it.
 

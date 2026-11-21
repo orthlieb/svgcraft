@@ -353,3 +353,52 @@ test('after an edit only the changed layers’ previews are drawn again', async 
   await page.keyboard.press('Control+z');
   await expect(thumb('A').locator('rect')).toHaveAttribute('fill', '#ff0000');
 });
+
+test('a click on an object brings its row into view in Layers, unfolding its group', async ({
+  page,
+}) => {
+  // Forty squares in a column (the panel shows only some), and a group with
+  // one more inside it, folded.
+  const squares = Array.from(
+    { length: 40 },
+    (_, i) => `<rect data-name="S${i}" x="20" y="${10 + i * 14}" width="10" height="10"/>`,
+  ).join('');
+  await page.evaluate(
+    (body) =>
+      window.svgcraft.openSvg(
+        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600">${body}` +
+          '<g data-name="Box"><rect data-name="Inner" x="300" y="300" width="100" height="100" fill="#2563eb"/></g></svg>',
+        'many.svg',
+      ),
+    squares,
+  );
+  const inView = (name) =>
+    page.evaluate((name) => {
+      const ol = document.getElementById('sc-layers');
+      const li = [...ol.children].find((r) => r.layerEl?.getAttribute('data-name') === name);
+      if (!li) return 'no row';
+      const a = li.getBoundingClientRect();
+      let s = ol;
+      while (s && s.scrollHeight <= s.clientHeight) s = s.parentElement;
+      const c = (s || ol).getBoundingClientRect();
+      return a.top >= c.top - 1 && a.bottom <= c.bottom + 1 ? 'in view' : 'out of view';
+    }, name);
+  const clickOn = async (name, mods = []) => {
+    const p = await page.evaluate((name) => {
+      const r = document.querySelector(`#sc-doc [data-name="${name}"]`).getBoundingClientRect();
+      return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+    }, name);
+    for (const m of mods) await page.keyboard.down(m);
+    await page.mouse.click(p.x, p.y);
+    for (const m of mods) await page.keyboard.up(m);
+  };
+  await page.evaluate(() => window.svgcraft.setTool('select'));
+  // The bottom square's row is at the end of a long list.
+  await clickOn('S0');
+  await expect.poll(() => inView('S0')).toBe('in view');
+  // Fold the group, and Ctrl-click the square inside it.
+  await page.locator('#sc-layers li', { hasText: 'Box' }).locator('.sc-twisty').click();
+  expect(await inView('Inner')).toBe('no row');
+  await clickOn('Inner', ['Control']);
+  await expect.poll(() => inView('Inner')).toBe('in view');
+});
