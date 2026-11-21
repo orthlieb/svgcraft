@@ -83,7 +83,9 @@ test('the Layers list by keyboard: select, restack, rename', async ({ page }) =>
   const row = (name) => page.locator('#sc-layers li', { hasText: name });
   await expect(row('Disc')).toHaveAttribute('tabindex', '0');
   // Tab into the list: it lands on the selected row.
-  await page.locator('.sc-layers-lock button').last().focus();
+  // (From the bar's last button that can take focus: Show all layers is
+  // greyed out with nothing hidden.)
+  await page.locator('.sc-layers-lock button:not([disabled])').last().focus();
   await page.keyboard.press('Tab');
   await expect(row('Disc')).toBeFocused();
   await page.keyboard.press('ArrowDown');
