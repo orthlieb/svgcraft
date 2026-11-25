@@ -453,6 +453,8 @@ add to the one you're working on.
   new tab.
 - **File → Import…** → places an SVG (as a group, scaled to fit) or a PNG,
   JPEG, WebP or GIF into the current drawing.
+- **File → New from PDF…** → one page of a PDF as a new drawing (see
+  [New from PDF](#new-from-pdf)).
 - Drag and drop files onto the window → the same, without the menu.
 - **Edit → Paste** (Ctrl+V) → pastes SVG markup or an image from the
   clipboard. **Edit → Cut** and **Copy** put the selection on the clipboard
@@ -608,6 +610,54 @@ When Image Trace can't read the picture, it says why above the status bar
   colours group together), traces each colour's outline and fits curves to
   it. Images are traced at 400–1000 px on the long side, in a background
   thread, so the page doesn't stall.
+
+### New from PDF
+
+![The New from PDF dialog: a two-page PDF's pages to pick from, and the choice of shapes and editable text, text as outlines, or a picture of the page](docs/help/new-from-pdf.png)
+
+Open one page of a PDF as a new drawing, to edit or reuse its artwork.
+
+1. Choose **File → New from PDF…** and pick a PDF.
+2. Click the page you want in the previews (or move to it with the arrow
+   keys).
+3. Choose how to bring it in, then click **Open Page** (or double-click the
+   page). It opens in a new tab, at the page's real size.
+
+#### Bring the page in as
+
+- **Shapes and editable text**: paths, images and text you can edit and
+  retype. Text is shown in the font the PDF names if it's on this device,
+  or a similar one, so it can look slightly different.
+- **Shapes, with the text as outlines**: the same, with each line of text
+  as a shape drawn from the PDF's own font, so it looks exactly as it did
+  but can't be retyped.
+- **A picture of the page**: one image of the whole page, exactly as it
+  looks, at twice the page's size. Nothing in it is editable as shapes.
+
+SVGCraft remembers your choice for next time.
+
+#### What may not come across
+
+PDF does things SVG can't, or that the converter doesn't handle. When a page
+uses any of these, a message says so after it opens:
+
+- blend modes (Multiply, Screen and the like);
+- soft masks and transparency groups (fades and see-through effects);
+- some gradients, left out rather than drawn wrong;
+- links, form fields and notes on the page;
+- text drawn with Type 3 fonts, and fonts that can't be read for outlines
+  (those stay as text).
+
+If the result isn't right, open the page again as **A picture of the page**.
+
+#### Good to know
+
+- Password-protected PDFs can't be opened.
+- The first 200 pages are previewed.
+- PDFs are read with [pdf.js](https://mozilla.github.io/pdf.js/) by Mozilla
+  (Apache 2.0), loaded the first time you use this and kept for offline use.
+- Each piece of text keeps its letters' positions, so lines look right, but
+  long paragraphs come in as separate lines rather than one block.
 
 ### Scale Document…
 

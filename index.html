@@ -42,6 +42,9 @@
             <button role="menuitem" data-action="newFromText">
               <i data-icon="code"></i><span>New from Text…</span>
             </button>
+            <button role="menuitem" data-action="newFromPdf">
+              <i data-icon="sc-pdf"></i><span>New from PDF…</span>
+            </button>
             <button role="menuitem" data-action="open">
               <i data-icon="folder-open"></i><span>Open…</span><kbd>Ctrl+O</kbd>
             </button>
@@ -3350,6 +3353,42 @@
       </div>
     </dialog>
 
+    <!-- File → New from PDF…: the PDF's pages to pick from, and how to bring one in. -->
+    <dialog
+      class="sc-dialog sc-pdfnew"
+      id="sc-pdfnew"
+      data-help="new-from-pdf"
+      aria-labelledby="sc-pdf-title"
+    >
+      <div class="sc-dialog-title" id="sc-pdf-title">New from PDF</div>
+      <div class="sc-dialog-body">
+        <p class="sc-hint" id="sc-pdf-file"></p>
+        <div class="sc-pdf-pages" id="sc-pdf-pages" role="listbox" aria-label="Pages"></div>
+        <fieldset class="sc-pdf-as">
+          <legend>Bring the page in as</legend>
+          <label class="sc-check"
+            ><input type="radio" name="sc-pdf-as" value="text" checked /> Shapes and editable
+            text</label
+          >
+          <label class="sc-check"
+            ><input type="radio" name="sc-pdf-as" value="outlines" /> Shapes, with the text as
+            outlines</label
+          >
+          <label class="sc-check"
+            ><input type="radio" name="sc-pdf-as" value="picture" /> A picture of the page</label
+          >
+        </fieldset>
+        <p class="sc-hint" id="sc-pdf-note">
+          Shapes you can edit, and text you can retype. Text shows in the font named in the PDF if
+          it’s on this device, else a similar one.
+        </p>
+      </div>
+      <div class="sc-dialog-foot">
+        <button class="sc-tbtn" id="sc-pdf-cancel">Cancel</button>
+        <button class="sc-tbtn sc-primary-btn" id="sc-pdf-open">Open Page</button>
+      </div>
+    </dialog>
+
     <!-- Object → Path → Simplify…: fewer points, smoother outlines, with a preview. -->
     <dialog
       class="sc-dialog sc-simplify"
@@ -4758,6 +4797,7 @@
     <script src="src/points.js"></script>
     <script src="src/fill-rule.js"></script>
     <script src="src/simplify.js"></script>
+    <script src="src/pdf-import.js"></script>
     <script src="src/animate.js"></script>
     <script src="src/anim-smil.js"></script>
     <script src="src/anim-wrap.js"></script>
