@@ -182,7 +182,7 @@ Find every command, in the menu you'd expect.
 
 #### What needs what
 
-- **Fit to Selection** needs a selection.
+- **Crop to Selection** needs a selection.
 - A **Clipping Mask**, **Combine Shapes** or **Text on Path** needs two
   objects.
 - **Distribute** needs three.
@@ -209,12 +209,12 @@ Reach what the selection can do without going to the menu bar.
   already in the selection) and the menu lists what the selection can do:
   Cut, Copy, Duplicate, Free Transform, Transform, Arrange, Align, Group,
   Clipping Mask, Combine Shapes, symbols, Effects and Lock, then
-  Play Animations, Deselect, Select Inverse and Fit to Selection.
+  Play Animations, Deselect, Select Inverse and Crop to Selection.
 - **Objects Here** (at the top, when more than one object is under the
   pointer) lists them, top first, so you can pick one that's covered by
   others. The ticked one is selected.
 - **Right-click empty canvas** with nothing selected: Paste, Select All,
-  Fit to Drawing, Play Animations and the zoom commands.
+  Crop to Drawing, Play Animations and the zoom commands.
 - **Play Animations** (when the drawing has any) plays them on the canvas,
   as ▶ Play does; while they play, right-click → **Stop Animations**. A
   right-click doesn't stop them, as a click does.
@@ -3735,7 +3735,7 @@ something fails.
 
 **Commands.** A menu item or button runs a command through its
 `data-action` name: `src/actions.js` maps each name to its function. A
-command that only makes sense with the right selection (Fit to Selection,
+command that only makes sense with the right selection (Crop to Selection,
 Make Clipping Mask…) also gets a rule in `actionRules` there, which greys
 its menu items and buttons out when it can't run; its keyboard shortcut in
 `src/input.js` goes through `ifAllowed(name)` so it does nothing then too.
