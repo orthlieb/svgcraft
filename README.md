@@ -1158,9 +1158,31 @@ Draw precise paths, point by point, with straight lines and smooth curves.
 4. Finish: click the first point to close the shape, or press Enter or
    double-click to leave it open. Esc also ends it.
 
+#### Change a path with the Pen
+
+Select a path (or several) before you pick the Pen, or pick one in
+Layers while it's on. The Pen shows the path's points, and over the path
+it changes what a click does; the pointer's badge says which:
+
+- **On an end point of an open path** (/): carry the path on from there.
+  Click and drag on as you would for a new path; click the path's other
+  end to close it, or press Enter to leave it open. A drag on the end
+  pulls out its handle, curving the first new segment.
+- **On a point** (−): delete the point. The path closes up around the
+  gap.
+- **On a line** (+): add a point there. The curve keeps its shape.
+- **Hold Shift** to start a new path anyway, even on the selected one.
+
+The path you last drew or changed stays the one the Pen works on, so you
+can carry on a path you've just finished.
+
 #### Good to know
 
-- To change the path afterwards, use [Edit points](#edit-points).
+- The Pen and [Edit points](#edit-points) (Direct Selection) both add and
+  delete points. The Pen does it with a single click, and extends open
+  paths; Direct Selection moves points and handles, picks many at once,
+  switches corner and smooth, and closes or opens paths.
+- A line or polyline becomes a path when the Pen changes it.
 
 ### Free Transform and Object → Transform
 

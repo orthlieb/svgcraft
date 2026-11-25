@@ -1,7 +1,7 @@
 // SVGCraft — the familiar pointers: drawn here as SVG cursors, black outlined
 // in white (or white in black) so they show on any colour, with the small
 // badges: + to add to a selection, − to take away, * to
-// start a new path, o to close one.
+// start a new path, o to close one, / to carry one on.
 'use strict';
 
 const CURSOR_SIZE = 24;
@@ -39,6 +39,7 @@ const BADGE = {
   add: lined('M19 15.5v7M15.5 19h7'),
   sub: lined('M15.5 19h7'),
   new: lined('M19 15v8M15.5 17l7 4M15.5 21l7-4', 1),
+  cont: lined('M15.5 22.5l7-7', 1.25),
   close: `<circle cx="19" cy="19" r="3" fill="none" stroke="#fff" stroke-width="3.25"/><circle cx="19" cy="19" r="3" fill="none" stroke="#000" stroke-width="1.25"/>`,
   move: lined(
     'M19 14.5v9M14.5 19h9M17.5 16l1.5-1.5 1.5 1.5M17.5 22l1.5 1.5 1.5-1.5M16 17.5 14.5 19l1.5 1.5M22 17.5l1.5 1.5-1.5 1.5',
@@ -60,7 +61,13 @@ badged('move', inked(ARROW), 3, 1, 'default', ['move']);
 badged('direct', inked(ARROW, false), 3, 1, 'default', ['add', 'sub']);
 badged('cross', lined(CROSS, 1), 10, 10, 'crosshair', ['add', 'sub']);
 badged('lasso', lined(LASSO, 1.4), 6, 21, 'crosshair', ['add', 'sub']);
-badged('pen', iconInk('pen-nib', 1, 1, 14), 1, 15, 'crosshair', ['new', 'close']);
+badged('pen', iconInk('pen-nib', 1, 1, 14), 1, 15, 'crosshair', [
+  'new',
+  'close',
+  'add',
+  'sub',
+  'cont',
+]);
 cursorFor.pencil = svgCursor(iconInk('pencil', 1, 1, 16), 1, 16, 'crosshair');
 cursorFor.eyedropper = svgCursor(iconInk('eye-dropper', 1, 1, 16), 1, 16, 'crosshair');
 cursorFor.text = svgCursor(
