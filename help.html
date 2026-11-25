@@ -2472,9 +2472,41 @@
                 leave it open. Esc also ends it.
               </li>
             </ol>
+            <h4>Change a path with the Pen</h4>
+            <p>
+              Select a path (or several) before you pick the Pen, or pick one in Layers while it's
+              on. The Pen shows the path's points, and over the path it changes what a click does;
+              the pointer's badge says which:
+            </p>
+            <ul>
+              <li>
+                <strong>On an end point of an open path</strong> (/): carry the path on from there.
+                Click and drag on as you would for a new path; click the path's other end to close
+                it, or press Enter to leave it open. A drag on the end pulls out its handle, curving
+                the first new segment.
+              </li>
+              <li>
+                <strong>On a point</strong> (−): delete the point. The path closes up around the
+                gap.
+              </li>
+              <li><strong>On a line</strong> (+): add a point there. The curve keeps its shape.</li>
+              <li>
+                <strong>Hold Shift</strong> to start a new path anyway, even on the selected one.
+              </li>
+            </ul>
+            <p>
+              The path you last drew or changed stays the one the Pen works on, so you can carry on
+              a path you've just finished.
+            </p>
             <h4>Good to know</h4>
             <ul>
-              <li>To change the path afterwards, use <a href="#edit-points">Edit points</a>.</li>
+              <li>
+                The Pen and <a href="#edit-points">Edit points</a> (Direct Selection) both add and
+                delete points. The Pen does it with a single click, and extends open paths; Direct
+                Selection moves points and handles, picks many at once, switches corner and smooth,
+                and closes or opens paths.
+              </li>
+              <li>A line or polyline becomes a path when the Pen changes it.</li>
             </ul>
           </article>
           <article id="free-transform-and-object-transform" data-find>

@@ -341,22 +341,85 @@ tools.pencil = {
   },
 };
 
+// The Pen draws new paths point by point. Over the selected shapes (or the
+// path it drew or changed last) it also edits: an open path's end point
+// carries the path on, a point on it is deleted, a line of it gets a new
+// point. Shift draws a new path anyway.
 tools.pen = {
-  hint: 'Click for corners · Drag for curves · Click the first point to close · Enter or double-click finishes · Backspace removes the last point · Esc ends',
-  // A * to start a path, an o over its first point to close it.
+  hint: 'Click for corners · Drag for curves · Click the first point to close · Enter or double-click finishes · Backspace removes the last point · Esc ends · On a selected path: click an end point to carry it on, a point to delete it, a line to add one (Shift for a new path)',
+  // * to start a path, o to close it; on a selected path, / to carry it
+  // on from an end, + to add a point, − to delete one.
   get cursor() {
     const pts = this.pts;
-    if (!pts.length) return cursorFor['pen+new'];
+    if (!pts.length) {
+      const h = this.hover;
+      return cursorFor[
+        h ? { cont: 'pen+cont', add: 'pen+add', del: 'pen+sub' }[h.kind] : 'pen+new'
+      ];
+    }
     const g = this.ghost;
-    const closing = pts.length >= 2 && g && dist(g, pts[0]) < 8 / state.zoom;
-    return cursorFor[closing ? 'pen+close' : 'pen'];
+    return cursorFor[g && this.closesAt(g) ? 'pen+close' : 'pen'];
   },
   pts: [],
+  kept: [],
+  // Edit the shapes that were selected when the Pen was picked.
+  enter(prev) {
+    this.keep(prev || []);
+  },
+  keep(els) {
+    this.kept = pointShapes(els).map(treePath);
+  },
+  // The shapes the Pen edits: the selection (picked in Layers, say), or
+  // those it kept.
+  editable() {
+    const els = state.sel.length
+      ? pointShapes(state.sel)
+      : this.kept.map(fromTreePath).filter((el) => el && EDITABLE.has(el.localName));
+    return els.filter((el) => el.isConnected && lockOf(el) !== 'all');
+  },
+  // What the Pen would do at p, idle: carry on an open path from its end,
+  // delete a point, or add one on a line. Nearest first, within a few
+  // pixels.
+  hoverAt(p) {
+    const r = 6 / state.zoom;
+    let best = null;
+    const take = (h) => {
+      if (h.d <= r && (!best || h.rank < best.rank || (h.rank === best.rank && h.d < best.d)))
+        best = h;
+    };
+    for (const el of this.editable()) {
+      const subs = shapeNodes(el);
+      const M = fullM(el);
+      const T = (q) => {
+        const o = M.transformPoint(new DOMPoint(q.x, q.y));
+        return { x: o.x, y: o.y };
+      };
+      subs.forEach((sp, si) =>
+        sp.nodes.forEach((n, ni) => {
+          const d = dist(T(n), p);
+          const end =
+            !sp.closed && sp.nodes.length >= 2 && (ni === 0 || ni === sp.nodes.length - 1);
+          if (end) take({ kind: 'cont', el, si, first: ni === 0, d, rank: 0 });
+          else take({ kind: 'del', el, si, ni, d, rank: 1 });
+        }),
+      );
+      const s = nearestOnSubs(subs, T, p, false);
+      if (s) take({ kind: 'add', el, seg: s, d: s.d, rank: 2 });
+    }
+    return best;
+  },
   down(e, p) {
+    const raw = p;
     p = snapPt(p);
     const pts = this.pts;
+    if (!pts.length && !e.shiftKey) {
+      const h = this.hoverAt(raw);
+      if (h?.kind === 'del') return this.deletePoint(h);
+      if (h?.kind === 'add') return this.addPoint(h);
+      if (h?.kind === 'cont') return this.carryOn(h);
+    }
     if (pts.length && e.shiftKey) p = constrain45(pts.at(-1), p);
-    if (pts.length >= 2 && dist(p, pts[0]) < 8 / state.zoom) {
+    if (this.closesAt(p)) {
       this.finish(true);
       return;
     }
@@ -370,20 +433,114 @@ tools.pen = {
     }
     this.lastDown = e.timeStamp;
     pts.push({ x: p.x, y: p.y, hin: null, hout: null });
-    if (!this.el) this.el = mk('path', newStyle('open'), doc);
+    if (!this.el && !this.cont) this.el = mk('path', newStyle('open'), doc);
     this.dragging = true;
     this.render();
+  },
+  // Would a click at p close the path: on its first point, or, carrying a
+  // path on, on its other end.
+  closesAt(p) {
+    const pts = this.pts;
+    const r = 8 / state.zoom;
+    if (this.cont) return dist(p, this.cont.other) < r;
+    return pts.length >= 2 && dist(p, pts[0]) < r;
+  },
+  // A shape's points, as a path (a line or polyline becomes one).
+  asPath(el) {
+    if (el.localName === 'path') return el;
+    const p = toPath(el);
+    state.sel = state.sel.map((x) => (x === el ? p : x));
+    return p;
+  },
+  deletePoint(h) {
+    const subs = shapeNodes(h.el);
+    subs[h.si].nodes.splice(h.ni, 1);
+    const left = subs.filter((sp) => sp.nodes.length >= 2);
+    if (!left.length) {
+      state.sel = state.sel.filter((x) => x !== h.el);
+      h.el.remove();
+      say('Point deleted, and with it the path.');
+    } else {
+      const el = this.asPath(h.el);
+      el.removeAttribute('data-rect');
+      el.removeAttribute('data-radii');
+      el.setAttribute('d', nodesD(left));
+      this.keep([el]);
+    }
+    this.hover = null;
+    commit();
+    this.redraw();
+  },
+  addPoint(h) {
+    const subs = shapeNodes(h.el);
+    insertNode(subs, h.seg);
+    const el = this.asPath(h.el);
+    el.removeAttribute('data-rect');
+    el.removeAttribute('data-radii');
+    el.setAttribute('d', nodesD(subs));
+    this.keep([el]);
+    this.hover = null;
+    commit();
+    this.redraw();
+  },
+  // Carry an open path on from an end: the Pen draws on from it, into the
+  // same path, in its local coordinates; a drag from the end pulls out its
+  // outgoing handle.
+  carryOn(h) {
+    const el = this.asPath(h.el);
+    const subs = shapeNodes(el);
+    const flip = (nodes) => nodes.map((n) => ({ ...n, hin: n.hout, hout: n.hin })).reverse();
+    // Work as if from the last point; one carried on from the first is
+    // turned round, and back again when written.
+    if (h.first) subs[h.si].nodes = flip(subs[h.si].nodes);
+    const M = fullM(el);
+    const D = (q) => q && M.transformPoint(new DOMPoint(q.x, q.y));
+    const nodes = subs[h.si].nodes;
+    const end = nodes.at(-1);
+    const xy = (q) => q && { x: q.x, y: q.y };
+    this.cont = {
+      el,
+      d0: el.getAttribute('d'),
+      subs,
+      si: h.si,
+      first: h.first,
+      flip,
+      Mi: M.inverse(),
+      other: xy(D(nodes[0])),
+    };
+    this.pts = [{ ...xy(D(end)), hin: xy(D(end.hin)), hout: null, anchor: true }];
+    this.lastDown = 0;
+    this.dragging = true;
+    this.hover = null;
+    this.render();
+  },
+  // The carried-on path's points with the Pen's, in its local coordinates.
+  contSubs(closed) {
+    const c = this.cont;
+    const L = (q) => {
+      if (!q) return null;
+      const o = c.Mi.transformPoint(new DOMPoint(q.x, q.y));
+      return { x: o.x, y: o.y };
+    };
+    const own = c.subs[c.si].nodes;
+    const added = this.pts.map((n) => ({ ...L(n), hin: L(n.hin), hout: L(n.hout) }));
+    const end = { ...own.at(-1), hout: added[0].hout };
+    let nodes = [...own.slice(0, -1), end, ...added.slice(1)];
+    if (c.first) nodes = c.flip(nodes);
+    return c.subs.map((sp, si) => (si === c.si ? { closed, nodes } : sp));
   },
   move(e, p) {
     if (this.dragging) {
       const a = this.pts.at(-1);
       if (dist(p, a) > 2 / state.zoom) {
         a.hout = { x: p.x, y: p.y };
-        a.hin = { x: 2 * a.x - p.x, y: 2 * a.y - p.y };
+        // The end a path is carried on from keeps its incoming handle.
+        if (!a.anchor) a.hin = { x: 2 * a.x - p.x, y: 2 * a.y - p.y };
       }
     } else {
       this.ghost =
         this.pts.length && e.shiftKey ? constrain45(this.pts.at(-1), snapPt(p)) : snapPt(p);
+      if (!this.pts.length) this.hover = e.shiftKey ? null : this.hoverAt(p);
     }
     this.render();
   },
@@ -405,14 +562,15 @@ tools.pen = {
     return d;
   },
   render() {
-    if (this.el) this.el.setAttribute('d', this.d(false));
+    if (this.cont) this.cont.el.setAttribute('d', nodesD(this.contSubs(false)));
+    else if (this.el) this.el.setAttribute('d', this.d(false));
     this.redraw();
   },
   redraw() {
     guides.replaceChildren();
     const pts = this.pts;
-    if (!pts.length) return;
     const z = state.zoom;
+    if (!pts.length) return this.drawEditable();
     const last = pts.at(-1);
     if (this.ghost && !this.dragging) {
       const c1 = last.hout || last;
@@ -432,8 +590,11 @@ tools.pen = {
         mk('circle', { cx: h.x, cy: h.y, r: 3 / z, class: 'sc-anchor' }, guides);
       }
     }
-    pts.forEach((a, i) => {
-      const s = (i === 0 ? 9 : 7) / z;
+    // The point a click closes the path on, filled in.
+    const first = this.cont ? this.cont.other : pts[0];
+    const marks = this.cont ? [first, ...pts] : pts;
+    marks.forEach((a) => {
+      const s = (a === first ? 9 : 7) / z;
       mk(
         'rect',
         {
@@ -441,13 +602,59 @@ tools.pen = {
           y: a.y - s / 2,
           width: s,
           height: s,
-          class: 'sc-anchor' + (i === 0 ? ' sc-anchor-first' : ''),
+          class: 'sc-anchor' + (a === first ? ' sc-anchor-first' : ''),
         },
         guides,
       );
     });
   },
+  // Idle: the outline and points of the paths the Pen can edit, and what
+  // a click would do under the pointer.
+  drawEditable() {
+    const z = state.zoom;
+    for (const el of this.editable()) {
+      const M = fullM(el);
+      const T = (q) => q && M.transformPoint(new DOMPoint(q.x, q.y));
+      const subs = shapeNodes(el).map((sp) => ({
+        closed: sp.closed,
+        nodes: sp.nodes.map((n) => ({ ...xyOf(T(n)), hin: xyOf(T(n.hin)), hout: xyOf(T(n.hout)) })),
+      }));
+      mk('path', { d: nodesD(subs), class: 'sc-ov' }, guides);
+      const s = 6 / z;
+      for (const sp of subs)
+        for (const n of sp.nodes)
+          mk(
+            'rect',
+            { x: n.x - s / 2, y: n.y - s / 2, width: s, height: s, class: 'sc-anchor' },
+            guides,
+          );
+    }
+    const h = this.hover;
+    if (h && h.kind !== 'add') {
+      const sp = shapeNodes(h.el)[h.si];
+      const n = sp?.nodes[h.kind === 'cont' ? (h.first ? 0 : sp.nodes.length - 1) : h.ni];
+      if (!n) return;
+      const q = fullM(h.el).transformPoint(new DOMPoint(n.x, n.y));
+      const s = 9 / z;
+      mk(
+        'rect',
+        { x: q.x - s / 2, y: q.y - s / 2, width: s, height: s, class: 'sc-anchor sc-anchor-first' },
+        guides,
+      );
+    }
+  },
   finish(closed) {
+    if (this.cont) {
+      const c = this.cont;
+      while (this.pts.length > 1 && dist(this.pts.at(-1), this.pts.at(-2)) < 1e-6) this.pts.pop();
+      const same = !closed && this.pts.length < 2 && !this.pts[0]?.hout;
+      if (same) c.el.setAttribute('d', c.d0);
+      else c.el.setAttribute('d', nodesD(this.contSubs(closed)));
+      this.keep([c.el]);
+      this.reset();
+      if (!same) commit();
+      return;
+    }
     const el = this.el;
     // A double-click lands two clicks on one spot — drop the duplicate.
     while (this.pts.length > 1 && dist(this.pts.at(-1), this.pts.at(-2)) < 1e-6) this.pts.pop();
@@ -457,36 +664,50 @@ tools.pen = {
         for (const a of [...el.attributes]) if (a.name !== 'd') el.removeAttribute(a.name);
         for (const [k, v] of Object.entries(newStyle('shape'))) el.setAttribute(k, v);
       }
+      this.keep([el]);
       this.reset();
       commit();
     } else this.cancel();
   },
   cancel() {
-    this.el?.remove();
+    if (this.cont) this.cont.el.setAttribute('d', this.cont.d0);
+    else this.el?.remove();
     this.reset();
   },
   reset() {
     this.el = null;
+    this.cont = null;
     this.pts = [];
     this.ghost = null;
+    this.hover = null;
     this.dragging = false;
-    guides.replaceChildren();
+    this.redraw();
+  },
+  restored() {
+    this.redraw();
   },
   key(e) {
     if (!this.pts.length) return false;
     if (e.key === 'Enter') this.finish(false);
     else if (e.key === 'Escape') this.finish(false);
     else if (e.key === 'Backspace' || e.key === 'Delete') {
-      this.pts.pop();
-      if (!this.pts.length) this.cancel();
-      else this.render();
+      // The end a path is carried on from isn't the Pen's to take away.
+      if (this.cont && this.pts.length === 1) this.cancel();
+      else {
+        this.pts.pop();
+        if (!this.pts.length) this.cancel();
+        else this.render();
+      }
     } else return false;
     return true;
   },
   leave() {
     if (this.pts.length) this.finish(false);
+    this.kept = [];
+    guides.replaceChildren();
   },
 };
+const xyOf = (q) => q && { x: q.x, y: q.y };
 
 // The Shape tools (src/shapes.js has the group, triangle, polygon and
 // custom shape): drag a box, Shift for equal sides, Alt from the centre;

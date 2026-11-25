@@ -348,6 +348,57 @@ function segments(subs) {
   return out;
 }
 
+// The point on subs' segments nearest p (document coords, through toDoc):
+// which segment, where along it (t), and how far (d), in document units.
+// With gaps, an open path's gap counts too, as a straight line: a point
+// added on it closes the path.
+function nearestOnSubs(subs, toDoc, p, gaps = true) {
+  let best = null;
+  const gapSegs = gaps
+    ? subs.flatMap((sp, si) =>
+        sp.closed || sp.nodes.length < 3 ? [] : [{ si, i: sp.nodes.length - 1, j: 0, gap: true }],
+      )
+    : [];
+  for (const s of [...segments(subs), ...gapSegs]) {
+    const a = subs[s.si].nodes[s.i];
+    const b = subs[s.si].nodes[s.j];
+    for (let k = 1; k < 64; k++) {
+      const u = k / 64;
+      const d = dist(toDoc(s.gap ? lerp(a, b, u) : bezierPt(a, b, u)), p);
+      if (!best || d < best.d) best = { ...s, t: u, d };
+    }
+  }
+  return best;
+}
+
+// Split the segment `best` (from nearestOnSubs) with a new point, keeping
+// the curve's shape; on a gap, close the path through it. Returns the new
+// point's index.
+function insertNode(subs, best) {
+  const sp = subs[best.si];
+  const a = sp.nodes[best.i];
+  const b = sp.nodes[best.j];
+  const u = best.t;
+  let nd;
+  if (best.gap) sp.closed = true;
+  if (best.gap || (!a.hout && !b.hin)) nd = { ...lerp(a, b, u), hin: null, hout: null };
+  else {
+    const p1 = a.hout || a;
+    const p2 = b.hin || b;
+    const q0 = lerp(a, p1, u);
+    const q1 = lerp(p1, p2, u);
+    const q2 = lerp(p2, b, u);
+    const r0 = lerp(q0, q1, u);
+    const r1 = lerp(q1, q2, u);
+    nd = { ...lerp(r0, r1, u), hin: r0, hout: r1 };
+    a.hout = q0;
+    b.hin = q2;
+  }
+  const at = best.j === 0 ? sp.nodes.length : best.j;
+  sp.nodes.splice(at, 0, nd);
+  return at;
+}
+
 function isSmooth(nd) {
   if (!nd.hin || !nd.hout) return false;
   const a = Math.atan2(nd.hin.y - nd.y, nd.hin.x - nd.x);
@@ -882,55 +933,15 @@ tools.node = {
     }
     if (near && near.d <= 8 / state.zoom) this.insertAt(p, near.t);
   },
-  // The point on target t's segments nearest p (document coords): which
-  // segment, where along it, and how far, in document units.
   nearestSeg(p, t) {
-    let best = null;
-    // An open path's gap counts too, as a straight line: a point added on
-    // it closes the path.
-    const gaps = t.subs.flatMap((sp, si) =>
-      sp.closed || sp.nodes.length < 3 ? [] : [{ si, i: sp.nodes.length - 1, j: 0, gap: true }],
-    );
-    for (const s of [...segments(t.subs), ...gaps]) {
-      const a = t.subs[s.si].nodes[s.i];
-      const b = t.subs[s.si].nodes[s.j];
-      for (let k = 1; k < 64; k++) {
-        const u = k / 64;
-        const at = s.gap ? lerp(a, b, u) : bezierPt(a, b, u);
-        const d = dist(this.toDoc(at, t), p);
-        if (!best || d < best.d) best = { ...s, t: u, d };
-      }
-    }
-    return best;
+    return nearestOnSubs(t.subs, (q) => this.toDoc(q, t), p);
   },
   // Split the segment of target t nearest p (document coords) with a new point.
   insertAt(p, t = this.main) {
     const best = this.nearestSeg(p, t);
     if (!best) return;
-    const sp = t.subs[best.si];
-    const a = sp.nodes[best.i];
-    const b = sp.nodes[best.j];
-    const u = best.t;
-    let nd;
-    if (best.gap) {
-      sp.closed = true;
-      say('Point added: the path is closed now, through it.');
-    }
-    if (best.gap || (!a.hout && !b.hin)) nd = { ...lerp(a, b, u), hin: null, hout: null };
-    else {
-      const p1 = a.hout || a;
-      const p2 = b.hin || b;
-      const q0 = lerp(a, p1, u);
-      const q1 = lerp(p1, p2, u);
-      const q2 = lerp(p2, b, u);
-      const r0 = lerp(q0, q1, u);
-      const r1 = lerp(q1, q2, u);
-      nd = { ...lerp(r0, r1, u), hin: r0, hout: r1 };
-      a.hout = q0;
-      b.hin = q2;
-    }
-    const at = best.j === 0 ? sp.nodes.length : best.j;
-    sp.nodes.splice(at, 0, nd);
+    if (best.gap) say('Point added: the path is closed now, through it.');
+    const at = insertNode(t.subs, best);
     this.picked = [[t, best.si, at]];
     this.write([t]);
     commit();
