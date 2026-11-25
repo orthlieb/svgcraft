@@ -1,5 +1,7 @@
 // Help screenshots for the README's Features section, Import to Export
 // Clean SVG (see scripts/gen-help-screens.mjs).
+import os from 'node:os';
+import path from 'node:path';
 
 // An open menu (and its open submenus), for a shot of the menu itself.
 const openMenus = '.sc-menu-list:not([hidden])';
@@ -14,12 +16,44 @@ const menuShot = async (h, act) => {
   await h.shot(lists, { pad: 6 });
 };
 
+// Two pages to print to a PDF for New from PDF.
+const PDF_PAGES =
+  '<style>@page{size:600px 420px;margin:0}body{margin:0}div{width:600px;height:420px;page-break-after:always}</style>' +
+  '<div><svg xmlns="http://www.w3.org/2000/svg" width="600" height="420"><rect width="600" height="420" fill="#123d63"/>' +
+  '<circle cx="430" cy="210" r="120" fill="#8fd3ff"/><text x="40" y="120" font-family="Georgia" font-size="54" fill="#f3e0de">Ocean</text>' +
+  '<text x="40" y="180" font-family="Georgia" font-size="54" fill="#f3e0de">Notes</text></svg></div>' +
+  '<div><svg xmlns="http://www.w3.org/2000/svg" width="600" height="420"><rect x="30" y="30" width="240" height="160" rx="16" fill="#2563eb"/>' +
+  '<circle cx="420" cy="140" r="90" fill="#f59e0b" stroke="#111" stroke-width="5"/><text x="40" y="300" font-family="Georgia" font-size="44" fill="#0f2b39">Page two</text>' +
+  '<path d="M40 360 C160 300 320 420 560 350" fill="none" stroke="#16a34a" stroke-width="8"/></svg></div>';
+
 export default [
   {
     id: 'import',
     async shoot(h) {
       await h.menu('File', 'place', { click: false });
       await menuShot(h, 'place');
+    },
+  },
+  {
+    id: 'new-from-pdf',
+    async shoot(h) {
+      // A two-page PDF, printed here: a card, and a page of shapes and text.
+      const maker = await h.page.context().browser().newPage();
+      await maker.setContent(PDF_PAGES);
+      const file = path.join(os.tmpdir(), 'brochure.pdf');
+      await maker.pdf({ path: file, width: '600px', height: '420px', printBackground: true });
+      await maker.close();
+      const [chooser] = await Promise.all([
+        h.page.waitForEvent('filechooser'),
+        h.menu('File', 'newFromPdf'),
+      ]);
+      await chooser.setFiles(file);
+      await h.page.locator('#sc-pdfnew').waitFor();
+      await h.page.waitForFunction(() =>
+        [...document.querySelectorAll('#sc-pdf-pages canvas')].every((c) => c.width > 1),
+      );
+      await h.page.click('.sc-pdf-page[data-page="2"]');
+      await h.shot('#sc-pdfnew', { pad: 0 });
     },
   },
   {

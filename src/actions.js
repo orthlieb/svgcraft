@@ -27,6 +27,7 @@ const actions = {
   scopeDone: () => leaveScope(true),
   new: () => openNewDoc(),
   newFromText: () => newFromText(),
+  newFromPdf: () => newFromPdf(),
   newIcon: openNewIcon,
   togglePixelGrid: () => toggleView('pixelGrid'),
   toggleSnapPixel: () => toggleView('snapPixel'),
@@ -238,6 +239,7 @@ const actionRules = {
 const NO_DOC_ACTIONS = new Set([
   'new',
   'newFromText',
+  'newFromPdf',
   'newIcon',
   'open',
   'paste',

@@ -225,6 +225,9 @@ window.SC_ICONS = {
     '<svg viewBox="0 0 512 512" aria-hidden="true"><path d="M72 120 440 56 392 456 120 392Z" fill="none" stroke="currentColor" stroke-width="40" stroke-linejoin="round"/></svg>',
   'sc-perspective':
     '<svg viewBox="0 0 512 512" aria-hidden="true"><path d="M160 96H352L472 416H40Z" fill="none" stroke="currentColor" stroke-width="40" stroke-linejoin="round"/></svg>',
+  // New from PDF: a page with a folded corner and PDF on it.
+  'sc-pdf':
+    '<svg viewBox="0 0 512 512" aria-hidden="true"><path fill-rule="evenodd" d="M96 32h224l112 112v336H96ZM136 72v368h256V168h-96V72Zm200 12v52h52Z"/><path d="M160 300h28c18 0 28 10 28 25s-10 25-28 25h-12v26h-16Zm16 14v22h11c8 0 12-4 12-11s-4-11-12-11Zm56-14h24c26 0 40 15 40 38s-14 38-40 38h-24Zm16 14v48h7c16 0 25-9 25-24s-9-24-25-24Zm64-14h52v14h-36v18h32v14h-32v30h-16Z"/></svg>',
   // Rectangle and Ellipse Select: dashed outlines, as their marquees are.
   'sc-marquee-rect':
     '<svg viewBox="0 0 512 512" aria-hidden="true"><rect x="52" y="100" width="408" height="312" fill="none" stroke="currentColor" stroke-width="40" pathLength="28" stroke-dasharray="1 1" stroke-dashoffset="0.5"/></svg>',

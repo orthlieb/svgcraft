@@ -3131,6 +3131,59 @@ body.sc-no-doc .sc-status > * {
 .sc-adjust .sc-dialog-foot {
   display: flex;
 }
+/* ---- File → New from PDF… --------------------------------------------------- */
+.sc-pdfnew {
+  width: min(640px, calc(100vw - 32px));
+}
+.sc-pdf-pages {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 10px;
+  max-height: min(46vh, 420px);
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 4px;
+  margin: 6px 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--bg);
+}
+.sc-pdf-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.sc-pdf-page canvas {
+  max-width: 100%;
+  height: auto;
+  background: #fff;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 30%);
+}
+.sc-pdf-page[aria-selected='true'] {
+  border-color: var(--accent);
+}
+.sc-pdf-as {
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+.sc-pdf-as legend {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.sc-pdf-as .sc-check {
+  display: flex;
+  margin: 3px 0;
+}
 /* ---- Object → Path → Simplify… ----------------------------------------------- */
 .sc-simplify {
   width: min(360px, calc(100vw - 32px));
