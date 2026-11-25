@@ -2748,13 +2748,22 @@
             </ul>
             <h4>Changing points</h4>
             <ul>
-              <li>Double-click a segment to add a point.</li>
+              <li>
+                Double-click a segment to add a point. It needn't land exactly on a thin line: a
+                double-click within a few pixels of it counts.
+              </li>
               <li>
                 Double-click a point to switch it between corner and smooth (or use
                 <strong>Corner</strong> and <strong>Smooth</strong> in the options bar).
               </li>
               <li><strong>Delete</strong> (Del) removes the picked points.</li>
-              <li><strong>Close / open</strong> adds or removes the closing segment.</li>
+              <li>
+                <strong>Close / open</strong> adds or removes the closing segment. While a path is
+                open, its gap (from the last point back to the first) shows as a dashed line. A
+                filled path's fill already spans the gap, so closing it changes only its stroke; the
+                status bar says which way it went.
+              </li>
+              <li>Double-click on an open path's gap to close the path with a point there.</li>
               <li>
                 <strong>Simplify…</strong> (or Object → Path → Simplify…) with points picked thins
                 and smooths just them: each run of picked points in a row between its first and
