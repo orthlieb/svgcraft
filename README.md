@@ -1328,11 +1328,17 @@ Reshape a path, or a basic shape, by moving its points and curve handles.
 
 #### Changing points
 
-- Double-click a segment to add a point.
+- Double-click a segment to add a point. It needn't land exactly on a
+  thin line: a double-click within a few pixels of it counts.
 - Double-click a point to switch it between corner and smooth (or use
   **Corner** and **Smooth** in the options bar).
 - **Delete** (Del) removes the picked points.
-- **Close / open** adds or removes the closing segment.
+- **Close / open** adds or removes the closing segment. While a path is
+  open, its gap (from the last point back to the first) shows as a dashed
+  line. A filled path's fill already spans the gap, so closing it changes
+  only its stroke; the status bar says which way it went.
+- Double-click on an open path's gap to close the path with a point
+  there.
 - **Simplify…** (or Object → Path → Simplify…) with points picked thins
   and smooths just them: each run of picked points in a row between its
   first and last, which stay where they are. Points not picked don't

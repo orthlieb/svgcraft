@@ -527,6 +527,14 @@ tools.node = {
         })),
       }));
       mk('path', { d: nodesD(docSubs), class: 'sc-ov' }, layer);
+      // An open path's gap, from its last point back to its first: where
+      // Close would draw, and (if it's filled) the edge the fill already shows.
+      for (const sp of docSubs) {
+        const n = sp.nodes;
+        if (sp.closed || n.length < 3) continue;
+        const [a, b] = [n.at(-1), n[0]];
+        mk('line', { x1: a.x, y1: a.y, x2: b.x, y2: b.y, class: 'sc-ov sc-ov-dash' }, layer);
+      }
       docSubs.forEach((sp, si) =>
         sp.nodes.forEach((n, ni) => {
           if (!this.isPicked(si, ni, t)) return;
@@ -861,29 +869,54 @@ tools.node = {
       return;
     }
     // The first click of this double-click picked the shape; don't also add a point.
-    const t = this.targets.find((x) => x.el === editableFrom(e.target));
-    if (!t || e.timeStamp - (this.targetedAt ?? -1e9) < 500) return;
-    this.insertAt(this.toLocal(toDoc(e), t), t);
+    if (e.timeStamp - (this.targetedAt ?? -1e9) < 500) return;
+    const p = toDoc(e);
+    const hit = this.targets.find((x) => x.el === editableFrom(e.target));
+    if (hit) return this.insertAt(p, hit);
+    // Off the shapes (an open path's thin line is hard to land on): the
+    // nearest segment within a few pixels of the double-click.
+    let near = null;
+    for (const t of this.targets) {
+      const b = this.nearestSeg(p, t);
+      if (b && (!near || b.d < near.d)) near = { ...b, t };
+    }
+    if (near && near.d <= 8 / state.zoom) this.insertAt(p, near.t);
   },
-  // Split the segment of target t nearest q (its local coords) with a new point.
-  insertAt(q, t = this.main) {
+  // The point on target t's segments nearest p (document coords): which
+  // segment, where along it, and how far, in document units.
+  nearestSeg(p, t) {
     let best = null;
-    for (const s of segments(t.subs)) {
+    // An open path's gap counts too, as a straight line: a point added on
+    // it closes the path.
+    const gaps = t.subs.flatMap((sp, si) =>
+      sp.closed || sp.nodes.length < 3 ? [] : [{ si, i: sp.nodes.length - 1, j: 0, gap: true }],
+    );
+    for (const s of [...segments(t.subs), ...gaps]) {
       const a = t.subs[s.si].nodes[s.i];
       const b = t.subs[s.si].nodes[s.j];
       for (let k = 1; k < 64; k++) {
         const u = k / 64;
-        const d = dist(bezierPt(a, b, u), q);
+        const at = s.gap ? lerp(a, b, u) : bezierPt(a, b, u);
+        const d = dist(this.toDoc(at, t), p);
         if (!best || d < best.d) best = { ...s, t: u, d };
       }
     }
+    return best;
+  },
+  // Split the segment of target t nearest p (document coords) with a new point.
+  insertAt(p, t = this.main) {
+    const best = this.nearestSeg(p, t);
     if (!best) return;
     const sp = t.subs[best.si];
     const a = sp.nodes[best.i];
     const b = sp.nodes[best.j];
     const u = best.t;
     let nd;
-    if (!a.hout && !b.hin) nd = { ...lerp(a, b, u), hin: null, hout: null };
+    if (best.gap) {
+      sp.closed = true;
+      say('Point added: the path is closed now, through it.');
+    }
+    if (best.gap || (!a.hout && !b.hin)) nd = { ...lerp(a, b, u), hin: null, hout: null };
     else {
       const p1 = a.hout || a;
       const p2 = b.hin || b;
@@ -960,6 +993,12 @@ tools.node = {
       seen.add(k);
       t.subs[si].closed = !t.subs[si].closed;
     }
+    const closed = by.some(([t, si]) => t.subs[si]?.closed);
+    say(
+      closed
+        ? 'Path closed: the line from its last point back to its first is part of it now (a filled path already showed that edge).'
+        : 'Path opened: its closing line is gone (a fill still spans the gap); the gap shows dashed.',
+    );
     this.write([...new Set(by.map(([t]) => t))]);
     commit();
   },
