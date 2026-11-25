@@ -4,10 +4,9 @@
 // version.
 'use strict';
 
-// Each artboard prints on a page of its own, at its real size (a CSS px is
-// 1/96 in, so a drawing set up in mm prints in mm), or fitted to the paper.
-// The pages are the artboards drawn as images, so ids in one can't clash
-// with the drawing's, and the fonts are embedded as for a PNG. While they
+// The canvas prints at its real size (a CSS px is 1/96 in, so a drawing set
+// up in mm prints in mm), or fitted to the paper. The page is the drawing
+// as an image, so its ids can't clash with the editor's, and the fonts are embedded as for a PNG. While they
 // print, everything else on the page is hidden. The browser's print dialog
 // does the rest: printer, copies, paper, or Save as PDF.
 const printDlg = (() => {
@@ -20,16 +19,9 @@ const printDlg = (() => {
     <div class="sc-dialog-title" id="sc-pr-title">Print</div>
     <div class="sc-dialog-body">
       <fieldset class="sc-pr-set">
-        <legend>Artboards</legend>
-        <label class="sc-check"><input type="radio" name="sc-pr-which" value="all" checked />
-          <span data-pr="all-label">All artboards</span></label>
-        <label class="sc-check"><input type="radio" name="sc-pr-which" value="one" />
-          Just <select data-pr="board" aria-label="Artboard to print"></select></label>
-      </fieldset>
-      <fieldset class="sc-pr-set">
         <legend>Size</legend>
         <label class="sc-check"><input type="radio" name="sc-pr-size" value="actual" checked />
-          Actual size, each on a page its own size</label>
+          Actual size, on a page the canvas's size</label>
         <label class="sc-check"><input type="radio" name="sc-pr-size" value="fit" />
           Fit to the paper</label>
       </fieldset>
@@ -55,33 +47,16 @@ document.head.append(printCss);
 
 function openPrint() {
   if (!curDoc) return warn('Open a drawing to print it.');
-  const boards = allBoards();
-  const sel = printDlg.querySelector('[data-pr="board"]');
-  sel.replaceChildren(
-    ...boards.map((b, i) => {
-      const o = document.createElement('option');
-      o.value = i;
-      o.textContent = b.name;
-      return o;
-    }),
-  );
-  sel.value = String(Math.max(0, boardSel));
-  printDlg.querySelector('[data-pr="all-label"]').textContent =
-    boards.length > 1 ? `All ${boards.length} artboards` : 'The drawing';
-  printDlg.querySelector('[value="one"]').closest('label').style.display =
-    boards.length < 2 ? 'none' : '';
-  if (boards.length < 2) printDlg.querySelector('[value="all"]').checked = true;
   showDialog(printDlg);
   setTimeout(() => printDlg.querySelector('[data-pr-btn="ok"]').focus(), 0);
 }
 
-// The pages to print, as an element ready for window.print(): the artboards
-// asked for, at their real size or fitted to the paper. Async: each page's
-// image is loaded (and its fonts fetched) before it's returned.
-async function preparePrint({ which = 'all', board = 0, fit = false } = {}) {
+// The page to print, as an element ready for window.print(): the canvas,
+// at its real size or fitted to the paper. Async: the page's image is
+// loaded (and its fonts fetched) before it's returned.
+async function preparePrint({ fit = false } = {}) {
   clearPrint();
-  const all = allBoards();
-  const boards = which === 'all' ? all : [all[board] || all[0]];
+  const boards = [{ name: state.fileName || 'Drawing', x: 0, y: 0, w: state.w, h: state.h }];
   const fontCss = await embeddedFontCss(usedGoogleFonts());
   const box = document.createElement('div');
   box.id = 'sc-print';
@@ -133,11 +108,9 @@ printDlg
   .querySelector('[data-pr-btn="cancel"]')
   .addEventListener('click', () => hideDialog(printDlg));
 printDlg.querySelector('[data-pr-btn="ok"]').addEventListener('click', async () => {
-  const which = printDlg.querySelector('[name="sc-pr-which"]:checked').value;
   const fit = printDlg.querySelector('[name="sc-pr-size"]:checked').value === 'fit';
-  const board = +printDlg.querySelector('[data-pr="board"]').value;
   hideDialog(printDlg);
   say('Preparing the pages…');
-  await preparePrint({ which, board, fit });
+  await preparePrint({ fit });
   window.print();
 });

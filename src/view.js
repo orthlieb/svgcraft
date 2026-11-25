@@ -6,7 +6,6 @@
 // ---------------------------------------------------------------------
 function applyView() {
   view.setAttribute('transform', `translate(${state.panX} ${state.panY}) scale(${state.zoom})`);
-  renderBoards();
   // The view is kept with the document too.
   if (docsLoaded) {
     clearTimeout(saveTimer);
@@ -51,8 +50,7 @@ function zoomAt(z, sx, sy) {
 function fit() {
   const r = stage.getBoundingClientRect();
   const pad = Math.min(48, r.width * 0.06);
-  // Every artboard in view.
-  const b = boardsBox();
+  const b = { x: 0, y: 0, w: state.w, h: state.h };
   const z = Math.min((r.width - pad * 2) / b.w, (r.height - pad * 2) / b.h);
   state.zoom = clamp(z, 0.02, 64);
   state.panX = (r.width - b.w * state.zoom) / 2 - b.x * state.zoom;
@@ -85,7 +83,7 @@ new ResizeObserver(() => {
   applyView();
 }).observe(stage);
 
-// Fill Screen: the artboard covers the whole stage, centred.
+// Fill Screen: the canvas covers the whole stage, centred.
 function fillScreen() {
   const r = stage.getBoundingClientRect();
   state.zoom = clamp(Math.max(r.width / state.w, r.height / state.h), 0.02, 64);
@@ -117,11 +115,10 @@ function setSize(w, h) {
   drawPixelGrid();
   drawKeylines();
   updateTitle();
-  renderBoards();
 }
 
-// Image → Crop: make the artboard exactly box (rounded out to whole
-// pixels). The artboard always starts at 0,0, so everything, guides
+// Crop: make the canvas exactly box (rounded out to whole pixels). The
+// canvas always starts at 0,0, so everything, guides
 // included, shifts by the box's corner; the view shifts with it so nothing
 // jumps on screen. Anything left outside is kept but not exported.
 function cropTo(box, what) {
@@ -131,7 +128,7 @@ function cropTo(box, what) {
   const w = Math.ceil(box.x + box.w) - x;
   const h = Math.ceil(box.y + box.h) - y;
   if (x === 0 && y === 0 && w === state.w && h === state.h)
-    return say(`The artboard already fits ${what}.`);
+    return say(`The canvas already fits ${what}.`);
   exitIso();
   if (x || y) {
     const T = new DOMMatrix().translate(-x, -y);

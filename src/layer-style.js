@@ -396,7 +396,7 @@ const cmds = {
 };
 
 // Line the selection up on an edge or centre of its own bounding box, or
-// of the artboard when only one object is selected.
+// of the canvas when only one object is selected.
 function alignSel(how) {
   if (!state.sel.length) return warn('Select the objects to align first.');
   if (refuseLocked(state.sel)) return;

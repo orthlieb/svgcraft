@@ -41,9 +41,9 @@ async function embeddedFontCss(fonts) {
   return out;
 }
 
-// The drawing as a PNG blob at `scale`, or null (having said why).
-// One artboard as a PNG: the page, unless another is given.
-async function pngBlob(scale = 2, board = mainBoard()) {
+// The canvas as a PNG blob at `scale`, or null (having said why).
+async function pngBlob(scale = 2) {
+  const board = { x: 0, y: 0, w: state.w, h: state.h };
   const g = usedGoogleFonts();
   if (g.length) say('Embedding fonts…');
   const fontCss = await embeddedFontCss(g);

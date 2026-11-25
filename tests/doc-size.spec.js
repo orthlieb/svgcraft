@@ -1,7 +1,7 @@
 import { test, expect, load, menu } from './fixtures.js';
 
-// Image → Image Size… scales the artboard and everything on it; Image →
-// Canvas Size… resizes the artboard around an anchor without scaling.
+// File → Art Size… scales the canvas and everything on it; File →
+// Canvas Size… resizes the canvas around an anchor without scaling.
 
 const SCENE =
   '<rect id="r" x="20" y="20" width="60" height="40" fill="#2563eb" stroke="#111111" stroke-width="4"' +
@@ -59,7 +59,7 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-test('Image Size scales everything, effects included; undo puts it back', async ({ page }) => {
+test('Art Size scales everything, effects included; undo puts it back', async ({ page }) => {
   const before = await st(page);
   const svg0 = await page.evaluate(() => window.svgcraft.serialize());
   await menu(page, 'File', 'imageSize');
@@ -71,7 +71,7 @@ test('Image Size scales everything, effects included; undo puts it back', async 
   await expect(page.locator('[data-is="h"]')).toHaveValue('200');
   await page.keyboard.press('Enter');
   await expect(dlg(page, 'sc-imagesize')).toBeHidden();
-  await expect(page.locator('#sc-msg')).toHaveText('Image size: 200 × 100 px → 400 × 200 px.');
+  await expect(page.locator('#sc-msg')).toHaveText('Art size: 200 × 100 px → 400 × 200 px.');
   const after = await st(page);
   expect(after.w).toBe(400);
   expect(after.h).toBe(200);

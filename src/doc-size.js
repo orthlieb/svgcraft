@@ -1,7 +1,7 @@
-// SVGCraft — Image → Image Size… and Canvas Size…
+// SVGCraft — File → Art Size… and Canvas Size…
 'use strict';
 
-// Image Size scales the artboard and everything on it (guides too), as one
+// Art Size scales the canvas and everything on it (guides too), as one
 // undo step. It's SVG, so nothing is resampled: each top-level layer gets
 // the scale on top of its transform, so strokes, text, patterns and
 // gradients scale with the shapes. Layer effects are measured in document
@@ -63,7 +63,7 @@ function closeImageSize(ok) {
     if (Math.abs(nw - state.w) < 1e-6 && Math.abs(nh - state.h) < 1e-6) return;
     const was = docSizeText();
     scaleDocument(nw / state.w, nh / state.h, isField('fx').checked);
-    say(`Image size: ${was} → ${docSizeText()}.`);
+    say(`Art size: ${was} → ${docSizeText()}.`);
   } else hideDialog(isDlg);
 }
 for (const k of ['w', 'h'])
@@ -87,12 +87,12 @@ isField('unit').addEventListener('change', () => {
 // "800 × 600 px", "210 × 297 mm".
 const docSizeText = () => `${inUnits(state.w)} × ${inUnits(state.h)} ${state.units}`;
 
-// Canvas Size changes the artboard without scaling anything. The anchor
+// Canvas Size changes the canvas without scaling anything. The anchor
 // says which part stays put: centre (the default) grows or trims every
 // side equally; a corner or edge keeps that side fixed. In a pixel
 // document, sizes and shifts are whole pixels, so pixel art stays sharp;
 // the view follows the shift, so nothing jumps.
-// Anything left outside the artboard is kept, just not exported.
+// Anything left outside the canvas is kept, just not exported.
 const cvDlg = $('#sc-canvassize');
 const cvField = (k) => cvDlg.querySelector(`[data-cv="${k}"]`);
 const canvasSize = { ax: 0.5, ay: 0.5 };

@@ -153,10 +153,10 @@ test.describe('snapping', () => {
     await expect(page.locator('#sc-smart line')).toHaveCount(0);
   });
 
-  test('moving a shape snaps its centre to the artboard centre', async ({ page }) => {
+  test('moving a shape snaps its centre to the canvas centre', async ({ page }) => {
     await open(page, 'y:250 x:600', A(480, 113));
     await page.keyboard.press('v');
-    // Centre 540 - 138 = 402, 2 off the artboard centre 400.
+    // Centre 540 - 138 = 402, 2 off the canvas centre 400.
     const during = await dragDoc(page, [540, 160], [540 - 138, 160 + 3], {
       during: () => smartClasses(page),
     });
@@ -168,7 +168,7 @@ test.describe('snapping', () => {
     await open(page, 'y:250 x:600', A(340, 116));
     await page.keyboard.press('v');
     // Right edge 460 + 37 = 497, 3 short of b's right edge (500). (Its top,
-    // y=300, isn't used: that's also the artboard's centre line.)
+    // y=300, isn't used: that's also the canvas's centre line.)
     let during = await dragDoc(page, [400, 140], [400 + 37, 140], {
       during: () => smartClasses(page),
     });

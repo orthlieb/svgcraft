@@ -12,7 +12,7 @@
 //   macos/    AppIcon.icns, and AppIcon.iconset for iconutil
 // Each size is drawn from the vector art, not scaled from a big bitmap.
 // Icons that can't be transparent (iOS, the Apple touch icon) get a
-// background colour; a non-square artboard is centred.
+// background colour; a non-square canvas is centred.
 
 // Draws an SVG (the exported drawing, or one layer of it) into square
 // PNGs. `box` is the square of document space that fills the PNG; `fill`
@@ -53,7 +53,7 @@ async function svgRasterizer(text) {
     return new Uint8Array(await blob.arrayBuffer());
   };
 }
-// The square around the artboard (a non-square one is centred in it).
+// The square around the canvas (a non-square one is centred in it).
 function artSquare() {
   const side = Math.max(state.w, state.h);
   return { x: (state.w - side) / 2, y: (state.h - side) / 2, w: side };

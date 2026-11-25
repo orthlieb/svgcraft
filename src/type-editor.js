@@ -799,7 +799,7 @@ function showParagraphPanel() {
   $('#sc-panel').classList.add('open');
 }
 
-// Raster of the artboard for pixel sampling, rebuilt lazily after edits.
+// Raster of the canvas for pixel sampling, rebuilt lazily after edits.
 let rasterJob = null;
 function raster() {
   if (rasterJob) return rasterJob;
@@ -826,7 +826,7 @@ function raster() {
 
 // Colour under doc point p, or a reason string when there's nothing to take.
 async function samplePixel(p) {
-  if (p.x < 0 || p.y < 0 || p.x > state.w || p.y > state.h) return 'Outside the artboard.';
+  if (p.x < 0 || p.y < 0 || p.x > state.w || p.y > state.h) return 'Outside the canvas.';
   const r = await raster();
   if (!r) return "Couldn't render the drawing to sample it.";
   let d;

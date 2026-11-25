@@ -57,8 +57,8 @@ test('Help → SVGCraft Help, F1 in a dialog, and a panel’s ? open the right t
   await page.locator('[data-tab="gradients"]').locator('xpath=..').locator('.sc-help-btn').click();
   expect(await opened(page)).toEqual([
     ['help.html', 'svgcraft-help'],
-    ['help.html#scale-document', 'svgcraft-help'],
-    ['help.html#scale-document', 'svgcraft-help'],
+    ['help.html#art-size', 'svgcraft-help'],
+    ['help.html#art-size', 'svgcraft-help'],
     ['help.html#gradients', 'svgcraft-help'],
   ]);
 });

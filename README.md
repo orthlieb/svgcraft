@@ -189,14 +189,13 @@ Find every command, in the menu you'd expect.
 
 #### Good to know
 
-- **File** also holds the document's size: **Document Setup…** (the
-  artboard) and **Scale Document…** (everything on it).
+- **File** also holds the canvas: **Art Size…** (the canvas and
+  everything on it), **Canvas Size…** (just the canvas) and the crops.
 - **Edit** holds the clipboard, **Duplicate** and **Edit Colours**
   (Grayscale, Black & White, Threshold, Desaturate).
 - **Object** holds what works on what's selected: Transform, Arrange,
   Align, Group, Lock, Object via Copy / Cut, Merge, Path, Combine Shapes,
-  Clipping Mask, Symbol, Image Trace and Artboard (Fit to Selection /
-  Drawing).
+  Clipping Mask, Symbol and Image Trace.
 - **Effect** holds the effects: the Effects dialog, each effect on its
   own, and Copy / Paste / Clear Effects.
 
@@ -383,7 +382,7 @@ to them and to each other.
    10 px), or drag it back onto a ruler to delete it.
 3. Move or draw near a guide, and it snaps there. With **Smart Guides** on,
    it also snaps to the edges and centres of other objects and of the
-   artboard, and magenta lines show what lined up.
+   canvas, and magenta lines show what lined up.
 
 #### Rulers
 
@@ -495,7 +494,7 @@ paper or screen size.
    **Properties** panel. The **Document** settings are at the bottom
    (they hide while something is selected).
 2. Pick the **Units** you want to see and type lengths in.
-3. Pick a **Page size** from the menu beside Units to resize the artboard
+3. Pick a **Page size** from the menu beside Units to resize the canvas
    to it, or type a **W** and **H** of your own.
 4. Click ↻ beside the page size to turn the page between portrait and
    landscape.
@@ -504,12 +503,12 @@ paper or screen size.
 
 - **Units**: pixels, millimetres, centimetres, inches or points. They're
   used by the rulers, W and H, guide positions, the X/Y/W/H transform
-  fields, Scale Document and Document Setup, the grid and the status bar. The grid takes
+  fields, Art Size and Canvas Size, the grid and the status bar. The grid takes
   a round size in the new units (5 mm, ¼ in…).
 - **Page size**: A5, A4, A3, US Letter, Legal, Tabloid, business card,
-  Full HD or square post. It also sets its units, and keeps the artboard's
+  Full HD or square post. It also sets its units, and keeps the canvas's
   orientation.
-- **W** and **H**: the artboard's size, anchored top-left.
+- **W** and **H**: the canvas's size, anchored top-left.
 
 #### Good to know
 
@@ -659,14 +658,13 @@ If the result isn't right, open the page again as **A picture of the page**.
 - Each piece of text keeps its letters' positions, so lines look right, but
   long paragraphs come in as separate lines rather than one block.
 
-### Scale Document…
+### Art Size…
 
-![The Scale Document dialog, scaling an 800 × 560 drawing to 1200 px wide](docs/help/scale-document.png)
+![The Art Size dialog, scaling an 800 × 560 drawing to 1200 px wide](docs/help/art-size.png)
 
-Make the whole drawing bigger or smaller: the artboard and everything on
-it.
+Make the whole drawing bigger or smaller: the canvas and everything on it.
 
-1. Choose **File → Scale Document…** (Ctrl+Alt+I).
+1. Choose **File → Art Size…** (Ctrl+Alt+I).
 2. Type a new **Width** or **Height**, in the document's units or in
    percent.
 3. Click **OK**. It's one undo step.
@@ -684,14 +682,16 @@ it.
 - Each top-level object gets the scale on top of its transform, so strokes,
   text, patterns and gradients scale with the shapes. Guides scale too.
 - Animation distances always follow the art.
+- To change just one object's size, use **W** and **H** in Properties (or
+  the Selection tool's handles).
 
-### Document Setup…
+### Canvas Size…
 
-![The Document Setup dialog, with the centre anchor chosen](docs/help/document-setup.png)
+![The Canvas Size dialog, with the centre anchor chosen](docs/help/canvas-size.png)
 
 Add room round the drawing, or trim it, without scaling anything.
 
-1. Choose **File → Document Setup…** (Ctrl+Alt+C).
+1. Choose **File → Canvas Size…** (Ctrl+Alt+C).
 2. Type a new **Width** and **Height**.
 3. Click an **Anchor** square for the part that stays put.
 4. Click **OK**.
@@ -707,45 +707,65 @@ Add room round the drawing, or trim it, without scaling anything.
 
 - Content and guides shift by whole pixels and the view follows, so nothing
   jumps on screen.
-- Whatever ends up outside the artboard is kept, just not exported.
-- The **W** and **H** in Properties → Document also resize the artboard,
+- Whatever ends up outside the canvas is kept, just not exported. Make the
+  canvas bigger again, or [Crop to Drawing](#crop), to bring it back.
+- The **W** and **H** in Properties → Document also resize the canvas,
   anchored top-left.
 
-### Artboards
+### Crop
 
-![Three artboards, Circle, Square and Triangle, with Triangle picked by the Artboard tool](docs/help/artboards.png)
+![The Crop tool's box over a drawing, the part to be cut away shaded](docs/help/crop.png)
 
-Keep several pages in one drawing, such as a set of icons, and export
-each one as its own SVG and PNG.
+Cut the canvas down to the part of the drawing you want, or fit it
+tightly round your artwork.
 
-1. Pick the **Artboard** tool (Shift+O).
-2. Drag on the pasteboard, beside the page, to add an artboard.
-3. Drag an artboard to move it (the objects on it come along), or its
-   bottom-right corner to resize it.
-4. Choose **File → Export Artboards…** to save each artboard as its own
-   SVG and PNG, all in one zip.
+1. Pick the **Crop** tool (C). Its box starts round the whole canvas.
+2. Drag a box round the part to keep. Or drag the box's edges and corners,
+   or drag inside it to move it.
+3. Press **Enter**, or click ✓ in the options bar. Esc (or ✕) puts the box
+   back round the canvas.
+
+Without the tool:
+
+- **File → Crop to Selection** → the canvas fits round the selected
+  objects.
+- **File → Crop to Drawing** → the canvas fits round everything visible,
+  bringing back anything cropped away.
 
 #### Settings (the options bar)
 
-- **Name**: what the artboard and its exported file are called.
-- **W** and **H**: its size, in the drawing's units.
-- **Move art** (on by default): dragging an artboard takes the objects
-  centred on it along. Off, only the artboard moves. Objects with a locked
-  position always stay.
-- **Delete** (the bin, or Del): removes the artboard. The art on it stays.
-- **Export Artboards…**: the same as the File menu's.
+- **W** and **H**: the box's size, in the drawing's units (from its
+  top-left corner).
+- **✕** and **✓**: put the box back, or crop.
+- **Crop to Selection** and **Crop to Drawing**: the same as the File
+  menu's.
+
+#### Tips
+
+- Shift keeps the box's shape while you drag a corner, or makes a new box
+  square.
+- The box can reach past the canvas: cropping then adds room there, like
+  Canvas Size.
+- The thirds in the box help you compose.
 
 #### Good to know
 
-- The drawing's own page is the first artboard. It can be renamed and
-  resized (from its corner, or **File → Document Setup…**), but not moved
-  or deleted: everything is measured from its corner.
-- Art can sit anywhere. An exported artboard shows only what's on it.
-- The saved file shows every artboard (its viewBox covers them all) and
-  lists them in a `data-sc-artboards` attribute, so it reopens with all of
-  them. Exported artboards are clean SVG, without it.
-- Fit on Screen fits every artboard.
-- **File → Export PNG** draws the first artboard, the page.
+- Nothing is deleted. The canvas changes, not the art: whatever is outside
+  is kept, just not shown in exports, so you can always crop back out.
+- The drawing and the guides shift so the canvas still starts at 0, 0, and
+  nothing moves on screen.
+- The crop is rounded out to whole pixels. Crop to Selection and Crop to
+  Drawing fit what's actually painted, so nothing is shaved off: stroke
+  width and position (Center, Inside, Outside), mitre tips at sharp
+  corners (up to the mitre limit), square and round caps, round joins and
+  effects (drop shadow, outer glow, blur) all count, including on rotated
+  and scaled objects. Hidden objects don't count.
+- Define Pattern and Copy as SVG frame the selection the same way.
+- To cut the shapes themselves at an edge, use a
+  [clipping mask](#make-a-clipping-mask) (which can be undone) or
+  Combine Shapes → Intersect with a rectangle.
+- A file saved with several artboards by an older SVGCraft opens with its
+  first artboard as the canvas; the art from the others stays, outside it.
 
 ### Grayscale and black & white
 
@@ -779,30 +799,6 @@ colours themselves change, so the saved SVG really is grey.
 - Each is one undo step.
 - Objects locked against all edits, and linked (not embedded) images, are
   left as they are.
-
-### Crop
-
-![Object → Artboard, with Fit to Selection highlighted](docs/help/crop.png)
-
-Fit the artboard tightly round your artwork, with no empty margin.
-
-- **Object → Artboard → Fit to Selection** → the artboard fits round the
-  selected objects.
-- **Object → Artboard → Fit to Drawing** → the artboard fits round
-  everything visible.
-
-#### Good to know
-
-- The box is rounded out to whole pixels, and it's what's actually painted,
-  so nothing is shaved off. Stroke width and position (Center, Inside,
-  Outside), mitre tips at sharp corners (up to the mitre limit), square and
-  round caps, round joins and effects (drop shadow, outer glow, blur) all
-  count, including on rotated and scaled objects.
-- Hidden objects don't count.
-- The drawing and the guides shift so the artboard still starts at 0, 0,
-  and nothing moves on screen.
-- Anything left outside the artboard is kept, but it isn't exported.
-- Define Pattern and Copy as SVG frame the selection the same way.
 
 ### Select menu
 
@@ -1018,33 +1014,30 @@ Keep Save for your working copy: a clean SVG reopens as plain shapes.
 
 ### Print
 
-![The Print dialog, offering all the drawing's artboards or just one, at actual size or fitted to the paper](docs/help/print.png)
+![The Print dialog, printing at actual size or fitted to the paper](docs/help/print.png)
 
 Print a drawing, or save it as a PDF.
 
 1. Choose **File → Print…** (Ctrl+P).
-2. Pick what to print and how big, then click **Print…**.
+2. Pick how big, then click **Print…**.
 3. In your browser's print dialog, pick a printer, or **Save as PDF**
    for a vector PDF.
 
 #### Settings
 
-- **Artboards**: all of them, one per page, or **Just** the one you pick.
-  With a single artboard there's nothing to choose.
-- **Size**: **Actual size** prints each artboard on a page its own size,
-  so a drawing set up as A4, or in mm, comes out at that size. **Fit to
-  the paper** scales each one to the printer's paper.
+- **Size**: **Actual size** prints the canvas on a page its own size, so
+  a drawing set up as A4, or in mm, comes out at that size. **Fit to the
+  paper** scales it to the printer's paper.
 
 #### Good to know
 
-- Only the artboards print, never the editor around them.
+- Only the canvas prints, never the editor around it.
 - Fonts from Google Fonts are embedded, as for a PNG.
 - Animations print as the drawing stands, not mid-move.
 - Colours print as on screen (sRGB): there's no CMYK or spot colour.
   For a print shop, send the SVG or the PDF.
-- Pages of different sizes need Chrome, Edge or a recent Firefox; Safari
-  may print every page at the first artboard's size, so use **Fit to
-  the paper** there.
+- A page the canvas's size needs Chrome, Edge or a recent Firefox; Safari
+  may print on its default paper, so use **Fit to the paper** there.
 - Printing is loaded the first time you use it, and is kept for offline
   use with the rest of SVGCraft.
 
@@ -1218,7 +1211,7 @@ Scale, rotate and skew the selection by hand or by exact numbers.
   line that isn't rotated takes its new size into its own geometry. Paths,
   groups and rotated shapes keep a transform, and their stroke widths are
   divided by the scale (by its average, when it's more one way than the
-  other). To scale strokes as well, use **File → Scale Document…**.
+  other). To scale strokes as well, use **File → Art Size…**.
 - Browsers keep Ctrl+T and Ctrl+Shift+T for their tabs, so these shortcuts
   use Alt.
 - Warp isn't included.
@@ -1280,7 +1273,7 @@ Line objects up with each other, or space them out evenly.
 
 #### Good to know
 
-- With one object selected, it aligns to the artboard instead.
+- With one object selected, it aligns to the canvas instead.
 
 ### Eyedropper
 
@@ -1836,7 +1829,7 @@ Keep icons and pixel art crisp, with edges on whole pixels.
 
 #### Good to know
 
-- The pixel grid is a 1 px grid over the artboard, shown from 600% zoom
+- The pixel grid is a 1 px grid over the canvas, shown from 600% zoom
   up.
 - Snapping to pixels keeps edges sharp in PNG exports and at small sizes.
 - A centred stroke of odd whole width (1, 3 px …) snaps to half pixels
@@ -3072,7 +3065,7 @@ that file first.
 
 ## Icons
 
-Tools for drawing icons and app icons: a square artboard with margin guides,
+Tools for drawing icons and app icons: a square canvas with margin guides,
 keylines to size shapes against, a live preview at icon sizes, and an export
 with every size each platform asks for. See also the pixel grid and Snap to
 Pixel, under Features.
@@ -3081,7 +3074,7 @@ Pixel, under Features.
 
 ![The New Icon dialog with the Android adaptive icon template picked](docs/help/file-new-icon.png)
 
-Start an icon on a square artboard, with its margins already marked as guides.
+Start an icon on a square canvas, with its margins already marked as guides.
 
 1. Choose **File → New Icon…**.
 2. Pick a **Template** for the platform you're drawing for, or leave it on
@@ -3234,7 +3227,7 @@ Each size is drawn from the vector art, not scaled from one big bitmap.
   as the App Store requires. So is Android's adaptive background when
   there's no Background object.
 - The rest keep their transparency.
-- A non-square artboard is centred in each square icon.
+- A non-square canvas is centred in each square icon.
 
 ## Symbols
 
@@ -3473,7 +3466,7 @@ in parentheses, taken from the menus, so they always agree.
 | U · Shift+U               | Shape tool · next shape in the group               |
 | R O L                     | Rectangle · Ellipse · Line                         |
 | T H Z                     | Type · Hand · Zoom                                 |
-| Shift+M · Shift+O         | Shape Builder · Artboard                           |
+| Shift+M · C               | Shape Builder · Crop                               |
 | Space (hold)              | Pan                                                |
 | D · X                     | Default paint (black fill, no stroke) · swap them  |
 | [ ]                       | Stroke width down / up                             |
@@ -3494,7 +3487,7 @@ in parentheses, taken from the menus, so they always agree.
 | + − 0 1 (or Ctrl + − 0)   | Zoom in / out · fit · 100%                         |
 | Ctrl+R · Ctrl+; · Ctrl+'  | Rulers · guides · grid                             |
 | Ctrl+Shift+; · Ctrl+Alt+; | Snap to grid · lock guides                         |
-| Ctrl+Alt+I · Ctrl+Alt+C   | Scale Document · Document Setup                    |
+| Ctrl+Alt+I · Ctrl+Alt+C   | Art Size · Canvas Size                             |
 | Alt+Shift+Ctrl+B          | Black & White…                                     |
 | Shift+Ctrl+U              | Desaturate                                         |
 | Tab · Shift+Tab           | Hide all panels · hide the right-hand panels       |

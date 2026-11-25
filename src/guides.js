@@ -7,7 +7,7 @@
 // Guides are { axis: 'x' | 'y', pos } in document units: an 'x' guide is
 // vertical (drawn at x = pos). They're part of history and are saved in
 // the file as data-sc-guides on the root <svg>, which renders nothing.
-// Snapping weighs, per axis: guides, smart targets (the artboard's and
+// Snapping weighs, per axis: guides, smart targets (the canvas's and
 // other objects' edges and centres) and the grid; a guide or smart match
 // within 6 screen px beats the grid. Ctrl/⌘ held while dragging skips it.
 // ---------------------------------------------------------------------

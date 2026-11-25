@@ -48,7 +48,7 @@ test('units change what’s shown, not the drawing; undo puts them back', async 
 });
 
 test('page presets set the size and units; orientation swaps them', async ({ page }) => {
-  // The artboard is wider than tall, so the page comes out landscape.
+  // The canvas is wider than tall, so the page comes out landscape.
   await page.selectOption('#sc-page', 'a4');
   expect(await st(page)).toEqual({ w: 1122.52, h: 793.7, units: 'mm' });
   await expect(page.locator('#sc-msg')).toHaveText('Page size: A4, landscape.');

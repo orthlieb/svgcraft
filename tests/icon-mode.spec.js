@@ -129,13 +129,13 @@ test.describe('New Icon', () => {
 });
 
 test.describe('pixel grid and keylines', () => {
-  test('the pixel grid shows from 600%, over the visible artboard', async ({ page }) => {
+  test('the pixel grid shows from 600%, over the visible canvas', async ({ page }) => {
     await load(page, '', 40, 30);
     await menu(page, 'View', 'togglePixelGrid');
     const d = () => page.locator('#sc-pixgrid').getAttribute('d');
     await menu(page, 'View', 'zoom100');
     expect(await d()).toBe('');
-    // Fit (over 600% for so small an artboard): a line per pixel edge,
+    // Fit (over 600% for so small an canvas): a line per pixel edge,
     // 41 + 31 of them.
     await menu(page, 'View', 'fit');
     expect(await state(page, 'zoom')).toBeGreaterThan(6);

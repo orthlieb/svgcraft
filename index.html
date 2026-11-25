@@ -71,9 +71,6 @@
             <button role="menuitem" data-action="saveAs">
               <i></i><span>Save As…</span><kbd>Ctrl+Shift+S</kbd>
             </button>
-            <button role="menuitem" data-action="exportArtboards">
-              <i></i><span>Export Artboards…</span>
-            </button>
             <button role="menuitem" data-action="exportCleanSvg">
               <i></i><span>Export Clean SVG…</span>
             </button>
@@ -93,11 +90,17 @@
               <i data-icon="print"></i><span>Print…</span><kbd>Ctrl+P</kbd>
             </button>
             <hr />
-            <button role="menuitem" data-action="canvasSize">
-              <i data-icon="expand"></i><span>Document Setup…</span><kbd>Ctrl+Alt+C</kbd>
-            </button>
             <button role="menuitem" data-action="imageSize">
-              <i data-icon="maximize"></i><span>Scale Document…</span><kbd>Ctrl+Alt+I</kbd>
+              <i data-icon="maximize"></i><span>Art Size…</span><kbd>Ctrl+Alt+I</kbd>
+            </button>
+            <button role="menuitem" data-action="canvasSize">
+              <i data-icon="expand"></i><span>Canvas Size…</span><kbd>Ctrl+Alt+C</kbd>
+            </button>
+            <button role="menuitem" data-action="cropToSelection">
+              <i data-icon="crop-simple"></i><span>Crop to Selection</span>
+            </button>
+            <button role="menuitem" data-action="cropToDrawing">
+              <i data-icon="crop"></i><span>Crop to Drawing</span>
             </button>
             <hr />
             <button role="menuitem" data-action="fileInfo">
@@ -404,20 +407,6 @@
             <button role="menuitem" data-action="imageTrace">
               <i data-icon="image"></i><span>Image Trace…</span>
             </button>
-            <div class="sc-submenu">
-              <button role="menuitem" class="sc-sub-btn" aria-haspopup="menu" aria-expanded="false">
-                <i data-icon="crop"></i><span>Artboard</span
-                ><i data-icon="chevron-right" class="sc-sub-caret"></i>
-              </button>
-              <div class="sc-menu-list sc-sub-list" role="menu" hidden>
-                <button role="menuitem" data-action="cropToSelection">
-                  <i data-icon="crop-simple"></i><span>Fit to Selection</span>
-                </button>
-                <button role="menuitem" data-action="cropToDrawing">
-                  <i data-icon="crop"></i><span>Fit to Drawing</span>
-                </button>
-              </div>
-            </div>
           </div>
         </div>
         <div class="sc-menu">
@@ -858,53 +847,53 @@
           <i data-icon="check"></i>
         </button>
       </div>
-      <div class="sc-opt" data-for="artboard">
-        <label class="sc-field"
-          ><span class="sc-opt-label">Name:</span
-          ><input
-            id="sc-board-name"
-            class="sc-board-name-field"
-            aria-label="Artboard name"
-            spellcheck="false"
-        /></label>
+      <div class="sc-opt" data-for="crop">
         <label class="sc-field"
           ><span class="sc-opt-label">W:</span
-          ><input
-            id="sc-board-w"
-            type="number"
-            min="0"
-            step="any"
-            aria-label="Artboard width"
-          /><span class="sc-unit" data-doc-unit>px</span></label
+          ><input id="sc-crop-w" type="number" min="1" step="any" aria-label="Crop width" /><span
+            class="sc-unit"
+            data-doc-unit
+            >px</span
+          ></label
         >
         <label class="sc-field"
           ><span class="sc-opt-label">H:</span
-          ><input
-            id="sc-board-h"
-            type="number"
-            min="0"
-            step="any"
-            aria-label="Artboard height"
-          /><span class="sc-unit" data-doc-unit>px</span></label
-        >
-        <label class="sc-check" data-tip="Dragging an artboard takes the objects on it along"
-          ><input type="checkbox" id="sc-board-moveart" checked /> Move art</label
+          ><input id="sc-crop-h" type="number" min="1" step="any" aria-label="Crop height" /><span
+            class="sc-unit"
+            data-doc-unit
+            >px</span
+          ></label
         >
         <button
           class="sc-ibtn"
-          data-action="deleteArtboard"
-          aria-label="Delete the artboard"
-          data-tip="Delete the artboard (the art on it stays)"
+          id="sc-crop-reset"
+          aria-label="Reset the crop box"
+          data-tip="Put the box back round the canvas (Esc)"
         >
-          <i data-icon="trash-can"></i>
+          <i data-icon="xmark"></i>
+        </button>
+        <button
+          class="sc-ibtn"
+          id="sc-crop-apply"
+          aria-label="Crop"
+          data-tip="Crop the canvas to the box (Enter)"
+        >
+          <i data-icon="check"></i>
         </button>
         <span class="sc-vsep"></span>
         <button
           class="sc-tbtn"
-          data-action="exportArtboards"
-          data-tip="Save each artboard as its own SVG, in a zip"
+          data-action="cropToSelection"
+          data-tip="Crop the canvas round the selected objects"
         >
-          Export Artboards…
+          Crop to Selection
+        </button>
+        <button
+          class="sc-tbtn"
+          data-action="cropToDrawing"
+          data-tip="Crop the canvas round everything visible, bringing back anything cropped away"
+        >
+          Crop to Drawing
         </button>
       </div>
       <div class="sc-opt" data-for="select">
@@ -912,7 +901,7 @@
           class="sc-ibtn"
           data-action="alignLeft"
           aria-label="Align left edges"
-          data-tip="Align left edges (to the artboard if one object is selected)"
+          data-tip="Align left edges (to the canvas if one object is selected)"
         >
           <i data-icon="align-left"></i>
         </button>
@@ -920,7 +909,7 @@
           class="sc-ibtn"
           data-action="alignHCenter"
           aria-label="Align horizontal centres"
-          data-tip="Align horizontal centres (to the artboard if one object is selected)"
+          data-tip="Align horizontal centres (to the canvas if one object is selected)"
         >
           <i data-icon="align-center"></i>
         </button>
@@ -928,7 +917,7 @@
           class="sc-ibtn"
           data-action="alignRight"
           aria-label="Align right edges"
-          data-tip="Align right edges (to the artboard if one object is selected)"
+          data-tip="Align right edges (to the canvas if one object is selected)"
         >
           <i data-icon="align-right"></i>
         </button>
@@ -937,7 +926,7 @@
           class="sc-ibtn"
           data-action="alignTop"
           aria-label="Align top edges"
-          data-tip="Align top edges (to the artboard if one object is selected)"
+          data-tip="Align top edges (to the canvas if one object is selected)"
         >
           <i data-icon="align-left" class="sc-rot90"></i>
         </button>
@@ -945,7 +934,7 @@
           class="sc-ibtn"
           data-action="alignVCenter"
           aria-label="Align vertical centres"
-          data-tip="Align vertical centres (to the artboard if one object is selected)"
+          data-tip="Align vertical centres (to the canvas if one object is selected)"
         >
           <i data-icon="align-center" class="sc-rot90"></i>
         </button>
@@ -953,7 +942,7 @@
           class="sc-ibtn"
           data-action="alignBottom"
           aria-label="Align bottom edges"
-          data-tip="Align bottom edges (to the artboard if one object is selected)"
+          data-tip="Align bottom edges (to the canvas if one object is selected)"
         >
           <i data-icon="align-right" class="sc-rot90"></i>
         </button>
@@ -1469,11 +1458,11 @@
           <i data-shape-icon></i><span class="sc-tool-more" aria-hidden="true"></span>
         </button>
         <button
-          data-tool="artboard"
-          aria-label="Artboard"
-          data-tip="Artboard"
-          data-key="Shift+O"
-          data-tip-desc="Drag on the pasteboard to add an artboard; drag one to move it, its corner to resize it. File → Export Artboards… saves each as its own SVG."
+          data-tool="crop"
+          aria-label="Crop"
+          data-tip="Crop"
+          data-key="C"
+          data-tip-desc="Drag the box round the part of the drawing to keep, then press Enter. The canvas is cropped; nothing is deleted, so Crop to Drawing brings it all back."
         >
           <i data-icon="crop-simple"></i>
         </button>
@@ -1551,7 +1540,6 @@
                   height="600"
                   fill="url(#sc-checker)"
                 />
-                <g id="sc-boards"></g>
                 <rect
                   id="sc-grid-rect"
                   x="0"
@@ -1564,7 +1552,6 @@
                 <defs id="sc-defs"></defs>
                 <g id="sc-doc"></g>
                 <rect id="sc-board-frame" x="0" y="0" width="800" height="600" fill="none" />
-                <g id="sc-board-names"></g>
                 <path id="sc-pixgrid" class="sc-pixgrid" />
                 <g id="sc-keylines"></g>
                 <g id="sc-guidelines"></g>
@@ -3215,14 +3202,14 @@
       </div>
     </dialog>
 
-    <!-- File → Scale Document…: scale the artboard and everything on it. -->
+    <!-- File → Art Size…: scale the canvas and everything on it. -->
     <dialog
       class="sc-dialog sc-docsize"
       id="sc-imagesize"
-      data-help="scale-document"
+      data-help="art-size"
       aria-labelledby="sc-is-title"
     >
-      <div class="sc-dialog-title" id="sc-is-title">Scale Document</div>
+      <div class="sc-dialog-title" id="sc-is-title">Art Size</div>
       <div class="sc-dialog-body">
         <p class="sc-hint" data-is="was"></p>
         <div class="sc-docsize-row">
@@ -3245,8 +3232,8 @@
           blur)</label
         >
         <p class="sc-hint">
-          Everything scales with the artboard: shapes, strokes, text and guides. It’s SVG, so
-          nothing gets blurry.
+          Everything scales with the canvas: shapes, strokes, text and guides. It’s SVG, so nothing
+          gets blurry.
         </p>
       </div>
       <div class="sc-dialog-foot">
@@ -3438,14 +3425,14 @@
       </div>
     </dialog>
 
-    <!-- File → Document Setup…: the artboard grows or shrinks around an anchor. -->
+    <!-- File → Canvas Size…: the canvas grows or shrinks around an anchor. -->
     <dialog
       class="sc-dialog sc-docsize"
       id="sc-canvassize"
-      data-help="document-setup"
+      data-help="canvas-size"
       aria-labelledby="sc-cv-title"
     >
-      <div class="sc-dialog-title" id="sc-cv-title">Document Setup</div>
+      <div class="sc-dialog-title" id="sc-cv-title">Canvas Size</div>
       <div class="sc-dialog-body">
         <p class="sc-hint" data-cv="was"></p>
         <div class="sc-docsize-row">
@@ -3556,7 +3543,7 @@
       </div>
     </dialog>
 
-    <!-- File → New Icon…: a square artboard with its margins as guides. -->
+    <!-- File → New Icon…: a square canvas with its margins as guides. -->
     <dialog
       class="sc-dialog sc-newicon"
       id="sc-newicon"
@@ -4808,7 +4795,7 @@
     <script src="src/new-doc.js"></script>
     <script src="src/commands.js"></script>
     <script src="src/shape-builder.js"></script>
-    <script src="src/artboards.js"></script>
+    <script src="src/crop.js"></script>
     <script src="src/outlines.js"></script>
     <script src="src/transform.js"></script>
     <script src="src/distort.js"></script>

@@ -236,7 +236,7 @@ test.describe('export', () => {
     await load(page, '<path d="M100 100L300 120" stroke="#000"/>');
   });
 
-  test('Download SVG saves a standalone SVG of the artboard', async ({ page }) => {
+  test('Download SVG saves a standalone SVG of the canvas', async ({ page }) => {
     const [dl] = await Promise.all([page.waitForEvent('download'), page.click('.sc-export')]);
     const svg = fs.readFileSync(await dl.path(), 'utf8');
     expect(svg).toMatch(
@@ -254,7 +254,7 @@ test.describe('export', () => {
     ]);
     const png = fs.readFileSync(await dl.path());
     expect([...png.subarray(0, 8)]).toEqual([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
-    // IHDR width / height: 2× the 800 × 600 artboard.
+    // IHDR width / height: 2× the 800 × 600 canvas.
     expect(png.readUInt32BE(16)).toBe(1600);
     expect(png.readUInt32BE(20)).toBe(1200);
   });

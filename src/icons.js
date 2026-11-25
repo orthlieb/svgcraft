@@ -3,7 +3,7 @@
 
 // ---- icon mode: pixel grid, snap to pixel, keylines, icon preview ----------------
 // The pixel grid shows from 600% up, as in Illustrator. It's drawn only
-// where the artboard is on screen, with hairlines whatever the zoom.
+// where the canvas is on screen, with hairlines whatever the zoom.
 const PIXEL_GRID_ZOOM = 6;
 function drawPixelGrid() {
   const path = $('#sc-pixgrid');
@@ -46,7 +46,7 @@ const toPixel = (v, o) => Math.round(v - o) + o;
 // Keylines (Material's icon grid): a circle, a square and portrait and
 // landscape rectangles, centred in the live area, with its diagonals and
 // centre lines. The live area is inside the margin guides nearest each
-// edge (within a quarter of the artboard), so moving a guide moves them.
+// edge (within a quarter of the canvas), so moving a guide moves them.
 function liveArea() {
   const m = Math.round(Math.min(state.w, state.h) / 12);
   const span = (axis, size) => {
@@ -220,7 +220,7 @@ function scheduleIconPreview() {
   clearTimeout(iconPrev.timer);
   iconPrev.timer = setTimeout(renderIconPreview, 120);
 }
-// The canvas with the artboard's longer side at `size` screen pixels.
+// The canvas with the canvas's longer side at `size` screen pixels.
 function showAtSize(size) {
   const r = stage.getBoundingClientRect();
   state.zoom = clamp(size / Math.max(state.w, state.h), 0.02, 64);
@@ -260,7 +260,7 @@ ipWin.addEventListener('keydown', (e) => {
   closeIconPreview();
 });
 
-// File → New Icon…: a square artboard with its margins (and, optionally,
+// File → New Icon…: a square canvas with its margins (and, optionally,
 // centre lines) as ordinary guides. Templates follow the platforms' icon
 // guidelines: `extra` adds more guides, inset that far from every edge,
 // and `mask` / `crop` set up the icon preview the way the platform shows it.
