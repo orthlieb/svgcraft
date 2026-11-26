@@ -1501,11 +1501,17 @@
         <!-- The canvas, and the Icon Preview when it's docked beside it. -->
         <div class="sc-nodoc" id="sc-nodoc" hidden>
           <p>No document open</p>
+          <!-- A phone only previews: Open is all there is to do. -->
           <div class="sc-nodoc-btns">
-            <button class="sc-tbtn sc-primary-btn" data-action="new">New…</button>
-            <button class="sc-tbtn" data-action="open">Open…</button>
+            <button class="sc-tbtn sc-primary-btn sc-edit-only" data-action="new">New…</button>
+            <button class="sc-tbtn sc-edit-only" data-action="open">Open…</button>
+            <button class="sc-tbtn sc-primary-btn sc-preview-only" data-action="open">Open…</button>
           </div>
-          <p class="sc-hint">or drop an SVG or image here</p>
+          <p class="sc-hint sc-edit-only">or drop an SVG or image here</p>
+          <p class="sc-hint sc-preview-only">
+            Open an SVG to look at it, play its animations and share it. Editing needs a tablet or a
+            larger screen.
+          </p>
         </div>
         <div class="sc-split" id="sc-split">
           <div class="sc-stage-wrap" id="sc-stage-wrap">

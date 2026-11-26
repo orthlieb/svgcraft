@@ -1775,6 +1775,7 @@ button.sc-fx-item.sel {
   align-items: center;
   justify-content: center;
 }
+.sc-preview .sc-edit-only,
 .sc-preview .sc-menus,
 .sc-preview .sc-options,
 .sc-preview .sc-tools,
@@ -1834,11 +1835,11 @@ button.sc-fx-item.sel {
   fill: currentColor;
 }
 @media (max-width: 480px) {
-  .sc-preview .sc-preview-only.sc-tbtn {
+  .sc-preview .sc-menubar-end .sc-preview-only.sc-tbtn {
     font-size: 0;
     gap: 0;
   }
-  .sc-preview .sc-preview-only.sc-tbtn svg {
+  .sc-preview .sc-menubar-end .sc-preview-only.sc-tbtn svg {
     width: 15px;
     height: 15px;
   }
@@ -2995,6 +2996,11 @@ body.sc-no-doc .sc-status > * {
 .sc-nodoc-btns {
   display: flex;
   gap: 8px;
+}
+.sc-nodoc .sc-hint {
+  max-width: 300px;
+  padding: 0 16px;
+  text-align: center;
 }
 .sc-split {
   display: flex;

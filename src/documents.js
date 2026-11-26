@@ -363,8 +363,15 @@ async function loadDocs() {
     if (typeof old?.svg === 'string')
       list = [{ id: 'restored', name: old.name || 'drawing', svg: old.svg, saved: null }];
   }
-  if (!list.length && Array.isArray(data?.docs) && curDoc && !dirty(curDoc) && !items().length) {
-    // Closed everything last time: blank again.
+  if (
+    !list.length &&
+    (Array.isArray(data?.docs) || previewMode) &&
+    curDoc &&
+    !dirty(curDoc) &&
+    !items().length
+  ) {
+    // Closed everything last time: blank again. A phone, which only
+    // previews, starts there too rather than on an empty Untitled-1.
     docs.length = 0;
     docsLoaded = true;
     showNoDoc();
