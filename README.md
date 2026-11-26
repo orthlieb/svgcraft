@@ -27,9 +27,10 @@ a phone gets a preview to look at drawings.
 Look at, check and share SVGs on your phone. A phone gets a preview, not
 the editor, so nothing you do there changes a drawing.
 
-- Tap **Open** (the folder) to open an SVG. Each opens in a tab of its
-  own; tap a tab to switch, or swipe along the tab bar for the next or
-  previous drawing (while all the tabs fit).
+- Tap **Open** (the folder, or **Open…** while nothing is open) to open
+  an SVG. Each opens in a tab of its own; tap a tab to switch, or swipe
+  along the tab bar for the next or previous drawing (while all the tabs
+  fit).
 - Drag to pan and pinch to zoom. Tap **Fit** (the four corners) to fit
   the drawing to the screen.
 - Double-tap the canvas to zoom in on that spot (to 100%, or twice the fit
@@ -73,6 +74,8 @@ the editor, so nothing you do there changes a drawing.
 
 - A phone is a screen narrower than 768 px, or a phone held sideways.
 - The editing tools, menus and panels are hidden there, and so is Undo.
+  There's no New either: a phone starts with nothing open, ready to open
+  a drawing (or with the drawings you had open last time).
 
 ### On a tablet
 

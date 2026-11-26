@@ -9,8 +9,17 @@ const DRAWING =
 const preview = (page) =>
   page.evaluate(() => document.documentElement.classList.contains('sc-preview'));
 
+// A phone starts with nothing open; these tests look at a drawing, as if
+// one had been opened.
+const withDrawing = (page) =>
+  page.evaluate(() => {
+    // eslint-disable-next-line no-undef -- the editor's own global
+    if (!docs.length) newDoc();
+  });
+
 test.describe('phone, portrait', () => {
   test.use({ viewport: { width: 390, height: 800 }, hasTouch: true, isMobile: true });
+  test.beforeEach(({ page }) => withDrawing(page));
 
   test('is a viewer that fits the screen', async ({ page }) => {
     expect(await preview(page)).toBe(true);
@@ -425,6 +434,17 @@ test('growing a window past phone size switches back to the editor', async ({ pa
 
 test.describe('phone, nothing open', () => {
   test.use({ viewport: { width: 390, height: 800 }, hasTouch: true, isMobile: true });
+
+  test('starts with nothing open, offering just Open', async ({ page }) => {
+    await expect(page.locator('#sc-nodoc')).toBeVisible();
+    await expect(page.locator('#sc-doctabs [role="tab"]')).toHaveCount(0);
+    // No New (a phone can't draw), no drop hint: Open, and what it's for.
+    const btns = page.locator('#sc-nodoc button:visible');
+    await expect(btns).toHaveText(['Open…']);
+    await expect(page.locator('#sc-nodoc .sc-hint:visible')).toHaveText([
+      /^\s*Open an SVG to look at it/,
+    ]);
+  });
 
   test('Info still opens, with Help and About', async ({ page }) => {
     await page.evaluate(() => {
