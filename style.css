@@ -5,7 +5,7 @@
 :root {
   --shell: #e6e6e6; /* menu bar, options bar, status bar, panel tab strips */
   --panel: #f0f0f0; /* toolbar + panel bodies */
-  --pasteboard: #c8c8c8; /* around the artboard */
+  --pasteboard: #c8c8c8; /* around the canvas */
   --field: #ffffff; /* inputs */
   --line: #c2c2c2; /* hard separators */
   --line-soft: #d8d8d8;
@@ -25,7 +25,7 @@
   --check-b: #cccccc;
   --frame: rgba(0, 0, 0, 0.35);
   --grid: rgba(20, 115, 230, 0.22);
-  --pixgrid: rgba(110, 110, 110, 0.5); /* View → Pixel Grid, over the artboard */
+  --pixgrid: rgba(110, 110, 110, 0.5); /* View → Pixel Grid, over the canvas */
   --keyline: rgba(214, 51, 132, 0.55); /* View → Icon Keylines */
   --danger: #d7373f;
   /* SVG Source syntax colours */
@@ -693,40 +693,23 @@ kbd {
   vector-effect: non-scaling-stroke;
   pointer-events: none;
 }
-/* Artboards after the page (src/artboards.js): their pages, edges and names. */
-.sc-board-page {
-  pointer-events: none;
+/* The Crop tool (src/crop.js): the shade over what's cropped away, the box
+   and its thirds. */
+.sc-crop-shade {
+  fill: rgb(0 0 0 / 0.6);
 }
-.sc-board-edge,
-.sc-board-sel {
-  stroke: var(--frame);
+.sc-crop-box {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 1.5;
   vector-effect: non-scaling-stroke;
-  pointer-events: none;
 }
-.sc-board-sel {
-  stroke: var(--accent-hi);
-  stroke-width: 2;
-}
-.sc-board-grip {
-  fill: #fff;
-  stroke: var(--accent-hi);
+.sc-crop-third {
+  stroke: rgb(255 255 255 / 0.5);
   vector-effect: non-scaling-stroke;
-  pointer-events: none;
 }
-.sc-board-name {
-  fill: var(--text-dim);
-  font-family: inherit;
-  pointer-events: none;
-  user-select: none;
-}
-.sc-board-name.sel {
-  fill: var(--accent-hi);
-}
-.sc-board-name-field {
-  width: 120px;
-}
-#sc-board-w,
-#sc-board-h {
+#sc-crop-w,
+#sc-crop-h {
   width: 64px;
 }
 #sc-board-bg,

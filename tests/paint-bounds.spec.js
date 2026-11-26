@@ -130,10 +130,10 @@ test('Crop to Selection keeps a mitred stroke whole', async ({ page }) => {
     300,
   );
   await select(page, 's');
-  await menu(page, 'Object', 'cropToSelection');
+  await menu(page, 'File', 'cropToSelection');
   const { w, h } = await page.evaluate(() => window.svgcraft.state);
   const r = await rasterBounds(page, 's');
-  // Everything painted is inside the new artboard.
+  // Everything painted is inside the new canvas.
   expect(r.x1).toBeGreaterThanOrEqual(0);
   expect(r.y1).toBeGreaterThanOrEqual(0);
   expect(r.x2).toBeLessThanOrEqual(w);

@@ -84,7 +84,7 @@ export default [
     },
   },
   {
-    id: 'scale-document',
+    id: 'art-size',
     async shoot(h) {
       await h.menu('File', 'imageSize');
       await h.page.locator('#sc-imagesize').waitFor();
@@ -94,42 +94,12 @@ export default [
     },
   },
   {
-    id: 'document-setup',
+    id: 'canvas-size',
     async shoot(h) {
       await h.menu('File', 'canvasSize');
       await h.page.locator('#sc-canvassize').waitFor();
       await h.page.click('[data-cv-anchor="0.5,0.5"]');
       await h.shot('#sc-canvassize', { pad: 0 });
-    },
-  },
-  {
-    id: 'artboards',
-    async shoot(h) {
-      await h.open(
-        `<circle cx="64" cy="64" r="48" fill="#2563eb"/>
-        <rect x="180" y="16" width="96" height="96" rx="20" fill="#f97316"/>
-        <path d="M360 110 L400 20 L440 110Z" fill="#16a34a"/>`,
-        'icons.svg',
-        128,
-        128,
-      );
-      await h.page.evaluate(() => {
-        /* eslint-disable no-undef -- the editor's own globals */
-        const s = window.svgcraft.state;
-        s.boards.push(
-          { name: 'Square', x: 164, y: 0, w: 128, h: 128 },
-          { name: 'Triangle', x: 336, y: 0, w: 128, h: 128 },
-        );
-        s.boardName = 'Circle';
-        window.svgcraft.setTool('artboard');
-        fit();
-        boardSel = 2;
-        renderBoards();
-        syncBoardOpts();
-        /* eslint-enable no-undef */
-      });
-      await h.page.mouse.move(5, 5);
-      await h.shot(['#sc-options', '#sc-stage-wrap'], { pad: 0 });
     },
   },
   {
@@ -145,9 +115,21 @@ export default [
   {
     id: 'crop',
     async shoot(h) {
-      await h.select('Bream');
-      await h.menu('Object', 'cropToSelection', { click: false });
-      await menuShot(h, 'cropToSelection');
+      // The Crop tool's box round the middle of the scene, the rest shaded.
+      await h.page.evaluate(() => {
+        const s = window.svgcraft.state;
+        window.svgcraft.setTool('crop');
+        const t = window.svgcraft.tools.crop;
+        t.box = {
+          x: Math.round(s.w * 0.18),
+          y: Math.round(s.h * 0.15),
+          w: Math.round(s.w * 0.6),
+          h: Math.round(s.h * 0.62),
+        };
+        t.sync();
+      });
+      await h.page.mouse.move(5, 5);
+      await h.shot(['#sc-options', '#sc-stage-wrap'], { pad: 0 });
     },
   },
   {
@@ -229,9 +211,6 @@ export default [
   {
     id: 'print',
     async shoot(h) {
-      await h.page.evaluate(() => {
-        window.svgcraft.state.boards.push({ name: 'Icon', x: 860, y: 0, w: 256, h: 256 });
-      });
       await h.page.evaluate(() => window.svgcraft.actions.print());
       await h.page.locator('#sc-print-dlg').waitFor();
       await h.shot('#sc-print-dlg', { pad: 0 });

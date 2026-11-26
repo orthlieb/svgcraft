@@ -167,7 +167,7 @@ test.describe('the canvas menu', () => {
     await page.keyboard.press('ArrowDown');
     await expect(item(page, 'Cut')).toBeFocused();
     await page.keyboard.press('ArrowUp');
-    await expect(item(page, 'Fit to Selection')).toBeFocused();
+    await expect(item(page, 'Crop to Selection')).toBeFocused();
     for (const b of await ctx(page).locator(':scope > button, .sc-sub-btn').all())
       if ((await b.textContent()).includes('Arrange')) await b.focus();
     await page.keyboard.press('ArrowRight');

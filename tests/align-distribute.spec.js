@@ -125,7 +125,7 @@ test('undo after an align restores every layer', async ({ page }) => {
     for (const k of ['x', 'y', 'r', 'b']) expect(q[k]).toBeCloseTo(before[i][k], 2);
 });
 
-test('a single object aligns to the artboard', async ({ page }) => {
+test('a single object aligns to the canvas', async ({ page }) => {
   await open(page);
   await selectIds(page, ['c']);
   await run(page, 'alignHCenter');
@@ -217,7 +217,7 @@ test.describe('eyedropper pixel mode', () => {
   });
 
   test('hovering previews the colour; clicking sets the fill with its alpha', async ({ page }) => {
-    // The 50%-blue circle over a transparent artboard.
+    // The 50%-blue circle over a transparent canvas.
     const [cx, cy] = [600, 400];
     const p0 = await toScreen(page, cx - 5, cy - 5);
     const p1 = await toScreen(page, cx, cy);

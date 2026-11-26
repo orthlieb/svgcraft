@@ -168,13 +168,11 @@ const state = {
   strokePat: null,
   gradStop: 0, // selected stop in the gradient editor
   guides: [], // { axis: 'x' | 'y', pos }
-  boards: [], // the artboards after the page, { name, x, y, w, h } (src/artboards.js)
-  boardName: null, // the page's own artboard name, when not “Artboard 1”
   meta: {}, // File Info: see cleanMeta
   guidesOn: true,
   guidesLocked: false,
   snapGuides: true,
-  smart: true, // smart guides: snap to other objects and the artboard
+  smart: true, // smart guides: snap to other objects and the canvas
   pixelGrid: false, // View → Pixel Grid (from 600%)
   snapPixel: false, // View → Snap to Pixel
   keylines: false, // View → Icon Keylines

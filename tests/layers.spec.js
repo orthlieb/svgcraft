@@ -208,7 +208,7 @@ test('a deeply nested layer nudges and aligns in doc space; undo restores it', a
   expect(b1.x - b0.x).toBeCloseTo(10, 2);
   expect(b1.y - b0.y).toBeCloseTo(0, 2);
 
-  // Alone, it aligns to the artboard.
+  // Alone, it aligns to the canvas.
   await page.evaluate(() => window.svgcraft.cmds.alignLeft());
   expect((await selTopLeft(page)).x).toBeCloseTo(0, 2);
 

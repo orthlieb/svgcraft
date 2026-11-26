@@ -167,7 +167,7 @@ test('iOS and the Apple touch icon are opaque, on the background colour', async 
   expect((await pixels(page, z[f], [[1, 1]]))[0][3]).toBe(0);
 });
 
-test('only the platforms picked; a wide artboard is centred', async ({ page }) => {
+test('only the platforms picked; a wide canvas is centred', async ({ page }) => {
   await load(page, '<rect width="128" height="64" fill="#16a34a"/>', 128, 64, 'icon.svg');
   const z = await exportIcons(page, { off: ['web', 'ios', 'macos'] });
   expect(Object.keys(z).every((f) => f.startsWith('android/') || f === 'README.txt')).toBe(true);

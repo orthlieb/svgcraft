@@ -446,6 +446,23 @@ const docFamilies = () =>
   );
 const loadDocFonts = () => docFamilies().forEach(ensureFont);
 
+// The artboards an older SVGCraft listed in data-sc-artboards: the first
+// is the canvas (the rest are left to the art). Anything malformed is
+// dropped.
+function readBoards(attr) {
+  let list;
+  try {
+    list = JSON.parse(attr || '[]');
+  } catch {
+    return null;
+  }
+  if (!Array.isArray(list)) return null;
+  const ok = list
+    .filter((b) => b && ['x', 'y', 'w', 'h'].every((k) => isFinite(+b[k])) && +b.w > 0 && +b.h > 0)
+    .map((b) => ({ x: +b.x, y: +b.y, w: +b.w, h: +b.h }));
+  return ok.length > 1 ? ok : null;
+}
+
 // Replace the current tab's drawing with an SVG file's. It counts as
 // freshly opened (no *) unless keepSaved.
 // step: the History panel's name for it; keepView: no fit to the window
@@ -456,8 +473,9 @@ function openSvg(text, name, { keepSaved = false, step = 'Open', keepView = fals
   dropIso();
   doc.replaceChildren();
   defs.replaceChildren(...s.defs);
-  // A file with artboards keeps its own coordinates: the first artboard is
-  // the page, so the art is measured from its corner.
+  // A file saved with artboards (by an older SVGCraft) keeps its own
+  // coordinates: its first artboard is the canvas, so the art is measured
+  // from its corner. The art on the others stays, outside the canvas.
   const page = s.boards?.[0];
   const shift = page
     ? page.x || page.y
@@ -471,10 +489,6 @@ function openSvg(text, name, { keepSaved = false, step = 'Open', keepView = fals
     doc.append(n);
   }
   state.units = s.units;
-  state.boardName = page && page.name !== 'Artboard 1' ? page.name : null;
-  state.boards = page
-    ? s.boards.slice(1).map((b) => ({ ...b, x: b.x - page.x, y: b.y - page.y }))
-    : [];
   if (page) setSize(page.w, page.h);
   else setSize(s.w * s.k, s.h * s.k);
   adoptGradients(s.nodes);

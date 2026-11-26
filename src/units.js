@@ -3,7 +3,7 @@
 
 // The drawing is always in pixels inside (1 user unit = 1 CSS px, 96 per
 // inch), so nothing about shapes, strokes or zoom changes. The units are
-// how lengths are shown and typed: the rulers, the artboard size, guide
+// how lengths are shown and typed: the rulers, the canvas size, guide
 // positions, the X/Y/W/H fields, Image and Canvas Size, the grid and the
 // status bar. A drawing in mm, cm, in or pt is saved with real-world
 // width and height (width="210mm"), so print and cutting software know
@@ -44,7 +44,7 @@ function parseLength(v) {
 }
 
 // Page sizes: name, short side, long side, units. Portrait unless the
-// artboard is wider than tall, which keeps a landscape page landscape.
+// canvas is wider than tall, which keeps a landscape page landscape.
 const PAGE_PRESETS = {
   a5: ['A5', 148, 210, 'mm'],
   a4: ['A4', 210, 297, 'mm'],
@@ -71,7 +71,7 @@ for (const [k, [name, a, b, u]] of Object.entries(PAGE_PRESETS))
     }),
   );
 
-// Which preset the artboard is, either way round, or ''.
+// Which preset the canvas is, either way round, or ''.
 function pagePreset() {
   for (const [k, [, a, b, u]] of Object.entries(PAGE_PRESETS)) {
     const [pa, pb] = [a, b].map((v) => v * LENGTH_PX[u]);
@@ -104,7 +104,7 @@ function setUnits(u) {
   say(`Units: ${UNITS[u][0].toLowerCase()}.`);
 }
 
-// A page preset: its size (keeping the artboard's orientation) and units.
+// A page preset: its size (keeping the canvas's orientation) and units.
 function setPage(k) {
   const p = PAGE_PRESETS[k];
   if (!p) return;
